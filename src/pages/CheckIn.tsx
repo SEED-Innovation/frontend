@@ -30,7 +30,7 @@ const CheckIn = () => {
       duration: "2 hours",
       features: ["Advanced AI", "3D Analysis", "Coaching AI"],
       status: "confirmed",
-      image: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=600&h=300&fit=crop"
+      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=300&fit=crop"
     }
   ];
 
