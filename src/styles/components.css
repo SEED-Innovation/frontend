@@ -1,0 +1,218 @@
+
+/* SEED Tennis Design System - Component Styles */
+
+@layer components {
+  .glass-card {
+    @apply bg-white/20 backdrop-blur-xl border border-white/30 shadow-2xl;
+  }
+  
+  .tennis-gradient {
+    @apply bg-gradient-to-br from-tennis-purple-600 to-tennis-green-500;
+  }
+  
+  .tennis-button {
+    @apply bg-tennis-gradient text-white font-semibold py-3 px-6 rounded-xl 
+           transition-all duration-300 hover:scale-105 hover:shadow-2xl 
+           active:scale-95 focus:outline-none focus:ring-4 focus:ring-tennis-purple-300
+           relative overflow-hidden z-50 pointer-events-auto;
+  }
+  
+  .tennis-button::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent
+           translate-x-[-100%] transition-transform duration-700 pointer-events-none;
+  }
+  
+  .tennis-button:hover::before {
+    @apply translate-x-[100%];
+  }
+  
+  .court-card {
+    @apply bg-white/95 backdrop-blur-sm rounded-2xl border border-gray-200/50 
+           shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02]
+           hover:bg-white relative overflow-hidden;
+  }
+  
+  .court-card::before {
+    content: '';
+    @apply absolute top-0 left-0 w-full h-1 bg-gradient-to-r 
+           from-tennis-purple-500 to-tennis-green-500 opacity-0
+           transition-opacity duration-300 pointer-events-none;
+  }
+  
+  .court-card:hover::before {
+    @apply opacity-100;
+  }
+  
+  /* Enhanced clickable elements inside cards */
+  .court-card .clickable-element,
+  .court-card button,
+  .court-card a,
+  .court-card [role="button"] {
+    @apply relative z-50 pointer-events-auto !important;
+  }
+  
+  .animated-underline {
+    @apply relative after:content-[''] after:absolute after:w-full after:scale-x-0 
+           after:h-0.5 after:bottom-0 after:left-0 after:bg-tennis-purple-500 
+           after:origin-bottom-right after:transition-transform after:duration-300 
+           hover:after:scale-x-100 hover:after:origin-bottom-left;
+  }
+
+  .btn-primary {
+    @apply bg-tennis-green-500 hover:bg-tennis-green-400 text-white font-bold 
+           border-2 border-tennis-green-400 shadow-lg hover:shadow-tennis-green-500/50
+           transition-all duration-300 transform hover:scale-105 rounded-xl z-50 relative pointer-events-auto;
+  }
+
+  .btn-secondary {
+    @apply bg-white/10 backdrop-blur-md border-2 border-white/30 text-white 
+           hover:bg-white/20 hover:border-white/50 shadow-lg
+           transition-all duration-300 transform hover:scale-105 rounded-xl z-50 relative pointer-events-auto;
+  }
+
+  .btn-outline {
+    @apply border-2 border-tennis-purple-200 text-tennis-purple-700 bg-white
+           hover:bg-tennis-purple-50 hover:border-tennis-purple-300
+           transition-all duration-300 transform hover:scale-105 rounded-xl z-50 relative pointer-events-auto;
+  }
+
+  .premium-card {
+    @apply bg-white/95 backdrop-blur-md rounded-3xl border border-gray-200/60 
+           shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-[1.02]
+           hover:bg-white relative overflow-hidden;
+  }
+  
+  .premium-card::after {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-br from-tennis-purple-500/5 to-tennis-green-500/5
+           opacity-0 transition-opacity duration-300 pointer-events-none;
+  }
+  
+  .premium-card:hover::after {
+    @apply opacity-100;
+  }
+
+  /* Enhanced clickable elements inside premium cards */
+  .premium-card .clickable-element,
+  .premium-card button,
+  .premium-card a,
+  .premium-card [role="button"] {
+    @apply relative z-50 pointer-events-auto !important;
+  }
+
+  .interactive-hover {
+    @apply transition-all duration-300 hover:scale-105 hover:shadow-lg;
+  }
+
+  .glow-button {
+    @apply relative overflow-hidden before:absolute before:inset-0 
+           before:bg-gradient-to-r before:from-transparent before:via-white/20 
+           before:to-transparent before:translate-x-[-100%] 
+           hover:before:translate-x-[100%] before:transition-transform 
+           before:duration-700 before:pointer-events-none z-50 pointer-events-auto;
+  }
+
+  .premium-input {
+    @apply w-full px-4 py-3 bg-white/90 backdrop-blur-sm border border-gray-200 
+           rounded-xl focus:outline-none focus:ring-2 focus:ring-tennis-purple-300 
+           focus:border-transparent transition-all duration-300 shadow-sm
+           hover:shadow-md focus:shadow-lg z-30 relative pointer-events-auto;
+  }
+
+  .stats-card {
+    @apply bg-white/95 backdrop-blur-md rounded-2xl border border-gray-200/60 
+           shadow-lg p-6 text-center relative overflow-hidden
+           hover:shadow-xl transition-all duration-300;
+  }
+
+  .stats-card::before {
+    content: '';
+    @apply absolute top-0 left-0 w-full h-1 bg-gradient-to-r 
+           from-tennis-purple-500 to-tennis-green-500 pointer-events-none;
+  }
+  
+  /* Enhanced Form Styles */
+  .form-input {
+    @apply premium-input focus:ring-tennis-purple-400 focus:border-tennis-purple-400;
+  }
+  
+  .form-label {
+    @apply block text-sm font-semibold text-gray-700 mb-2;
+  }
+  
+  .form-error {
+    @apply text-sm text-red-600 mt-1 animate-fade-in;
+  }
+  
+  /* Enhanced Navigation */
+  .nav-link {
+    @apply relative text-gray-700 hover:text-tennis-purple-600 transition-colors duration-300
+           after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 
+           after:h-0.5 after:bg-tennis-purple-600 after:transition-all after:duration-300
+           hover:after:w-full z-40 pointer-events-auto;
+  }
+  
+  .nav-link.active {
+    @apply text-tennis-purple-600 after:w-full;
+  }
+
+  /* Enhanced button accessibility for cards */
+  .card-with-buttons {
+    @apply relative;
+  }
+
+  .card-with-buttons .card-overlay {
+    @apply absolute inset-0 pointer-events-none z-10;
+  }
+
+  .card-with-buttons .card-content {
+    @apply relative z-20;
+  }
+
+  .card-with-buttons button,
+  .card-with-buttons .button-like,
+  .card-with-buttons a {
+    @apply relative z-50 pointer-events-auto !important;
+  }
+
+  /* Global button fix for all interactive elements */
+  button,
+  [role="button"],
+  .btn,
+  .button,
+  input[type="submit"],
+  input[type="button"] {
+    @apply relative z-50 pointer-events-auto !important;
+  }
+
+  /* Time slot buttons specific fix */
+  .time-slot {
+    @apply px-4 py-3 text-sm font-medium rounded-xl transition-all duration-300
+           border-2 cursor-pointer z-50 relative pointer-events-auto !important;
+  }
+
+  .time-slot-available {
+    @apply border-gray-200 bg-white text-gray-700 hover:border-tennis-purple-300 
+           hover:bg-tennis-purple-50 hover:text-tennis-purple-700;
+  }
+
+  .time-slot-selected {
+    @apply border-tennis-purple-500 bg-tennis-purple-500 text-white 
+           hover:bg-tennis-purple-600 hover:border-tennis-purple-600;
+  }
+
+  /* Achievement badge styles */
+  .achievement-badge {
+    @apply w-16 h-16 rounded-full flex items-center justify-center border-4 
+           transition-all duration-300 relative z-30;
+  }
+
+  .achievement-earned {
+    @apply bg-tennis-purple-100 border-tennis-purple-300 text-tennis-purple-600;
+  }
+
+  .achievement-locked {
+    @apply bg-gray-100 border-gray-300 text-gray-400;
+  }
+}

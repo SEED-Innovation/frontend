@@ -1,0 +1,108 @@
+
+/* SEED Tennis Design System - Utilities & Responsive Styles */
+
+@layer components {
+  /* Responsive Grid Utilities */
+  .responsive-grid {
+    @apply grid gap-4 sm:gap-6 lg:gap-8;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+  
+  .responsive-grid-sm {
+    @apply grid gap-3 sm:gap-4 lg:gap-6;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}
+
+/* Responsive Typography */
+.text-responsive-xs {
+  @apply text-xs sm:text-sm;
+}
+
+.text-responsive-sm {
+  @apply text-sm sm:text-base;
+}
+
+.text-responsive-base {
+  @apply text-base sm:text-lg;
+}
+
+.text-responsive-lg {
+  @apply text-lg sm:text-xl lg:text-2xl;
+}
+
+.text-responsive-xl {
+  @apply text-xl sm:text-2xl lg:text-3xl;
+}
+
+.text-responsive-2xl {
+  @apply text-2xl sm:text-3xl lg:text-4xl;
+}
+
+.text-responsive-3xl {
+  @apply text-3xl sm:text-4xl lg:text-5xl;
+}
+
+/* Enhanced Responsive Utilities */
+.container-responsive {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.spacing-responsive {
+  @apply py-8 sm:py-12 lg:py-16;
+}
+
+.spacing-responsive-lg {
+  @apply py-12 sm:py-16 lg:py-24;
+}
+
+.spacing-responsive-xl {
+  @apply py-16 sm:py-24 lg:py-32;
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .dark-mode-auto {
+    @apply bg-gray-900 text-white;
+  }
+  
+  .dark-mode-auto .court-card {
+    @apply bg-gray-800/95 border-gray-700/50;
+  }
+  
+  .dark-mode-auto .premium-card {
+    @apply bg-gray-800/95 border-gray-700/60;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+}
+
+/* Accessibility Enhancements */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .tennis-button {
+    @apply border-2 border-current;
+  }
+  
+  .court-card,
+  .premium-card {
+    @apply border-2 border-gray-800;
+  }
+}
