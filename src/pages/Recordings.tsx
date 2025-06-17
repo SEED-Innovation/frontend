@@ -243,7 +243,10 @@ const Recordings = () => {
                     className="premium-card group animate-fade-in hover:scale-105 transition-all duration-300" 
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
-                    <div className="relative">
+                    <div 
+                      className="relative cursor-pointer"
+                      onClick={() => handlePlayVideo(recording)}
+                    >
                       <img
                         src={recording.thumbnail}
                         alt={recording.title}
