@@ -152,7 +152,7 @@
   .premium-card {
     @apply bg-white/95 backdrop-blur-md rounded-3xl border border-gray-200/60 
            shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-[1.02]
-           hover:bg-white group cursor-pointer;
+           hover:bg-white cursor-pointer;
   }
 
   .interactive-hover {
@@ -349,3 +349,4 @@ button:focus-visible {
 .time-slot-booked {
   @apply bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed;
 }
+

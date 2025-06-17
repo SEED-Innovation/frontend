@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Play, Pause, Volume2, Download, Share, FullScreen, SkipBack, SkipForward } from 'lucide-react';
+import { Play, Pause, Volume2, Download, Share, Maximize, SkipBack, SkipForward } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -147,7 +146,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                   variant="ghost"
                   className="text-white hover:text-tennis-green-400 p-2"
                 >
-                  <FullScreen className="w-5 h-5" />
+                  <Maximize className="w-5 h-5" />
                 </Button>
               </div>
             </div>
