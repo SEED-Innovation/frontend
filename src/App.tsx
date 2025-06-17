@@ -16,6 +16,7 @@ import Profile from "./pages/Profile";
 import Subscription from "./pages/Subscription";
 import Challenges from "./pages/Challenges";
 import NotFound from "./pages/NotFound";
+import Admin from "./pages/Admin";
 import Footer from "./components/Footer";
 
 const queryClient = new QueryClient();
