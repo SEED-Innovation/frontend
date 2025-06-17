@@ -37,7 +37,7 @@ const Recordings = () => {
       duration: "2:15:18",
       court: "Elite Tennis Academy",
       score: "4-6, 6-3, 6-4",
-      thumbnail: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=400&h=225&fit=crop",
+      thumbnail: "https://images.unsplash.com/photo-1544717684-7ba7d47c6c37?w=400&h=225&fit=crop",
       videoUrl: "/videos/match2.mp4",
       stats: {
         serves: 124,
@@ -77,6 +77,15 @@ const Recordings = () => {
 
   const handleShare = (recording: any) => {
     toast.success('Share link copied to clipboard!');
+  };
+
+  const handlePlayVideo = (recording: any, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    console.log('Playing video:', recording.title);
+    setSelectedVideo(recording);
+    toast.success(`Now playing: ${recording.title}`);
   };
 
   if (selectedVideo) {
@@ -235,7 +244,7 @@ const Recordings = () => {
                     key={recording.id} 
                     className="premium-card group cursor-pointer animate-fade-in hover:scale-105 transition-all duration-300" 
                     style={{ animationDelay: `${index * 0.1}s` }}
-                    onClick={() => setSelectedVideo(recording)}
+                    onClick={() => handlePlayVideo(recording)}
                   >
                     <div className="relative">
                       <img
@@ -294,14 +303,18 @@ const Recordings = () => {
                       </div>
 
                       <div className="flex gap-2">
-                        <Button size="sm" className="flex-1 tennis-button text-sm glow-button">
+                        <Button 
+                          size="sm" 
+                          className="flex-1 tennis-button text-sm glow-button z-10 relative"
+                          onClick={(e) => handlePlayVideo(recording, e)}
+                        >
                           <Play className="w-4 h-4 mr-1" />
                           Watch
                         </Button>
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="btn-outline"
+                          className="btn-outline z-10 relative"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDownload(recording);
@@ -312,7 +325,7 @@ const Recordings = () => {
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="btn-outline"
+                          className="btn-outline z-10 relative"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleShare(recording);
