@@ -36,8 +36,8 @@ const Courts = () => {
         
         <div className="pt-20 pb-12">
           <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-            <Card className="premium-card text-center animate-scale-in">
-              <CardContent className="p-12">
+            <Card className="premium-card card-with-buttons text-center animate-scale-in">
+              <CardContent className="p-12 card-content">
                 <div className="w-20 h-20 bg-tennis-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle className="w-12 h-12 text-tennis-green-600" />
                 </div>
@@ -77,14 +77,14 @@ const Courts = () => {
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Button 
                     onClick={handleCheckIn}
-                    className="tennis-button"
+                    className="tennis-button clickable-element"
                   >
                     Go to Check-In
                   </Button>
                   <Button 
                     onClick={handleDashboard}
                     variant="outline" 
-                    className="btn-outline"
+                    className="btn-outline clickable-element"
                   >
                     Back to Dashboard
                   </Button>

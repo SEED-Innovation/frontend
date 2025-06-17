@@ -124,7 +124,7 @@ const CheckIn = () => {
           {/* Upcoming Bookings */}
           <div className="space-y-6">
             {upcomingBookings.map((booking, index) => (
-              <Card key={booking.id} className="court-card animate-fade-in" style={{ animationDelay: `${index * 0.2}s` }}>
+              <Card key={booking.id} className="court-card card-with-buttons animate-fade-in" style={{ animationDelay: `${index * 0.2}s` }}>
                 <div className="md:flex">
                   {/* Court Image */}
                   <div className="md:w-1/3">
@@ -136,7 +136,7 @@ const CheckIn = () => {
                   </div>
 
                   {/* Booking Details */}
-                  <div className="md:w-2/3 p-6">
+                  <div className="md:w-2/3 p-6 card-content">
                     <div className="flex items-start justify-between mb-4">
                       <div>
                         <h3 className="text-xl font-bold text-gray-900 mb-2">{booking.court}</h3>
@@ -177,21 +177,34 @@ const CheckIn = () => {
                     <div className="flex gap-3">
                       {booking.status === 'upcoming' ? (
                         <>
-                          <Button onClick={handleCheckIn} className="tennis-button flex-1">
+                          <Button 
+                            onClick={handleCheckIn} 
+                            className="tennis-button flex-1 clickable-element"
+                          >
                             <CheckCircle className="w-4 h-4 mr-2" />
                             Check In Now
                           </Button>
-                          <Button variant="outline" className="border-tennis-purple-200 text-tennis-purple-700">
+                          <Button 
+                            variant="outline" 
+                            className="border-tennis-purple-200 text-tennis-purple-700 clickable-element"
+                          >
                             View Details
                           </Button>
                         </>
                       ) : (
                         <>
-                          <Button variant="outline" className="flex-1 border-gray-300 text-gray-700" disabled>
+                          <Button 
+                            variant="outline" 
+                            className="flex-1 border-gray-300 text-gray-700 clickable-element" 
+                            disabled
+                          >
                             <Clock className="w-4 h-4 mr-2" />
                             Not Yet Available
                           </Button>
-                          <Button variant="outline" className="border-tennis-purple-200 text-tennis-purple-700">
+                          <Button 
+                            variant="outline" 
+                            className="border-tennis-purple-200 text-tennis-purple-700 clickable-element"
+                          >
                             View Details
                           </Button>
                         </>
@@ -210,7 +223,7 @@ const CheckIn = () => {
                 <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">No Upcoming Bookings</h3>
                 <p className="text-gray-600 mb-6">You don't have any upcoming tennis sessions. Book a court to get started!</p>
-                <Button className="tennis-button">
+                <Button className="tennis-button clickable-element">
                   Book a Court
                 </Button>
               </div>

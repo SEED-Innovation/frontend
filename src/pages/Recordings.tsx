@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Play, Download, Calendar, Clock, Star, TrendingUp, Eye, Share } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -99,7 +98,7 @@ const Recordings = () => {
               <Button 
                 variant="outline" 
                 onClick={() => setSelectedVideo(null)}
-                className="btn-outline"
+                className="btn-outline clickable-element"
               >
                 ← Back to Recordings
               </Button>
@@ -242,7 +241,7 @@ const Recordings = () => {
                 {recordings.map((recording, index) => (
                   <Card 
                     key={recording.id} 
-                    className="premium-card group cursor-pointer animate-fade-in hover:scale-105 transition-all duration-300" 
+                    className="premium-card card-with-buttons group cursor-pointer animate-fade-in hover:scale-105 transition-all duration-300" 
                     style={{ animationDelay: `${index * 0.1}s` }}
                     onClick={() => handlePlayVideo(recording)}
                   >
@@ -253,7 +252,7 @@ const Recordings = () => {
                         className="w-full h-48 object-cover rounded-t-2xl"
                       />
                       {/* Video overlay */}
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 rounded-t-2xl flex items-center justify-center">
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 rounded-t-2xl flex items-center justify-center pointer-events-none">
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                           <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
                             <Play className="w-8 h-8 text-white ml-1" />
@@ -272,7 +271,7 @@ const Recordings = () => {
                       )}
                     </div>
 
-                    <CardContent className="p-6">
+                    <CardContent className="p-6 card-content">
                       <h3 className="text-lg font-bold text-gray-900 mb-2">{recording.title}</h3>
                       <div className="flex items-center text-gray-600 text-sm mb-3">
                         <Calendar className="w-4 h-4 mr-1" />
@@ -305,7 +304,7 @@ const Recordings = () => {
                       <div className="flex gap-2">
                         <Button 
                           size="sm" 
-                          className="flex-1 tennis-button text-sm glow-button z-10 relative"
+                          className="flex-1 tennis-button text-sm glow-button clickable-element"
                           onClick={(e) => handlePlayVideo(recording, e)}
                         >
                           <Play className="w-4 h-4 mr-1" />
@@ -314,7 +313,7 @@ const Recordings = () => {
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="btn-outline z-10 relative"
+                          className="btn-outline clickable-element"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDownload(recording);
@@ -325,7 +324,7 @@ const Recordings = () => {
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="btn-outline z-10 relative"
+                          className="btn-outline clickable-element"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleShare(recording);
