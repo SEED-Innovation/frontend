@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowDown, Calendar, Star, Eye, Trophy, Play, Zap, Target, Users, Menu, X, CheckCircle, Clock, Video, BarChart3, Award, MessageSquare } from 'lucide-react';
@@ -202,6 +201,14 @@ const Landing = () => {
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-tennis-green-400 transition-all duration-300 group-hover:w-full"></span>
               </Link>
               <Link to="/login" className="text-white/80 hover:text-white transition-colors">Login</Link>
+              <Link to="/admin-login">
+                <Button 
+                  variant="ghost"
+                  className="text-white/80 hover:text-white hover:bg-white/10 border border-white/30 transition-all duration-300"
+                >
+                  Admin
+                </Button>
+              </Link>
               <Button 
                 onClick={handleGetStarted}
                 className="bg-tennis-green-500 hover:bg-tennis-green-400 text-white font-semibold px-6 py-2 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg border-2 border-tennis-green-400"
@@ -236,6 +243,9 @@ const Landing = () => {
                 </Link>
                 <Link to="/login" className="block text-white text-lg font-medium hover:text-tennis-green-400 transition-colors" onClick={() => setIsMenuOpen(false)}>
                   Login
+                </Link>
+                <Link to="/admin-login" className="block text-white text-lg font-medium hover:text-tennis-green-400 transition-colors" onClick={() => setIsMenuOpen(false)}>
+                  Admin Access
                 </Link>
                 <Button 
                   onClick={() => {
