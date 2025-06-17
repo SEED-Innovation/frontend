@@ -147,6 +147,25 @@
            hover:bg-tennis-purple-50 hover:border-tennis-purple-300
            transition-all duration-300 transform hover:scale-105;
   }
+
+  /* Premium Interactive Elements */
+  .premium-card {
+    @apply bg-white/95 backdrop-blur-md rounded-3xl border border-gray-200/60 
+           shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-[1.02]
+           hover:bg-white group cursor-pointer;
+  }
+
+  .interactive-hover {
+    @apply transition-all duration-300 hover:scale-105 hover:shadow-lg;
+  }
+
+  .glow-button {
+    @apply relative overflow-hidden before:absolute before:inset-0 
+           before:bg-gradient-to-r before:from-transparent before:via-white/20 
+           before:to-transparent before:translate-x-[-100%] 
+           hover:before:translate-x-[100%] before:transition-transform 
+           before:duration-700;
+  }
 }
 
 /* Enhanced Animations */
@@ -194,6 +213,26 @@
   }
 }
 
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
@@ -223,7 +262,90 @@ button:focus-visible {
   color: inherit !important;
 }
 
-/* Hover states for all interactive elements */
-.interactive-hover {
-  @apply transition-all duration-300 hover:scale-105 hover:shadow-lg;
+/* Premium Loading States */
+.loading-skeleton {
+  @apply bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse;
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Video Player Enhancements */
+.video-player {
+  @apply rounded-2xl overflow-hidden shadow-2xl relative;
+}
+
+.video-overlay {
+  @apply absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 
+         transition-opacity duration-300 flex items-center justify-center;
+}
+
+/* Stats Cards */
+.stats-card {
+  @apply premium-card p-6 text-center relative overflow-hidden;
+}
+
+.stats-card::before {
+  content: '';
+  @apply absolute top-0 left-0 w-full h-1 bg-gradient-to-r 
+         from-tennis-purple-500 to-tennis-green-500;
+}
+
+/* Achievement Badges */
+.achievement-badge {
+  @apply relative inline-flex items-center justify-center w-16 h-16 
+         rounded-full transition-all duration-300 hover:scale-110;
+}
+
+.achievement-earned {
+  @apply bg-gradient-to-br from-tennis-green-400 to-tennis-green-600 
+         text-white shadow-lg;
+}
+
+.achievement-locked {
+  @apply bg-gray-200 text-gray-500;
+}
+
+/* Premium Input Styles */
+.premium-input {
+  @apply w-full px-4 py-3 bg-white/90 backdrop-blur-sm border border-gray-200 
+         rounded-xl focus:outline-none focus:ring-2 focus:ring-tennis-purple-300 
+         focus:border-transparent transition-all duration-300 shadow-sm
+         hover:shadow-md;
+}
+
+/* Court Booking Calendar */
+.calendar-day {
+  @apply w-12 h-12 flex items-center justify-center rounded-xl 
+         transition-all duration-200 hover:scale-105 cursor-pointer;
+}
+
+.calendar-day-available {
+  @apply bg-tennis-green-100 text-tennis-green-700 hover:bg-tennis-green-200;
+}
+
+.calendar-day-selected {
+  @apply bg-tennis-purple-500 text-white shadow-lg;
+}
+
+.calendar-day-disabled {
+  @apply bg-gray-100 text-gray-400 cursor-not-allowed;
+}
+
+/* Time Slot Selector */
+.time-slot {
+  @apply px-4 py-2 rounded-lg border transition-all duration-200 
+         cursor-pointer hover:scale-105;
+}
+
+.time-slot-available {
+  @apply bg-white border-tennis-green-200 text-tennis-green-700 
+         hover:bg-tennis-green-50;
+}
+
+.time-slot-selected {
+  @apply bg-tennis-purple-500 border-tennis-purple-500 text-white;
+}
+
+.time-slot-booked {
+  @apply bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed;
 }

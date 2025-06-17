@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Clock, Trophy, User, MapPin, Play } from 'lucide-react';
+import { Calendar, Clock, Trophy, User, MapPin, Play, Video, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Navigation from '@/components/Navigation';
@@ -73,7 +73,7 @@ const Dashboard = () => {
             {stats.map((stat, index) => {
               const IconComponent = stat.icon;
               return (
-                <Card key={index} className="court-card animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                <Card key={index} className="premium-card animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
@@ -92,11 +92,11 @@ const Dashboard = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Upcoming Sessions */}
-            <Card className="court-card animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            <Card className="premium-card animate-fade-in" style={{ animationDelay: '0.4s' }}>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-xl font-bold">Upcoming Sessions</CardTitle>
                 <Link to="/courts">
-                  <Button variant="outline" size="sm" className="border-tennis-purple-200 text-tennis-purple-700">
+                  <Button variant="outline" size="sm" className="btn-outline">
                     Book New
                   </Button>
                 </Link>
@@ -122,10 +122,12 @@ const Dashboard = () => {
                     </div>
                     <div className="flex items-center justify-between mt-3">
                       <span className="text-sm font-medium text-tennis-purple-600">{session.type}</span>
-                      <Button size="sm" className="tennis-button">
-                        <Play className="w-4 h-4 mr-1" />
-                        Check In
-                      </Button>
+                      <Link to="/checkin">
+                        <Button size="sm" className="tennis-button glow-button">
+                          <Play className="w-4 h-4 mr-1" />
+                          Check In
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 ))}
@@ -133,54 +135,56 @@ const Dashboard = () => {
             </Card>
 
             {/* Recent Matches */}
-            <Card className="court-card animate-fade-in" style={{ animationDelay: '0.6s' }}>
+            <Card className="premium-card animate-fade-in" style={{ animationDelay: '0.6s' }}>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-xl font-bold">Recent Matches</CardTitle>
-                <Link to="/matches">
-                  <Button variant="outline" size="sm" className="border-tennis-purple-200 text-tennis-purple-700">
+                <Link to="/recordings">
+                  <Button variant="outline" size="sm" className="btn-outline">
                     View All
                   </Button>
                 </Link>
               </CardHeader>
               <CardContent className="space-y-4">
                 {recentMatches.map((match) => (
-                  <div key={match.id} className="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-16 h-12 bg-gray-200 rounded-lg overflow-hidden">
-                        <img 
-                          src={match.thumbnail} 
-                          alt="Match thumbnail"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <h3 className="font-semibold text-gray-900">vs {match.opponent}</h3>
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            match.result === 'win' 
-                              ? 'bg-tennis-green-100 text-tennis-green-700' 
-                              : 'bg-red-100 text-red-700'
-                          }`}>
-                            {match.result.toUpperCase()}
-                          </span>
+                  <Link key={match.id} to="/recordings">
+                    <div className="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-16 h-12 bg-gray-200 rounded-lg overflow-hidden">
+                          <img 
+                            src={match.thumbnail} 
+                            alt="Match thumbnail"
+                            className="w-full h-full object-cover"
+                          />
                         </div>
-                        <div className="flex items-center text-sm text-gray-600 space-x-3">
-                          <span className="font-medium">{match.score}</span>
-                          <span>{match.duration}</span>
-                          <span>{match.date}</span>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <h3 className="font-semibold text-gray-900">vs {match.opponent}</h3>
+                            <span className={`text-xs px-2 py-1 rounded-full ${
+                              match.result === 'win' 
+                                ? 'bg-tennis-green-100 text-tennis-green-700' 
+                                : 'bg-red-100 text-red-700'
+                            }`}>
+                              {match.result.toUpperCase()}
+                            </span>
+                          </div>
+                          <div className="flex items-center text-sm text-gray-600 space-x-3">
+                            <span className="font-medium">{match.score}</span>
+                            <span>{match.duration}</span>
+                            <span>{match.date}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </CardContent>
             </Card>
           </div>
 
           {/* Quick Actions */}
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-6">
             <Link to="/courts">
-              <Card className="court-card cursor-pointer animate-fade-in" style={{ animationDelay: '0.8s' }}>
+              <Card className="premium-card cursor-pointer animate-fade-in interactive-hover" style={{ animationDelay: '0.8s' }}>
                 <CardContent className="p-6 text-center">
                   <div className="tennis-gradient p-4 rounded-xl inline-flex mb-4">
                     <MapPin className="w-8 h-8 text-white" />
@@ -192,7 +196,7 @@ const Dashboard = () => {
             </Link>
 
             <Link to="/leaderboard">
-              <Card className="court-card cursor-pointer animate-fade-in" style={{ animationDelay: '1s' }}>
+              <Card className="premium-card cursor-pointer animate-fade-in interactive-hover" style={{ animationDelay: '1s' }}>
                 <CardContent className="p-6 text-center">
                   <div className="tennis-gradient p-4 rounded-xl inline-flex mb-4">
                     <Trophy className="w-8 h-8 text-white" />
@@ -203,14 +207,26 @@ const Dashboard = () => {
               </Card>
             </Link>
 
-            <Link to="/profile">
-              <Card className="court-card cursor-pointer animate-fade-in" style={{ animationDelay: '1.2s' }}>
+            <Link to="/recordings">
+              <Card className="premium-card cursor-pointer animate-fade-in interactive-hover" style={{ animationDelay: '1.2s' }}>
                 <CardContent className="p-6 text-center">
                   <div className="tennis-gradient p-4 rounded-xl inline-flex mb-4">
-                    <User className="w-8 h-8 text-white" />
+                    <Video className="w-8 h-8 text-white" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Profile</h3>
-                  <p className="text-gray-600">Manage your account and settings</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Recordings</h3>
+                  <p className="text-gray-600">Watch and analyze your matches</p>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link to="/challenges">
+              <Card className="premium-card cursor-pointer animate-fade-in interactive-hover" style={{ animationDelay: '1.4s' }}>
+                <CardContent className="p-6 text-center">
+                  <div className="tennis-gradient p-4 rounded-xl inline-flex mb-4">
+                    <Target className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Challenges</h3>
+                  <p className="text-gray-600">Join challenges and earn badges</p>
                 </CardContent>
               </Card>
             </Link>

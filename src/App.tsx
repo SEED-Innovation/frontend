@@ -13,6 +13,8 @@ import CheckIn from "./pages/CheckIn";
 import Recordings from "./pages/Recordings";
 import Leaderboard from "./pages/Leaderboard";
 import Profile from "./pages/Profile";
+import Subscription from "./pages/Subscription";
+import Challenges from "./pages/Challenges";
 import NotFound from "./pages/NotFound";
 import Footer from "./components/Footer";
 
@@ -33,8 +35,12 @@ const App = () => (
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/courts" element={<Courts />} />
               <Route path="/session" element={<Session />} />
+              <Route path="/checkin" element={<CheckIn />} />
+              <Route path="/recordings" element={<Recordings />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/subscription" element={<Subscription />} />
+              <Route path="/challenges" element={<Challenges />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

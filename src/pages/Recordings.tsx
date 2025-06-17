@@ -1,14 +1,16 @@
 
 import React, { useState } from 'react';
-import { Play, Download, Calendar, Clock, Star, TrendingUp, Eye } from 'lucide-react';
+import { Play, Download, Calendar, Clock, Star, TrendingUp, Eye, Share } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import Navigation from '@/components/Navigation';
+import VideoPlayer from '@/components/VideoPlayer';
+import { toast } from 'sonner';
 
 const Recordings = () => {
-  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [selectedVideo, setSelectedVideo] = useState<any>(null);
 
   const recordings = [
     {
@@ -19,6 +21,7 @@ const Recordings = () => {
       court: "Riverside Tennis Club",
       score: "6-4, 6-2",
       thumbnail: "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=400&h=225&fit=crop",
+      videoUrl: "/videos/match1.mp4",
       stats: {
         serves: 89,
         serveAccuracy: 78,
@@ -35,6 +38,7 @@ const Recordings = () => {
       court: "Elite Tennis Academy",
       score: "4-6, 6-3, 6-4",
       thumbnail: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=400&h=225&fit=crop",
+      videoUrl: "/videos/match2.mp4",
       stats: {
         serves: 124,
         serveAccuracy: 82,
@@ -51,6 +55,7 @@ const Recordings = () => {
       court: "Downtown Sports Center",
       score: "Practice",
       thumbnail: "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=400&h=225&fit=crop",
+      videoUrl: "/videos/match3.mp4",
       stats: {
         serves: 67,
         serveAccuracy: 85,
@@ -60,6 +65,148 @@ const Recordings = () => {
       premium: false
     }
   ];
+
+  const handleDownload = (recording: any) => {
+    if (recording.premium) {
+      // Simulate download
+      toast.success(`Downloading ${recording.title}...`);
+    } else {
+      toast.error('Premium subscription required for downloads');
+    }
+  };
+
+  const handleShare = (recording: any) => {
+    toast.success('Share link copied to clipboard!');
+  };
+
+  if (selectedVideo) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        
+        <div className="pt-20 pb-12">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="mb-6">
+              <Button 
+                variant="outline" 
+                onClick={() => setSelectedVideo(null)}
+                className="btn-outline"
+              >
+                ← Back to Recordings
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Video Player */}
+              <div className="lg:col-span-2 space-y-6">
+                <VideoPlayer
+                  videoUrl={selectedVideo.videoUrl}
+                  title={selectedVideo.title}
+                  duration={selectedVideo.duration}
+                  isPremium={selectedVideo.premium}
+                  onDownload={() => handleDownload(selectedVideo)}
+                  onShare={() => handleShare(selectedVideo)}
+                />
+
+                {/* Match Info */}
+                <Card className="premium-card">
+                  <CardContent className="p-6">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">{selectedVideo.title}</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-600">Date:</span>
+                        <p className="font-medium">{selectedVideo.date}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Court:</span>
+                        <p className="font-medium">{selectedVideo.court}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Duration:</span>
+                        <p className="font-medium">{selectedVideo.duration}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Score:</span>
+                        <p className="font-medium text-tennis-green-700">{selectedVideo.score}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Stats Sidebar */}
+              <div className="space-y-6">
+                <Card className="premium-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <TrendingUp className="w-5 h-5 mr-2 text-tennis-purple-600" />
+                      Performance Stats
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="stats-card">
+                      <div className="text-3xl font-bold text-tennis-purple-700">
+                        {selectedVideo.stats.serves}
+                      </div>
+                      <div className="text-sm text-gray-600">Total Serves</div>
+                    </div>
+                    
+                    <div className="stats-card">
+                      <div className="text-3xl font-bold text-tennis-green-700">
+                        {selectedVideo.stats.serveAccuracy}%
+                      </div>
+                      <div className="text-sm text-gray-600">Serve Accuracy</div>
+                    </div>
+                    
+                    <div className="stats-card">
+                      <div className="text-3xl font-bold text-blue-700">
+                        {selectedVideo.stats.avgSpeed} mph
+                      </div>
+                      <div className="text-sm text-gray-600">Avg Speed</div>
+                    </div>
+                    
+                    <div className="stats-card">
+                      <div className="text-3xl font-bold text-yellow-700">
+                        {selectedVideo.stats.winners}
+                      </div>
+                      <div className="text-sm text-gray-600">Winners</div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* AI Insights */}
+                <Card className="premium-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Eye className="w-5 h-5 mr-2 text-tennis-purple-600" />
+                      AI Insights
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="p-3 bg-tennis-green-50 rounded-xl">
+                      <p className="text-sm text-tennis-green-700 font-medium">
+                        Great serve consistency in this match!
+                      </p>
+                    </div>
+                    <div className="p-3 bg-tennis-purple-50 rounded-xl">
+                      <p className="text-sm text-tennis-purple-700 font-medium">
+                        Consider working on backhand placement
+                      </p>
+                    </div>
+                    <div className="p-3 bg-blue-50 rounded-xl">
+                      <p className="text-sm text-blue-700 font-medium">
+                        Excellent net play improvement
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -84,7 +231,12 @@ const Recordings = () => {
               {/* Video Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {recordings.map((recording, index) => (
-                  <Card key={recording.id} className="court-card group cursor-pointer animate-fade-in hover:scale-105 transition-all duration-300" style={{ animationDelay: `${index * 0.1}s` }}>
+                  <Card 
+                    key={recording.id} 
+                    className="premium-card group cursor-pointer animate-fade-in hover:scale-105 transition-all duration-300" 
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                    onClick={() => setSelectedVideo(recording)}
+                  >
                     <div className="relative">
                       <img
                         src={recording.thumbnail}
@@ -142,89 +294,48 @@ const Recordings = () => {
                       </div>
 
                       <div className="flex gap-2">
-                        <Button size="sm" className="flex-1 tennis-button text-sm">
+                        <Button size="sm" className="flex-1 tennis-button text-sm glow-button">
                           <Play className="w-4 h-4 mr-1" />
                           Watch
                         </Button>
-                        <Button size="sm" variant="outline" className="border-tennis-purple-200 text-tennis-purple-700">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="btn-outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownload(recording);
+                          }}
+                        >
                           <Download className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="btn-outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleShare(recording);
+                          }}
+                        >
+                          <Share className="w-4 h-4" />
                         </Button>
                       </div>
                     </CardContent>
                   </Card>
                 ))}
               </div>
-
-              {/* Detailed View Modal */}
-              {selectedVideo && (
-                <Card className="court-card mt-8">
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <span>Match Analysis</span>
-                      <Button variant="outline" size="sm" onClick={() => setSelectedVideo(null)}>
-                        Close
-                      </Button>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                      {/* Video Player */}
-                      <div>
-                        <div className="bg-gray-900 rounded-xl aspect-video flex items-center justify-center">
-                          <div className="text-center text-white">
-                            <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                            <p>Video Player</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Stats */}
-                      <div className="space-y-6">
-                        <div>
-                          <h3 className="text-lg font-semibold mb-4">Performance Metrics</h3>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="text-center p-4 bg-tennis-purple-50 rounded-xl">
-                              <div className="text-2xl font-bold text-tennis-purple-700">124</div>
-                              <div className="text-sm text-gray-600">Total Serves</div>
-                            </div>
-                            <div className="text-center p-4 bg-tennis-green-50 rounded-xl">
-                              <div className="text-2xl font-bold text-tennis-green-700">82%</div>
-                              <div className="text-sm text-gray-600">Accuracy</div>
-                            </div>
-                            <div className="text-center p-4 bg-blue-50 rounded-xl">
-                              <div className="text-2xl font-bold text-blue-700">48 mph</div>
-                              <div className="text-sm text-gray-600">Avg Speed</div>
-                            </div>
-                            <div className="text-center p-4 bg-yellow-50 rounded-xl">
-                              <div className="text-2xl font-bold text-yellow-700">31</div>
-                              <div className="text-sm text-gray-600">Winners</div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div>
-                          <h3 className="text-lg font-semibold mb-4">Court Heatmap</h3>
-                          <div className="bg-tennis-green-100 rounded-xl p-6 text-center">
-                            <TrendingUp className="w-12 h-12 text-tennis-green-600 mx-auto mb-2" />
-                            <p className="text-tennis-green-700">Heatmap visualization coming soon</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
             </TabsContent>
 
             <TabsContent value="matches">
               <div className="text-center py-12">
-                <p className="text-gray-500">Filter functionality coming soon</p>
+                <p className="text-gray-500">Showing matches only...</p>
               </div>
             </TabsContent>
 
             <TabsContent value="practice">
               <div className="text-center py-12">
-                <p className="text-gray-500">Filter functionality coming soon</p>
+                <p className="text-gray-500">Showing practice sessions only...</p>
               </div>
             </TabsContent>
           </Tabs>
