@@ -7,9 +7,15 @@ import { Badge } from '@/components/ui/badge';
 
 interface SubscriptionPlansProps {
   onPlanSelect: (plan: string) => void;
+  isLoading?: boolean;
+  selectedPlan?: string | null;
 }
 
-const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({ onPlanSelect }) => {
+const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({ 
+  onPlanSelect, 
+  isLoading = false, 
+  selectedPlan = null 
+}) => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
   const plans = [
@@ -107,13 +113,14 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({ onPlanSelect }) =
         {plans.map((plan, index) => {
           const IconComponent = plan.icon;
           const isPopular = plan.popular;
+          const isSelected = selectedPlan === plan.id;
           
           return (
             <Card 
               key={plan.id}
               className={`premium-card relative animate-fade-in ${
                 isPopular ? 'ring-2 ring-tennis-purple-300 scale-105' : ''
-              }`}
+              } ${isSelected ? 'ring-2 ring-tennis-green-500' : ''}`}
               style={{ animationDelay: `${index * 0.2}s` }}
             >
               {isPopular && (
@@ -174,13 +181,19 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({ onPlanSelect }) =
 
                 <Button
                   onClick={() => onPlanSelect(plan.id)}
+                  disabled={isLoading}
                   className={`w-full py-4 text-lg font-semibold glow-button ${
                     isPopular
                       ? 'tennis-button'
                       : 'btn-outline'
-                  }`}
+                  } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  {isPopular ? (
+                  {isLoading && isSelected ? (
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      Processing...
+                    </div>
+                  ) : isPopular ? (
                     <>
                       <Zap className="w-5 h-5 mr-2" />
                       Start Free Trial
