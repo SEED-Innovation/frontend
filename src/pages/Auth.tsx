@@ -20,6 +20,7 @@ const Auth = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submitted', { isLogin, formData });
     
     if (!isLogin && formData.password !== formData.confirmPassword) {
       toast.error('Passwords do not match');
@@ -32,16 +33,19 @@ const Auth = () => {
     }
 
     setIsLoading(true);
+    console.log('Starting authentication...');
     
     // Simulate authentication process
     setTimeout(() => {
       setIsLoading(false);
       toast.success(isLogin ? 'Welcome back!' : 'Account created successfully!');
+      console.log('Navigating to dashboard...');
       navigate('/dashboard');
     }, 1500);
   };
 
   const handleSocialAuth = (provider: string) => {
+    console.log(`Social auth clicked: ${provider}`);
     setIsLoading(true);
     toast.success(`Signing in with ${provider}...`);
     setTimeout(() => {
@@ -51,16 +55,27 @@ const Auth = () => {
   };
 
   const handleGuestMode = () => {
+    console.log('Guest mode clicked');
     toast.info('Entering guest mode...');
     setTimeout(() => navigate('/dashboard'), 500);
   };
 
+  const handleToggleMode = () => {
+    console.log('Toggle mode clicked', { currentMode: isLogin });
+    setIsLogin(!isLogin);
+  };
+
+  const handleTogglePassword = () => {
+    console.log('Toggle password clicked');
+    setShowPassword(!showPassword);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-tennis-purple-50 via-white to-tennis-green-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md relative z-10">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center space-x-3">
+          <Link to="/" className="inline-flex items-center space-x-3 hover:opacity-80 transition-opacity">
             <div className="w-12 h-12 tennis-gradient rounded-xl flex items-center justify-center">
               <span className="text-white font-bold text-xl">S</span>
             </div>
@@ -70,8 +85,8 @@ const Auth = () => {
           </Link>
         </div>
 
-        <Card className="premium-card animate-fade-in">
-          <CardHeader className="text-center">
+        <Card className="bg-white shadow-lg border border-gray-200 rounded-lg animate-fade-in relative">
+          <CardHeader className="text-center p-6">
             <CardTitle className="text-2xl font-bold text-gray-900">
               {isLogin ? 'Welcome Back' : 'Create Account'}
             </CardTitle>
@@ -80,22 +95,24 @@ const Auth = () => {
             </p>
           </CardHeader>
 
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 p-6">
             {/* Social Login */}
             <div className="space-y-3">
               <Button
+                type="button"
                 onClick={() => handleSocialAuth('Google')}
                 variant="outline"
-                className="w-full h-12 border-gray-200 hover:bg-gray-50"
+                className="w-full h-12 border-gray-200 hover:bg-gray-50 relative z-20"
                 disabled={isLoading}
               >
                 <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" className="w-5 h-5 mr-3" />
                 Continue with Google
               </Button>
               <Button
+                type="button"
                 onClick={() => handleSocialAuth('Apple')}
                 variant="outline"
-                className="w-full h-12 border-gray-200 hover:bg-gray-50"
+                className="w-full h-12 border-gray-200 hover:bg-gray-50 relative z-20"
                 disabled={isLoading}
               >
                 <span className="mr-3">🍎</span>
@@ -113,13 +130,13 @@ const Auth = () => {
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4 relative z-10">
               {!isLogin && (
                 <div>
                   <label className="text-sm font-medium text-gray-700">Username</label>
                   <input
                     type="text"
-                    className="premium-input mt-1"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-tennis-purple-500 focus:border-transparent mt-1"
                     placeholder="Choose a username"
                     value={formData.username}
                     onChange={(e) => setFormData({...formData, username: e.target.value})}
@@ -133,7 +150,7 @@ const Auth = () => {
                 <label className="text-sm font-medium text-gray-700">Email</label>
                 <input
                   type="email"
-                  className="premium-input mt-1"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-tennis-purple-500 focus:border-transparent mt-1"
                   placeholder="Enter your email"
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
@@ -147,7 +164,7 @@ const Auth = () => {
                 <div className="relative mt-1">
                   <input
                     type={showPassword ? 'text' : 'password'}
-                    className="premium-input pr-10"
+                    className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-tennis-purple-500 focus:border-transparent"
                     placeholder="Enter your password"
                     value={formData.password}
                     onChange={(e) => setFormData({...formData, password: e.target.value})}
@@ -156,8 +173,8 @@ const Auth = () => {
                   />
                   <button
                     type="button"
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 z-30"
+                    onClick={handleTogglePassword}
                     disabled={isLoading}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -170,7 +187,7 @@ const Auth = () => {
                   <label className="text-sm font-medium text-gray-700">Confirm Password</label>
                   <input
                     type="password"
-                    className="premium-input mt-1"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-tennis-purple-500 focus:border-transparent mt-1"
                     placeholder="Confirm your password"
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
@@ -184,7 +201,7 @@ const Auth = () => {
                 <div className="text-right">
                   <button
                     type="button"
-                    className="text-sm text-tennis-purple-600 hover:text-tennis-purple-700 animated-underline"
+                    className="text-sm text-tennis-purple-600 hover:text-tennis-purple-700 underline relative z-20"
                     onClick={() => toast.info('Password reset coming soon!')}
                     disabled={isLoading}
                   >
@@ -195,7 +212,7 @@ const Auth = () => {
 
               <Button 
                 type="submit" 
-                className="tennis-button w-full h-12"
+                className="bg-gradient-to-r from-tennis-purple-600 to-tennis-green-500 hover:from-tennis-purple-700 hover:to-tennis-green-600 text-white w-full h-12 relative z-20"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -208,13 +225,14 @@ const Auth = () => {
             </form>
 
             {/* Switch Mode */}
-            <div className="text-center">
+            <div className="text-center relative z-20">
               <span className="text-gray-600">
                 {isLogin ? "Don't have an account? " : "Already have an account? "}
               </span>
               <button
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-tennis-purple-600 hover:text-tennis-purple-700 font-medium animated-underline"
+                type="button"
+                onClick={handleToggleMode}
+                className="text-tennis-purple-600 hover:text-tennis-purple-700 font-medium underline"
                 disabled={isLoading}
               >
                 {isLogin ? 'Sign up' : 'Sign in'}
@@ -222,10 +240,11 @@ const Auth = () => {
             </div>
 
             {/* Guest Mode */}
-            <div className="text-center pt-4 border-t border-gray-200">
+            <div className="text-center pt-4 border-t border-gray-200 relative z-20">
               <Button 
+                type="button"
                 variant="ghost" 
-                className="text-gray-600 hover:text-gray-800"
+                className="text-gray-600 hover:text-gray-800 relative z-20"
                 onClick={handleGuestMode}
                 disabled={isLoading}
               >
