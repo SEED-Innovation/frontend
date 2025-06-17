@@ -37,7 +37,7 @@ const Recordings = () => {
       duration: "2:15:18",
       court: "Elite Tennis Academy",
       score: "4-6, 6-3, 6-4",
-      thumbnail: "https://images.unsplash.com/photo-1544717684-7ba7d47c6c37?w=400&h=225&fit=crop",
+      thumbnail: "https://images.unsplash.com/photo-1614743653196-d969b45200b9?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       videoUrl: "/videos/match2.mp4",
       stats: {
         serves: 124,
