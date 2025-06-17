@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Play, Download, Calendar, Clock, Star, TrendingUp, Eye, Share } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -66,8 +67,8 @@ const Recordings = () => {
   ];
 
   const handleDownload = (recording: any) => {
+    console.log('Download clicked for:', recording.title);
     if (recording.premium) {
-      // Simulate download
       toast.success(`Downloading ${recording.title}...`);
     } else {
       toast.error('Premium subscription required for downloads');
@@ -75,13 +76,11 @@ const Recordings = () => {
   };
 
   const handleShare = (recording: any) => {
+    console.log('Share clicked for:', recording.title);
     toast.success('Share link copied to clipboard!');
   };
 
-  const handlePlayVideo = (recording: any, e?: React.MouseEvent) => {
-    if (e) {
-      e.stopPropagation();
-    }
+  const handlePlayVideo = (recording: any) => {
     console.log('Playing video:', recording.title);
     setSelectedVideo(recording);
     toast.success(`Now playing: ${recording.title}`);
@@ -304,7 +303,12 @@ const Recordings = () => {
                         <Button 
                           size="sm" 
                           className="flex-1 tennis-button text-sm glow-button"
-                          onClick={() => handlePlayVideo(recording)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('Watch button clicked!', recording.title);
+                            handlePlayVideo(recording);
+                          }}
                         >
                           <Play className="w-4 h-4 mr-1" />
                           Watch
@@ -313,7 +317,12 @@ const Recordings = () => {
                           size="sm" 
                           variant="outline" 
                           className="btn-outline"
-                          onClick={() => handleDownload(recording)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('Download button clicked!', recording.title);
+                            handleDownload(recording);
+                          }}
                         >
                           <Download className="w-4 h-4" />
                         </Button>
@@ -321,7 +330,12 @@ const Recordings = () => {
                           size="sm" 
                           variant="outline" 
                           className="btn-outline"
-                          onClick={() => handleShare(recording)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('Share button clicked!', recording.title);
+                            handleShare(recording);
+                          }}
                         >
                           <Share className="w-4 h-4" />
                         </Button>
