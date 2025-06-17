@@ -1,68 +1,35 @@
 
 import React, { useState } from 'react';
-import { Edit, Settings, Trophy, Calendar, Clock, Star, TrendingUp } from 'lucide-react';
+import { Settings, Trophy, Star, Target, Award, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import Navigation from '@/components/Navigation';
+import { Link } from 'react-router-dom';
 
 const Profile = () => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('stats');
 
-  const userProfile = {
-    name: "John Doe",
-    username: "@johndoe",
-    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face",
-    rank: 7,
-    points: 1850,
-    joinDate: "March 2024",
-    level: "Advanced",
-    location: "San Francisco, CA"
+  const userStats = {
+    name: 'John Doe',
+    rank: 45,
+    monthlyRank: 12,
+    points: 2450,
+    plan: 'Premium',
+    totalShots: 1247,
+    gamesPlayed: 28,
+    accuracyRate: 78,
+    winsCount: 18
   };
 
-  const stats = [
-    { label: "Matches Played", value: "24", icon: Calendar, change: "+3 this week" },
-    { label: "Win Rate", value: "70%", icon: Trophy, change: "+5% this month" },
-    { label: "Hours Played", value: "156", icon: Clock, change: "+12 this week" },
-    { label: "Current Rank", value: "#7", icon: Star, change: "+1 position" }
-  ];
-
-  const recentMatches = [
-    {
-      id: 1,
-      opponent: "Sarah M.",
-      result: "win",
-      score: "6-4, 6-2",
-      date: "2 days ago",
-      court: "Riverside Tennis Club"
-    },
-    {
-      id: 2,
-      opponent: "Alex R.",
-      result: "win",
-      score: "4-6, 6-3, 6-4",
-      date: "1 week ago",
-      court: "Downtown Sports Center"
-    },
-    {
-      id: 3,
-      opponent: "Mike L.",
-      result: "loss",
-      score: "3-6, 4-6",
-      date: "2 weeks ago",
-      court: "Elite Tennis Academy"
-    }
-  ];
-
-  const achievements = [
-    { name: "First Win", description: "Won your first match", earned: true, date: "March 2024" },
-    { name: "Winning Streak", description: "Win 5 matches in a row", earned: true, date: "July 2024" },
-    { name: "Marathon Player", description: "Play 100+ hours", earned: true, date: "November 2024" },
-    { name: "Top 10", description: "Reach top 10 ranking", earned: false, progress: 70 },
-    { name: "Consistency King", description: "Play 30 days in a row", earned: false, progress: 23 },
-    { name: "Perfect Game", description: "Win a match 6-0, 6-0", earned: false, progress: 0 }
+  const badges = [
+    { id: 1, name: 'First Win', icon: '🏆', earned: true, description: 'Win your first match' },
+    { id: 2, name: 'Ace Master', icon: '⚡', earned: true, description: 'Hit 10 aces in a match' },
+    { id: 3, name: 'Consistent Player', icon: '🎯', earned: true, description: 'Play 5 matches in a row' },
+    { id: 4, name: 'Speed Demon', icon: '💨', earned: false, description: 'Serve at 120+ mph' },
+    { id: 5, name: 'Marathon Player', icon: '⏱️', earned: false, description: 'Play a 3+ hour match' },
+    { id: 6, name: 'Perfect Game', icon: '💎', earned: false, description: 'Win without losing a game' }
   ];
 
   return (
@@ -70,192 +37,181 @@ const Profile = () => {
       <Navigation />
       
       <div className="pt-20 pb-12">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Profile Header */}
-          <Card className="court-card mb-8 animate-fade-in">
+          <Card className="premium-card mb-8 animate-fade-in">
             <CardContent className="p-8">
               <div className="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
+                {/* Avatar */}
                 <div className="relative">
-                  <img
-                    src={userProfile.avatar}
-                    alt={userProfile.name}
-                    className="w-32 h-32 rounded-full border-4 border-tennis-purple-200"
-                  />
-                  <Button
-                    size="sm"
-                    className="absolute bottom-0 right-0 rounded-full w-10 h-10 p-0 tennis-button"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
+                  <div className="w-32 h-32 bg-tennis-gradient rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-xl">
+                    {userStats.name.split(' ').map(n => n[0]).join('')}
+                  </div>
+                  <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-tennis-green-500 rounded-full flex items-center justify-center">
+                    <Edit className="w-4 h-4 text-white" />
+                  </div>
                 </div>
 
+                {/* User Info */}
                 <div className="flex-1 text-center md:text-left">
-                  <h1 className="text-3xl font-bold text-gray-900 mb-1">{userProfile.name}</h1>
-                  <p className="text-gray-600 mb-4">{userProfile.username}</p>
-                  
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-tennis-purple-700">#{userProfile.rank}</div>
-                      <div className="text-sm text-gray-600">Rank</div>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">{userStats.name}</h1>
+                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mb-4">
+                    <Badge className="bg-tennis-purple-100 text-tennis-purple-700 px-3 py-1">
+                      {userStats.plan} Member
+                    </Badge>
+                    <div className="flex items-center text-gray-600">
+                      <Trophy className="w-4 h-4 mr-1" />
+                      Rank #{userStats.rank}
                     </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-tennis-purple-700">{userProfile.points}</div>
-                      <div className="text-sm text-gray-600">Points</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-tennis-purple-700">{userProfile.level}</div>
-                      <div className="text-sm text-gray-600">Level</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-tennis-purple-700">{userProfile.joinDate}</div>
-                      <div className="text-sm text-gray-600">Joined</div>
+                    <div className="flex items-center text-gray-600">
+                      <Star className="w-4 h-4 mr-1" />
+                      {userStats.points} Points
                     </div>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <Button className="tennis-button">
-                      <Edit className="w-4 h-4 mr-2" />
-                      Edit Profile
-                    </Button>
-                    <Button variant="outline" className="border-tennis-purple-200 text-tennis-purple-700">
-                      <Settings className="w-4 h-4 mr-2" />
-                      Settings
-                    </Button>
+                  {/* Quick Stats */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="text-center p-3 bg-gray-50 rounded-xl">
+                      <div className="text-2xl font-bold text-tennis-purple-700">{userStats.accuracyRate}%</div>
+                      <div className="text-xs text-gray-600">Accuracy</div>
+                    </div>
+                    <div className="text-center p-3 bg-gray-50 rounded-xl">
+                      <div className="text-2xl font-bold text-tennis-green-700">{userStats.winsCount}</div>
+                      <div className="text-xs text-gray-600">Wins</div>
+                    </div>
+                    <div className="text-center p-3 bg-gray-50 rounded-xl">
+                      <div className="text-2xl font-bold text-blue-700">{userStats.gamesPlayed}</div>
+                      <div className="text-xs text-gray-600">Games</div>
+                    </div>
+                    <div className="text-center p-3 bg-gray-50 rounded-xl">
+                      <div className="text-2xl font-bold text-yellow-700">#{userStats.monthlyRank}</div>
+                      <div className="text-xs text-gray-600">Monthly</div>
+                    </div>
                   </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex flex-col space-y-3">
+                  <Link to="/subscription">
+                    <Button className="tennis-button">
+                      Manage Plan
+                    </Button>
+                  </Link>
+                  <Button variant="outline" className="btn-outline">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Settings
+                  </Button>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="matches">Matches</TabsTrigger>
-              <TabsTrigger value="achievements">Achievements</TabsTrigger>
+          {/* Content Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
+              <TabsTrigger value="stats">Statistics</TabsTrigger>
+              <TabsTrigger value="badges">Badges</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="overview" className="space-y-8">
-              {/* Stats Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {stats.map((stat, index) => {
-                  const IconComponent = stat.icon;
-                  return (
-                    <Card key={index} className="court-card animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
-                      <CardContent className="p-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="tennis-gradient p-3 rounded-xl">
-                            <IconComponent className="w-6 h-6 text-white" />
-                          </div>
-                          <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
-                        </div>
-                        <h3 className="font-semibold text-gray-900 mb-1">{stat.label}</h3>
-                        <p className="text-sm text-tennis-green-600 flex items-center">
-                          <TrendingUp className="w-3 h-3 mr-1" />
-                          {stat.change}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-
-              {/* Performance Chart Placeholder */}
-              <Card className="court-card animate-fade-in" style={{ animationDelay: '0.4s' }}>
-                <CardHeader>
-                  <CardTitle>Performance Over Time</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-64 bg-gray-100 rounded-xl flex items-center justify-center">
-                    <div className="text-center text-gray-500">
-                      <TrendingUp className="w-12 h-12 mx-auto mb-2" />
-                      <p>Performance chart coming soon</p>
+            <TabsContent value="stats" className="space-y-6">
+              {/* Detailed Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="premium-card animate-fade-in">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Target className="w-5 h-5 mr-2 text-tennis-purple-600" />
+                      Performance Metrics
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Total Shots</span>
+                      <span className="font-bold text-lg">{userStats.totalShots}</span>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Accuracy Rate</span>
+                      <span className="font-bold text-lg text-tennis-green-600">{userStats.accuracyRate}%</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Win Rate</span>
+                      <span className="font-bold text-lg text-tennis-purple-600">
+                        {Math.round((userStats.winsCount / userStats.gamesPlayed) * 100)}%
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Average Session</span>
+                      <span className="font-bold text-lg">1h 32m</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="premium-card animate-fade-in" style={{ animationDelay: '0.1s' }}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Trophy className="w-5 h-5 mr-2 text-tennis-purple-600" />
+                      Rankings
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Global Rank</span>
+                      <span className="font-bold text-lg">#{userStats.rank}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Monthly Rank</span>
+                      <span className="font-bold text-lg text-tennis-green-600">#{userStats.monthlyRank}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Total Points</span>
+                      <span className="font-bold text-lg text-tennis-purple-600">{userStats.points}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">League</span>
+                      <span className="font-bold text-lg">Advanced</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
 
-            <TabsContent value="matches" className="space-y-6">
-              <Card className="court-card animate-fade-in">
+            <TabsContent value="badges" className="space-y-6">
+              {/* Badges Collection */}
+              <Card className="premium-card animate-fade-in">
                 <CardHeader>
-                  <CardTitle>Recent Matches</CardTitle>
+                  <CardTitle className="flex items-center">
+                    <Award className="w-5 h-5 mr-2 text-tennis-purple-600" />
+                    Badge Collection
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {recentMatches.map((match) => (
-                      <div key={match.id} className="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-4">
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ${
-                              match.result === 'win' ? 'bg-tennis-green-500' : 'bg-red-500'
-                            }`}>
-                              {match.result === 'win' ? 'W' : 'L'}
-                            </div>
-                            <div>
-                              <h4 className="font-semibold text-gray-900">vs {match.opponent}</h4>
-                              <p className="text-sm text-gray-600">{match.court}</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="font-semibold text-gray-900">{match.score}</div>
-                            <div className="text-sm text-gray-600">{match.date}</div>
-                          </div>
-                        </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                    {badges.map((badge, index) => (
+                      <div
+                        key={badge.id}
+                        className={`text-center p-6 rounded-xl transition-all duration-300 hover:scale-105 animate-fade-in ${
+                          badge.earned
+                            ? 'bg-tennis-green-50 border border-tennis-green-200'
+                            : 'bg-gray-50 border border-gray-200 opacity-60'
+                        }`}
+                        style={{ animationDelay: `${index * 0.1}s` }}
+                      >
+                        <div className="text-4xl mb-3">{badge.icon}</div>
+                        <h3 className={`font-semibold mb-2 ${
+                          badge.earned ? 'text-tennis-green-700' : 'text-gray-500'
+                        }`}>
+                          {badge.name}
+                        </h3>
+                        <p className="text-sm text-gray-600">{badge.description}</p>
+                        {badge.earned && (
+                          <Badge className="mt-3 bg-tennis-green-100 text-tennis-green-700">
+                            Earned
+                          </Badge>
+                        )}
                       </div>
                     ))}
                   </div>
-                  <div className="text-center mt-6">
-                    <Button variant="outline" className="border-tennis-purple-200 text-tennis-purple-700">
-                      View All Matches
-                    </Button>
-                  </div>
                 </CardContent>
               </Card>
-            </TabsContent>
-
-            <TabsContent value="achievements" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {achievements.map((achievement, index) => (
-                  <Card key={index} className={`court-card animate-fade-in ${
-                    achievement.earned ? 'border-tennis-green-200 bg-tennis-green-50' : ''
-                  }`} style={{ animationDelay: `${index * 0.1}s` }}>
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <h3 className={`font-semibold mb-1 ${
-                            achievement.earned ? 'text-tennis-green-700' : 'text-gray-900'
-                          }`}>
-                            {achievement.name}
-                          </h3>
-                          <p className="text-sm text-gray-600">{achievement.description}</p>
-                        </div>
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                          achievement.earned 
-                            ? 'bg-tennis-green-500 text-white' 
-                            : 'bg-gray-200 text-gray-500'
-                        }`}>
-                          <Trophy className="w-6 h-6" />
-                        </div>
-                      </div>
-                      
-                      {achievement.earned ? (
-                        <Badge className="bg-tennis-green-100 text-tennis-green-700">
-                          Earned {achievement.date}
-                        </Badge>
-                      ) : (
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Progress</span>
-                            <span className="font-medium">{achievement.progress}%</span>
-                          </div>
-                          <Progress value={achievement.progress} className="h-2" />
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
             </TabsContent>
           </Tabs>
         </div>
