@@ -5,12 +5,25 @@ import { Button } from '@/components/ui/button';
 import { Settings, LogOut, Home } from 'lucide-react';
 import { toast } from 'sonner';
 
-const AdminNavigation = () => {
+interface AdminNavigationProps {
+  onSettingsClick?: () => void;
+}
+
+const AdminNavigation: React.FC<AdminNavigationProps> = ({ onSettingsClick }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
     toast.success('Logged out successfully');
     navigate('/login');
+  };
+
+  const handleSettingsClick = () => {
+    if (onSettingsClick) {
+      onSettingsClick();
+    } else {
+      // Default behavior - you can customize this
+      toast.info('Settings functionality available in the admin dashboard');
+    }
   };
 
   return (
@@ -34,7 +47,12 @@ const AdminNavigation = () => {
               </Button>
             </Link>
             
-            <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+            <Button 
+              onClick={handleSettingsClick}
+              variant="ghost" 
+              size="sm" 
+              className="text-gray-600 hover:text-gray-900"
+            >
               <Settings className="w-4 h-4 mr-2" />
               Settings
             </Button>

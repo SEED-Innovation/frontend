@@ -9,7 +9,10 @@ import ClubManagement from '@/components/admin/ClubManagement';
 import CourtInstallations from '@/components/admin/CourtInstallations';
 import UserManagement from '@/components/admin/UserManagement';
 import ContentManagement from '@/components/admin/ContentManagement';
-import { Activity, Users, Camera, AlertTriangle, Settings, FileText } from 'lucide-react';
+import AdminBooking from '@/components/admin/AdminBooking';
+import AdminSettings from '@/components/admin/AdminSettings';
+import SystemAnalytics from '@/components/admin/SystemAnalytics';
+import { Activity, Users, Camera, AlertTriangle, Settings, FileText, Calendar, BarChart3 } from 'lucide-react';
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -31,7 +34,7 @@ const Admin = () => {
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
-            <p className="text-gray-600">Monitor sessions, manage installations, and track system performance</p>
+            <p className="text-gray-600">Complete administration system for tennis facility management</p>
           </div>
 
           {/* Overview Stats */}
@@ -87,17 +90,28 @@ const Admin = () => {
 
           {/* Main Content Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-8">
               <TabsTrigger value="overview">Sessions</TabsTrigger>
+              <TabsTrigger value="booking">Booking</TabsTrigger>
+              <TabsTrigger value="analytics">Analytics</TabsTrigger>
               <TabsTrigger value="metrics">Metrics</TabsTrigger>
               <TabsTrigger value="users">Users</TabsTrigger>
               <TabsTrigger value="content">Content</TabsTrigger>
               <TabsTrigger value="clubs">Clubs</TabsTrigger>
               <TabsTrigger value="courts">Courts</TabsTrigger>
+              <TabsTrigger value="settings">Settings</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
               <SessionMonitoring />
+            </TabsContent>
+
+            <TabsContent value="booking" className="space-y-6">
+              <AdminBooking />
+            </TabsContent>
+
+            <TabsContent value="analytics" className="space-y-6">
+              <SystemAnalytics />
             </TabsContent>
 
             <TabsContent value="metrics" className="space-y-6">
@@ -118,6 +132,10 @@ const Admin = () => {
 
             <TabsContent value="courts" className="space-y-6">
               <CourtInstallations />
+            </TabsContent>
+
+            <TabsContent value="settings" className="space-y-6">
+              <AdminSettings />
             </TabsContent>
           </Tabs>
         </div>
