@@ -1,170 +1,138 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     confirmPassword: '',
-    fullName: ''
+    username: ''
   });
   const navigate = useNavigate();
-  const { toast } = useToast();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    
+    if (!isLogin && formData.password !== formData.confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
 
-    // Simulate API call
-    setTimeout(() => {
-      if (isLogin) {
-        // Mock login validation
-        if (formData.email && formData.password) {
-          toast({
-            title: "Login Successful",
-            description: "Welcome back to SEED Tennis!",
-          });
-          navigate('/dashboard');
-        } else {
-          toast({
-            title: "Login Failed",
-            description: "Please enter valid credentials.",
-            variant: "destructive"
-          });
-        }
-      } else {
-        // Mock registration validation
-        if (formData.email && formData.password && formData.fullName && formData.password === formData.confirmPassword) {
-          toast({
-            title: "Registration Successful",
-            description: "Welcome to SEED Tennis! Please check your email to verify your account.",
-          });
-          navigate('/dashboard');
-        } else {
-          toast({
-            title: "Registration Failed",
-            description: "Please fill all fields correctly and ensure passwords match.",
-            variant: "destructive"
-          });
-        }
-      }
-      setIsLoading(false);
-    }, 1500);
-  };
-
-  const handleGuestAccess = () => {
-    toast({
-      title: "Guest Access",
-      description: "Welcome to SEED Tennis! You can explore limited features as a guest.",
-    });
+    // Simulate authentication
+    toast.success(isLogin ? 'Welcome back!' : 'Account created successfully!');
     navigate('/dashboard');
   };
 
   const handleSocialAuth = (provider: string) => {
-    setIsLoading(true);
-    setTimeout(() => {
-      toast({
-        title: `${provider} Login`,
-        description: `Successfully logged in with ${provider}!`,
-      });
-      navigate('/dashboard');
-      setIsLoading(false);
-    }, 1000);
+    toast.success(`Signing in with ${provider}...`);
+    setTimeout(() => navigate('/dashboard'), 1000);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-tennis-purple-50 via-white to-tennis-green-50 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center space-x-2">
-            <img 
-              src="/lovable-uploads/9b877c55-5518-40cb-ba2c-a68fccfbe495.png" 
-              alt="SEED Logo" 
-              className="h-12 w-auto"
-            />
-            <span className="text-2xl font-bold text-gray-900">SEED</span>
+          <Link to="/" className="inline-flex items-center space-x-3">
+            <div className="w-12 h-12 tennis-gradient rounded-xl flex items-center justify-center">
+              <span className="text-white font-bold text-xl">S</span>
+            </div>
+            <span className="text-3xl font-bold bg-gradient-to-r from-tennis-purple-600 to-tennis-green-500 bg-clip-text text-transparent">
+              SEED
+            </span>
           </Link>
         </div>
 
-        <Card className="premium-card">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold text-center text-gray-900">
-              {isLogin ? 'Welcome Back' : 'Join SEED Tennis'}
+        <Card className="premium-card animate-fade-in">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold text-gray-900">
+              {isLogin ? 'Welcome Back' : 'Create Account'}
             </CardTitle>
-            <p className="text-center text-gray-600">
-              {isLogin ? 'Sign in to your account' : 'Create your account to get started'}
+            <p className="text-gray-600">
+              {isLogin ? 'Sign in to your SEED account' : 'Join the SEED tennis community'}
             </p>
           </CardHeader>
+
           <CardContent className="space-y-6">
+            {/* Social Login */}
+            <div className="space-y-3">
+              <Button
+                onClick={() => handleSocialAuth('Google')}
+                variant="outline"
+                className="w-full h-12 border-gray-200 hover:bg-gray-50"
+              >
+                <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" className="w-5 h-5 mr-3" />
+                Continue with Google
+              </Button>
+              <Button
+                onClick={() => handleSocialAuth('Apple')}
+                variant="outline"
+                className="w-full h-12 border-gray-200 hover:bg-gray-50"
+              >
+                <span className="mr-3">🍎</span>
+                Continue with Apple
+              </Button>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Or</span>
+              </div>
+            </div>
+
+            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
-                <div className="space-y-2">
-                  <label className="form-label">Full Name</label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <Input
-                      name="fullName"
-                      type="text"
-                      placeholder="Enter your full name"
-                      value={formData.fullName}
-                      onChange={handleInputChange}
-                      className="form-input pl-10"
-                      required={!isLogin}
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <label className="form-label">Email</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    name="email"
-                    type="email"
-                    placeholder="Enter your email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="form-input pl-10"
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Username</label>
+                  <input
+                    type="text"
+                    className="premium-input mt-1"
+                    placeholder="Choose a username"
+                    value={formData.username}
+                    onChange={(e) => setFormData({...formData, username: e.target.value})}
                     required
                   />
                 </div>
+              )}
+
+              <div>
+                <label className="text-sm font-medium text-gray-700">Email</label>
+                <input
+                  type="email"
+                  className="premium-input mt-1"
+                  placeholder="Enter your email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  required
+                />
               </div>
 
-              <div className="space-y-2">
-                <label className="form-label">Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    name="password"
+              <div>
+                <label className="text-sm font-medium text-gray-700">Password</label>
+                <div className="relative mt-1">
+                  <input
                     type={showPassword ? 'text' : 'password'}
+                    className="premium-input pr-10"
                     placeholder="Enter your password"
                     value={formData.password}
-                    onChange={handleInputChange}
-                    className="form-input pl-10 pr-10"
+                    onChange={(e) => setFormData({...formData, password: e.target.value})}
                     required
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -172,86 +140,56 @@ const Auth = () => {
               </div>
 
               {!isLogin && (
-                <div className="space-y-2">
-                  <label className="form-label">Confirm Password</label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <Input
-                      name="confirmPassword"
-                      type="password"
-                      placeholder="Confirm your password"
-                      value={formData.confirmPassword}
-                      onChange={handleInputChange}
-                      className="form-input pl-10"
-                      required={!isLogin}
-                    />
-                  </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Confirm Password</label>
+                  <input
+                    type="password"
+                    className="premium-input mt-1"
+                    placeholder="Confirm your password"
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                    required
+                  />
                 </div>
               )}
 
-              <Button 
-                type="submit" 
-                className="tennis-button w-full"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
+              {isLogin && (
+                <div className="text-right">
+                  <button
+                    type="button"
+                    className="text-sm text-tennis-purple-600 hover:text-tennis-purple-700 animated-underline"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+              )}
+
+              <Button type="submit" className="tennis-button w-full h-12">
+                {isLogin ? 'Sign In' : 'Create Account'}
+                <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </form>
 
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-gray-500">Or continue with</span>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <Button
-                onClick={() => handleSocialAuth('Google')}
-                variant="outline"
-                className="w-full btn-outline"
-                disabled={isLoading}
-              >
-                Continue with Google
-              </Button>
-              <Button
-                onClick={() => handleSocialAuth('Apple')}
-                variant="outline"
-                className="w-full btn-outline"
-                disabled={isLoading}
-              >
-                Continue with Apple
-              </Button>
-              <Button
-                onClick={handleGuestAccess}
-                variant="ghost"
-                className="w-full text-gray-600 hover:text-gray-800"
-                disabled={isLoading}
-              >
-                Continue as Guest
-              </Button>
-            </div>
-
-            <div className="text-center space-y-2">
+            {/* Switch Mode */}
+            <div className="text-center">
+              <span className="text-gray-600">
+                {isLogin ? "Don't have an account? " : "Already have an account? "}
+              </span>
               <button
-                type="button"
                 onClick={() => setIsLogin(!isLogin)}
                 className="text-tennis-purple-600 hover:text-tennis-purple-700 font-medium animated-underline"
               >
-                {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+                {isLogin ? 'Sign up' : 'Sign in'}
               </button>
-              {isLogin && (
-                <div>
-                  <Link 
-                    to="/forgot-password" 
-                    className="text-sm text-gray-600 hover:text-tennis-purple-600 animated-underline"
-                  >
-                    Forgot your password?
-                  </Link>
-                </div>
-              )}
+            </div>
+
+            {/* Guest Mode */}
+            <div className="text-center pt-4 border-t border-gray-200">
+              <Link to="/dashboard">
+                <Button variant="ghost" className="text-gray-600 hover:text-gray-800">
+                  Continue as Guest
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
