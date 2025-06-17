@@ -1,15 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
-import { Play, Pause, Square, Eye, Timer, MapPin } from 'lucide-react';
+import { Play, Pause, Square, Eye, Timer, MapPin, Camera, Users, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Navigation from '@/components/Navigation';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 const Session = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [sessionTime, setSessionTime] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -31,17 +34,38 @@ const Session = () => {
   const handleStartRecording = () => {
     setIsRecording(true);
     setIsPaused(false);
+    toast({
+      title: "Session Started",
+      description: "AI recording and analysis has begun!",
+    });
   };
 
   const handlePauseResume = () => {
     setIsPaused(!isPaused);
+    toast({
+      title: isPaused ? "Session Resumed" : "Session Paused",
+      description: isPaused ? "Recording has resumed" : "Recording is paused",
+    });
   };
 
   const handleStopRecording = () => {
     setIsRecording(false);
     setIsPaused(false);
-    // Here you would typically save the session and navigate to results
+    toast({
+      title: "Session Ended",
+      description: "Your session has been saved and is being processed for analysis.",
+    });
+    // Simulate processing and navigation to results
+    setTimeout(() => {
+      navigate('/recordings');
+    }, 2000);
   };
+
+  const sessionStats = [
+    { label: "Shots Detected", value: isRecording ? Math.floor(sessionTime / 3) : 0, icon: Camera },
+    { label: "Rally Count", value: isRecording ? Math.floor(sessionTime / 15) : 0, icon: Users },
+    { label: "Active Time", value: `${Math.floor(sessionTime / 60)}m`, icon: Timer }
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -52,7 +76,10 @@ const Session = () => {
           {/* Session Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Live Session</h1>
-            <p className="text-gray-600">Riverside Tennis Club - Court 3</p>
+            <div className="flex items-center justify-center text-gray-600 mb-4">
+              <MapPin className="w-4 h-4 mr-1" />
+              <span>Riverside Tennis Club - Court 3</span>
+            </div>
           </div>
 
           {/* Main Session Card */}
@@ -60,13 +87,30 @@ const Session = () => {
             <CardContent className="p-8">
               {/* Court Info */}
               <div className="text-center mb-8">
-                <div className="w-24 h-24 tennis-gradient rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-24 h-24 tennis-gradient rounded-full flex items-center justify-center mx-auto mb-4 relative">
                   <Eye className="w-12 h-12 text-white" />
+                  {isRecording && !isPaused && (
+                    <div className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 rounded-full animate-pulse"></div>
+                  )}
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">AI Camera Active</h2>
                 <div className="flex items-center justify-center text-gray-600 mb-4">
-                  <MapPin className="w-4 h-4 mr-1" />
-                  Court 3, Riverside Tennis Club
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                    isRecording 
+                      ? isPaused 
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-green-100 text-green-800'
+                      : 'bg-gray-100 text-gray-800'
+                  }`}>
+                    <div className={`w-2 h-2 rounded-full mr-2 ${
+                      isRecording 
+                        ? isPaused 
+                          ? 'bg-yellow-500'
+                          : 'bg-green-500 animate-pulse'
+                        : 'bg-gray-500'
+                    }`}></div>
+                    {isRecording ? (isPaused ? 'Paused' : 'Recording') : 'Ready'}
+                  </span>
                 </div>
               </div>
 
@@ -77,11 +121,22 @@ const Session = () => {
                 </div>
                 <div className="flex items-center justify-center">
                   <Timer className="w-4 h-4 mr-2 text-gray-600" />
-                  <span className="text-gray-600">
-                    {isRecording ? (isPaused ? 'Paused' : 'Recording') : 'Ready to start'}
-                  </span>
+                  <span className="text-gray-600">Session Duration</span>
                 </div>
               </div>
+
+              {/* Live Stats */}
+              {isRecording && (
+                <div className="grid grid-cols-3 gap-4 mb-8">
+                  {sessionStats.map((stat, index) => (
+                    <div key={index} className="text-center p-4 bg-tennis-purple-50 rounded-xl">
+                      <stat.icon className="w-6 h-6 text-tennis-purple-600 mx-auto mb-2" />
+                      <div className="text-2xl font-bold text-tennis-purple-700">{stat.value}</div>
+                      <div className="text-sm text-tennis-purple-600">{stat.label}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Control Buttons */}
               <div className="flex justify-center space-x-4">
@@ -106,7 +161,7 @@ const Session = () => {
                     <Button 
                       onClick={handleStopRecording}
                       variant="destructive"
-                      className="px-6 py-4"
+                      className="px-6 py-4 bg-red-600 hover:bg-red-700 text-white"
                     >
                       <Square className="w-5 h-5 mr-2" />
                       End Session
@@ -153,11 +208,13 @@ const Session = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Link to="/recordings">
                   <Button variant="outline" className="w-full btn-outline">
+                    <BarChart3 className="w-4 h-4 mr-2" />
                     View Previous Sessions
                   </Button>
                 </Link>
                 <Link to="/leaderboard">
                   <Button variant="outline" className="w-full btn-outline">
+                    <Users className="w-4 h-4 mr-2" />
                     Check Leaderboard
                   </Button>
                 </Link>

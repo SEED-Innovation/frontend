@@ -1,13 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, User, Settings } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X, User, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -17,22 +21,39 @@ const Navigation = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Mock authentication status check
+  useEffect(() => {
+    // In a real app, this would check actual auth state
+    const authRoutes = ['/dashboard', '/courts', '/checkin', '/recordings', '/leaderboard', '/challenges', '/profile'];
+    setIsLoggedIn(authRoutes.includes(location.pathname));
+  }, [location.pathname]);
+
   const isActive = (path: string) => location.pathname === path;
 
+  const handleLogout = () => {
+    toast({
+      title: "Logged Out",
+      description: "You have been successfully logged out.",
+    });
+    navigate('/');
+  };
+
   const navLinks = [
-    { path: '/dashboard', label: 'Dashboard' },
-    { path: '/courts', label: 'Book Courts' },
-    { path: '/checkin', label: 'Check-In' },
-    { path: '/recordings', label: 'Recordings' },
-    { path: '/leaderboard', label: 'Leaderboard' },
-    { path: '/challenges', label: 'Challenges' },
+    { path: '/dashboard', label: 'Dashboard', authRequired: true },
+    { path: '/courts', label: 'Book Courts', authRequired: false },
+    { path: '/checkin', label: 'Check-In', authRequired: true },
+    { path: '/recordings', label: 'Recordings', authRequired: true },
+    { path: '/leaderboard', label: 'Leaderboard', authRequired: false },
+    { path: '/challenges', label: 'Challenges', authRequired: true },
   ];
+
+  const visibleLinks = navLinks.filter(link => !link.authRequired || isLoggedIn);
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
       scrolled 
         ? 'bg-white/95 backdrop-blur-xl border-b border-gray-200/50 shadow-lg' 
-        : 'bg-white/95 backdrop-blur-xl border-b border-gray-200/50 shadow-lg'
+        : 'bg-white/95 backdrop-blur-xl border-b border-gray-200/50 shadow-sm'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
@@ -48,7 +69,7 @@ const Navigation = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6 lg:space-x-8">
-            {navLinks.map((link) => (
+            {visibleLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
@@ -68,17 +89,43 @@ const Navigation = () => {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link to="/profile">
-              <Button variant="ghost" size="sm" className="text-gray-700 hover:text-tennis-purple-600 hover:bg-tennis-purple-50 transition-all duration-300">
-                <User className="w-4 h-4 mr-2" />
-                Profile
-              </Button>
-            </Link>
-            <Link to="/subscription">
-              <Button className="tennis-button hover:scale-105 transition-all duration-300">
-                Upgrade
-              </Button>
-            </Link>
+            {isLoggedIn ? (
+              <>
+                <Link to="/profile">
+                  <Button variant="ghost" size="sm" className="text-gray-700 hover:text-tennis-purple-600 hover:bg-tennis-purple-50 transition-all duration-300">
+                    <User className="w-4 h-4 mr-2" />
+                    Profile
+                  </Button>
+                </Link>
+                <Button 
+                  onClick={handleLogout}
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-gray-700 hover:text-red-600 hover:bg-red-50 transition-all duration-300"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </Button>
+                <Link to="/subscription">
+                  <Button className="tennis-button hover:scale-105 transition-all duration-300">
+                    Upgrade
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button variant="ghost" size="sm" className="text-gray-700 hover:text-tennis-purple-600 hover:bg-tennis-purple-50 transition-all duration-300">
+                    Login
+                  </Button>
+                </Link>
+                <Link to="/register">
+                  <Button className="tennis-button hover:scale-105 transition-all duration-300">
+                    Get Started
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -96,14 +143,14 @@ const Navigation = () => {
         {isMenuOpen && (
           <div className="md:hidden absolute top-16 left-0 right-0 bg-white/95 backdrop-blur-xl border-b border-gray-200/50 shadow-lg animate-fade-in">
             <div className="px-4 py-6 space-y-4">
-              {navLinks.map((link) => (
+              {visibleLinks.map((link) => (
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`block text-base font-medium transition-colors duration-300 py-2 ${
+                  className={`block text-base font-medium transition-colors duration-300 py-2 px-3 rounded-lg ${
                     isActive(link.path)
-                      ? 'text-tennis-purple-600 bg-tennis-purple-50 px-3 rounded-lg'
-                      : 'text-gray-700 hover:text-tennis-purple-600 hover:bg-tennis-purple-50 px-3 rounded-lg'
+                      ? 'text-tennis-purple-600 bg-tennis-purple-50'
+                      : 'text-gray-700 hover:text-tennis-purple-600 hover:bg-tennis-purple-50'
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -111,17 +158,45 @@ const Navigation = () => {
                 </Link>
               ))}
               <div className="pt-4 border-t border-gray-200 space-y-2">
-                <Link to="/profile" onClick={() => setIsMenuOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start hover:bg-tennis-purple-50">
-                    <User className="w-4 h-4 mr-2" />
-                    Profile
-                  </Button>
-                </Link>
-                <Link to="/subscription" onClick={() => setIsMenuOpen(false)}>
-                  <Button className="tennis-button w-full">
-                    Upgrade
-                  </Button>
-                </Link>
+                {isLoggedIn ? (
+                  <>
+                    <Link to="/profile" onClick={() => setIsMenuOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start hover:bg-tennis-purple-50">
+                        <User className="w-4 h-4 mr-2" />
+                        Profile
+                      </Button>
+                    </Link>
+                    <Button 
+                      onClick={() => {
+                        handleLogout();
+                        setIsMenuOpen(false);
+                      }}
+                      variant="ghost" 
+                      className="w-full justify-start hover:bg-red-50 hover:text-red-600"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Logout
+                    </Button>
+                    <Link to="/subscription" onClick={() => setIsMenuOpen(false)}>
+                      <Button className="tennis-button w-full">
+                        Upgrade
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/login" onClick={() => setIsMenuOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start hover:bg-tennis-purple-50">
+                        Login
+                      </Button>
+                    </Link>
+                    <Link to="/register" onClick={() => setIsMenuOpen(false)}>
+                      <Button className="tennis-button w-full">
+                        Get Started
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
