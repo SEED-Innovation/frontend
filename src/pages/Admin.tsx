@@ -1,14 +1,15 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AdminNavigation from '@/components/admin/AdminNavigation';
 import SessionMonitoring from '@/components/admin/SessionMonitoring';
 import SystemMetrics from '@/components/admin/SystemMetrics';
 import ClubManagement from '@/components/admin/ClubManagement';
 import CourtInstallations from '@/components/admin/CourtInstallations';
-import { Activity, Users, Camera, AlertTriangle } from 'lucide-react';
+import UserManagement from '@/components/admin/UserManagement';
+import ContentManagement from '@/components/admin/ContentManagement';
+import { Activity, Users, Camera, AlertTriangle, Settings, FileText } from 'lucide-react';
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -86,11 +87,13 @@ const Admin = () => {
 
           {/* Main Content Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="overview">Session Monitoring</TabsTrigger>
-              <TabsTrigger value="metrics">System Metrics</TabsTrigger>
-              <TabsTrigger value="clubs">Club Management</TabsTrigger>
-              <TabsTrigger value="courts">Court Installations</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-6">
+              <TabsTrigger value="overview">Sessions</TabsTrigger>
+              <TabsTrigger value="metrics">Metrics</TabsTrigger>
+              <TabsTrigger value="users">Users</TabsTrigger>
+              <TabsTrigger value="content">Content</TabsTrigger>
+              <TabsTrigger value="clubs">Clubs</TabsTrigger>
+              <TabsTrigger value="courts">Courts</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
@@ -99,6 +102,14 @@ const Admin = () => {
 
             <TabsContent value="metrics" className="space-y-6">
               <SystemMetrics />
+            </TabsContent>
+
+            <TabsContent value="users" className="space-y-6">
+              <UserManagement />
+            </TabsContent>
+
+            <TabsContent value="content" className="space-y-6">
+              <ContentManagement />
             </TabsContent>
 
             <TabsContent value="clubs" className="space-y-6">
