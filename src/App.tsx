@@ -9,6 +9,8 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Courts from "./pages/Courts";
 import Session from "./pages/Session";
+import CheckIn from "./pages/CheckIn";
+import Recordings from "./pages/Recordings";
 import Leaderboard from "./pages/Leaderboard";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";

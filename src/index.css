@@ -103,7 +103,7 @@
 
 @layer components {
   .glass-card {
-    @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-xl;
+    @apply bg-white/20 backdrop-blur-xl border border-white/30 shadow-2xl;
   }
   
   .tennis-gradient {
@@ -117,7 +117,7 @@
   }
   
   .court-card {
-    @apply bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200/50 
+    @apply bg-white/95 backdrop-blur-sm rounded-2xl border border-gray-200/50 
            shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02]
            hover:bg-white;
   }
@@ -127,6 +127,70 @@
            after:h-0.5 after:bottom-0 after:left-0 after:bg-tennis-purple-500 
            after:origin-bottom-right after:transition-transform after:duration-300 
            hover:after:scale-x-100 hover:after:origin-bottom-left;
+  }
+
+  /* Enhanced Button Styles */
+  .btn-primary {
+    @apply bg-tennis-green-500 hover:bg-tennis-green-400 text-white font-bold 
+           border-2 border-tennis-green-400 shadow-lg hover:shadow-tennis-green-500/50
+           transition-all duration-300 transform hover:scale-105;
+  }
+
+  .btn-secondary {
+    @apply bg-white/10 backdrop-blur-md border-2 border-white/30 text-white 
+           hover:bg-white/20 hover:border-white/50 shadow-lg
+           transition-all duration-300 transform hover:scale-105;
+  }
+
+  .btn-outline {
+    @apply border-2 border-tennis-purple-200 text-tennis-purple-700 bg-white
+           hover:bg-tennis-purple-50 hover:border-tennis-purple-300
+           transition-all duration-300 transform hover:scale-105;
+  }
+}
+
+/* Enhanced Animations */
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(132, 61, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(132, 61, 255, 0.6), 0 0 60px rgba(34, 197, 94, 0.3);
+  }
+}
+
+@keyframes float-up {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-bounce {
+  0% {
+    transform: scale(0.95);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes tennis-float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-10px) rotate(120deg);
+  }
+  66% {
+    transform: translateY(-5px) rotate(240deg);
   }
 }
 
@@ -147,4 +211,19 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, #5a03d4, #16a34a);
+}
+
+/* Button Focus and Accessibility */
+button:focus-visible {
+  @apply outline-none ring-4 ring-tennis-purple-300 ring-offset-2;
+}
+
+/* Ensure all text is visible */
+.btn-primary, .btn-secondary, .btn-outline {
+  color: inherit !important;
+}
+
+/* Hover states for all interactive elements */
+.interactive-hover {
+  @apply transition-all duration-300 hover:scale-105 hover:shadow-lg;
 }
