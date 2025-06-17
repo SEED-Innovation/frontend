@@ -244,10 +244,7 @@ const Recordings = () => {
                     className="premium-card group animate-fade-in hover:scale-105 transition-all duration-300" 
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
-                    <div 
-                      className="relative cursor-pointer"
-                      onClick={() => handlePlayVideo(recording)}
-                    >
+                    <div className="relative">
                       <img
                         src={recording.thumbnail}
                         alt={recording.title}
@@ -307,10 +304,7 @@ const Recordings = () => {
                         <Button 
                           size="sm" 
                           className="flex-1 tennis-button text-sm glow-button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handlePlayVideo(recording, e);
-                          }}
+                          onClick={() => handlePlayVideo(recording)}
                         >
                           <Play className="w-4 h-4 mr-1" />
                           Watch
@@ -319,10 +313,7 @@ const Recordings = () => {
                           size="sm" 
                           variant="outline" 
                           className="btn-outline"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDownload(recording);
-                          }}
+                          onClick={() => handleDownload(recording)}
                         >
                           <Download className="w-4 h-4" />
                         </Button>
@@ -330,10 +321,7 @@ const Recordings = () => {
                           size="sm" 
                           variant="outline" 
                           className="btn-outline"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleShare(recording);
-                          }}
+                          onClick={() => handleShare(recording)}
                         >
                           <Share className="w-4 h-4" />
                         </Button>
