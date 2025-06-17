@@ -179,7 +179,7 @@ const Landing = () => {
           <nav className={`absolute top-8 left-0 right-0 flex items-center justify-between px-4 sm:px-8 transition-all duration-300 ${scrolled ? 'bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl mx-4 sm:mx-8' : ''}`}>
             <Link to="/" className="flex items-center space-x-3">
               <img 
-                src="/lovable-uploads/9b877c55-5518-40cb-ba2c-a68fccfbe495.png" 
+                src="/lovable-uploads/d6e16ac6-604a-4a7a-9497-3476e49278a1.png" 
                 alt="SEED Logo" 
                 className="h-10 w-auto"
               />
@@ -586,7 +586,7 @@ const Landing = () => {
             <div className="col-span-1 md:col-span-2">
               <Link to="/" className="flex items-center space-x-3 mb-4 sm:mb-6">
                 <img 
-                  src="/lovable-uploads/9b877c55-5518-40cb-ba2c-a68fccfbe495.png" 
+                  src="/lovable-uploads/d6e16ac6-604a-4a7a-9497-3476e49278a1.png" 
                   alt="SEED Logo" 
                   className="h-10 sm:h-12 w-auto"
                 />
