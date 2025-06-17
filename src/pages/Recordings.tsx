@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Play, Download, Calendar, Clock, Star, TrendingUp, Eye, Share } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -242,11 +241,13 @@ const Recordings = () => {
                 {recordings.map((recording, index) => (
                   <Card 
                     key={recording.id} 
-                    className="premium-card group cursor-pointer animate-fade-in hover:scale-105 transition-all duration-300" 
+                    className="premium-card group animate-fade-in hover:scale-105 transition-all duration-300" 
                     style={{ animationDelay: `${index * 0.1}s` }}
-                    onClick={() => handlePlayVideo(recording)}
                   >
-                    <div className="relative">
+                    <div 
+                      className="relative cursor-pointer"
+                      onClick={() => handlePlayVideo(recording)}
+                    >
                       <img
                         src={recording.thumbnail}
                         alt={recording.title}
@@ -305,8 +306,11 @@ const Recordings = () => {
                       <div className="flex gap-2">
                         <Button 
                           size="sm" 
-                          className="flex-1 tennis-button text-sm glow-button z-10 relative"
-                          onClick={(e) => handlePlayVideo(recording, e)}
+                          className="flex-1 tennis-button text-sm glow-button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePlayVideo(recording, e);
+                          }}
                         >
                           <Play className="w-4 h-4 mr-1" />
                           Watch
@@ -314,7 +318,7 @@ const Recordings = () => {
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="btn-outline z-10 relative"
+                          className="btn-outline"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDownload(recording);
@@ -325,7 +329,7 @@ const Recordings = () => {
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="btn-outline z-10 relative"
+                          className="btn-outline"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleShare(recording);
