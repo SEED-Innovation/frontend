@@ -1,13 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, User, Settings } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X, User, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,6 +20,16 @@ const Navigation = () => {
   }, []);
 
   const isActive = (path: string) => location.pathname === path;
+
+  const handleLogout = () => {
+    toast.success('Logged out successfully!');
+    setTimeout(() => navigate('/'), 500);
+  };
+
+  const handleUpgrade = () => {
+    toast.info('Redirecting to subscription...');
+    navigate('/subscription');
+  };
 
   const navLinks = [
     { path: '/dashboard', label: 'Dashboard' },
@@ -37,7 +49,10 @@ const Navigation = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3 hover:scale-105 transition-transform duration-300">
+          <Link 
+            to="/" 
+            className="flex items-center space-x-3 hover:scale-105 transition-transform duration-300"
+          >
             <img 
               src="/lovable-uploads/9b877c55-5518-40cb-ba2c-a68fccfbe495.png" 
               alt="SEED Logo" 
@@ -74,11 +89,20 @@ const Navigation = () => {
                 Profile
               </Button>
             </Link>
-            <Link to="/subscription">
-              <Button className="tennis-button hover:scale-105 transition-all duration-300">
-                Upgrade
-              </Button>
-            </Link>
+            <Button 
+              onClick={handleUpgrade}
+              className="tennis-button hover:scale-105 transition-all duration-300"
+            >
+              Upgrade
+            </Button>
+            <Button 
+              onClick={handleLogout}
+              variant="ghost" 
+              size="sm" 
+              className="text-gray-700 hover:text-red-600 hover:bg-red-50 transition-all duration-300"
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -117,11 +141,26 @@ const Navigation = () => {
                     Profile
                   </Button>
                 </Link>
-                <Link to="/subscription" onClick={() => setIsMenuOpen(false)}>
-                  <Button className="tennis-button w-full">
-                    Upgrade
-                  </Button>
-                </Link>
+                <Button 
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    handleUpgrade();
+                  }}
+                  className="tennis-button w-full"
+                >
+                  Upgrade
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    handleLogout();
+                  }}
+                  variant="ghost" 
+                  className="w-full justify-start text-red-600 hover:bg-red-50"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </Button>
               </div>
             </div>
           </div>

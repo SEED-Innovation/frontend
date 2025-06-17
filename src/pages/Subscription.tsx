@@ -4,17 +4,32 @@ import Navigation from '@/components/Navigation';
 import SubscriptionPlans from '@/components/SubscriptionPlans';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const Subscription = () => {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handlePlanSelect = (planId: string) => {
     setSelectedPlan(planId);
+    setIsLoading(true);
+    
+    toast.success('Processing subscription...');
+    
     // Simulate payment process
     setTimeout(() => {
+      setIsLoading(false);
       setShowSuccess(true);
-    }, 1000);
+      toast.success('Subscription activated successfully!');
+    }, 2000);
+  };
+
+  const handleGetStarted = () => {
+    toast.info('Redirecting to dashboard...');
+    setTimeout(() => window.location.href = '/dashboard', 500);
   };
 
   if (showSuccess) {
@@ -45,6 +60,20 @@ const Subscription = () => {
                     </ul>
                   </div>
                 </div>
+                
+                <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+                  <Button 
+                    onClick={handleGetStarted}
+                    className="tennis-button"
+                  >
+                    Get Started
+                  </Button>
+                  <Link to="/dashboard">
+                    <Button variant="outline" className="btn-outline w-full sm:w-auto">
+                      Go to Dashboard
+                    </Button>
+                  </Link>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -59,7 +88,11 @@ const Subscription = () => {
       
       <div className="pt-20 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SubscriptionPlans onPlanSelect={handlePlanSelect} />
+          <SubscriptionPlans 
+            onPlanSelect={handlePlanSelect} 
+            isLoading={isLoading}
+            selectedPlan={selectedPlan}
+          />
         </div>
       </div>
     </div>

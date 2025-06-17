@@ -1,13 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowDown, Calendar, Star, Eye, Trophy, Play, Zap, Target, Users, Menu, X, CheckCircle, Clock, Video, BarChart3, Award, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { toast } from 'sonner';
 
 const Landing = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -16,6 +18,21 @@ const Landing = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const handleGetStarted = () => {
+    toast.success('Redirecting to registration...');
+    navigate('/login');
+  };
+
+  const handleWatchDemo = () => {
+    toast.info('Demo video coming soon!');
+    navigate('/leaderboard');
+  };
+
+  const handleSocialAuth = (provider: string) => {
+    toast.success(`Signing in with ${provider}...`);
+    setTimeout(() => navigate('/dashboard'), 1000);
+  };
 
   const features = [
     {
@@ -161,14 +178,14 @@ const Landing = () => {
         <div className="relative z-10 text-center text-white px-4 max-w-7xl mx-auto">
           {/* Enhanced Navigation */}
           <nav className={`absolute top-8 left-0 right-0 flex items-center justify-between px-4 sm:px-8 transition-all duration-300 ${scrolled ? 'bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl mx-4 sm:mx-8' : ''}`}>
-            <div className="flex items-center space-x-3">
+            <Link to="/" className="flex items-center space-x-3">
               <img 
                 src="/lovable-uploads/9b877c55-5518-40cb-ba2c-a68fccfbe495.png" 
                 alt="SEED Logo" 
                 className="h-10 w-auto"
               />
               <span className="text-2xl font-bold hidden sm:block">SEED</span>
-            </div>
+            </Link>
             
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-8">
@@ -185,11 +202,12 @@ const Landing = () => {
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-tennis-green-400 transition-all duration-300 group-hover:w-full"></span>
               </Link>
               <Link to="/login" className="text-white/80 hover:text-white transition-colors">Login</Link>
-              <Link to="/register">
-                <Button className="bg-tennis-green-500 hover:bg-tennis-green-400 text-white font-semibold px-6 py-2 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg border-2 border-tennis-green-400">
-                  Get Started
-                </Button>
-              </Link>
+              <Button 
+                onClick={handleGetStarted}
+                className="bg-tennis-green-500 hover:bg-tennis-green-400 text-white font-semibold px-6 py-2 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg border-2 border-tennis-green-400"
+              >
+                Get Started
+              </Button>
             </div>
 
             {/* Mobile Menu Button */}
@@ -219,11 +237,15 @@ const Landing = () => {
                 <Link to="/login" className="block text-white text-lg font-medium hover:text-tennis-green-400 transition-colors" onClick={() => setIsMenuOpen(false)}>
                   Login
                 </Link>
-                <Link to="/register" onClick={() => setIsMenuOpen(false)}>
-                  <Button className="w-full bg-tennis-green-500 hover:bg-tennis-green-400 text-white font-semibold py-3 rounded-xl">
-                    Get Started
-                  </Button>
-                </Link>
+                <Button 
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    handleGetStarted();
+                  }}
+                  className="w-full bg-tennis-green-500 hover:bg-tennis-green-400 text-white font-semibold py-3 rounded-xl"
+                >
+                  Get Started
+                </Button>
               </div>
             </div>
           )}
@@ -244,18 +266,22 @@ const Landing = () => {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center animate-fade-in mb-12 sm:mb-16 px-4" style={{ animationDelay: '0.4s' }}>
-              <Link to="/register">
-                <Button size="lg" className="w-full sm:w-auto bg-tennis-green-500 hover:bg-tennis-green-400 text-white font-bold px-8 sm:px-12 py-4 sm:py-6 text-lg sm:text-xl rounded-2xl shadow-2xl hover:scale-110 hover:shadow-tennis-green-500/50 transition-all duration-300 transform border-2 border-tennis-green-400 glow-button">
-                  <Play className="w-5 h-5 sm:w-6 sm:h-6 mr-3" />
-                  Start Free Trial
-                </Button>
-              </Link>
-              <Link to="/leaderboard">
-                <Button size="lg" className="w-full sm:w-auto bg-white/10 backdrop-blur-md border-2 border-white/30 text-white hover:bg-white/20 hover:border-white/50 font-bold px-8 sm:px-12 py-4 sm:py-6 text-lg sm:text-xl rounded-2xl shadow-2xl hover:scale-110 transition-all duration-300 transform">
-                  <Trophy className="w-5 h-5 sm:w-6 sm:h-6 mr-3" />
-                  Watch Demo
-                </Button>
-              </Link>
+              <Button 
+                onClick={handleGetStarted}
+                size="lg" 
+                className="w-full sm:w-auto bg-tennis-green-500 hover:bg-tennis-green-400 text-white font-bold px-8 sm:px-12 py-4 sm:py-6 text-lg sm:text-xl rounded-2xl shadow-2xl hover:scale-110 hover:shadow-tennis-green-500/50 transition-all duration-300 transform border-2 border-tennis-green-400 glow-button"
+              >
+                <Play className="w-5 h-5 sm:w-6 sm:h-6 mr-3" />
+                Start Free Trial
+              </Button>
+              <Button 
+                onClick={handleWatchDemo}
+                size="lg" 
+                className="w-full sm:w-auto bg-white/10 backdrop-blur-md border-2 border-white/30 text-white hover:bg-white/20 hover:border-white/50 font-bold px-8 sm:px-12 py-4 sm:py-6 text-lg sm:text-xl rounded-2xl shadow-2xl hover:scale-110 transition-all duration-300 transform"
+              >
+                <Trophy className="w-5 h-5 sm:w-6 sm:h-6 mr-3" />
+                Watch Demo
+              </Button>
             </div>
 
             {/* Stats */}
@@ -383,12 +409,14 @@ const Landing = () => {
             </div>
           </div>
           
-          <Link to="/register">
-            <Button size="lg" className="bg-white text-tennis-purple-700 hover:bg-gray-100 font-bold px-8 sm:px-16 py-4 sm:py-6 text-lg sm:text-2xl rounded-2xl shadow-2xl hover:scale-110 transition-all duration-300 transform hover:shadow-white/50">
-              <Play className="w-6 h-6 sm:w-8 sm:h-8 mr-4" />
-              Experience the Technology
-            </Button>
-          </Link>
+          <Button 
+            onClick={handleGetStarted}
+            size="lg" 
+            className="bg-white text-tennis-purple-700 hover:bg-gray-100 font-bold px-8 sm:px-16 py-4 sm:py-6 text-lg sm:text-2xl rounded-2xl shadow-2xl hover:scale-110 transition-all duration-300 transform hover:shadow-white/50"
+          >
+            <Play className="w-6 h-6 sm:w-8 sm:h-8 mr-4" />
+            Experience the Technology
+          </Button>
         </div>
       </section>
 
@@ -521,18 +549,22 @@ const Landing = () => {
             Join thousands of players already using SEED to reach their full potential
           </p>
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center">
-            <Link to="/register">
-              <Button size="lg" className="w-full sm:w-auto bg-white text-tennis-purple-700 hover:bg-gray-100 font-bold px-12 sm:px-16 py-4 sm:py-6 text-lg sm:text-2xl rounded-2xl shadow-2xl hover:scale-110 transition-all duration-300 transform hover:shadow-white/50">
-                <Play className="w-6 h-6 sm:w-8 sm:h-8 mr-4" />
-                Start Your Journey
-              </Button>
-            </Link>
-            <Link to="/courts">
-              <Button size="lg" className="w-full sm:w-auto bg-white/10 backdrop-blur-md border-2 border-white/30 text-white hover:bg-white/20 font-bold px-12 sm:px-16 py-4 sm:py-6 text-lg sm:text-2xl rounded-2xl shadow-2xl hover:scale-110 transition-all duration-300 transform">
-                <Eye className="w-6 h-6 sm:w-8 sm:h-8 mr-4" />
-                Find Courts
-              </Button>
-            </Link>
+            <Button 
+              onClick={handleGetStarted}
+              size="lg" 
+              className="w-full sm:w-auto bg-white text-tennis-purple-700 hover:bg-gray-100 font-bold px-12 sm:px-16 py-4 sm:py-6 text-lg sm:text-2xl rounded-2xl shadow-2xl hover:scale-110 transition-all duration-300 transform hover:shadow-white/50"
+            >
+              <Play className="w-6 h-6 sm:w-8 sm:h-8 mr-4" />
+              Start Your Journey
+            </Button>
+            <Button 
+              onClick={() => navigate('/courts')}
+              size="lg" 
+              className="w-full sm:w-auto bg-white/10 backdrop-blur-md border-2 border-white/30 text-white hover:bg-white/20 font-bold px-12 sm:px-16 py-4 sm:py-6 text-lg sm:text-2xl rounded-2xl shadow-2xl hover:scale-110 transition-all duration-300 transform"
+            >
+              <Eye className="w-6 h-6 sm:w-8 sm:h-8 mr-4" />
+              Find Courts
+            </Button>
           </div>
         </div>
       </section>
@@ -542,24 +574,30 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 sm:gap-8">
             <div className="col-span-1 md:col-span-2">
-              <div className="flex items-center space-x-3 mb-4 sm:mb-6">
+              <Link to="/" className="flex items-center space-x-3 mb-4 sm:mb-6">
                 <img 
                   src="/lovable-uploads/9b877c55-5518-40cb-ba2c-a68fccfbe495.png" 
                   alt="SEED Logo" 
                   className="h-10 sm:h-12 w-auto"
                 />
                 <span className="text-xl sm:text-2xl font-bold">SEED</span>
-              </div>
+              </Link>
               <p className="text-gray-400 text-base sm:text-lg mb-4 sm:mb-6 max-w-md">
                 AI-powered tennis analytics platform helping players and coaches achieve excellence through data-driven insights.
               </p>
               <div className="flex space-x-4">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-tennis-purple-600 transition-colors cursor-pointer">
+                <button 
+                  onClick={() => handleSocialAuth('Twitter')}
+                  className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-tennis-purple-600 transition-colors cursor-pointer"
+                >
                   <span className="text-xs sm:text-sm">𝕏</span>
-                </div>
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-tennis-purple-600 transition-colors cursor-pointer">
+                </button>
+                <button 
+                  onClick={() => handleSocialAuth('LinkedIn')}
+                  className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-tennis-purple-600 transition-colors cursor-pointer"
+                >
                   <span className="text-xs sm:text-sm">in</span>
-                </div>
+                </button>
               </div>
             </div>
             <div>
@@ -574,10 +612,10 @@ const Landing = () => {
             <div>
               <h4 className="text-base sm:text-lg font-bold mb-3 sm:mb-4">Support</h4>
               <ul className="space-y-2 text-gray-400 text-sm sm:text-base">
-                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
+                <li><button onClick={() => toast.info('Help Center coming soon!')} className="hover:text-white transition-colors text-left">Help Center</button></li>
+                <li><button onClick={() => toast.info('Contact form coming soon!')} className="hover:text-white transition-colors text-left">Contact Us</button></li>
+                <li><button onClick={() => toast.info('Privacy policy coming soon!')} className="hover:text-white transition-colors text-left">Privacy Policy</button></li>
+                <li><button onClick={() => toast.info('Terms coming soon!')} className="hover:text-white transition-colors text-left">Terms of Service</button></li>
               </ul>
             </div>
           </div>

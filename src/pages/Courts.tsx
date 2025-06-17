@@ -5,15 +5,28 @@ import BookingFlow from '@/components/BookingFlow';
 import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const Courts = () => {
   const [bookingComplete, setBookingComplete] = useState(false);
   const [completedBooking, setCompletedBooking] = useState<any>(null);
+  const navigate = useNavigate();
 
   const handleBookingComplete = (booking: any) => {
     setCompletedBooking(booking);
     setBookingComplete(true);
+    toast.success('Court booking confirmed successfully!');
+  };
+
+  const handleCheckIn = () => {
+    toast.info('Redirecting to check-in...');
+    setTimeout(() => navigate('/checkin'), 500);
+  };
+
+  const handleDashboard = () => {
+    toast.info('Returning to dashboard...');
+    setTimeout(() => navigate('/dashboard'), 500);
   };
 
   if (bookingComplete && completedBooking) {
@@ -62,16 +75,19 @@ const Courts = () => {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link to="/checkin">
-                    <Button className="tennis-button">
-                      Go to Check-In
-                    </Button>
-                  </Link>
-                  <Link to="/dashboard">
-                    <Button variant="outline" className="btn-outline">
-                      Back to Dashboard
-                    </Button>
-                  </Link>
+                  <Button 
+                    onClick={handleCheckIn}
+                    className="tennis-button"
+                  >
+                    Go to Check-In
+                  </Button>
+                  <Button 
+                    onClick={handleDashboard}
+                    variant="outline" 
+                    className="btn-outline"
+                  >
+                    Back to Dashboard
+                  </Button>
                 </div>
               </CardContent>
             </Card>

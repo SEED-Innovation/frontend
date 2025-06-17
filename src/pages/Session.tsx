@@ -4,12 +4,15 @@ import { Play, Pause, Square, Eye, Timer, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Navigation from '@/components/Navigation';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const Session = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [sessionTime, setSessionTime] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -29,18 +32,46 @@ const Session = () => {
   };
 
   const handleStartRecording = () => {
-    setIsRecording(true);
-    setIsPaused(false);
+    setIsLoading(true);
+    toast.success('Starting AI camera session...');
+    
+    setTimeout(() => {
+      setIsRecording(true);
+      setIsPaused(false);
+      setIsLoading(false);
+      toast.success('Session started! AI is now tracking your game.');
+    }, 1500);
   };
 
   const handlePauseResume = () => {
     setIsPaused(!isPaused);
+    toast.info(isPaused ? 'Session resumed' : 'Session paused');
   };
 
   const handleStopRecording = () => {
-    setIsRecording(false);
-    setIsPaused(false);
-    // Here you would typically save the session and navigate to results
+    setIsLoading(true);
+    toast.info('Ending session and processing data...');
+    
+    setTimeout(() => {
+      setIsRecording(false);
+      setIsPaused(false);
+      setIsLoading(false);
+      toast.success('Session completed! Redirecting to recordings...');
+      
+      setTimeout(() => {
+        navigate('/recordings');
+      }, 1000);
+    }, 2000);
+  };
+
+  const handleViewRecordings = () => {
+    toast.info('Loading your recordings...');
+    setTimeout(() => navigate('/recordings'), 500);
+  };
+
+  const handleViewLeaderboard = () => {
+    toast.info('Loading leaderboard...');
+    setTimeout(() => navigate('/leaderboard'), 500);
   };
 
   return (
@@ -63,7 +94,9 @@ const Session = () => {
                 <div className="w-24 h-24 tennis-gradient rounded-full flex items-center justify-center mx-auto mb-4">
                   <Eye className="w-12 h-12 text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">AI Camera Active</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  {isRecording ? 'AI Camera Active' : 'Ready to Start'}
+                </h2>
                 <div className="flex items-center justify-center text-gray-600 mb-4">
                   <MapPin className="w-4 h-4 mr-1" />
                   Court 3, Riverside Tennis Club
@@ -89,9 +122,14 @@ const Session = () => {
                   <Button 
                     onClick={handleStartRecording}
                     className="tennis-button px-8 py-4 text-lg"
+                    disabled={isLoading}
                   >
-                    <Play className="w-6 h-6 mr-2" />
-                    Start Session
+                    {isLoading ? (
+                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    ) : (
+                      <Play className="w-6 h-6 mr-2" />
+                    )}
+                    {isLoading ? 'Starting...' : 'Start Session'}
                   </Button>
                 ) : (
                   <>
@@ -99,6 +137,7 @@ const Session = () => {
                       onClick={handlePauseResume}
                       variant="outline"
                       className="btn-outline px-6 py-4"
+                      disabled={isLoading}
                     >
                       {isPaused ? <Play className="w-5 h-5 mr-2" /> : <Pause className="w-5 h-5 mr-2" />}
                       {isPaused ? 'Resume' : 'Pause'}
@@ -107,9 +146,14 @@ const Session = () => {
                       onClick={handleStopRecording}
                       variant="destructive"
                       className="px-6 py-4"
+                      disabled={isLoading}
                     >
-                      <Square className="w-5 h-5 mr-2" />
-                      End Session
+                      {isLoading ? (
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      ) : (
+                        <Square className="w-5 h-5 mr-2" />
+                      )}
+                      {isLoading ? 'Ending...' : 'End Session'}
                     </Button>
                   </>
                 )}
@@ -121,25 +165,31 @@ const Session = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <Card className="premium-card animate-fade-in" style={{ animationDelay: '0.1s' }}>
               <CardContent className="p-6 text-center">
-                <div className="w-3 h-3 bg-tennis-green-500 rounded-full mx-auto mb-3 animate-pulse"></div>
+                <div className={`w-3 h-3 rounded-full mx-auto mb-3 ${isRecording ? 'bg-tennis-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
                 <h3 className="font-semibold text-gray-900 mb-1">Camera Feed</h3>
-                <p className="text-sm text-gray-600">Live streaming active</p>
+                <p className="text-sm text-gray-600">
+                  {isRecording ? 'Live streaming active' : 'Ready to stream'}
+                </p>
               </CardContent>
             </Card>
 
             <Card className="premium-card animate-fade-in" style={{ animationDelay: '0.2s' }}>
               <CardContent className="p-6 text-center">
-                <div className="w-3 h-3 bg-tennis-green-500 rounded-full mx-auto mb-3 animate-pulse"></div>
+                <div className={`w-3 h-3 rounded-full mx-auto mb-3 ${isRecording ? 'bg-tennis-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
                 <h3 className="font-semibold text-gray-900 mb-1">AI Processing</h3>
-                <p className="text-sm text-gray-600">Real-time analysis</p>
+                <p className="text-sm text-gray-600">
+                  {isRecording ? 'Real-time analysis' : 'Waiting to start'}
+                </p>
               </CardContent>
             </Card>
 
             <Card className="premium-card animate-fade-in" style={{ animationDelay: '0.3s' }}>
               <CardContent className="p-6 text-center">
-                <div className="w-3 h-3 bg-tennis-green-500 rounded-full mx-auto mb-3 animate-pulse"></div>
+                <div className={`w-3 h-3 rounded-full mx-auto mb-3 ${isRecording ? 'bg-tennis-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
                 <h3 className="font-semibold text-gray-900 mb-1">Data Storage</h3>
-                <p className="text-sm text-gray-600">Cloud backup active</p>
+                <p className="text-sm text-gray-600">
+                  {isRecording ? 'Cloud backup active' : 'Ready to backup'}
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -151,16 +201,20 @@ const Session = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Link to="/recordings">
-                  <Button variant="outline" className="w-full btn-outline">
-                    View Previous Sessions
-                  </Button>
-                </Link>
-                <Link to="/leaderboard">
-                  <Button variant="outline" className="w-full btn-outline">
-                    Check Leaderboard
-                  </Button>
-                </Link>
+                <Button 
+                  onClick={handleViewRecordings}
+                  variant="outline" 
+                  className="w-full btn-outline"
+                >
+                  View Previous Sessions
+                </Button>
+                <Button 
+                  onClick={handleViewLeaderboard}
+                  variant="outline" 
+                  className="w-full btn-outline"
+                >
+                  Check Leaderboard
+                </Button>
               </div>
             </CardContent>
           </Card>

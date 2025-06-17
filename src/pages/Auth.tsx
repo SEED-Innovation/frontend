@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -17,7 +18,7 @@ const Auth = () => {
   });
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!isLogin && formData.password !== formData.confirmPassword) {
@@ -25,14 +26,33 @@ const Auth = () => {
       return;
     }
 
-    // Simulate authentication
-    toast.success(isLogin ? 'Welcome back!' : 'Account created successfully!');
-    navigate('/dashboard');
+    if (!formData.email || !formData.password) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setIsLoading(true);
+    
+    // Simulate authentication process
+    setTimeout(() => {
+      setIsLoading(false);
+      toast.success(isLogin ? 'Welcome back!' : 'Account created successfully!');
+      navigate('/dashboard');
+    }, 1500);
   };
 
   const handleSocialAuth = (provider: string) => {
+    setIsLoading(true);
     toast.success(`Signing in with ${provider}...`);
-    setTimeout(() => navigate('/dashboard'), 1000);
+    setTimeout(() => {
+      setIsLoading(false);
+      navigate('/dashboard');
+    }, 1000);
+  };
+
+  const handleGuestMode = () => {
+    toast.info('Entering guest mode...');
+    setTimeout(() => navigate('/dashboard'), 500);
   };
 
   return (
@@ -67,6 +87,7 @@ const Auth = () => {
                 onClick={() => handleSocialAuth('Google')}
                 variant="outline"
                 className="w-full h-12 border-gray-200 hover:bg-gray-50"
+                disabled={isLoading}
               >
                 <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" className="w-5 h-5 mr-3" />
                 Continue with Google
@@ -75,6 +96,7 @@ const Auth = () => {
                 onClick={() => handleSocialAuth('Apple')}
                 variant="outline"
                 className="w-full h-12 border-gray-200 hover:bg-gray-50"
+                disabled={isLoading}
               >
                 <span className="mr-3">🍎</span>
                 Continue with Apple
@@ -101,7 +123,8 @@ const Auth = () => {
                     placeholder="Choose a username"
                     value={formData.username}
                     onChange={(e) => setFormData({...formData, username: e.target.value})}
-                    required
+                    required={!isLogin}
+                    disabled={isLoading}
                   />
                 </div>
               )}
@@ -115,6 +138,7 @@ const Auth = () => {
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
                   required
+                  disabled={isLoading}
                 />
               </div>
 
@@ -128,11 +152,13 @@ const Auth = () => {
                     value={formData.password}
                     onChange={(e) => setFormData({...formData, password: e.target.value})}
                     required
+                    disabled={isLoading}
                   />
                   <button
                     type="button"
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                     onClick={() => setShowPassword(!showPassword)}
+                    disabled={isLoading}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -148,7 +174,8 @@ const Auth = () => {
                     placeholder="Confirm your password"
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-                    required
+                    required={!isLogin}
+                    disabled={isLoading}
                   />
                 </div>
               )}
@@ -158,15 +185,25 @@ const Auth = () => {
                   <button
                     type="button"
                     className="text-sm text-tennis-purple-600 hover:text-tennis-purple-700 animated-underline"
+                    onClick={() => toast.info('Password reset coming soon!')}
+                    disabled={isLoading}
                   >
                     Forgot password?
                   </button>
                 </div>
               )}
 
-              <Button type="submit" className="tennis-button w-full h-12">
-                {isLogin ? 'Sign In' : 'Create Account'}
-                <ArrowRight className="w-4 h-4 ml-2" />
+              <Button 
+                type="submit" 
+                className="tennis-button w-full h-12"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                ) : (
+                  <ArrowRight className="w-4 h-4 mr-2" />
+                )}
+                {isLoading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')}
               </Button>
             </form>
 
@@ -178,6 +215,7 @@ const Auth = () => {
               <button
                 onClick={() => setIsLogin(!isLogin)}
                 className="text-tennis-purple-600 hover:text-tennis-purple-700 font-medium animated-underline"
+                disabled={isLoading}
               >
                 {isLogin ? 'Sign up' : 'Sign in'}
               </button>
@@ -185,11 +223,14 @@ const Auth = () => {
 
             {/* Guest Mode */}
             <div className="text-center pt-4 border-t border-gray-200">
-              <Link to="/dashboard">
-                <Button variant="ghost" className="text-gray-600 hover:text-gray-800">
-                  Continue as Guest
-                </Button>
-              </Link>
+              <Button 
+                variant="ghost" 
+                className="text-gray-600 hover:text-gray-800"
+                onClick={handleGuestMode}
+                disabled={isLoading}
+              >
+                Continue as Guest
+              </Button>
             </div>
           </CardContent>
         </Card>
