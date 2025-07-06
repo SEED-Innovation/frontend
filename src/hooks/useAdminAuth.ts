@@ -4,7 +4,7 @@ import { AdminUser, AdminRole } from '@/types/admin';
 // Mock admin user for development
 const mockAdminUser: AdminUser = {
   id: '1',
-  name: 'John Admin',
+  name: 'OMAR OMAR',
   email: 'admin@seed.com',
   role: 'SUPER_ADMIN',
   assignedCourts: ['court-1', 'court-2', 'court-3'],
@@ -39,7 +39,8 @@ export const useAdminAuth = () => {
 
   const logout = () => {
     setUser(null);
-    // In real app, clear tokens, redirect, etc.
+    // Redirect to landing page
+    window.location.href = '/';
   };
 
   return {

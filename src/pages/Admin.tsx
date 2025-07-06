@@ -43,10 +43,10 @@ const Admin = () => {
             <Route path="/bookings" element={<AdminBooking />} />
             <Route path="/courts" element={<CourtInstallations />} />
             <Route path="/players" element={<UserManagement />} />
-            <Route path="/payments" element={<div className="p-6"><h1 className="text-2xl font-bold">Payments</h1><p>Payment management coming soon...</p></div>} />
+            <Route path="/payments" element={<PaymentManagement />} />
             <Route path="/analytics" element={<SystemAnalytics />} />
-            <Route path="/reports" element={<div className="p-6"><h1 className="text-2xl font-bold">Reports</h1><p>Reports section coming soon...</p></div>} />
-            <Route path="/sessions" element={<div className="p-6"><h1 className="text-2xl font-bold">Sessions</h1><p>Session monitoring coming soon...</p></div>} />
+            <Route path="/reports" element={<ReportsAnalytics />} />
+            <Route path="/sessions" element={<SessionMonitoring />} />
             <Route path="/system" element={<div className="p-6"><h1 className="text-2xl font-bold">System</h1><p>System management coming soon...</p></div>} />
             <Route path="/settings" element={<AdminSettings />} />
           </Routes>
