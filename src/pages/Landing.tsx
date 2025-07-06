@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { ArrowDown, Calendar, Star, Eye, Trophy, Play, Zap, Target, Users, Menu, X, CheckCircle, Clock, Video, BarChart3, Award, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -19,13 +20,13 @@ const Landing = () => {
   }, []);
 
   const handleGetStarted = () => {
-    toast.success('Redirecting to registration...');
-    navigate('/login');
+    toast.info('Player app is mobile-only. This is the admin dashboard.');
+    navigate('/admin-login');
   };
 
   const handleWatchDemo = () => {
-    toast.info('Demo video coming soon!');
-    navigate('/leaderboard');
+    toast.info('Experience the admin dashboard');
+    navigate('/admin-login');
   };
 
   const handleSocialAuth = (provider: string) => {
@@ -176,45 +177,48 @@ const Landing = () => {
 
         <div className="relative z-10 text-center text-white px-4 max-w-7xl mx-auto">
           {/* Enhanced Navigation */}
-          <nav className={`absolute top-8 left-0 right-0 flex items-center justify-between px-4 sm:px-8 transition-all duration-300 ${scrolled ? 'bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl mx-4 sm:mx-8' : ''}`}>
+          <motion.nav 
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className={`absolute top-8 left-0 right-0 flex items-center justify-between px-4 sm:px-8 transition-all duration-300 ${scrolled ? 'bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl mx-4 sm:mx-8' : ''}`}
+          >
             <Link to="/" className="flex items-center space-x-3">
-              <img 
+              <motion.img 
                 src="/lovable-uploads/d6e16ac6-604a-4a7a-9497-3476e49278a1.png" 
                 alt="SEED Logo" 
                 className="h-10 w-auto"
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 400, damping: 10 }}
               />
               <span className="text-2xl font-bold hidden sm:block">SEED</span>
             </Link>
             
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-8">
-              <Link to="/courts" className="text-white/80 hover:text-white transition-colors relative group">
-                Courts
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-tennis-green-400 transition-all duration-300 group-hover:w-full"></span>
-              </Link>
-              <Link to="/leaderboard" className="text-white/80 hover:text-white transition-colors relative group">
-                Leaderboard
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-tennis-green-400 transition-all duration-300 group-hover:w-full"></span>
-              </Link>
-              <Link to="/recordings" className="text-white/80 hover:text-white transition-colors relative group">
-                Recordings
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-tennis-green-400 transition-all duration-300 group-hover:w-full"></span>
-              </Link>
-              <Link to="/login" className="text-white/80 hover:text-white transition-colors">Login</Link>
+              <motion.div whileHover={{ y: -2 }}>
+                <span className="text-white/60 text-sm">Admin Dashboard for</span>
+              </motion.div>
+              <motion.div whileHover={{ y: -2 }}>
+                <span className="text-white/60 text-sm">Tennis Court Management</span>
+              </motion.div>
               <Link to="/admin-login">
-                <Button 
-                  variant="ghost"
-                  className="text-white/80 hover:text-white hover:bg-white/10 border border-white/30 transition-all duration-300"
-                >
-                  Admin
-                </Button>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button 
+                    variant="ghost"
+                    className="text-white/80 hover:text-white hover:bg-white/10 border border-white/30 transition-all duration-300"
+                  >
+                    Admin Login
+                  </Button>
+                </motion.div>
               </Link>
-              <Button 
-                onClick={handleGetStarted}
-                className="bg-tennis-green-500 hover:bg-tennis-green-400 text-white font-semibold px-6 py-2 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg border-2 border-tennis-green-400"
-              >
-                Get Started
-              </Button>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button 
+                  onClick={handleGetStarted}
+                  className="bg-tennis-green-500 hover:bg-tennis-green-400 text-white font-semibold px-6 py-2 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg border-2 border-tennis-green-400"
+                >
+                  Get Started
+                </Button>
+              </motion.div>
             </div>
 
             {/* Mobile Menu Button */}
@@ -226,7 +230,7 @@ const Landing = () => {
             >
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </Button>
-          </nav>
+          </motion.nav>
 
           {/* Mobile Menu */}
           {isMenuOpen && (
@@ -262,17 +266,46 @@ const Landing = () => {
 
           {/* Hero Content */}
           <div className="pt-32 sm:pt-40">
-            <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black mb-6 sm:mb-8 animate-fade-in leading-tight">
-              <span className="block">Smash.</span>
-              <span className="block bg-gradient-to-r from-tennis-green-300 via-yellow-300 to-tennis-green-300 bg-clip-text text-transparent animate-glow">
-                Analyze.
-              </span>
-              <span className="block text-3xl sm:text-5xl md:text-6xl mt-4">Evolve.</span>
-            </h1>
+            <motion.h1 
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black mb-6 sm:mb-8 leading-tight"
+            >
+              <motion.span 
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2, duration: 0.8 }}
+                className="block"
+              >
+                Manage.
+              </motion.span>
+              <motion.span 
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4, duration: 0.8 }}
+                className="block bg-gradient-to-r from-tennis-green-300 via-yellow-300 to-tennis-green-300 bg-clip-text text-transparent animate-glow"
+              >
+                Control.
+              </motion.span>
+              <motion.span 
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.6, duration: 0.8 }}
+                className="block text-3xl sm:text-5xl md:text-6xl mt-4"
+              >
+                Succeed.
+              </motion.span>
+            </motion.h1>
             
-            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-8 sm:mb-12 text-white/90 animate-fade-in font-medium max-w-4xl mx-auto leading-relaxed px-4" style={{ animationDelay: '0.2s' }}>
-              AI-powered tennis reimagined. Instant match analysis, smart court booking, and performance insights.
-            </p>
+            <motion.p 
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8, duration: 0.8 }}
+              className="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-8 sm:mb-12 text-white/90 font-medium max-w-4xl mx-auto leading-relaxed px-4"
+            >
+              Complete tennis court management system. Admin dashboard for booking management, player analytics, and facility operations.
+            </motion.p>
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center animate-fade-in mb-12 sm:mb-16 px-4" style={{ animationDelay: '0.4s' }}>

@@ -1,145 +1,57 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import AdminNavigation from '@/components/admin/AdminNavigation';
-import SessionMonitoring from '@/components/admin/SessionMonitoring';
-import SystemMetrics from '@/components/admin/SystemMetrics';
-import ClubManagement from '@/components/admin/ClubManagement';
+import { Routes, Route } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import AdminSidebar from '@/components/admin/AdminSidebar';
+import AdminHeader from '@/components/admin/AdminHeader';
+import AdminDashboard from '@/components/admin/AdminDashboard';
+import AdminBooking from '@/components/admin/AdminBooking';
 import CourtInstallations from '@/components/admin/CourtInstallations';
 import UserManagement from '@/components/admin/UserManagement';
-import ContentManagement from '@/components/admin/ContentManagement';
-import AdminBooking from '@/components/admin/AdminBooking';
 import AdminSettings from '@/components/admin/AdminSettings';
 import SystemAnalytics from '@/components/admin/SystemAnalytics';
-import { Activity, Users, Camera, AlertTriangle, Settings, FileText, Calendar, BarChart3 } from 'lucide-react';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 const Admin = () => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const { loading } = useAdminAuth();
 
-  // Mock overview data
-  const overviewStats = {
-    liveSessions: 12,
-    totalUsers: 2847,
-    activeCourts: 156,
-    systemIssues: 3
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AdminNavigation />
+      <AdminSidebar collapsed={sidebarCollapsed} />
+      <AdminHeader 
+        onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
+        collapsed={sidebarCollapsed}
+      />
       
-      <div className="pt-16 pb-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
-            <p className="text-gray-600">Complete administration system for tennis facility management</p>
-          </div>
-
-          {/* Overview Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center">
-                  <Activity className="w-8 h-8 text-tennis-green-600" />
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">Live Sessions</p>
-                    <p className="text-2xl font-bold text-gray-900">{overviewStats.liveSessions}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center">
-                  <Users className="w-8 h-8 text-tennis-purple-600" />
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">Total Users</p>
-                    <p className="text-2xl font-bold text-gray-900">{overviewStats.totalUsers.toLocaleString()}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center">
-                  <Camera className="w-8 h-8 text-blue-600" />
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">Active Courts</p>
-                    <p className="text-2xl font-bold text-gray-900">{overviewStats.activeCourts}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center">
-                  <AlertTriangle className="w-8 h-8 text-red-600" />
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">System Issues</p>
-                    <p className="text-2xl font-bold text-gray-900">{overviewStats.systemIssues}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Main Content Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-8">
-              <TabsTrigger value="overview">Sessions</TabsTrigger>
-              <TabsTrigger value="booking">Booking</TabsTrigger>
-              <TabsTrigger value="analytics">Analytics</TabsTrigger>
-              <TabsTrigger value="metrics">Metrics</TabsTrigger>
-              <TabsTrigger value="users">Users</TabsTrigger>
-              <TabsTrigger value="content">Content</TabsTrigger>
-              <TabsTrigger value="clubs">Clubs</TabsTrigger>
-              <TabsTrigger value="courts">Courts</TabsTrigger>
-              <TabsTrigger value="settings">Settings</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="overview" className="space-y-6">
-              <SessionMonitoring />
-            </TabsContent>
-
-            <TabsContent value="booking" className="space-y-6">
-              <AdminBooking />
-            </TabsContent>
-
-            <TabsContent value="analytics" className="space-y-6">
-              <SystemAnalytics />
-            </TabsContent>
-
-            <TabsContent value="metrics" className="space-y-6">
-              <SystemMetrics />
-            </TabsContent>
-
-            <TabsContent value="users" className="space-y-6">
-              <UserManagement />
-            </TabsContent>
-
-            <TabsContent value="content" className="space-y-6">
-              <ContentManagement />
-            </TabsContent>
-
-            <TabsContent value="clubs" className="space-y-6">
-              <ClubManagement />
-            </TabsContent>
-
-            <TabsContent value="courts" className="space-y-6">
-              <CourtInstallations />
-            </TabsContent>
-
-            <TabsContent value="settings" className="space-y-6">
-              <AdminSettings />
-            </TabsContent>
-          </Tabs>
+      <motion.main
+        animate={{ marginLeft: sidebarCollapsed ? 80 : 280 }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        className="pt-16 min-h-screen"
+      >
+        <div className="p-6">
+          <Routes>
+            <Route path="/" element={<AdminDashboard />} />
+            <Route path="/bookings" element={<AdminBooking />} />
+            <Route path="/courts" element={<CourtInstallations />} />
+            <Route path="/players" element={<UserManagement />} />
+            <Route path="/payments" element={<div className="p-6"><h1 className="text-2xl font-bold">Payments</h1><p>Payment management coming soon...</p></div>} />
+            <Route path="/analytics" element={<SystemAnalytics />} />
+            <Route path="/reports" element={<div className="p-6"><h1 className="text-2xl font-bold">Reports</h1><p>Reports section coming soon...</p></div>} />
+            <Route path="/sessions" element={<div className="p-6"><h1 className="text-2xl font-bold">Sessions</h1><p>Session monitoring coming soon...</p></div>} />
+            <Route path="/system" element={<div className="p-6"><h1 className="text-2xl font-bold">System</h1><p>System management coming soon...</p></div>} />
+            <Route path="/settings" element={<AdminSettings />} />
+          </Routes>
         </div>
-      </div>
+      </motion.main>
     </div>
   );
 };
