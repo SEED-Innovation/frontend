@@ -46,14 +46,29 @@ const sidebarItems: SidebarItem[] = [
     icon: Calendar,
   },
   {
+    title: 'Sessions',
+    href: '/admin/sessions',
+    icon: Clock,
+  },
+  {
     title: 'Payments',
     href: '/admin/payments',
     icon: CreditCard,
   },
   {
-    title: 'Reports',
-    href: '/admin/reports',
-    icon: FileText,
+    title: 'Analytics',
+    href: '/admin/analytics',
+    icon: BarChart3,
+  },
+  {
+    title: 'Settings',
+    href: '/admin/settings',
+    icon: Settings,
+  },
+  {
+    title: 'My Profile',
+    href: '/admin/profile',
+    icon: Trophy,
   },
 ];
 

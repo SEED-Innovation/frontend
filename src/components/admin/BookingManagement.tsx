@@ -158,7 +158,7 @@ const BookingManagement = () => {
     }
   };
 
-  const filteredBookings = selectedCourt 
+  const filteredBookings = selectedCourt && selectedCourt !== "all"
     ? bookings.filter(booking => booking.courtId === selectedCourt)
     : bookings;
 
@@ -264,12 +264,12 @@ const BookingManagement = () => {
           <div className="grid grid-cols-3 gap-4">
             <div>
               <Label htmlFor="court-filter">Court</Label>
-              <Select onValueChange={setSelectedCourt}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All courts" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All courts</SelectItem>
+                <Select onValueChange={setSelectedCourt}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All courts" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All courts</SelectItem>
                   {courts.map((court) => (
                     <SelectItem key={court.id} value={court.id}>
                       {court.name}
