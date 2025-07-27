@@ -218,13 +218,13 @@ const AdminLogin = () => {
                     <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors duration-300" />
                     <motion.button
                       type="button"
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-accent transition-colors duration-200 p-1"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-accent transition-colors duration-200 p-1 z-10"
                       onClick={() => setShowPassword(!showPassword)}
                       disabled={isLoading}
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </motion.button>
                   </div>
                 </motion.div>
@@ -302,27 +302,6 @@ const AdminLogin = () => {
           </Card>
         </motion.div>
 
-        {/* Demo Credentials */}
-        <motion.div
-          variants={itemVariants}
-          className="mt-8 p-6 bg-card/60 backdrop-blur-xl rounded-2xl border border-border/50 text-center relative overflow-hidden"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-accent/5 to-secondary/5" />
-          <div className="relative">
-            <h3 className="text-foreground text-sm font-semibold mb-3 flex items-center justify-center gap-2" style={{ fontFamily: 'Muli, sans-serif' }}>
-              <Zap className="w-4 h-4 text-accent" />
-              Demo Access Credentials
-            </h3>
-            <div className="space-y-2 text-xs text-muted-foreground" style={{ fontFamily: 'Poppins, sans-serif' }}>
-              <p className="font-mono bg-background/50 px-3 py-2 rounded-lg border border-border">
-                Email: admin@seed.com
-              </p>
-              <p className="font-mono bg-background/50 px-3 py-2 rounded-lg border border-border">
-                Password: admin123
-              </p>
-            </div>
-          </div>
-        </motion.div>
       </motion.div>
     </div>
   );
