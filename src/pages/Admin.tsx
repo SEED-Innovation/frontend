@@ -5,11 +5,11 @@ import { motion } from 'framer-motion';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
 import AdminDashboard from '@/components/admin/AdminDashboard';
-import AdminBooking from '@/components/admin/AdminBooking';
-import CourtInstallations from '@/components/admin/CourtInstallations';
 import UserManagement from '@/components/admin/UserManagement';
-import AdminSettings from '@/components/admin/AdminSettings';
-import SystemAnalytics from '@/components/admin/SystemAnalytics';
+import CourtManagement from '@/components/admin/CourtManagement';
+import BookingManagement from '@/components/admin/BookingManagement';
+import PaymentManagement from '@/components/admin/PaymentManagement';
+import ReportsAnalytics from '@/components/admin/ReportsAnalytics';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 const Admin = () => {
@@ -40,15 +40,11 @@ const Admin = () => {
         <div className="p-6">
           <Routes>
             <Route path="/" element={<AdminDashboard />} />
-            <Route path="/bookings" element={<AdminBooking />} />
-            <Route path="/courts" element={<CourtInstallations />} />
-            <Route path="/players" element={<UserManagement />} />
+            <Route path="/users" element={<UserManagement />} />
+            <Route path="/courts" element={<CourtManagement />} />
+            <Route path="/bookings" element={<BookingManagement />} />
             <Route path="/payments" element={<PaymentManagement />} />
-            <Route path="/analytics" element={<SystemAnalytics />} />
             <Route path="/reports" element={<ReportsAnalytics />} />
-            <Route path="/sessions" element={<SessionMonitoring />} />
-            <Route path="/system" element={<div className="p-6"><h1 className="text-2xl font-bold">System</h1><p>System management coming soon...</p></div>} />
-            <Route path="/settings" element={<AdminSettings />} />
           </Routes>
         </div>
       </motion.main>
