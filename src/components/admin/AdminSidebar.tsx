@@ -31,53 +31,29 @@ const sidebarItems: SidebarItem[] = [
     icon: LayoutDashboard,
   },
   {
-    title: 'Bookings',
-    href: '/admin/bookings',
-    icon: Calendar,
-    badge: '12'
-  },
-  {
-    title: 'Courts Management',
-    href: '/admin/courts',
-    icon: MapPin,
-  },
-  {
     title: 'Players',
     href: '/admin/players',
     icon: Users,
   },
   {
+    title: 'Courts',
+    href: '/admin/courts',
+    icon: MapPin,
+  },
+  {
+    title: 'Bookings',
+    href: '/admin/bookings',
+    icon: Calendar,
+  },
+  {
     title: 'Payments',
     href: '/admin/payments',
     icon: CreditCard,
-    badge: '3'
-  },
-  {
-    title: 'Analytics',
-    href: '/admin/analytics',
-    icon: BarChart3,
   },
   {
     title: 'Reports',
     href: '/admin/reports',
     icon: FileText,
-  },
-  {
-    title: 'Sessions',
-    href: '/admin/sessions',
-    icon: Clock,
-    superAdminOnly: true
-  },
-  {
-    title: 'System',
-    href: '/admin/system',
-    icon: Trophy,
-    superAdminOnly: true
-  },
-  {
-    title: 'Settings',
-    href: '/admin/settings',
-    icon: Settings,
   },
 ];
 

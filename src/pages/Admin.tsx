@@ -40,7 +40,7 @@ const Admin = () => {
         <div className="p-6">
           <Routes>
             <Route path="/" element={<AdminDashboard />} />
-            <Route path="/users" element={<UserManagement />} />
+            <Route path="/players" element={<UserManagement />} />
             <Route path="/courts" element={<CourtManagement />} />
             <Route path="/bookings" element={<BookingManagement />} />
             <Route path="/payments" element={<PaymentManagement />} />

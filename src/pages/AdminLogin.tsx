@@ -112,11 +112,9 @@ const AdminLogin = () => {
                       required
                       disabled={isLoading}
                     />
-                    <Button
+                    <button
                       type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 text-slate-400 hover:text-slate-300 hover:bg-white/10 focus:ring-0 focus:ring-offset-0"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-slate-400 hover:text-slate-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       onClick={() => setShowPassword(!showPassword)}
                       disabled={isLoading}
                     >
@@ -125,7 +123,7 @@ const AdminLogin = () => {
                       ) : (
                         <Eye className="w-4 h-4" />
                       )}
-                    </Button>
+                    </button>
                   </div>
                 </div>
 
