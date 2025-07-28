@@ -1,3 +1,4 @@
+// src/pages/AdminLogin.tsx
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -8,34 +9,39 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import SeedLogo from '@/components/ui/seed-logo';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 const AdminLogin = () => {
+  const { login } = useAdminAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!formData.email || !formData.password) {
       toast.error('Please fill in all fields');
       return;
     }
 
-    setIsLoading(true);
-    
-    // Simulate admin authentication
-    setTimeout(() => {
-      setIsLoading(false);
+    setIsSubmitting(true);
+    try {
+      await login(formData.email, formData.password, rememberMe);
       toast.success('Welcome to SEED Admin Dashboard! 🎉');
       navigate('/admin');
-    }, 1200);
-  };
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+    toast.error(err.message);
+      } else {
+        toast.error('Login failed');
+      }
+      } finally {
+      setIsSubmitting(false);
+      }
+
+    };
 
   return (
     <div className="min-h-screen flex">
@@ -190,10 +196,10 @@ const AdminLogin = () => {
                   type="email"
                   placeholder="Enter your email address"
                   value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  onChange={e => setFormData({ ...formData, email: e.target.value })}
                   className="h-12 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 focus:border-purple-500 focus:ring-purple-500/20 transition-all duration-300"
+                  disabled={isSubmitting}
                   required
-                  disabled={isLoading}
                 />
                 <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-500" />
               </div>
@@ -210,16 +216,16 @@ const AdminLogin = () => {
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Enter your password"
                   value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  onChange={e => setFormData({ ...formData, password: e.target.value })}
                   className="h-12 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 focus:border-purple-500 focus:ring-purple-500/20 pr-10 transition-all duration-300"
+                  disabled={isSubmitting}
                   required
-                  disabled={isLoading}
                 />
                 <motion.button
                   type="button"
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-500 hover:text-purple-400 transition-colors duration-200"
                   onClick={() => setShowPassword(!showPassword)}
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
@@ -235,8 +241,8 @@ const AdminLogin = () => {
                 <Checkbox
                   id="remember"
                   checked={rememberMe}
-                  onCheckedChange={(checked) => setRememberMe(checked === true)}
-                  disabled={isLoading}
+                  onCheckedChange={checked => setRememberMe(checked === true)}
+                  disabled={isSubmitting}
                   className="border-slate-600 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
                 />
                 <Label htmlFor="remember" className="text-sm text-slate-400 cursor-pointer">
@@ -247,30 +253,26 @@ const AdminLogin = () => {
                 type="button"
                 className="text-sm text-purple-400 hover:text-purple-300 transition-colors duration-200"
                 onClick={() => toast.info('Contact your system administrator for password reset')}
-                disabled={isLoading}
+                disabled={isSubmitting}
               >
                 Forgot password?
               </button>
             </div>
 
             {/* Submit Button */}
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <Button 
-                type="submit" 
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button
+                type="submit"
                 className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden group"
-                disabled={isLoading}
+                disabled={isSubmitting}
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                
-                {isLoading ? (
+                {isSubmitting ? (
                   <div className="flex items-center justify-center relative z-10">
-                    <motion.div 
+                    <motion.div
                       className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full mr-3"
                       animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                     />
                     Signing in...
                   </div>
@@ -283,8 +285,8 @@ const AdminLogin = () => {
 
           {/* Back Link */}
           <div className="mt-8 text-center">
-            <Link 
-              to="/" 
+            <Link
+              to="/"
               className="inline-flex items-center text-slate-400 hover:text-purple-400 text-sm transition-all duration-200 group"
             >
               <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform duration-200" />

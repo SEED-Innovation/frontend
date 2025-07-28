@@ -8,7 +8,6 @@ import Landing from "./pages/Landing";
 import AdminLogin from "./pages/AdminLogin";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
-import RequireRole from "@/components/admin/RequireRole";
 
 const queryClient = new QueryClient();
 

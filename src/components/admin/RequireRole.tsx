@@ -1,4 +1,3 @@
-// src/components/RequireRole.tsx
 import React, { ReactNode } from "react";
 import {Navigate, replace} from "react-router-dom";
 import { jwtDecode } from "jwt-decode";

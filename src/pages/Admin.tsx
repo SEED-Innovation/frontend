@@ -30,7 +30,7 @@ const Admin = () => {
   }
 
   return (
-    <RequireRole roles={["ADMIN","SUPER_ADMIN"]}>
+   <RequireRole roles={["ADMIN","SUPER_ADMIN"]}>
     <div className="min-h-screen bg-gray-50">
       <AdminSidebar collapsed={sidebarCollapsed} />
       <AdminHeader 
@@ -59,7 +59,7 @@ const Admin = () => {
         </div>
       </motion.main>
     </div>
-    </RequireRole>
+     </RequireRole>
   );
 };
 
