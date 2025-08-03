@@ -190,12 +190,12 @@ const Landing = () => {
             
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-8">
-              <motion.div whileHover={{ y: -2 }}>
+              {/* <motion.div whileHover={{ y: -2 }}>
                 <span className="text-white/60 text-sm">Admin Dashboard for</span>
               </motion.div>
               <motion.div whileHover={{ y: -2 }}>
                 <span className="text-white/60 text-sm">Tennis Court Management</span>
-              </motion.div>
+              </motion.div> */}
               <Link to="/admin-login">
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Button 
