@@ -10,7 +10,6 @@ import {
   Settings,
   Trophy,
   Clock,
-  FileText,
   MapPin
 } from 'lucide-react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';

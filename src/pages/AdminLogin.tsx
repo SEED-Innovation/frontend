@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import SeedLogo from '@/components/ui/seed-logo';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 const AdminLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -18,6 +19,7 @@ const AdminLogin = () => {
     password: ''
   });
   const navigate = useNavigate();
+  const { login } = useAdminAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,12 +31,20 @@ const AdminLogin = () => {
 
     setIsLoading(true);
     
-    // Simulate admin authentication
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      // Use real authentication from useAdminAuth hook
+      await login(formData.email, formData.password, rememberMe);
       toast.success('Welcome to SEED Admin Dashboard! 🎉');
       navigate('/admin');
-    }, 1200);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error('Login failed. Please try again.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

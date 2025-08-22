@@ -18,7 +18,7 @@ import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 const Admin = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const { loading } = useAdminAuth();
+  const { loading, user } = useAdminAuth();
 
   if (loading) {
     return (
@@ -26,6 +26,12 @@ const Admin = () => {
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
+  }
+
+  // Redirect if user is not authenticated or doesn't have admin privileges
+  if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
+    window.location.href = '/admin-login';
+    return null;
   }
 
   return (
