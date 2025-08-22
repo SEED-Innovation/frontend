@@ -1,13 +1,13 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  LayoutDashboard, 
-  Calendar, 
-  Users, 
-  CreditCard, 
-  BarChart3, 
-  Settings, 
+import {
+  LayoutDashboard,
+  Calendar,
+  Users,
+  CreditCard,
+  BarChart3,
+  Settings,
   Trophy,
   Clock,
   FileText,
@@ -34,6 +34,7 @@ const sidebarItems: SidebarItem[] = [
     title: 'Players',
     href: '/admin/players',
     icon: Users,
+    superAdminOnly: true,
   },
   {
     title: 'Courts',
@@ -49,21 +50,25 @@ const sidebarItems: SidebarItem[] = [
     title: 'Sessions',
     href: '/admin/sessions',
     icon: Clock,
+    superAdminOnly: true,
   },
   {
     title: 'Payments',
     href: '/admin/payments',
     icon: CreditCard,
+    superAdminOnly: true,
   },
   {
     title: 'Analytics',
     href: '/admin/analytics',
     icon: BarChart3,
+    superAdminOnly: true,
   },
   {
     title: 'Settings',
     href: '/admin/settings',
     icon: Settings,
+    superAdminOnly: true,
   },
   {
     title: 'My Profile',
@@ -80,9 +85,12 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed }) => {
   const location = useLocation();
   const { user, hasPermission } = useAdminAuth();
 
-  const filteredItems = sidebarItems.filter(item => 
-    !item.superAdminOnly || hasPermission('SUPER_ADMIN')
-  );
+  const filteredItems = sidebarItems.filter(item => {
+    // If item is not restricted to super admin, show it to all admins
+    if (!item.superAdminOnly) return true;
+    // If item is restricted to super admin, only show it to super admins
+    return hasPermission('SUPER_ADMIN');
+  });
 
   return (
     <motion.aside
@@ -138,7 +146,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed }) => {
         {filteredItems.map((item, index) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.href;
-          
+
           return (
             <motion.div
               key={item.href}
@@ -159,7 +167,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed }) => {
                   'w-5 h-5 flex-shrink-0',
                   collapsed ? 'mx-auto' : 'mr-3'
                 )} />
-                
+
                 {!collapsed && (
                   <>
                     <span className="flex-1">{item.title}</span>
