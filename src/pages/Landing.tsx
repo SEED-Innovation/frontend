@@ -37,28 +37,28 @@ const Landing = () => {
   const features = [
     {
       icon: Eye,
-      title: "AI-Powered Analysis",
-      description: "Real-time computer vision tracks every shot, serve, and movement with precision"
+      title: "Heatmaps",
+      description: "Visualize a player's positioning and activity on the court with detailed movement patterns"
+    },
+    {
+      icon: Zap,
+      title: "Speed Tracking",
+      description: "Monitor a player's pace during matches with real-time velocity measurements"
+    },
+    {
+      icon: Target,
+      title: "Performance Insights",
+      description: "Evaluate past performances to identify trends and patterns for strategic improvement"
+    },
+    {
+      icon: Trophy,
+      title: "Shot Analysis",
+      description: "Visualize shot accuracy on the court and discover new strategic patterns"
     },
     {
       icon: Calendar,
       title: "Smart Court Booking",
       description: "Seamlessly book AI-enabled courts with integrated technology features"
-    },
-    {
-      icon: Target,
-      title: "Performance Insights",
-      description: "Detailed analytics and personalized coaching tips to elevate your game"
-    },
-    {
-      icon: Trophy,
-      title: "Global Leaderboards",
-      description: "Compete with players worldwide and track your progress over time"
-    },
-    {
-      icon: Zap,
-      title: "Instant Results",
-      description: "Get match analysis and highlights delivered within minutes of play"
     },
     {
       icon: Users,
@@ -70,23 +70,18 @@ const Landing = () => {
   const howItWorks = [
     {
       icon: Calendar,
-      title: "Book Your Court",
-      description: "Choose from AI-enabled courts in your area with our smart booking system"
+      title: "Check In",
+      description: "Register your session and get ready to unleash your potential"
     },
     {
       icon: Play,
-      title: "Play & Record",
-      description: "Simply check in and play - our cameras automatically record your session"
-    },
-    {
-      icon: BarChart3,
-      title: "AI Analyzes",
-      description: "Advanced AI processes your game in real-time, tracking every shot and movement"
+      title: "Play",
+      description: "Step onto the court and let our AI capture every moment of brilliance"
     },
     {
       icon: Trophy,
-      title: "View Progress",
-      description: "Access detailed insights, share highlights, and track your improvement"
+      title: "Thrive!",
+      description: "Transform insights into action and watch your game reach new heights"
     }
   ];
 
@@ -195,12 +190,12 @@ const Landing = () => {
             
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-8">
-              <motion.div whileHover={{ y: -2 }}>
+              {/* <motion.div whileHover={{ y: -2 }}>
                 <span className="text-white/60 text-sm">Admin Dashboard for</span>
               </motion.div>
               <motion.div whileHover={{ y: -2 }}>
                 <span className="text-white/60 text-sm">Tennis Court Management</span>
-              </motion.div>
+              </motion.div> */}
               <Link to="/admin-login">
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Button 
@@ -272,13 +267,21 @@ const Landing = () => {
               transition={{ duration: 0.8, ease: "easeOut" }}
               className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black mb-6 sm:mb-8 leading-tight"
             >
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1, duration: 0.8 }}
+                className="text-lg sm:text-xl md:text-2xl text-white/80 mb-4 font-light"
+              >
+                A NEW WAY OF
+              </motion.div>
               <motion.span 
                 initial={{ opacity: 0, x: -50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
                 className="block"
               >
-                Manage.
+                playing
               </motion.span>
               <motion.span 
                 initial={{ opacity: 0, scale: 0.8 }}
@@ -286,7 +289,7 @@ const Landing = () => {
                 transition={{ delay: 0.4, duration: 0.8 }}
                 className="block bg-gradient-to-r from-tennis-green-300 via-yellow-300 to-tennis-green-300 bg-clip-text text-transparent animate-glow"
               >
-                Control.
+                mastering
               </motion.span>
               <motion.span 
                 initial={{ opacity: 0, x: 50 }}
@@ -294,7 +297,7 @@ const Landing = () => {
                 transition={{ delay: 0.6, duration: 0.8 }}
                 className="block text-3xl sm:text-5xl md:text-6xl mt-4"
               >
-                Succeed.
+                analyzing
               </motion.span>
             </motion.h1>
             
@@ -304,7 +307,8 @@ const Landing = () => {
               transition={{ delay: 0.8, duration: 0.8 }}
               className="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-8 sm:mb-12 text-white/90 font-medium max-w-4xl mx-auto leading-relaxed px-4"
             >
-              Complete tennis court management system. Admin dashboard for booking management, player analytics, and facility operations.
+              <span className="text-2xl sm:text-3xl block mb-4">SPORTS</span>
+              Unleash your A-Game! See it. <strong>SEED</strong> it. Smash it!
             </motion.p>
 
             {/* CTA Buttons */}
@@ -351,13 +355,13 @@ const Landing = () => {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 sm:mb-20">
             <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-gray-900 mb-4 sm:mb-6">
-              How{' '}
+              Master In{' '}
               <span className="bg-gradient-to-r from-tennis-purple-600 to-tennis-green-500 bg-clip-text text-transparent">
-                SEED Works
+                Three Steps!
               </span>
             </h2>
             <p className="text-lg sm:text-2xl text-gray-600 max-w-3xl mx-auto font-medium">
-              From booking to analysis - experience the future of tennis technology
+              Unleash your potential with our revolutionary approach to tennis excellence
             </p>
           </div>
 
@@ -503,13 +507,14 @@ const Landing = () => {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 sm:mb-20">
             <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-gray-900 mb-4 sm:mb-6">
-              Powered by{' '}
+              Unlock Your Game with{' '}
               <span className="bg-gradient-to-r from-tennis-purple-600 to-tennis-green-500 bg-clip-text text-transparent">
-                AI Excellence
+                SEED Insights
               </span>
             </h2>
             <p className="text-lg sm:text-2xl text-gray-600 max-w-3xl mx-auto font-medium">
-              Advanced computer vision and machine learning deliver insights that transform your game
+              From grassroots to grand slams, SEED isn't just tracking tennis—we're rewriting how it's played, watched, and judged. 
+              Every serve, volley, and stroke is meticulously tracked to elevate player performance and deliver actionable insights that drive continuous improvement.
             </p>
           </div>
 
@@ -586,10 +591,10 @@ const Landing = () => {
         </div>
         <div className="relative z-10 max-w-5xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-white mb-6 sm:mb-8">
-            Ready to Transform Your Game?
+            Ready to Play Smarter?
           </h2>
           <p className="text-lg sm:text-2xl text-white/90 mb-8 sm:mb-12 font-medium max-w-3xl mx-auto leading-relaxed">
-            Join thousands of players already using SEED to reach their full potential
+            Unleash your A-Game with SEED's revolutionary AI-powered tennis analytics. Transform every serve, volley, and stroke into actionable insights.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center">
             <Button 

@@ -15,7 +15,6 @@ import SystemAnalytics from '@/components/admin/SystemAnalytics';
 import AdminSettings from '@/components/admin/AdminSettings';
 import AdminProfile from '@/components/admin/AdminProfile';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
-import RequireRole from '@/components/admin/RequireRole';
 
 const Admin = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -30,7 +29,6 @@ const Admin = () => {
   }
 
   return (
-   <RequireRole roles={["ADMIN","SUPER_ADMIN"]}>
     <div className="min-h-screen bg-gray-50">
       <AdminSidebar collapsed={sidebarCollapsed} />
       <AdminHeader 
@@ -59,7 +57,6 @@ const Admin = () => {
         </div>
       </motion.main>
     </div>
-     </RequireRole>
   );
 };
 
