@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Edit, Trash2, Settings, Calendar, DollarSign } from 'lucide-react';
+import { Plus, Edit, Trash2, Settings, Calendar, DollarSign, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,49 +10,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-
-interface Court {
-  id: string;
-  name: string;
-  type: string;
-  location: string;
-  hourlyFee: number;
-  hasSeedSystem: boolean;
-  amenities: string[];
-  status: 'active' | 'maintenance' | 'offline';
-}
+import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { courtService, Court, CreateCourtRequest } from '@/lib/api/services/courtService';
 
 const CourtManagement = () => {
-  const [courts, setCourts] = useState<Court[]>([
-    {
-      id: '1',
-      name: 'Court 1 - Center',
-      type: 'Hard Court',
-      location: 'Main Building',
-      hourlyFee: 120,
-      hasSeedSystem: true,
-      amenities: ['Lighting', 'Sound System', 'Camera'],
-      status: 'active'
-    },
-    {
-      id: '2',
-      name: 'Court 2 - East',
-      type: 'Clay Court',
-      location: 'East Wing',
-      hourlyFee: 100,
-      hasSeedSystem: false,
-      amenities: ['Lighting'],
-      status: 'active'
-    }
-  ]);
+  const { user, hasPermission } = useAdminAuth();
+  const [courts, setCourts] = useState<Court[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
-  const [newCourt, setNewCourt] = useState({
+  const [newCourt, setNewCourt] = useState<CreateCourtRequest>({
     name: '',
     type: '',
     location: '',
     hourlyFee: 0,
     hasSeedSystem: false,
-    amenities: [] as string[]
+    amenities: []
   });
 
   const [availabilityData, setAvailabilityData] = useState({
@@ -62,28 +35,58 @@ const CourtManagement = () => {
     endTime: ''
   });
 
-  const handleCreateCourt = () => {
+  // Fetch courts on component mount
+  useEffect(() => {
+    fetchCourts();
+  }, []);
+
+  const fetchCourts = async () => {
+    try {
+      setLoading(true);
+      const fetchedCourts = await courtService.getAllCourts();
+      setCourts(fetchedCourts);
+    } catch (error) {
+      console.error('Error fetching courts:', error);
+      toast.error('Failed to load courts');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateCourt = async () => {
     if (!newCourt.name || !newCourt.type || !newCourt.location) {
       toast.error('Please fill in all required fields');
       return;
     }
 
-    const court: Court = {
-      id: Date.now().toString(),
-      ...newCourt,
-      status: 'active'
-    };
+    try {
+      const createdCourt = await courtService.createCourt(newCourt);
+      setCourts([...courts, createdCourt]);
+      setNewCourt({
+        name: '',
+        type: '',
+        location: '',
+        hourlyFee: 0,
+        hasSeedSystem: false,
+        amenities: []
+      });
+      setCreateDialogOpen(false);
+      toast.success('Court created successfully');
+    } catch (error) {
+      console.error('Error creating court:', error);
+      toast.error('Failed to create court');
+    }
+  };
 
-    setCourts([...courts, court]);
-    setNewCourt({
-      name: '',
-      type: '',
-      location: '',
-      hourlyFee: 0,
-      hasSeedSystem: false,
-      amenities: []
-    });
-    toast.success('Court created successfully');
+  const handleDeleteCourt = async (courtId: string) => {
+    try {
+      await courtService.deleteCourt(courtId);
+      setCourts(courts.filter(court => court.id !== courtId));
+      toast.success('Court deleted successfully');
+    } catch (error) {
+      console.error('Error deleting court:', error);
+      toast.error('Failed to delete court');
+    }
   };
 
   const handleSetAvailability = () => {
@@ -101,12 +104,21 @@ const CourtManagement = () => {
     });
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status?: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'maintenance': return 'bg-yellow-100 text-yellow-800';
-      case 'offline': return 'bg-red-100 text-red-800';
+      case 'AVAILABLE': return 'bg-green-100 text-green-800';
+      case 'MAINTENANCE': return 'bg-yellow-100 text-yellow-800';
+      case 'OFFLINE': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusDisplay = (status?: string) => {
+    switch (status) {
+      case 'AVAILABLE': return 'Available';
+      case 'MAINTENANCE': return 'Maintenance';
+      case 'OFFLINE': return 'Offline';
+      default: return 'Unknown';
     }
   };
 
@@ -120,15 +132,21 @@ const CourtManagement = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Court Management</h1>
-          <p className="text-gray-600 mt-1">Manage courts, availability, and pricing</p>
+          <p className="text-gray-600 mt-1">
+            {user?.role === 'SUPER_ADMIN' 
+              ? 'Manage all courts, availability, and pricing' 
+              : 'Manage your assigned courts, availability, and pricing'
+            }
+          </p>
         </div>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
-              <Plus className="w-4 h-4" />
-              Add New Court
-            </Button>
-          </DialogTrigger>
+        {hasPermission('SUPER_ADMIN') && (
+          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="flex items-center gap-2">
+                <Plus className="w-4 h-4" />
+                Add New Court
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Create New Court</DialogTitle>
@@ -181,6 +199,7 @@ const CourtManagement = () => {
             </div>
           </DialogContent>
         </Dialog>
+        )}
       </div>
 
       <Tabs defaultValue="courts" className="space-y-6">
@@ -191,48 +210,71 @@ const CourtManagement = () => {
         </TabsList>
 
         <TabsContent value="courts" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            {courts.map((court) => (
-              <Card key={court.id}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                  <CardTitle className="text-lg">{court.name}</CardTitle>
-                  <Badge className={getStatusColor(court.status)}>
-                    {court.status}
-                  </Badge>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Type:</span>
-                    <span className="font-medium">{court.type}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Location:</span>
-                    <span className="font-medium">{court.location}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Hourly Fee:</span>
-                    <span className="font-medium">{court.hourlyFee} SAR</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">SEED System:</span>
-                    <span className={`font-medium ${court.hasSeedSystem ? 'text-green-600' : 'text-gray-600'}`}>
-                      {court.hasSeedSystem ? 'Yes' : 'No'}
-                    </span>
-                  </div>
-                  <div className="flex gap-2 pt-2">
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <Edit className="w-4 h-4 mr-1" />
-                      Edit
-                    </Button>
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <Trash2 className="w-4 h-4 mr-1" />
-                      Delete
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-8 h-8 animate-spin" />
+              <span className="ml-2">Loading courts...</span>
+            </div>
+          ) : courts.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">
+                {user?.role === 'SUPER_ADMIN' 
+                  ? 'No courts found. Create your first court to get started.' 
+                  : 'No courts assigned to you yet.'
+                }
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              {courts.map((court) => (
+                <Card key={court.id}>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                    <CardTitle className="text-lg">{court.name}</CardTitle>
+                    <Badge className={getStatusColor(court.status)}>
+                      {getStatusDisplay(court.status)}
+                    </Badge>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Type:</span>
+                      <span className="font-medium">{court.type}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Location:</span>
+                      <span className="font-medium">{court.location}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Hourly Fee:</span>
+                      <span className="font-medium">{court.hourlyFee} SAR</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">SEED System:</span>
+                      <span className={`font-medium ${court.hasSeedSystem ? 'text-green-600' : 'text-gray-600'}`}>
+                        {court.hasSeedSystem ? 'Yes' : 'No'}
+                      </span>
+                    </div>
+                    <div className="flex gap-2 pt-2">
+                      <Button variant="outline" size="sm" className="flex-1">
+                        <Edit className="w-4 h-4 mr-1" />
+                        Edit
+                      </Button>
+                      {hasPermission('SUPER_ADMIN') && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1 text-red-600 hover:text-red-700"
+                          onClick={() => handleDeleteCourt(court.id)}
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          Delete
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="availability" className="space-y-4">
