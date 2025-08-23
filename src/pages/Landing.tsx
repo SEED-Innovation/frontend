@@ -130,7 +130,7 @@ const Landing = () => {
     {
       name: "Sarah Chen",
       role: "Tennis Coach & Former Pro",
-      image: "https://images.unsplash.com/photo-1494790108755-2616b612b789?w=64&h=64&fit=crop&crop=face",
+      image: "https://images.unsplash.com/photo-1731055046084-1d9b1418b24e?w=64&h=64&fit=crop&crop=faces",
       quote: "SEED has revolutionized how I coach. The AI insights help my students improve faster than ever before."
     },
     {
@@ -185,7 +185,7 @@ const Landing = () => {
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
               />
-              <span className="text-2xl font-bold hidden sm:block">SEED</span>
+              <span className="text-2xl font-bold hidden sm:block">INNOVATION</span>
             </Link>
             
             {/* Desktop Navigation */}
