@@ -5,6 +5,8 @@ import { ArrowDown, Calendar, Star, Eye, Trophy, Play, Zap, Target, Users, Menu,
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
+import StickerPeel from '../components/ui/StickerPeel'
+import logo from '/lovable-uploads/d6e16ac6-604a-4a7a-9497-3476e49278a1.png'
 
 const Landing = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -18,6 +20,8 @@ const Landing = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+   
 
   const handleGetStarted = () => {
     toast.info('Player app is mobile-only. This is the admin dashboard.');
@@ -130,7 +134,7 @@ const Landing = () => {
     {
       name: "Sarah Chen",
       role: "Tennis Coach & Former Pro",
-      image: "https://images.unsplash.com/photo-1494790108755-2616b612b789?w=64&h=64&fit=crop&crop=face",
+      image: "https://images.unsplash.com/photo-1731055046084-1d9b1418b24e?w=64&h=64&fit=crop&crop=faces",
       quote: "SEED has revolutionized how I coach. The AI insights help my students improve faster than ever before."
     },
     {
@@ -156,6 +160,9 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen overflow-hidden">
+      
+
+
       {/* Enhanced Hero Section with Tennis Background */}
       <section className="relative min-h-screen flex items-center justify-center">
         {/* Tennis Background Image */}
@@ -169,6 +176,10 @@ const Landing = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-tennis-purple-900/60" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
         </div>
+
+         {/* TENNIS BALL ANIMATION */}
+
+         
 
         <div className="relative z-10 text-center text-white px-4 max-w-7xl mx-auto">
           {/* Enhanced Navigation */}
@@ -185,7 +196,7 @@ const Landing = () => {
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
               />
-              <span className="text-2xl font-bold hidden sm:block">SEED</span>
+              <span className="text-2xl font-bold hidden sm:block">INNOVATION</span>
             </Link>
             
             {/* Desktop Navigation */}
