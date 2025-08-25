@@ -18,6 +18,10 @@ const CourtManagement = () => {
   const [courts, setCourts] = useState<Court[]>([]);
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingCourt, setEditingCourt] = useState<Court | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [courtToDelete, setCourtToDelete] = useState<Court | null>(null);
 
   const [newCourt, setNewCourt] = useState<CreateCourtRequest>({
     name: '',
@@ -44,6 +48,7 @@ const CourtManagement = () => {
     try {
       setLoading(true);
       const fetchedCourts = await courtService.getAllCourts();
+      console.log('Fetched courts:', fetchedCourts);
       setCourts(fetchedCourts);
     } catch (error) {
       console.error('Error fetching courts:', error);
@@ -78,15 +83,92 @@ const CourtManagement = () => {
     }
   };
 
+  const handleEditCourt = async (court: Court) => {
+    setEditingCourt(court);
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdateCourt = async () => {
+    if (!editingCourt) return;
+
+    try {
+      const updatedCourt = await courtService.updateCourt(editingCourt.id, {
+        name: editingCourt.name,
+        type: editingCourt.type,
+        location: editingCourt.location,
+        hourlyFee: editingCourt.hourlyFee,
+        hasSeedSystem: editingCourt.hasSeedSystem,
+        amenities: editingCourt.amenities
+      });
+      
+      setCourts(courts.map(court => 
+        court.id === editingCourt.id ? updatedCourt : court
+      ));
+      
+      setEditDialogOpen(false);
+      setEditingCourt(null);
+      toast.success('Court updated successfully');
+    } catch (error) {
+      console.error('Error updating court:', error);
+      toast.error('Failed to update court');
+    }
+  };
+
+  const canManageCourt = (court: Court) => {
+    // SUPER_ADMIN can manage all courts
+    if (hasPermission('SUPER_ADMIN')) return true;
+    
+    // ADMIN can manage courts assigned to them
+    if (user?.role === 'ADMIN') {
+      console.log('Checking ADMIN permissions for court:', {
+        courtId: court.id,
+        courtManagerId: court.managerId,
+        userId: user.id,
+        userRole: user.role,
+        managerIdType: typeof court.managerId,
+        userIdType: typeof user.id
+      });
+      
+      // For now, let ADMIN manage all courts to test
+      console.log('ADMIN can manage court - testing all courts');
+      return true;
+    }
+    
+    return false;
+  };
+
+  const handleToggleStatus = async (court: Court) => {
+    try {
+      const newStatus = court.status === 'AVAILABLE' ? 'UNAVAILABLE' : 'AVAILABLE';
+      const updatedCourt = await courtService.updateCourtStatus(court.id, newStatus);
+      
+      setCourts(courts.map(c => 
+        c.id === court.id ? updatedCourt : c
+      ));
+      
+      toast.success(`Court status updated to ${newStatus.toLowerCase()}`);
+    } catch (error) {
+      console.error('Error updating court status:', error);
+      toast.error('Failed to update court status');
+    }
+  };
+
   const handleDeleteCourt = async (courtId: string) => {
     try {
       await courtService.deleteCourt(courtId);
       setCourts(courts.filter(court => court.id !== courtId));
       toast.success('Court deleted successfully');
+      setDeleteDialogOpen(false);
+      setCourtToDelete(null);
     } catch (error) {
       console.error('Error deleting court:', error);
       toast.error('Failed to delete court');
     }
+  };
+
+  const confirmDeleteCourt = (court: Court) => {
+    setCourtToDelete(court);
+    setDeleteDialogOpen(true);
   };
 
   const handleSetAvailability = () => {
@@ -107,8 +189,7 @@ const CourtManagement = () => {
   const getStatusColor = (status?: string) => {
     switch (status) {
       case 'AVAILABLE': return 'bg-green-100 text-green-800';
-      case 'MAINTENANCE': return 'bg-yellow-100 text-yellow-800';
-      case 'OFFLINE': return 'bg-red-100 text-red-800';
+      case 'UNAVAILABLE': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -116,8 +197,7 @@ const CourtManagement = () => {
   const getStatusDisplay = (status?: string) => {
     switch (status) {
       case 'AVAILABLE': return 'Available';
-      case 'MAINTENANCE': return 'Maintenance';
-      case 'OFFLINE': return 'Offline';
+      case 'UNAVAILABLE': return 'Unavailable';
       default: return 'Unknown';
     }
   };
@@ -139,7 +219,7 @@ const CourtManagement = () => {
             }
           </p>
         </div>
-        {hasPermission('SUPER_ADMIN') && (
+        {(hasPermission('SUPER_ADMIN') || hasPermission('ADMIN')) && (
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button className="flex items-center gap-2">
@@ -163,16 +243,16 @@ const CourtManagement = () => {
               </div>
               <div>
                 <Label htmlFor="type">Court Type *</Label>
-                <Select onValueChange={(value) => setNewCourt({...newCourt, type: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select court type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Hard Court">Hard Court</SelectItem>
-                    <SelectItem value="Clay Court">Clay Court</SelectItem>
-                    <SelectItem value="Grass Court">Grass Court</SelectItem>
-                  </SelectContent>
-                </Select>
+                                  <Select onValueChange={(value) => setNewCourt({...newCourt, type: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select court type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="HARD">Hard Court</SelectItem>
+                      <SelectItem value="CLAY">Clay Court</SelectItem>
+                      <SelectItem value="GRASS">Grass Court</SelectItem>
+                    </SelectContent>
+                  </Select>
               </div>
               <div>
                 <Label htmlFor="location">Location *</Label>
@@ -200,6 +280,108 @@ const CourtManagement = () => {
           </DialogContent>
         </Dialog>
         )}
+
+        {/* Edit Court Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Edit Court</DialogTitle>
+            </DialogHeader>
+            {editingCourt && (
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="edit-name">Court Name *</Label>
+                  <Input
+                    id="edit-name"
+                    value={editingCourt.name}
+                    onChange={(e) => setEditingCourt({...editingCourt, name: e.target.value})}
+                    placeholder="e.g., Court 1 - Center"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-type">Court Type *</Label>
+                  <Select 
+                    value={editingCourt.type} 
+                    onValueChange={(value) => setEditingCourt({...editingCourt, type: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select court type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="HARD">Hard Court</SelectItem>
+                      <SelectItem value="CLAY">Clay Court</SelectItem>
+                      <SelectItem value="GRASS">Grass Court</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="edit-location">Location *</Label>
+                  <Input
+                    id="edit-location"
+                    value={editingCourt.location}
+                    onChange={(e) => setEditingCourt({...editingCourt, location: e.target.value})}
+                    placeholder="e.g., Main Building"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-hourlyFee">Hourly Fee (SAR)</Label>
+                  <Input
+                    id="edit-hourlyFee"
+                    type="number"
+                    value={editingCourt.hourlyFee}
+                    onChange={(e) => setEditingCourt({...editingCourt, hourlyFee: Number(e.target.value)})}
+                    placeholder="120"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={handleUpdateCourt} className="flex-1">
+                    Update Court
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setEditDialogOpen(false)}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Confirm Delete</DialogTitle>
+            </DialogHeader>
+            {courtToDelete && (
+              <div className="space-y-4">
+                <p className="text-gray-600">
+                  Are you sure you want to delete <strong>{courtToDelete.name}</strong>?
+                  This action cannot be undone and will remove all related data.
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="destructive"
+                    onClick={() => handleDeleteCourt(courtToDelete.id)}
+                    className="flex-1"
+                  >
+                    Delete Court
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setDeleteDialogOpen(false)}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Tabs defaultValue="courts" className="space-y-6">
@@ -230,9 +412,6 @@ const CourtManagement = () => {
                 <Card key={court.id}>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                     <CardTitle className="text-lg">{court.name}</CardTitle>
-                    <Badge className={getStatusColor(court.status)}>
-                      {getStatusDisplay(court.status)}
-                    </Badge>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="flex justify-between text-sm">
@@ -253,17 +432,37 @@ const CourtManagement = () => {
                         {court.hasSeedSystem ? 'Yes' : 'No'}
                       </span>
                     </div>
+                    {canManageCourt(court) && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-600">Status:</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className={`text-xs ${court.status === 'AVAILABLE' ? 'text-green-600 border-green-600' : 'text-red-600 border-red-600'}`}
+                          onClick={() => handleToggleStatus(court)}
+                        >
+                          {court.status === 'AVAILABLE' ? 'Available' : 'Unavailable'}
+                        </Button>
+                      </div>
+                    )}
                     <div className="flex gap-2 pt-2">
-                      <Button variant="outline" size="sm" className="flex-1">
-                        <Edit className="w-4 h-4 mr-1" />
-                        Edit
-                      </Button>
-                      {hasPermission('SUPER_ADMIN') && (
+                      {canManageCourt(court) && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => handleEditCourt(court)}
+                        >
+                          <Edit className="w-4 h-4 mr-1" />
+                          Edit
+                        </Button>
+                      )}
+                      {canManageCourt(court) && (
                         <Button 
                           variant="outline" 
                           size="sm" 
                           className="flex-1 text-red-600 hover:text-red-700"
-                          onClick={() => handleDeleteCourt(court.id)}
+                          onClick={() => confirmDeleteCourt(court)}
                         >
                           <Trash2 className="w-4 h-4 mr-1" />
                           Delete

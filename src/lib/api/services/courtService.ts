@@ -18,7 +18,8 @@ export interface Court {
     totalRatings?: number;
     latitude?: number;
     longitude?: number;
-    status?: 'AVAILABLE' | 'MAINTENANCE' | 'OFFLINE';
+    status?: 'AVAILABLE' | 'UNAVAILABLE';
+    managerId?: number;
 }
 
 export interface CreateCourtRequest {
@@ -206,6 +207,44 @@ class CourtService {
 
         if (!response.ok) {
             throw new Error(`Failed to fetch unassigned courts: ${response.statusText}`);
+        }
+
+        return response.json();
+    }
+
+    /**
+     * Get court status
+     */
+    async getCourtStatus(courtId: string): Promise<'AVAILABLE' | 'UNAVAILABLE'> {
+        const response = await fetch(`${this.baseUrl}/${courtId}/status`, {
+            method: 'GET',
+            headers: this.getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch court status: ${response.statusText}`);
+        }
+
+        return response.json();
+    }
+
+    /**
+     * Update court status
+     */
+    async updateCourtStatus(courtId: string, status: 'AVAILABLE' | 'UNAVAILABLE', reason?: string): Promise<Court> {
+        const url = new URL(`${this.baseUrl}/${courtId}/status`);
+        url.searchParams.append('status', status);
+        if (reason) {
+            url.searchParams.append('reason', reason);
+        }
+
+        const response = await fetch(url.toString(), {
+            method: 'PUT',
+            headers: this.getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to update court status: ${response.statusText}`);
         }
 
         return response.json();

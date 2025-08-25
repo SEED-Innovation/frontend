@@ -120,7 +120,7 @@ const UserManagement = () => {
       className="space-y-6"
     >
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Player Management</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Admin Management</h2>
         <div className="flex space-x-2">
           <Dialog open={showCreateUser} onOpenChange={setShowCreateUser}>
             <DialogTrigger asChild>
