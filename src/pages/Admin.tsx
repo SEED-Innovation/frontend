@@ -28,7 +28,7 @@ const Admin = () => {
     );
   }
 
-  // Redirect if user is not authenticated or doesn't have admin privileges
+  //***** */ Redirect if user is not authenticated or doesn't have admin privileges
   if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
     window.location.href = '/admin-login';
     return null;
