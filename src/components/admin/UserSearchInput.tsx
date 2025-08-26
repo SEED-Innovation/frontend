@@ -222,7 +222,7 @@ const UserSearchInput: React.FC<UserSearchInputProps> = ({
     // ================================
     
     const getUserDisplayName = (user: UserResponse) => {
-        return user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email;
+        return user.fullName || user.email;
     };
 
     const getUserInitials = (user: UserResponse) => {
@@ -267,7 +267,7 @@ const UserSearchInput: React.FC<UserSearchInputProps> = ({
             >
                 <Avatar className="h-8 w-8">
                     <AvatarImage 
-                        src={user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${displayName}`} 
+                        src={`https://api.dicebear.com/7.x/initials/svg?seed=${displayName}`} 
                     />
                     <AvatarFallback className="text-xs">
                         {initials}
@@ -325,7 +325,7 @@ const UserSearchInput: React.FC<UserSearchInputProps> = ({
             <div className="flex items-center space-x-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
                 <Avatar className="h-8 w-8">
                     <AvatarImage 
-                        src={selectedUser.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${displayName}`} 
+                        src={`https://api.dicebear.com/7.x/initials/svg?seed=${displayName}`} 
                     />
                     <AvatarFallback className="text-xs">
                         {initials}

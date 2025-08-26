@@ -45,7 +45,14 @@ import {
     Activity,
     FileSpreadsheet,
     CalendarRange,
-    User
+    User,
+    ChevronLeft,
+    ChevronRight,
+    ChevronsLeft,
+    ChevronsRight,
+    Edit,
+    MoreHorizontal,
+    Trash2
 } from 'lucide-react';
 
 // Import our components
@@ -67,7 +74,8 @@ import {
     calculateTotalPrice,
     calculateDuration 
 } from '@/utils';
-
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@radix-ui/react-dropdown-menu';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 interface AdminBookingProps {
     className?: string;
 }
@@ -161,6 +169,143 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = "" }) => {
         },
         includeUserStats: false,
     });
+
+
+
+
+    // Add these state variables after your existing state declarations around line 150
+
+// Filter states for the new horizontal filter bar
+const [searchTerm, setSearchTerm] = useState<string>('');
+const [statusFilter, setStatusFilter] = useState<string>('all');
+const [dateFilter, setDateFilter] = useState<string>('all');
+const [courtFilter, setCourtFilter] = useState<string>('all');
+
+// Pagination states
+const [pageSize, setPageSize] = useState<number>(20);
+
+// Derived states for filtering and pagination
+const [availableCourts] = useState([
+    { id: 1, name: 'Court 1' },
+    { id: 2, name: 'Court 2' },
+    { id: 3, name: 'Court 3' },
+    { id: 4, name: 'Court 4' },
+    { id: 5, name: 'Court 5' }
+]);
+
+// Add these helper functions after your existing event handlers around line 300
+
+// Filter function
+const filteredBookings = bookings.filter(booking => {
+    // Search filter
+    if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        const matchesSearch = 
+            booking.user.fullName.toLowerCase().includes(searchLower) ||
+            booking.user.email.toLowerCase().includes(searchLower) ||
+            booking.court.name.toLowerCase().includes(searchLower) ||
+            booking.id.toString().includes(searchLower);
+        if (!matchesSearch) return false;
+    }
+
+    // Status filter
+    if (statusFilter !== 'all' && booking.status !== statusFilter) {
+        return false;
+    }
+
+    // Date filter
+    if (dateFilter !== 'all') {
+        const bookingDate = new Date(booking.startTime);
+        const now = new Date();
+        
+        switch (dateFilter) {
+            case 'today':
+                if (!isSameDay(bookingDate, now)) return false;
+                break;
+            case 'week':
+                const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                if (bookingDate < weekAgo) return false;
+                break;
+            case 'month':
+                if (bookingDate.getMonth() !== now.getMonth() || 
+                    bookingDate.getFullYear() !== now.getFullYear()) return false;
+                break;
+        }
+    }
+
+    // Court filter
+    if (courtFilter !== 'all' && booking.court.id.toString() !== courtFilter) {
+        return false;
+    }
+
+    return true;
+});
+
+// Pagination function
+const paginatedBookings = filteredBookings.slice(
+    currentPage * pageSize,
+    (currentPage + 1) * pageSize
+);
+
+// Helper functions
+const isSameDay = (date1: Date, date2: Date) => {
+    return date1.getDate() === date2.getDate() &&
+           date1.getMonth() === date2.getMonth() &&
+           date1.getFullYear() === date2.getFullYear();
+};
+
+const formatTime = (dateString: string) => {
+    return new Date(dateString).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    });
+};
+
+const clearFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('all');
+    setDateFilter('all');
+    setCourtFilter('all');
+    setCurrentPage(0);
+};
+
+const handleCancelBooking = async (bookingId: number, reason: string) => {
+    try {
+        console.log('⏹️ Cancelling REAL booking:', bookingId, 'Reason:', reason);
+        
+        await bookingService.cancelBooking(bookingId, reason);
+        
+        setSuccess('Booking cancelled successfully!');
+        refreshBookings();
+        
+        setTimeout(() => setSuccess(''), 3000);
+        
+    } catch (error) {
+        console.error('❌ Failed to cancel booking:', error);
+        setError(error instanceof Error ? error.message : 'Failed to cancel booking');
+    }
+};
+
+// Update the useEffect to handle pagination changes
+useEffect(() => {
+    const newTotalPages = Math.ceil(filteredBookings.length / pageSize);
+    setTotalPages(newTotalPages);
+    
+    // Reset to first page if current page is beyond new total
+    if (currentPage >= newTotalPages && newTotalPages > 0) {
+        setCurrentPage(0);
+    }
+}, [filteredBookings.length, pageSize, currentPage]);
+
+// Update the Table import at the top
+
+
+
+
+
+
+
 
     // ================================
     // 🔄 EFFECTS
@@ -715,7 +860,6 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = "" }) => {
                                     New Booking
                                 </Button>
                             }
-                            availableUsers={allUsers}
                         />
                     </div>
                 </div>
@@ -919,86 +1063,425 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = "" }) => {
     );
 
     // ================================
-    // 🎨 MANAGE BOOKINGS VIEW - REAL DATA ONLY  
-    // ================================
-    
-    const renderManageView = () => (
-        <div className="max-w-7xl mx-auto px-6 py-8">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                {/* Filters Sidebar */}
-                <div className="lg:col-span-1">
-                    <div className="sticky top-32">
-                        <BookingFilters
-                            onFilterChange={handleFilterChange}
-                            onExport={() => setIsExportDialogOpen(true)}
-                            isLoading={isLoading}
-                            initialFilters={currentFilters}
-                        />
+// 🎨 PROFESSIONAL ADMIN BOOKING MANAGEMENT - TABLE VIEW
+// ================================
+
+const renderManageView = () => (
+    <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Professional Horizontal Filter Bar */}
+        <Card className="shadow-md mb-6">
+            <CardContent className="p-4">
+                <div className="flex flex-wrap items-center gap-4">
+                    {/* Search Input */}
+                    <div className="flex-1 min-w-64">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input
+                                placeholder="Search by user, court, or booking ID..."
+                                className="pl-10 h-10"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Status Filter */}
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-40 h-10">
+                            <SelectValue placeholder="All Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Status</SelectItem>
+                            <SelectItem value="PENDING">Pending</SelectItem>
+                            <SelectItem value="APPROVED">Approved</SelectItem>
+                            <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                            <SelectItem value="REJECTED">Rejected</SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    {/* Date Range */}
+                    <Select value={dateFilter} onValueChange={setDateFilter}>
+                        <SelectTrigger className="w-40 h-10">
+                            <SelectValue placeholder="Date Range" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Dates</SelectItem>
+                            <SelectItem value="today">Today</SelectItem>
+                            <SelectItem value="week">This Week</SelectItem>
+                            <SelectItem value="month">This Month</SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    {/* Court Filter */}
+                    <Select value={courtFilter} onValueChange={setCourtFilter}>
+                        <SelectTrigger className="w-40 h-10">
+                            <SelectValue placeholder="All Courts" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Courts</SelectItem>
+                            {availableCourts.map(court => (
+                                <SelectItem key={court.id} value={court.id.toString()}>
+                                    {court.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center space-x-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={clearFilters}
+                            className="h-10"
+                        >
+                            <RefreshCw className="w-4 h-4 mr-2" />
+                            Clear
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsExportDialogOpen(true)}
+                            className="h-10"
+                        >
+                            <Download className="w-4 h-4 mr-2" />
+                            Export
+                        </Button>
+                        <Button
+                            onClick={refreshBookings}
+                            variant="outline"
+                            size="sm"
+                            disabled={isRefreshing}
+                            className="h-10"
+                        >
+                            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                            Refresh
+                        </Button>
                     </div>
                 </div>
 
-                {/* Bookings List - REAL DATA ONLY */}
-                <div className="lg:col-span-3">
-                    <Card>
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <CardTitle>All Bookings - Database Records</CardTitle>
-                                <div className="flex items-center space-x-2">
-                                    <Badge variant="secondary">{totalElements} total</Badge>
-                                    <Button
-                                        onClick={refreshBookings}
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={isRefreshing}
-                                    >
-                                        <RefreshCw className="w-4 h-4" />
-                                    </Button>
-                                </div>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            {isLoading && isInitialLoad ? (
-                                <div className="flex flex-col items-center justify-center py-16">
-                                    <RefreshCw className="w-12 h-12 animate-spin text-blue-500 mb-4" />
-                                    <h3 className="text-lg font-medium text-gray-900 mb-2">Loading real bookings from database...</h3>
-                                    <p className="text-gray-500">Please wait while we fetch live data</p>
-                                </div>
-                            ) : bookings.length === 0 ? (
-                                <div className="text-center py-16">
-                                    <ClipboardList className="w-20 h-20 text-gray-300 mx-auto mb-6" />
-                                    <h3 className="text-xl font-medium text-gray-900 mb-3">No bookings found in database</h3>
-                                    <p className="text-gray-500 mb-6">
-                                        {error 
-                                            ? 'Unable to connect to database. Please check your connection.'
-                                            : 'No bookings match your current filters or none exist yet.'
-                                        }
-                                    </p>
-                                    {!error && (
-                                        <Button onClick={() => setCurrentFilters({ page: 0, size: 20 })}>
-                                            Clear Filters
-                                        </Button>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    {bookings.map(booking => (
-                                        <BookingCard
-                                            key={booking.id}
-                                            booking={booking}
-                                            onApprove={handleApproveBooking}
-                                            onReject={handleRejectBooking}
-                                            onCancel={async (id, reason) => { /* TODO: implement cancel logic */ }}
-                                            isLoading={isRefreshing}
-                                        />
-                                    ))}
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                {/* Active Filters Display */}
+                {(statusFilter !== 'all' || dateFilter !== 'all' || courtFilter !== 'all' || searchTerm) && (
+                    <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-200">
+                        <span className="text-sm text-gray-500">Active filters:</span>
+                        {statusFilter !== 'all' && (
+                            <Badge variant="secondary" className="text-xs">
+                                Status: {statusFilter}
+                            </Badge>
+                        )}
+                        {dateFilter !== 'all' && (
+                            <Badge variant="secondary" className="text-xs">
+                                Date: {dateFilter}
+                            </Badge>
+                        )}
+                        {courtFilter !== 'all' && (
+                            <Badge variant="secondary" className="text-xs">
+                                Court: {availableCourts.find(c => c.id.toString() === courtFilter)?.name}
+                            </Badge>
+                        )}
+                        {searchTerm && (
+                            <Badge variant="secondary" className="text-xs">
+                                Search: "{searchTerm}"
+                            </Badge>
+                        )}
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+
+        {/* Professional Data Table */}
+        <Card className="shadow-md">
+            <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                        <ClipboardList className="w-6 h-6 text-blue-600" />
+                        <div>
+                            <CardTitle className="text-xl">Booking Management</CardTitle>
+                            <p className="text-sm text-gray-500 mt-1">
+                                Showing {Math.min((currentPage * pageSize) + 1, totalElements)} to {Math.min((currentPage + 1) * pageSize, totalElements)} of {totalElements} bookings
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                        <Badge variant="outline" className="px-3 py-1">
+                            {filteredBookings.length} filtered
+                        </Badge>
+                        <Badge variant="secondary" className="px-3 py-1">
+                            {totalElements} total
+                        </Badge>
+                    </div>
                 </div>
-            </div>
-        </div>
-    );
+            </CardHeader>
+            
+            <CardContent className="p-0">
+                {isLoading && isInitialLoad ? (
+                    <div className="flex flex-col items-center justify-center py-20">
+                        <RefreshCw className="w-12 h-12 animate-spin text-blue-500 mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">Loading bookings...</h3>
+                        <p className="text-gray-500">Fetching data from database</p>
+                    </div>
+                ) : filteredBookings.length === 0 ? (
+                    <div className="text-center py-20 px-6">
+                        <ClipboardList className="w-20 h-20 text-gray-300 mx-auto mb-6" />
+                        <h3 className="text-xl font-medium text-gray-900 mb-3">No bookings found</h3>
+                        <p className="text-gray-500 mb-6">No bookings match your current filters</p>
+                        <Button onClick={clearFilters} variant="outline">
+                            Clear Filters
+                        </Button>
+                    </div>
+                ) : (
+                    <>
+                        {/* Table */}
+                        <div className="overflow-x-auto">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow className="bg-gray-50">
+                                        <TableHead className="font-semibold text-gray-900">Booking & User</TableHead>
+                                        <TableHead className="font-semibold text-gray-900">Court & Time</TableHead>
+                                        <TableHead className="font-semibold text-gray-900">Status & Amount</TableHead>
+                                        <TableHead className="font-semibold text-gray-900 text-right">Actions</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {paginatedBookings.map((booking) => {
+                                        const bookingDate = new Date(booking.startTime);
+                                        const dayOfWeek = bookingDate.getDay();
+                                        const isSaudiWeekend = dayOfWeek === 5 || dayOfWeek === 6;
+                                        const duration = calculateDuration(booking.startTime, booking.endTime);
+                                        const totalAmount = duration * booking.court.hourlyFee;
+
+                                        return (
+                                            <TableRow key={booking.id} className="hover:bg-gray-50">
+                                                {/* Booking & User Column */}
+                                                <TableCell className="py-4">
+                                                    <div className="flex items-start space-x-3">
+                                                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                                                            {booking.user.fullName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                                                        </div>
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="font-medium text-gray-900 truncate">
+                                                                {booking.user.fullName}
+                                                            </p>
+                                                            <p className="text-sm text-gray-500 truncate">
+                                                                {booking.user.email}
+                                                            </p>
+                                                            <p className="text-xs text-gray-400 mt-1">
+                                                                Booking #{booking.id}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </TableCell>
+
+                                                {/* Court & Time Column */}
+                                                <TableCell className="py-4">
+                                                    <div className="space-y-1">
+                                                        <p className="font-medium text-gray-900">
+                                                            {booking.court.name}
+                                                        </p>
+                                                        <p className="text-sm text-gray-600">
+                                                            {formatDateTime(booking.startTime)}
+                                                        </p>
+                                                        <p className="text-sm text-gray-500">
+                                                            {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
+                                                        </p>
+                                                        <div className="flex items-center space-x-2 mt-1">
+                                                            <Badge variant="outline" className="text-xs">
+                                                                {booking.matchType || 'SINGLE'}
+                                                            </Badge>
+                                                            {isSaudiWeekend && (
+                                                                <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-700">
+                                                                    {dayOfWeek === 5 ? 'Friday' : 'Saturday'}
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </TableCell>
+
+                                                {/* Status & Amount Column */}
+                                                <TableCell className="py-4">
+                                                    <div className="space-y-2">
+                                                        <Badge 
+                                                            variant={
+                                                                booking.status === 'PENDING' ? 'secondary' :
+                                                                booking.status === 'APPROVED' ? 'default' : 
+                                                                'destructive'
+                                                            }
+                                                            className="inline-block"
+                                                        >
+                                                            {booking.status}
+                                                        </Badge>
+                                                        <div className="space-y-1">
+                                                            <p className="text-sm font-medium text-gray-900">
+                                                                {formatPrice(totalAmount)}
+                                                            </p>
+                                                            <p className="text-xs text-gray-500">
+                                                                {duration.toFixed(1)}h × {formatPrice(booking.court.hourlyFee)}/h
+                                                            </p>
+                                                        </div>
+                                                        {booking.payment && (
+                                                            <Badge 
+                                                                variant={booking.payment.status === 'COMPLETED' ? 'default' : 'secondary'}
+                                                                className="text-xs"
+                                                            >
+                                                                {booking.payment.status}
+                                                            </Badge>
+                                                        )}
+                                                    </div>
+                                                </TableCell>
+
+                                                {/* Actions Column */}
+                                                <TableCell className="py-4 text-right">
+                                                    <div className="flex items-center justify-end space-x-1">
+                                                        {booking.status === 'PENDING' && (
+                                                            <>
+                                                                <Button
+                                                                    onClick={() => handleApproveBooking(booking.id)}
+                                                                    size="sm"
+                                                                    className="bg-green-600 hover:bg-green-700 text-white h-8 px-3"
+                                                                >
+                                                                    <CheckCircle className="w-3 h-3 mr-1" />
+                                                                    Approve
+                                                                </Button>
+                                                                <Button
+                                                                    onClick={() => handleRejectBooking(booking.id, 'Admin rejection')}
+                                                                    variant="destructive"
+                                                                    size="sm"
+                                                                    className="h-8 px-3"
+                                                                >
+                                                                    <XCircle className="w-3 h-3 mr-1" />
+                                                                    Reject
+                                                                </Button>
+                                                            </>
+                                                        )}
+                                                        
+                                                        {(booking.status === 'APPROVED' || booking.status === 'PENDING') && (
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="h-8 px-3 text-gray-600"
+                                                                onClick={() => handleCancelBooking(booking.id, 'Admin cancellation')}
+                                                            >
+                                                                <XCircle className="w-3 h-3 mr-1" />
+                                                                Cancel
+                                                            </Button>
+                                                        )}
+
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                                                    <MoreHorizontal className="w-4 h-4" />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end">
+                                                                <DropdownMenuItem>
+                                                                    <Eye className="w-4 h-4 mr-2" />
+                                                                    View Details
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem>
+                                                                    <Edit className="w-4 h-4 mr-2" />
+                                                                    Edit Booking
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuSeparator />
+                                                                <DropdownMenuItem className="text-red-600">
+                                                                    <Trash2 className="w-4 h-4 mr-2" />
+                                                                    Delete
+                                                                </DropdownMenuItem>
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
+                                </TableBody>
+                            </Table>
+                        </div>
+
+                        {/* Professional Pagination */}
+                        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50">
+                            <div className="flex items-center space-x-4">
+                                <div className="flex items-center space-x-2">
+                                    <span className="text-sm text-gray-700">Rows per page:</span>
+                                    <Select value={pageSize.toString()} onValueChange={(value) => setPageSize(Number(value))}>
+                                        <SelectTrigger className="w-20 h-8">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="10">10</SelectItem>
+                                            <SelectItem value="20">20</SelectItem>
+                                            <SelectItem value="50">50</SelectItem>
+                                            <SelectItem value="100">100</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <span className="text-sm text-gray-700">
+                                    Showing {Math.min((currentPage * pageSize) + 1, totalElements)} to {Math.min((currentPage + 1) * pageSize, totalElements)} of {totalElements} results
+                                </span>
+                            </div>
+
+                            <div className="flex items-center space-x-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(0)}
+                                    disabled={currentPage === 0}
+                                    className="h-8"
+                                >
+                                    <ChevronsLeft className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                                    disabled={currentPage === 0}
+                                    className="h-8"
+                                >
+                                    <ChevronLeft className="w-4 h-4" />
+                                </Button>
+                                
+                                <div className="flex items-center space-x-1">
+                                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                        const pageNum = Math.max(0, Math.min(totalPages - 5, currentPage - 2)) + i;
+                                        return (
+                                            <Button
+                                                key={pageNum}
+                                                variant={pageNum === currentPage ? "default" : "outline"}
+                                                size="sm"
+                                                onClick={() => setCurrentPage(pageNum)}
+                                                className="h-8 w-8"
+                                            >
+                                                {pageNum + 1}
+                                            </Button>
+                                        );
+                                    })}
+                                </div>
+
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
+                                    disabled={currentPage >= totalPages - 1}
+                                    className="h-8"
+                                >
+                                    <ChevronRight className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(totalPages - 1)}
+                                    disabled={currentPage >= totalPages - 1}
+                                    className="h-8"
+                                >
+                                    <ChevronsRight className="w-4 h-4" />
+                                </Button>
+                            </div>
+                        </div>
+                    </>
+                )}
+            </CardContent>
+        </Card>
+    </div>
+);
 
     // ================================
     // 🎨 ANALYTICS VIEW - REAL DATA ONLY
