@@ -94,6 +94,43 @@ const ManualBookingForm: React.FC<ManualBookingFormProps> = ({
         }
     }, [isOpen]);
 
+
+
+    // Add to your state management section
+const [users, setUsers] = useState<UserResponse[]>([]);
+const [usersLoading, setUsersLoading] = useState(false);
+const [userSearchTerm, setUserSearchTerm] = useState('');
+
+// Add this function to your data loading section
+const loadUsers = async () => {
+    setUsersLoading(true);
+    try {
+        console.log('👥 Loading REAL users from database...');
+        const response = await userService.getAllUsers();
+        console.log('✅ REAL Users loaded:', response);
+        setUsers(response || []);
+    } catch (error) {
+        console.error('❌ Failed to load users:', error);
+        setErrors({ users: 'Failed to load users' });
+    } finally {
+        setUsersLoading(false);
+    }
+};
+
+// Update your useEffect to also load users
+useEffect(() => {
+    if (isOpen) {
+        loadCourts();
+        loadUsers();
+    }
+}, [isOpen]);
+
+// Filter users based on search term
+const filteredUsers = users.filter(user => 
+    user.fullName.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+    user.email.toLowerCase().includes(userSearchTerm.toLowerCase())
+);
+    
     // ================================
     // 🔧 DATA LOADING
     // ================================
@@ -447,14 +484,66 @@ const loadCourts = async () => {
                             {renderFormField(
                                 'Select User',
                                 'userId',
-                                <UserSearchInput
-                                    onUserSelect={handleUserSelect}
-                                    selectedUser={selectedUser}
-                                    placeholder="Search for a user..."
-                                />
+                                <div className="space-y-2">
+                                    {/* Search Input */}
+                                    <Input
+                                        placeholder="Search for a user by name or email..."
+                                        value={userSearchTerm}
+                                        onChange={(e) => setUserSearchTerm(e.target.value)}
+                                        disabled={usersLoading}
+                                    />
+                                    
+                                    {/* User Selection */}
+                                    <Select
+                                        value={formData.userId?.toString() || ''}
+                                        onValueChange={(value) => {
+                                            const userId = parseInt(value);
+                                            const user = users.find(u => u.id === userId);
+                                            if (user) {
+                                                handleUserSelect(user);
+                                            }
+                                        }}
+                                        disabled={usersLoading}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue 
+                                                placeholder={
+                                                    usersLoading ? "Loading users..." : 
+                                                    selectedUser ? `${selectedUser.fullName} (${selectedUser.email})` :
+                                                    "Choose a user"
+                                                } 
+                                            />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {filteredUsers.length === 0 ? (
+                                                <SelectItem value="" disabled>
+                                                    {usersLoading ? "Loading..." : "No users found"}
+                                                </SelectItem>
+                                            ) : (
+                                                filteredUsers.map((user) => (
+                                                    <SelectItem key={user.id} value={user.id.toString()}>
+                                                        <div className="flex items-center space-x-2">
+                                                            <User className="w-4 h-4 text-gray-400" />
+                                                            <div className="flex flex-col">
+                                                                <span className="font-medium">{user.fullName}</span>
+                                                                <span className="text-xs text-gray-500">{user.email}</span>
+                                                            </div>
+                                                        </div>
+                                                    </SelectItem>
+                                                ))
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                    
+                                    {/* Show selected user info */}
+                                    {selectedUser && (
+                                        <div className="p-2 bg-blue-50 rounded border text-sm">
+                                            <strong>Selected:</strong> {selectedUser.fullName} ({selectedUser.email})
+                                        </div>
+                                    )}
+                                </div>
                             )}
                         </div>
-
                         {/* Court Selection */}
                         <div className="md:col-span-2">
                             {renderFormField(
