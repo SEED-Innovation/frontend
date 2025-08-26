@@ -15,6 +15,8 @@ import SystemAnalytics from '@/components/admin/SystemAnalytics';
 import AdminSettings from '@/components/admin/AdminSettings';
 import AdminProfile from '@/components/admin/AdminProfile';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
+import AdminBooking from '@/components/admin/AdminBooking';
+
 
 const Admin = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -52,7 +54,8 @@ const Admin = () => {
             <Route path="/" element={<AdminDashboard />} />
             <Route path="/players" element={<UserManagement />} />
             <Route path="/courts" element={<CourtManagement />} />
-            <Route path="/bookings" element={<BookingManagement />} />
+            {/* <Route path="/bookings" element={<BookingManagement />} /> */}
+            <Route path="/bookings" element={<AdminBooking />} />
             <Route path="/sessions" element={<SessionMonitoring />} />
             <Route path="/payments" element={<PaymentManagement />} />
             <Route path="/analytics" element={<SystemAnalytics />} />

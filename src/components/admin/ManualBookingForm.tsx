@@ -1,0 +1,652 @@
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+    Plus,
+    Calendar as CalendarIcon,
+    Clock,
+    User,
+    MapPin,
+    AlertTriangle,
+    CheckCircle,
+    Loader2
+} from 'lucide-react';
+import { format } from 'date-fns';
+
+import { BookingResponse, CreateBookingRequest, CourtResponse } from '@/types/booking';
+import { UserResponse } from '@/types/user';
+import { bookingService, courtService, userService } from '@/services';
+import { cn } from '@/lib/utils';
+import UserSearchInput from './UserSearchInput';
+
+interface ManualBookingFormProps {
+    onBookingCreated: (booking: BookingResponse) => void;
+    triggerButton?: React.ReactNode;
+    className?: string;
+}
+
+interface BookingFormData {
+    userId: number | null;
+    courtId: number | null;
+    date: Date | null;
+    startTime: string;
+    endTime: string;
+    matchType: 'SINGLE' | 'DOUBLE' | '';
+    notes: string;
+}
+
+const ManualBookingForm: React.FC<ManualBookingFormProps> = ({
+    onBookingCreated,
+    triggerButton,
+    className = ""
+}) => {
+    // ================================
+    // 🏗️ STATE MANAGEMENT
+    // ================================
+    
+    const [isOpen, setIsOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [courts, setCourts] = useState<CourtResponse[]>([]);
+    const [courtsLoading, setCourtsLoading] = useState(false);
+    
+    const [formData, setFormData] = useState<BookingFormData>({
+        userId: null,
+        courtId: null,
+        date: null,
+        startTime: '',
+        endTime: '',
+        matchType: '',
+        notes: ''
+    });
+    
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    const [success, setSuccess] = useState('');
+    const [selectedUser, setSelectedUser] = useState<UserResponse | null>(null);
+
+    // ================================
+    // 🔄 EFFECTS
+    // ================================
+    
+    useEffect(() => {
+        if (isOpen) {
+            loadCourts();
+        }
+    }, [isOpen]);
+
+    // ================================
+    // 🔧 DATA LOADING
+    // ================================
+    
+const loadCourts = async () => {
+    setCourtsLoading(true);
+    try {
+        const response = await courtService.getAllCourts();
+        
+        // Convert Court[] to CourtResponse[]
+        const convertedCourts: CourtResponse[] = response.map((court) => ({
+            id: parseInt(court.id), // Convert string to number
+            name: court.name,
+            location: court.location,
+            type: court.type,
+            hourlyFee: court.hourlyFee,
+            hasSeedSystem: court.hasSeedSystem,
+            imageUrl: court.imageUrl || '',
+            amenities: court.amenities || [],
+            techFeatures: court.techFeatures || [],
+            description: court.description || '',
+            openingTimes: court.openingTimes || {},
+            rating: null,
+            totalRatings: null,
+            distanceInMeters: null,
+            formattedDistance: null,
+            latitude: null,
+            longitude: null
+        }));
+        
+        setCourts(convertedCourts);
+    } catch (error) {
+        console.error('Failed to load courts:', error);
+        setErrors({ courts: 'Failed to load courts' });
+    } finally {
+        setCourtsLoading(false);
+    }
+};
+
+    // ================================
+    // 🎯 FORM HANDLERS
+    // ================================
+    
+    const handleInputChange = (field: keyof BookingFormData, value: any) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+        
+        // Clear field error when user starts typing
+        if (errors[field]) {
+            setErrors(prev => ({ ...prev, [field]: '' }));
+        }
+    };
+
+    const handleUserSelect = (user: UserResponse) => {
+        setSelectedUser(user);
+        setFormData(prev => ({ ...prev, userId: user.id }));
+        
+        if (errors.userId) {
+            setErrors(prev => ({ ...prev, userId: '' }));
+        }
+    };
+
+    const validateForm = (): boolean => {
+        const newErrors: Record<string, string> = {};
+
+        if (!formData.userId) {
+            newErrors.userId = 'Please select a user';
+        }
+
+        if (!formData.courtId) {
+            newErrors.courtId = 'Please select a court';
+        }
+
+        if (!formData.date) {
+            newErrors.date = 'Please select a date';
+        }
+
+        if (!formData.startTime) {
+            newErrors.startTime = 'Please select start time';
+        }
+
+        if (!formData.endTime) {
+            newErrors.endTime = 'Please select end time';
+        } else if (formData.startTime && formData.endTime <= formData.startTime) {
+            newErrors.endTime = 'End time must be after start time';
+        }
+
+        if (!formData.matchType) {
+            newErrors.matchType = 'Please select match type';
+        }
+
+        // Check if date is in the past
+        if (formData.date && formData.date < new Date()) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (formData.date < today) {
+                newErrors.date = 'Cannot book for past dates';
+            }
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        if (!validateForm()) {
+            return;
+        }
+
+        setIsLoading(true);
+        setErrors({});
+        setSuccess('');
+
+        try {
+            // Combine date and time
+            const startDateTime = new Date(formData.date!);
+            const [startHour, startMinute] = formData.startTime.split(':').map(Number);
+            startDateTime.setHours(startHour, startMinute, 0, 0);
+
+            const endDateTime = new Date(formData.date!);
+            const [endHour, endMinute] = formData.endTime.split(':').map(Number);
+            endDateTime.setHours(endHour, endMinute, 0, 0);
+
+            const bookingRequest: CreateBookingRequest = {
+                userId: formData.userId!,
+                courtId: formData.courtId!,
+                startTime: startDateTime.toISOString(),
+                endTime: endDateTime.toISOString(),
+                matchType: formData.matchType as 'SINGLE' | 'DOUBLE',
+                notes: formData.notes || undefined
+            };
+
+            console.log('🏗️ Creating manual booking:', bookingRequest);
+
+            const newBooking = await bookingService.createManualBooking(bookingRequest);
+            
+            console.log('✅ Manual booking created:', newBooking);
+
+            setSuccess('Booking created successfully!');
+            onBookingCreated(newBooking);
+            
+            // Reset form after short delay
+            setTimeout(() => {
+                resetForm();
+                setIsOpen(false);
+            }, 1500);
+
+        } catch (error) {
+            console.error('❌ Failed to create booking:', error);
+            
+            if (error instanceof Error) {
+                setErrors({ submit: error.message });
+            } else {
+                setErrors({ submit: 'Failed to create booking. Please try again.' });
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const resetForm = () => {
+        setFormData({
+            userId: null,
+            courtId: null,
+            date: null,
+            startTime: '',
+            endTime: '',
+            matchType: '',
+            notes: ''
+        });
+        setSelectedUser(null);
+        setErrors({});
+        setSuccess('');
+    };
+
+    const handleClose = () => {
+        setIsOpen(false);
+        resetForm();
+    };
+
+    // ================================
+    // 🔧 HELPER FUNCTIONS
+    // ================================
+    
+    const generateTimeOptions = () => {
+        const times = [];
+        for (let hour = 6; hour <= 22; hour++) {
+            for (let minute = 0; minute < 60; minute += 30) {
+                const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                times.push(timeString);
+            }
+        }
+        return times;
+    };
+
+    const getSelectedCourt = () => {
+        return courts.find(court => court.id === formData.courtId);
+    };
+
+    const calculateBookingDuration = () => {
+        if (!formData.startTime || !formData.endTime) return 0;
+        
+        const [startHour, startMinute] = formData.startTime.split(':').map(Number);
+        const [endHour, endMinute] = formData.endTime.split(':').map(Number);
+        
+        const startMinutes = startHour * 60 + startMinute;
+        const endMinutes = endHour * 60 + endMinute;
+        
+        return (endMinutes - startMinutes) / 60;
+    };
+
+    const calculateEstimatedPrice = () => {
+        const court = getSelectedCourt();
+        const duration = calculateBookingDuration();
+        
+        if (!court || !duration) return 0;
+        
+        return court.hourlyFee * duration;
+    };
+
+    // ================================
+    // 🎨 RENDER METHODS
+    // ================================
+    
+    const renderFormField = (
+        label: string,
+        field: keyof BookingFormData,
+        children: React.ReactNode,
+        required = true
+    ) => (
+        <div className="space-y-2">
+            <Label htmlFor={field} className="text-sm font-medium">
+                {label} {required && <span className="text-red-500">*</span>}
+            </Label>
+            {children}
+            {errors[field] && (
+                <p className="text-sm text-red-600">{errors[field]}</p>
+            )}
+        </div>
+    );
+
+    const renderBookingSummary = () => {
+        const court = getSelectedCourt();
+        const duration = calculateBookingDuration();
+        const estimatedPrice = calculateEstimatedPrice();
+
+        if (!selectedUser || !court || !duration) return null;
+
+        return (
+            <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                <h4 className="font-medium text-gray-900">Booking Summary</h4>
+                
+                <div className="space-y-2 text-sm">
+                    <div className="flex items-center justify-between">
+                        <span className="text-gray-600">User:</span>
+                        <span className="font-medium">{selectedUser.fullName}</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                        <span className="text-gray-600">Court:</span>
+                        <span className="font-medium">{court.name}</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                        <span className="text-gray-600">Date:</span>
+                        <span className="font-medium">
+                            {formData.date ? format(formData.date, 'PPP') : '-'}
+                        </span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                        <span className="text-gray-600">Time:</span>
+                        <span className="font-medium">
+                            {formData.startTime && formData.endTime 
+                                ? `${formData.startTime} - ${formData.endTime}`
+                                : '-'
+                            }
+                        </span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                        <span className="text-gray-600">Duration:</span>
+                        <span className="font-medium">{duration} hours</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                        <span className="text-gray-600">Match Type:</span>
+                        <span className="font-medium">{formData.matchType || '-'}</span>
+                    </div>
+                    
+                    <div className="border-t pt-2 flex items-center justify-between font-medium">
+                        <span>Estimated Total:</span>
+                        <span className="text-lg">${estimatedPrice.toFixed(2)}</span>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // ================================
+    // 🎨 MAIN RENDER
+    // ================================
+    
+    return (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+                {triggerButton || (
+                    <Button className={className}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Manual Booking
+                    </Button>
+                )}
+            </DialogTrigger>
+            
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                    <DialogTitle className="flex items-center">
+                        <Plus className="w-5 h-5 mr-2" />
+                        Create Manual Booking
+                    </DialogTitle>
+                    <DialogDescription>
+                        Create a new booking on behalf of a user. All fields marked with * are required.
+                    </DialogDescription>
+                </DialogHeader>
+
+                {/* Success Message */}
+                {success && (
+                    <Alert className="bg-green-50 border-green-200">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <AlertDescription className="text-green-800">
+                            {success}
+                        </AlertDescription>
+                    </Alert>
+                )}
+
+                {/* Submit Error */}
+                {errors.submit && (
+                    <Alert className="bg-red-50 border-red-200">
+                        <AlertTriangle className="h-4 w-4 text-red-600" />
+                        <AlertDescription className="text-red-800">
+                            {errors.submit}
+                        </AlertDescription>
+                    </Alert>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* User Selection */}
+                        <div className="md:col-span-2">
+                            {renderFormField(
+                                'Select User',
+                                'userId',
+                                <UserSearchInput
+                                    onUserSelect={handleUserSelect}
+                                    selectedUser={selectedUser}
+                                    placeholder="Search for a user..."
+                                />
+                            )}
+                        </div>
+
+                        {/* Court Selection */}
+                        <div className="md:col-span-2">
+                            {renderFormField(
+                                'Select Court',
+                                'courtId',
+                                <Select
+                                    value={formData.courtId?.toString() || ''}
+                                    onValueChange={(value) => handleInputChange('courtId', parseInt(value))}
+                                    disabled={courtsLoading}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder={courtsLoading ? "Loading courts..." : "Choose a court"} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {courts.map((court) => (
+                                            <SelectItem key={court.id} value={court.id.toString()}>
+                                                <div className="flex items-center space-x-2">
+                                                    <MapPin className="w-4 h-4 text-gray-400" />
+                                                    <span>{court.name} - {court.location} (${court.hourlyFee}/hr)</span>
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        </div>
+
+                        {/* Date Selection */}
+                        <div>
+                            {renderFormField(
+                                'Date',
+                                'date',
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            className={cn(
+                                                "w-full justify-start text-left font-normal",
+                                                !formData.date && "text-muted-foreground"
+                                            )}
+                                        >
+                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                            {formData.date ? format(formData.date, "PPP") : "Pick a date"}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                            mode="single"
+                                            selected={formData.date || undefined}
+                                            onSelect={(date) => handleInputChange('date', date)}
+                                            disabled={(date) => date < new Date()}
+                                            initialFocus
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                            )}
+                        </div>
+
+                        {/* Match Type */}
+                        <div>
+                            {renderFormField(
+                                'Match Type',
+                                'matchType',
+                                <Select
+                                    value={formData.matchType}
+                                    onValueChange={(value) => handleInputChange('matchType', value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select match type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="SINGLE">
+                                            <div className="flex items-center space-x-2">
+                                                <User className="w-4 h-4" />
+                                                <span>Singles Match</span>
+                                            </div>
+                                        </SelectItem>
+                                        <SelectItem value="DOUBLE">
+                                            <div className="flex items-center space-x-2">
+                                                <User className="w-4 h-4" />
+                                                <span>Doubles Match</span>
+                                            </div>
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        </div>
+
+                        {/* Start Time */}
+                        <div>
+                            {renderFormField(
+                                'Start Time',
+                                'startTime',
+                                <Select
+                                    value={formData.startTime}
+                                    onValueChange={(value) => handleInputChange('startTime', value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select start time" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {generateTimeOptions().map((time) => (
+                                            <SelectItem key={time} value={time}>
+                                                <div className="flex items-center space-x-2">
+                                                    <Clock className="w-4 h-4" />
+                                                    <span>{time}</span>
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        </div>
+
+                        {/* End Time */}
+                        <div>
+                            {renderFormField(
+                                'End Time',
+                                'endTime',
+                                <Select
+                                    value={formData.endTime}
+                                    onValueChange={(value) => handleInputChange('endTime', value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select end time" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {generateTimeOptions()
+                                            .filter(time => !formData.startTime || time > formData.startTime)
+                                            .map((time) => (
+                                            <SelectItem key={time} value={time}>
+                                                <div className="flex items-center space-x-2">
+                                                    <Clock className="w-4 h-4" />
+                                                    <span>{time}</span>
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        </div>
+
+                        {/* Notes */}
+                        <div className="md:col-span-2">
+                            {renderFormField(
+                                'Notes',
+                                'notes',
+                                <Textarea
+                                    placeholder="Optional notes for this booking..."
+                                    value={formData.notes}
+                                    onChange={(e) => handleInputChange('notes', e.target.value)}
+                                    rows={3}
+                                />,
+                                false
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Booking Summary */}
+                    {renderBookingSummary()}
+
+                    <DialogFooter className="gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleClose}
+                            disabled={isLoading}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={isLoading}
+                            className="bg-blue-600 hover:bg-blue-700"
+                        >
+                            {isLoading ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Creating...
+                                </>
+                            ) : (
+                                <>
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    Create Booking
+                                </>
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
+export default ManualBookingForm;
