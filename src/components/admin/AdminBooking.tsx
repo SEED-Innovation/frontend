@@ -347,7 +347,12 @@ useEffect(() => {
             const bookingsArray = response.bookings || response.content || [];
             console.log('📋 Final bookings array:', bookingsArray, 'Length:', bookingsArray.length);
             
-            setBookings(bookingsArray);
+            // Sort bookings by startTime in descending order (newest first)
+            const sortedBookings = bookingsArray.sort((a: any, b: any) => 
+                new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+            );
+            
+            setBookings(sortedBookings);
             setCurrentPage(response.currentPage || response.page || 0);
             setTotalPages(response.totalPages || 0);
             setTotalElements(response.totalElements || 0);
