@@ -49,6 +49,7 @@ const CourtManagement = () => {
   });
   const [courtSearchOpen, setCourtSearchOpen] = useState(false);
   const [courtSearchValue, setCourtSearchValue] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Fetch courts on component mount
   useEffect(() => {
@@ -239,6 +240,18 @@ const CourtManagement = () => {
       default: return 'Unknown';
     }
   };
+
+  // Filter courts based on search term
+  const filteredCourts = courts.filter((court) => {
+    if (!searchTerm) return true;
+    
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      court.name.toLowerCase().includes(searchLower) ||
+      court.type.toLowerCase().includes(searchLower) ||
+      court.location.toLowerCase().includes(searchLower)
+    );
+  });
 
   return (
     <motion.div
@@ -498,6 +511,18 @@ const CourtManagement = () => {
         </TabsList>
 
         <TabsContent value="courts" className="space-y-4">
+          {/* Search Bar */}
+          <div className="flex items-center gap-4 mb-6">
+            <div className="flex-1">
+              <Input
+                placeholder="Search courts by name, type, or location..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="max-w-md"
+              />
+            </div>
+          </div>
+
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="w-8 h-8 animate-spin" />
@@ -514,7 +539,7 @@ const CourtManagement = () => {
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
-              {courts.map((court) => (
+              {filteredCourts.map((court) => (
                 <Card key={court.id} className="overflow-hidden">
                   {/* Court Image Placeholder */}
                   <div className="relative h-32 bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
