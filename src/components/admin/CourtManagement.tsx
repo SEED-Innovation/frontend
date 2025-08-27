@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Edit, Trash2, Settings, Calendar, DollarSign, Loader2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Settings, Calendar, DollarSign, Loader2, Search, Filter, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { courtService, Court, CreateCourtRequest } from '@/lib/api/services/courtService';
@@ -49,7 +50,17 @@ const CourtManagement = () => {
   });
   const [courtSearchOpen, setCourtSearchOpen] = useState(false);
   const [courtSearchValue, setCourtSearchValue] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
+  
+  // Advanced filtering state
+  const [filters, setFilters] = useState({
+    searchTerm: '',
+    type: '',
+    location: '',
+    status: '',
+    priceRange: [0, 1000],
+    hasSeedSystem: '',
+  });
+  const [showFilters, setShowFilters] = useState(false);
 
   // Fetch courts on component mount
   useEffect(() => {
@@ -241,17 +252,60 @@ const CourtManagement = () => {
     }
   };
 
-  // Filter courts based on search term
+  // Advanced filtering logic
   const filteredCourts = courts.filter((court) => {
-    if (!searchTerm) return true;
-    
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      court.name.toLowerCase().includes(searchLower) ||
-      court.type.toLowerCase().includes(searchLower) ||
-      court.location.toLowerCase().includes(searchLower)
-    );
+    // Search term filter
+    if (filters.searchTerm) {
+      const searchLower = filters.searchTerm.toLowerCase();
+      const matchesSearch = 
+        court.name.toLowerCase().includes(searchLower) ||
+        court.type.toLowerCase().includes(searchLower) ||
+        court.location.toLowerCase().includes(searchLower);
+      if (!matchesSearch) return false;
+    }
+
+    // Type filter
+    if (filters.type && court.type !== filters.type) return false;
+
+    // Location filter
+    if (filters.location && court.location !== filters.location) return false;
+
+    // Status filter
+    if (filters.status && court.status !== filters.status) return false;
+
+    // Price range filter
+    if (court.hourlyFee < filters.priceRange[0] || court.hourlyFee > filters.priceRange[1]) return false;
+
+    // Seed system filter
+    if (filters.hasSeedSystem !== '') {
+      const hasSeed = filters.hasSeedSystem === 'true';
+      if (court.hasSeedSystem !== hasSeed) return false;
+    }
+
+    return true;
   });
+
+  // Get unique values for filter dropdowns
+  const uniqueTypes = [...new Set(courts.map(court => court.type))].filter(Boolean);
+  const uniqueLocations = [...new Set(courts.map(court => court.location))].filter(Boolean);
+  const maxPrice = Math.max(...courts.map(court => court.hourlyFee || 0), 1000);
+
+  // Clear all filters
+  const clearFilters = () => {
+    setFilters({
+      searchTerm: '',
+      type: '',
+      location: '',
+      status: '',
+      priceRange: [0, maxPrice],
+      hasSeedSystem: '',
+    });
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters = Object.values(filters).some(value => 
+    value !== '' && (!Array.isArray(value) || value[0] !== 0 || value[1] !== maxPrice)
+  );
 
   return (
     <motion.div
@@ -511,16 +565,160 @@ const CourtManagement = () => {
         </TabsList>
 
         <TabsContent value="courts" className="space-y-4">
-          {/* Search Bar */}
-          <div className="flex items-center gap-4 mb-6">
-            <div className="flex-1">
-              <Input
-                placeholder="Search courts by name, type, or location..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="max-w-md"
-              />
+          {/* Advanced Search and Filters */}
+          <div className="space-y-4">
+            {/* Main Search Bar */}
+            <div className="flex items-center gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder="Search courts by name, type, or location..."
+                  value={filters.searchTerm}
+                  onChange={(e) => setFilters(prev => ({ ...prev, searchTerm: e.target.value }))}
+                  className="pl-10 max-w-md"
+                />
+              </div>
+              <Button
+                variant={showFilters ? "default" : "outline"}
+                onClick={() => setShowFilters(!showFilters)}
+                className="flex items-center gap-2"
+              >
+                <Filter className="w-4 h-4" />
+                Filters
+                {hasActiveFilters && (
+                  <Badge variant="secondary" className="ml-2 px-1 py-0 text-xs">
+                    {Object.values(filters).filter(value => 
+                      value !== '' && (!Array.isArray(value) || value[0] !== 0 || value[1] !== maxPrice)
+                    ).length}
+                  </Badge>
+                )}
+              </Button>
+              {hasActiveFilters && (
+                <Button
+                  variant="ghost"
+                  onClick={clearFilters}
+                  className="flex items-center gap-2 text-muted-foreground"
+                >
+                  <X className="w-4 h-4" />
+                  Clear
+                </Button>
+              )}
             </div>
+
+            {/* Advanced Filters Panel */}
+            {showFilters && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="bg-muted/30 rounded-lg p-6 space-y-4"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Type Filter */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Court Type</Label>
+                    <Select 
+                      value={filters.type} 
+                      onValueChange={(value) => setFilters(prev => ({ ...prev, type: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Types" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All Types</SelectItem>
+                        {uniqueTypes.map((type) => (
+                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Location Filter */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Location</Label>
+                    <Select 
+                      value={filters.location} 
+                      onValueChange={(value) => setFilters(prev => ({ ...prev, location: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Locations" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All Locations</SelectItem>
+                        {uniqueLocations.map((location) => (
+                          <SelectItem key={location} value={location}>{location}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Status Filter */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Status</Label>
+                    <Select 
+                      value={filters.status} 
+                      onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All Status</SelectItem>
+                        <SelectItem value="AVAILABLE">Available</SelectItem>
+                        <SelectItem value="UNAVAILABLE">Unavailable</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Seed System Filter */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Seed System</Label>
+                    <Select 
+                      value={filters.hasSeedSystem} 
+                      onValueChange={(value) => setFilters(prev => ({ ...prev, hasSeedSystem: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Courts" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All Courts</SelectItem>
+                        <SelectItem value="true">With Seed System</SelectItem>
+                        <SelectItem value="false">Without Seed System</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Price Range Filter */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-medium">Price Range (per hour)</Label>
+                    <span className="text-sm text-muted-foreground">
+                      ${filters.priceRange[0]} - ${filters.priceRange[1]}
+                    </span>
+                  </div>
+                  <Slider
+                    value={filters.priceRange}
+                    onValueChange={(value) => setFilters(prev => ({ ...prev, priceRange: value }))}
+                    max={maxPrice}
+                    min={0}
+                    step={10}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>$0</span>
+                    <span>${maxPrice}</span>
+                  </div>
+                </div>
+
+                {/* Results count */}
+                <div className="flex items-center justify-between pt-2 border-t">
+                  <span className="text-sm text-muted-foreground">
+                    Showing {filteredCourts.length} of {courts.length} courts
+                  </span>
+                </div>
+              </motion.div>
+            )}
           </div>
 
           {loading ? (
