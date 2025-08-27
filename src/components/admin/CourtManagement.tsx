@@ -57,7 +57,7 @@ const CourtManagement = () => {
     type: '',
     location: '',
     status: '',
-    priceRange: [0, 1000],
+    priceRange: [0, 300],
     hasSeedSystem: '',
   });
   const [showFilters, setShowFilters] = useState(false);
@@ -265,19 +265,19 @@ const CourtManagement = () => {
     }
 
     // Type filter
-    if (filters.type && court.type !== filters.type) return false;
+    if (filters.type && filters.type !== 'all-types' && court.type !== filters.type) return false;
 
     // Location filter
-    if (filters.location && court.location !== filters.location) return false;
+    if (filters.location && filters.location !== 'all-locations' && court.location !== filters.location) return false;
 
     // Status filter
-    if (filters.status && court.status !== filters.status) return false;
+    if (filters.status && filters.status !== 'all-status' && court.status !== filters.status) return false;
 
     // Price range filter
     if (court.hourlyFee < filters.priceRange[0] || court.hourlyFee > filters.priceRange[1]) return false;
 
     // Seed system filter
-    if (filters.hasSeedSystem !== '') {
+    if (filters.hasSeedSystem !== '' && filters.hasSeedSystem !== 'all-courts') {
       const hasSeed = filters.hasSeedSystem === 'true';
       if (court.hasSeedSystem !== hasSeed) return false;
     }
@@ -288,24 +288,28 @@ const CourtManagement = () => {
   // Get unique values for filter dropdowns
   const uniqueTypes = [...new Set(courts.map(court => court.type))].filter(Boolean);
   const uniqueLocations = [...new Set(courts.map(court => court.location))].filter(Boolean);
-  const maxPrice = Math.max(...courts.map(court => court.hourlyFee || 0), 1000);
+  const maxPrice = Math.max(...courts.map(court => court.hourlyFee || 0), 300);
 
   // Clear all filters
   const clearFilters = () => {
     setFilters({
       searchTerm: '',
-      type: '',
-      location: '',
-      status: '',
+      type: 'all-types',
+      location: 'all-locations',
+      status: 'all-status',
       priceRange: [0, maxPrice],
-      hasSeedSystem: '',
+      hasSeedSystem: 'all-courts',
     });
   };
 
   // Check if any filters are active
-  const hasActiveFilters = Object.values(filters).some(value => 
-    value !== '' && (!Array.isArray(value) || value[0] !== 0 || value[1] !== maxPrice)
-  );
+  const hasActiveFilters = 
+    filters.searchTerm !== '' || 
+    (filters.type !== '' && filters.type !== 'all-types') ||
+    (filters.location !== '' && filters.location !== 'all-locations') ||
+    (filters.status !== '' && filters.status !== 'all-status') ||
+    (filters.hasSeedSystem !== '' && filters.hasSeedSystem !== 'all-courts') ||
+    filters.priceRange[0] !== 0 || filters.priceRange[1] !== maxPrice;
 
   return (
     <motion.div
@@ -587,9 +591,14 @@ const CourtManagement = () => {
                 Filters
                 {hasActiveFilters && (
                   <Badge variant="secondary" className="ml-2 px-1 py-0 text-xs">
-                    {Object.values(filters).filter(value => 
-                      value !== '' && (!Array.isArray(value) || value[0] !== 0 || value[1] !== maxPrice)
-                    ).length}
+                  {[
+                    filters.searchTerm !== '',
+                    filters.type !== '' && filters.type !== 'all-types',
+                    filters.location !== '' && filters.location !== 'all-locations',
+                    filters.status !== '' && filters.status !== 'all-status',
+                    filters.hasSeedSystem !== '' && filters.hasSeedSystem !== 'all-courts',
+                    filters.priceRange[0] !== 0 || filters.priceRange[1] !== maxPrice
+                  ].filter(Boolean).length}
                   </Badge>
                 )}
               </Button>
@@ -625,7 +634,7 @@ const CourtManagement = () => {
                         <SelectValue placeholder="All Types" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Types</SelectItem>
+                        <SelectItem value="all-types">All Types</SelectItem>
                         {uniqueTypes.map((type) => (
                           <SelectItem key={type} value={type}>{type}</SelectItem>
                         ))}
@@ -644,7 +653,7 @@ const CourtManagement = () => {
                         <SelectValue placeholder="All Locations" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Locations</SelectItem>
+                        <SelectItem value="all-locations">All Locations</SelectItem>
                         {uniqueLocations.map((location) => (
                           <SelectItem key={location} value={location}>{location}</SelectItem>
                         ))}
@@ -663,7 +672,7 @@ const CourtManagement = () => {
                         <SelectValue placeholder="All Status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Status</SelectItem>
+                        <SelectItem value="all-status">All Status</SelectItem>
                         <SelectItem value="AVAILABLE">Available</SelectItem>
                         <SelectItem value="UNAVAILABLE">Unavailable</SelectItem>
                       </SelectContent>
@@ -681,7 +690,7 @@ const CourtManagement = () => {
                         <SelectValue placeholder="All Courts" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Courts</SelectItem>
+                        <SelectItem value="all-courts">All Courts</SelectItem>
                         <SelectItem value="true">With Seed System</SelectItem>
                         <SelectItem value="false">Without Seed System</SelectItem>
                       </SelectContent>
@@ -694,7 +703,7 @@ const CourtManagement = () => {
                   <div className="flex items-center justify-between">
                     <Label className="text-sm font-medium">Price Range (per hour)</Label>
                     <span className="text-sm text-muted-foreground">
-                      ${filters.priceRange[0]} - ${filters.priceRange[1]}
+                      {filters.priceRange[0]} SAR - {filters.priceRange[1]} SAR
                     </span>
                   </div>
                   <Slider
@@ -706,8 +715,8 @@ const CourtManagement = () => {
                     className="w-full"
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>$0</span>
-                    <span>${maxPrice}</span>
+                    <span>0 SAR</span>
+                    <span>{maxPrice} SAR</span>
                   </div>
                 </div>
 

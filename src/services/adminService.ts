@@ -12,7 +12,7 @@ class AdminServiceImpl implements AdminService {
   }
 
   async getAllAdmins(): Promise<string[]> {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/all-admins`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/courts/all-admins`, {
       method: 'GET',
       headers: this.getAuthHeaders()
     });
