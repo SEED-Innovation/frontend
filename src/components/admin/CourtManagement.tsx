@@ -51,6 +51,13 @@ const CourtManagement = () => {
   const [courtSearchOpen, setCourtSearchOpen] = useState(false);
   const [courtSearchValue, setCourtSearchValue] = useState("");
   
+  // Location filter state
+  const [locationSearchOpen, setLocationSearchOpen] = useState(false);
+  const [locationSearchValue, setLocationSearchValue] = useState("");
+  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
+  const [customLocationInput, setCustomLocationInput] = useState("");
+  const [showCustomLocationInput, setShowCustomLocationInput] = useState(false);
+  
   // Advanced filtering state
   const [filters, setFilters] = useState({
     searchTerm: '',
@@ -268,7 +275,9 @@ const CourtManagement = () => {
     if (filters.type && filters.type !== 'all-types' && court.type !== filters.type) return false;
 
     // Location filter
-    if (filters.location && filters.location !== 'all-locations' && court.location !== filters.location) return false;
+    if (selectedLocations.length > 0 && !selectedLocations.includes('all-locations')) {
+      if (!selectedLocations.includes(court.location)) return false;
+    }
 
     // Status filter
     if (filters.status && filters.status !== 'all-status' && court.status !== filters.status) return false;
@@ -300,16 +309,43 @@ const CourtManagement = () => {
       priceRange: [0, maxPrice],
       hasSeedSystem: 'all-courts',
     });
+    setSelectedLocations([]);
   };
 
   // Check if any filters are active
   const hasActiveFilters = 
     filters.searchTerm !== '' || 
     (filters.type !== '' && filters.type !== 'all-types') ||
-    (filters.location !== '' && filters.location !== 'all-locations') ||
+    selectedLocations.length > 0 ||
     (filters.status !== '' && filters.status !== 'all-status') ||
     (filters.hasSeedSystem !== '' && filters.hasSeedSystem !== 'all-courts') ||
     filters.priceRange[0] !== 0 || filters.priceRange[1] !== maxPrice;
+
+  // Location filter handlers
+  const handleLocationSelect = (location: string) => {
+    if (location === 'all-locations') {
+      setSelectedLocations([]);
+    } else {
+      setSelectedLocations(prev => 
+        prev.includes(location) 
+          ? prev.filter(loc => loc !== location)
+          : [...prev, location]
+      );
+    }
+  };
+
+  const handleAddCustomLocation = () => {
+    if (customLocationInput.trim() && !uniqueLocations.includes(customLocationInput.trim())) {
+      const newLocation = customLocationInput.trim();
+      setSelectedLocations(prev => [...prev, newLocation]);
+      setCustomLocationInput("");
+      setShowCustomLocationInput(false);
+    }
+  };
+
+  const removeLocationFilter = (locationToRemove: string) => {
+    setSelectedLocations(prev => prev.filter(loc => loc !== locationToRemove));
+  };
 
   return (
     <motion.div
@@ -594,7 +630,7 @@ const CourtManagement = () => {
                   {[
                     filters.searchTerm !== '',
                     filters.type !== '' && filters.type !== 'all-types',
-                    filters.location !== '' && filters.location !== 'all-locations',
+                    selectedLocations.length > 0,
                     filters.status !== '' && filters.status !== 'all-status',
                     filters.hasSeedSystem !== '' && filters.hasSeedSystem !== 'all-courts',
                     filters.priceRange[0] !== 0 || filters.priceRange[1] !== maxPrice
@@ -645,20 +681,166 @@ const CourtManagement = () => {
                   {/* Location Filter */}
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Location</Label>
-                    <Select 
-                      value={filters.location} 
-                      onValueChange={(value) => setFilters(prev => ({ ...prev, location: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="All Locations" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all-locations">All Locations</SelectItem>
-                        {uniqueLocations.map((location) => (
-                          <SelectItem key={location} value={location}>{location}</SelectItem>
+                    <Popover open={locationSearchOpen} onOpenChange={setLocationSearchOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={locationSearchOpen}
+                          className="w-full justify-between"
+                        >
+                          {selectedLocations.length === 0
+                            ? "All Locations"
+                            : selectedLocations.length === 1
+                            ? selectedLocations[0]
+                            : `${selectedLocations.length} locations selected`}
+                          <div className="flex items-center gap-1">
+                            {selectedLocations.length > 0 && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedLocations([]);
+                                }}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            )}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </div>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0">
+                        <Command>
+                          <CommandInput
+                            placeholder="Search locations..."
+                            value={locationSearchValue}
+                            onValueChange={setLocationSearchValue}
+                          />
+                          <CommandList>
+                            <CommandEmpty>
+                              <div className="p-2 space-y-2">
+                                <p className="text-sm text-muted-foreground">No location found.</p>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setShowCustomLocationInput(true)}
+                                  className="w-full"
+                                >
+                                  <Plus className="w-3 h-3 mr-1" />
+                                  Add Custom Location
+                                </Button>
+                              </div>
+                            </CommandEmpty>
+                            <CommandGroup>
+                              <CommandItem
+                                value="all-locations"
+                                onSelect={() => handleLocationSelect('all-locations')}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    selectedLocations.length === 0 ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                All Locations
+                              </CommandItem>
+                              {uniqueLocations
+                                .filter((location) =>
+                                  location.toLowerCase().includes(locationSearchValue.toLowerCase())
+                                )
+                                .map((location) => (
+                                  <CommandItem
+                                    key={location}
+                                    value={location}
+                                    onSelect={() => handleLocationSelect(location)}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        selectedLocations.includes(location) ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    {location}
+                                  </CommandItem>
+                                ))}
+                              <CommandItem
+                                value="add-custom"
+                                onSelect={() => setShowCustomLocationInput(true)}
+                                className="border-t"
+                              >
+                                <Plus className="mr-2 h-4 w-4" />
+                                Add Custom Location
+                              </CommandItem>
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    
+                    {/* Custom Location Input */}
+                    {showCustomLocationInput && (
+                      <div className="flex gap-2 mt-2">
+                        <Input
+                          placeholder="Enter location name..."
+                          value={customLocationInput}
+                          onChange={(e) => setCustomLocationInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleAddCustomLocation();
+                            }
+                            if (e.key === 'Escape') {
+                              setShowCustomLocationInput(false);
+                              setCustomLocationInput("");
+                            }
+                          }}
+                          className="flex-1"
+                          autoFocus
+                        />
+                        <Button
+                          size="sm"
+                          onClick={handleAddCustomLocation}
+                          disabled={!customLocationInput.trim()}
+                        >
+                          Add
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setShowCustomLocationInput(false);
+                            setCustomLocationInput("");
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Selected Locations Tags */}
+                    {selectedLocations.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {selectedLocations.map((location) => (
+                          <Badge
+                            key={location}
+                            variant="secondary"
+                            className="text-xs flex items-center gap-1"
+                          >
+                            {location}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-3 w-3 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                              onClick={() => removeLocationFilter(location)}
+                            >
+                              <X className="h-2 w-2" />
+                            </Button>
+                          </Badge>
                         ))}
-                      </SelectContent>
-                    </Select>
+                      </div>
+                    )}
                   </div>
 
                   {/* Status Filter */}
