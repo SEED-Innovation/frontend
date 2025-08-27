@@ -16,20 +16,23 @@ import { courtService, Court, CreateCourtRequest } from '@/lib/api/services/cour
 const CourtManagement = () => {
   const { user, hasPermission } = useAdminAuth();
   const [courts, setCourts] = useState<Court[]>([]);
+  const [admins, setAdmins] = useState<Array<{id: string, name: string, email: string}>>([]);
   const [loading, setLoading] = useState(true);
+  const [adminsLoading, setAdminsLoading] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingCourt, setEditingCourt] = useState<Court | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [courtToDelete, setCourtToDelete] = useState<Court | null>(null);
 
-  const [newCourt, setNewCourt] = useState<CreateCourtRequest>({
+  const [newCourt, setNewCourt] = useState<CreateCourtRequest & {managerId?: string}>({
     name: '',
     type: '',
     location: '',
     hourlyFee: 0,
     hasSeedSystem: false,
-    amenities: []
+    amenities: [],
+    managerId: ''
   });
 
   const [availabilityData, setAvailabilityData] = useState({
@@ -58,6 +61,32 @@ const CourtManagement = () => {
     }
   };
 
+  const fetchAdmins = async () => {
+    try {
+      setAdminsLoading(true);
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/users/admins`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch admins: ${response.statusText}`);
+      }
+
+      const adminsList = await response.json();
+      setAdmins(adminsList);
+    } catch (error) {
+      console.error('Error fetching admins:', error);
+      toast.error('Failed to load admins');
+    } finally {
+      setAdminsLoading(false);
+    }
+  };
+
   const handleCreateCourt = async () => {
     if (!newCourt.name || !newCourt.type || !newCourt.location) {
       toast.error('Please fill in all required fields');
@@ -65,7 +94,20 @@ const CourtManagement = () => {
     }
 
     try {
-      const createdCourt = await courtService.createCourt(newCourt);
+      const courtData: any = {
+        name: newCourt.name,
+        type: newCourt.type,
+        location: newCourt.location,
+        hourlyFee: newCourt.hourlyFee,
+        hasSeedSystem: newCourt.hasSeedSystem,
+        amenities: newCourt.amenities
+      };
+
+      // Add managerId if selected
+      if (newCourt.managerId) {
+        courtData.managerId = newCourt.managerId;
+      }
+      const createdCourt = await courtService.createCourt(courtData);
       setCourts([...courts, createdCourt]);
       setNewCourt({
         name: '',
@@ -73,7 +115,8 @@ const CourtManagement = () => {
         location: '',
         hourlyFee: 0,
         hasSeedSystem: false,
-        amenities: []
+        amenities: [],
+        managerId: ''
       });
       setCreateDialogOpen(false);
       toast.success('Court created successfully');
@@ -219,8 +262,13 @@ const CourtManagement = () => {
             }
           </p>
         </div>
-        {(hasPermission('SUPER_ADMIN') || hasPermission('ADMIN')) && (
-          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        {hasPermission('SUPER_ADMIN') && (
+          <Dialog open={createDialogOpen} onOpenChange={(open) => {
+            setCreateDialogOpen(open);
+            if (open && hasPermission('SUPER_ADMIN')) {
+              fetchAdmins();
+            }
+          }}>
             <DialogTrigger asChild>
               <Button className="flex items-center gap-2">
                 <Plus className="w-4 h-4" />
@@ -272,6 +320,25 @@ const CourtManagement = () => {
                   onChange={(e) => setNewCourt({...newCourt, hourlyFee: Number(e.target.value)})}
                   placeholder="120"
                 />
+              </div>
+              <div>
+                <Label htmlFor="managerId">Court Manager (Optional)</Label>
+                <Select 
+                  value={newCourt.managerId} 
+                  onValueChange={(value) => setNewCourt({...newCourt, managerId: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={adminsLoading ? "Loading admins..." : "Select an admin to manage this court"} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border border-border shadow-lg z-50">
+                    <SelectItem value="">No manager assigned</SelectItem>
+                    {admins.map((admin) => (
+                      <SelectItem key={admin.id} value={admin.id}>
+                        {admin.name} ({admin.email})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <Button onClick={handleCreateCourt} className="w-full">
                 Create Court
