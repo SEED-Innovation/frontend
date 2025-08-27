@@ -1,0 +1,29 @@
+export interface AdminService {
+  getAllAdmins(): Promise<string[]>;
+}
+
+class AdminServiceImpl implements AdminService {
+  private getAuthHeaders() {
+    const token = localStorage.getItem('accessToken');
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
+  }
+
+  async getAllAdmins(): Promise<string[]> {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/all-admins`, {
+      method: 'GET',
+      headers: this.getAuthHeaders()
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch admins: ${response.statusText}`);
+    }
+
+    const admins = await response.json();
+    return admins || [];
+  }
+}
+
+export const adminService = new AdminServiceImpl();

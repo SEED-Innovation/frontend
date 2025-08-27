@@ -12,13 +12,19 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { courtService, Court, CreateCourtRequest } from '@/lib/api/services/courtService';
+import { adminService } from '@/services';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Check, ChevronsUpDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const CourtManagement = () => {
   const { user, hasPermission } = useAdminAuth();
   const [courts, setCourts] = useState<Court[]>([]);
-  const [admins, setAdmins] = useState<Array<{id: string, name: string, email: string}>>([]);
+  const [admins, setAdmins] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [adminsLoading, setAdminsLoading] = useState(false);
+  const [managerComboboxOpen, setManagerComboboxOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingCourt, setEditingCourt] = useState<Court | null>(null);
@@ -64,20 +70,7 @@ const CourtManagement = () => {
   const fetchAdmins = async () => {
     try {
       setAdminsLoading(true);
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/users/admins`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch admins: ${response.statusText}`);
-      }
-
-      const adminsList = await response.json();
+      const adminsList = await adminService.getAllAdmins();
       setAdmins(adminsList);
     } catch (error) {
       console.error('Error fetching admins:', error);
@@ -323,22 +316,67 @@ const CourtManagement = () => {
               </div>
               <div>
                 <Label htmlFor="managerId">Court Manager</Label>
-                <Select 
-                  value={newCourt.managerId} 
-                  onValueChange={(value) => setNewCourt({...newCourt, managerId: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={adminsLoading ? "Loading admins..." : "Search and select an admin to manage this court"} />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background border border-border shadow-lg z-50">
-                    <SelectItem value="none">No manager assigned</SelectItem>
-                    {admins.map((admin) => (
-                      <SelectItem key={admin.id} value={admin.id}>
-                        {admin.name} ({admin.email})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={managerComboboxOpen} onOpenChange={setManagerComboboxOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={managerComboboxOpen}
+                      className="w-full justify-between"
+                      disabled={adminsLoading}
+                    >
+                      {newCourt.managerId && newCourt.managerId !== "none"
+                        ? admins.find((admin) => admin === newCourt.managerId) || newCourt.managerId
+                        : adminsLoading 
+                          ? "Loading admins..." 
+                          : "Search and select an admin..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0">
+                    <Command>
+                      <CommandInput placeholder="Search admins..." />
+                      <CommandList>
+                        <CommandEmpty>No admin found.</CommandEmpty>
+                        <CommandGroup>
+                          <CommandItem
+                            value="none"
+                            onSelect={() => {
+                              setNewCourt({...newCourt, managerId: "none"});
+                              setManagerComboboxOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                newCourt.managerId === "none" ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            No manager assigned
+                          </CommandItem>
+                          {admins.map((admin) => (
+                            <CommandItem
+                              key={admin}
+                              value={admin}
+                              onSelect={(currentValue) => {
+                                setNewCourt({...newCourt, managerId: currentValue === newCourt.managerId ? "" : currentValue});
+                                setManagerComboboxOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  newCourt.managerId === admin ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {admin}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
               <Button onClick={handleCreateCourt} className="w-full">
                 Create Court
