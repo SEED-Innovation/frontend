@@ -409,7 +409,25 @@ const CourtManagement = () => {
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
               {courts.map((court) => (
-                <Card key={court.id}>
+                <Card key={court.id} className="overflow-hidden">
+                  {/* Court Image Placeholder */}
+                  <div className="relative h-32 bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+                    {court.imageUrl ? (
+                      <img 
+                        src={court.imageUrl} 
+                        alt={`${court.name} court`}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="text-center">
+                        <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-2">
+                          <Settings className="w-6 h-6 text-primary/60" />
+                        </div>
+                        <p className="text-sm text-muted-foreground">Court Image</p>
+                      </div>
+                    )}
+                  </div>
+                  
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                     <CardTitle className="text-lg">{court.name}</CardTitle>
                   </CardHeader>
