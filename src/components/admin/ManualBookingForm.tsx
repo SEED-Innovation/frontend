@@ -127,8 +127,8 @@ useEffect(() => {
 
 // Filter users based on search term
 const filteredUsers = users.filter(user => 
-    user.fullName.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(userSearchTerm.toLowerCase())
+    (user.fullName?.toLowerCase() || '').includes(userSearchTerm.toLowerCase()) ||
+    (user.email?.toLowerCase() || '').includes(userSearchTerm.toLowerCase())
 );
     
     // ================================
