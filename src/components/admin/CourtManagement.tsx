@@ -322,13 +322,13 @@ const CourtManagement = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="managerId">Court Manager (Optional)</Label>
+                <Label htmlFor="managerId">Court Manager</Label>
                 <Select 
                   value={newCourt.managerId} 
                   onValueChange={(value) => setNewCourt({...newCourt, managerId: value})}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={adminsLoading ? "Loading admins..." : "Select an admin to manage this court"} />
+                    <SelectValue placeholder={adminsLoading ? "Loading admins..." : "Search and select an admin to manage this court"} />
                   </SelectTrigger>
                   <SelectContent className="bg-background border border-border shadow-lg z-50">
                     <SelectItem value="none">No manager assigned</SelectItem>
