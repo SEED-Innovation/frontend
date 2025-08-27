@@ -331,7 +331,7 @@ const CourtManagement = () => {
                     <SelectValue placeholder={adminsLoading ? "Loading admins..." : "Select an admin to manage this court"} />
                   </SelectTrigger>
                   <SelectContent className="bg-background border border-border shadow-lg z-50">
-                    <SelectItem value="">No manager assigned</SelectItem>
+                    <SelectItem value="none">No manager assigned</SelectItem>
                     {admins.map((admin) => (
                       <SelectItem key={admin.id} value={admin.id}>
                         {admin.name} ({admin.email})
