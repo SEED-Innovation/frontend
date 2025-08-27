@@ -30,7 +30,7 @@ const sidebarItems: SidebarItem[] = [
     icon: LayoutDashboard,
   },
   {
-    title: 'Players',
+    title: 'Admins',
     href: '/admin/players',
     icon: Users,
     superAdminOnly: true,

@@ -452,10 +452,9 @@ const CourtManagement = () => {
       </div>
 
       <Tabs defaultValue="courts" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="courts">Courts</TabsTrigger>
           <TabsTrigger value="availability">Availability</TabsTrigger>
-          <TabsTrigger value="pricing">Pricing</TabsTrigger>
         </TabsList>
 
         <TabsContent value="courts" className="space-y-4">
@@ -629,35 +628,6 @@ const CourtManagement = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="pricing" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <DollarSign className="w-5 h-5" />
-                Court Pricing Management
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {courts.map((court) => (
-                  <div key={court.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <h3 className="font-medium">{court.name}</h3>
-                      <p className="text-sm text-gray-600">{court.type} • {court.location}</p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <span className="text-lg font-semibold">{court.hourlyFee} SAR/hour</span>
-                      <Button variant="outline" size="sm">
-                        <Settings className="w-4 h-4 mr-1" />
-                        Update
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
     </motion.div>
   );
