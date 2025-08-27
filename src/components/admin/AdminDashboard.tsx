@@ -35,7 +35,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const loadDashboardData = async () => {
       try {
-        console.log('🔄 Loading real dashboard data...');
+        console.log('🔄 AdminDashboard: Loading real dashboard data...');
         
         // Load recent bookings (last 5)
         const bookingsResponse = await bookingService.getAdminBookings({
@@ -45,14 +45,20 @@ const AdminDashboard = () => {
           sortDirection: 'DESC'
         });
         
+        console.log('📊 AdminDashboard: Raw bookings response:', bookingsResponse);
+        
         // Load stats
         const statsResponse = await bookingService.getBookingStats();
+        console.log('📈 AdminDashboard: Raw stats response:', statsResponse);
         
         // Load users count
         const usersResponse = await userService.getAllUsers();
+        console.log('👥 AdminDashboard: Raw users response:', usersResponse);
         
         // Format recent bookings for display
         const bookings = Array.isArray(bookingsResponse) ? bookingsResponse : (bookingsResponse?.content || []);
+        console.log('📋 AdminDashboard: Extracted bookings array:', bookings);
+        console.log('📋 AdminDashboard: Bookings array length:', bookings.length);
         const formattedBookings = bookings.slice(0, 5).map(booking => ({
           id: booking.id,
           court: booking.court?.name || 'Unknown Court',
@@ -63,6 +69,9 @@ const AdminDashboard = () => {
           }),
           status: booking.status?.toLowerCase() || 'unknown'
         }));
+        
+        console.log('🎯 AdminDashboard: Formatted bookings for UI:', formattedBookings);
+        console.log('🎯 AdminDashboard: Setting recent bookings array with length:', formattedBookings.length);
         
         // Update state with real data
         setRecentBookings(formattedBookings);
@@ -76,22 +85,28 @@ const AdminDashboard = () => {
           monthlyGrowth: 12.5 // Keep static for now
         });
         
-        console.log('✅ Dashboard data loaded:', {
-          bookings: formattedBookings,
-          stats: statsResponse,
-          users: usersResponse?.length
-        });
+        console.log('✅ AdminDashboard: Dashboard data updated successfully');
+        console.log('✅ AdminDashboard: Final recent bookings state:', formattedBookings);
         
       } catch (error) {
-        console.error('❌ Failed to load dashboard data:', error);
+        console.error('❌ AdminDashboard: Failed to load dashboard data:', error);
         // Keep default/mock data on error
       } finally {
+        console.log('🏁 AdminDashboard: Loading completed, setting isLoading to false');
         setIsLoading(false);
       }
     };
 
     loadDashboardData();
   }, []);
+  
+  // Debug current state
+  console.log('🔍 AdminDashboard: Current render state:', {
+    recentBookings,
+    recentBookingsLength: recentBookings.length,
+    isLoading,
+    dashboardStats
+  });
 
   const courtStatus = [
     { name: 'Court A', status: 'active', bookings: 8, revenue: 2400 },
