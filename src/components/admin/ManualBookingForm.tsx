@@ -516,7 +516,7 @@ const loadCourts = async () => {
                                         </SelectTrigger>
                                         <SelectContent>
                                             {filteredUsers.length === 0 ? (
-                                                <SelectItem value="" disabled>
+                                                <SelectItem value="no-users" disabled>
                                                     {usersLoading ? "Loading..." : "No users found"}
                                                 </SelectItem>
                                             ) : (
