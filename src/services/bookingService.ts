@@ -4,13 +4,16 @@ import {
   AdminBookingFilterRequest,
   PaginatedBookingResponse,
   BookingFilterSummary,
-  CreateBookingRequest
+  CreateBookingRequest,
+  AdminBookingCalendarResponse,
+  AdminCourtTimelineResponse,
+  AdminBookingFilterResponse
 } from '@/types/booking';
 
 // Simple, clean BookingService class
 export class BookingService {
-  // Use your .env file for the API URL
-  private baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+  // Use your .env file for the API URL (no /api suffix since controller is /admin/bookings)
+  private baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
   
   // Get the login token from localStorage
   private getToken(): string {
@@ -193,6 +196,202 @@ export class BookingService {
   }
 
   /**
+   * Search bookings by query (matches your backend /admin/bookings/search)
+   */
+  async searchBookings(query: string, page = 0, size = 20): Promise<BookingResponse[]> {
+    console.log('🔍 Searching bookings with query:', query);
+    
+    try {
+      const response = await this.makeAPICall(
+        `${this.baseUrl}/admin/bookings/search?query=${encodeURIComponent(query)}&page=${page}&size=${size}`
+      );
+      
+      const data = await response.json();
+      console.log('✅ Search results:', data);
+      return data;
+      
+    } catch (error) {
+      console.error('❌ Search failed, using mock data:', error);
+      return this.createMockBookingData({ page, size, search: query }).content;
+    }
+  }
+
+  /**
+   * Get bookings by status (matches your backend /admin/bookings/status/{status})
+   */
+  async getBookingsByStatus(status: string, page = 0, size = 20): Promise<BookingResponse[]> {
+    console.log('📊 Getting bookings by status:', status);
+    
+    try {
+      const response = await this.makeAPICall(
+        `${this.baseUrl}/admin/bookings/status/${status}?page=${page}&size=${size}`
+      );
+      
+      const data = await response.json();
+      console.log('✅ Bookings by status:', data);
+      return data;
+      
+    } catch (error) {
+      console.error('❌ Failed to get bookings by status, using mock data:', error);
+      return this.createMockBookingData({ page, size, statuses: [status] }).content;
+    }
+  }
+
+  /**
+   * Get bookings for a specific user (matches your backend /admin/bookings/user/{userId})
+   */
+  async getBookingsForUser(userId: number, page = 0, size = 20): Promise<BookingResponse[]> {
+    console.log('👤 Getting bookings for user:', userId);
+    
+    try {
+      const response = await this.makeAPICall(
+        `${this.baseUrl}/admin/bookings/user/${userId}?page=${page}&size=${size}`
+      );
+      
+      const data = await response.json();
+      console.log('✅ User bookings:', data);
+      return data;
+      
+    } catch (error) {
+      console.error('❌ Failed to get user bookings, using mock data:', error);
+      return this.createMockBookingData({ page, size, userId }).content;
+    }
+  }
+
+  /**
+   * Bulk booking actions (matches your backend /admin/bookings/bulk-action)
+   */
+  async bulkBookingAction(bookingIds: number[], action: 'APPROVE' | 'REJECT' | 'CANCEL', reason?: string): Promise<BookingResponse[]> {
+    console.log('📦 Performing bulk action:', action, 'on bookings:', bookingIds);
+    
+    try {
+      const response = await this.makeAPICall(`${this.baseUrl}/admin/bookings/bulk-action`, {
+        method: 'POST',
+        body: JSON.stringify({
+          bookingIds,
+          action,
+          reason
+        })
+      });
+      
+      const data = await response.json();
+      console.log('✅ Bulk action completed:', data);
+      return data;
+      
+    } catch (error) {
+      console.error('❌ Bulk action failed, simulating:', error);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return []; // Return empty array for mock
+    }
+  }
+
+  /**
+   * Get bookings by court and date range (matches your backend /admin/bookings/range)
+   */
+  async getBookingsByCourtAndDate(courtId: number, start: string, end: string): Promise<BookingResponse[]> {
+    console.log('📅 Getting bookings by court and date:', { courtId, start, end });
+    
+    try {
+      const response = await this.makeAPICall(`${this.baseUrl}/admin/bookings/range`, {
+        method: 'POST',
+        body: JSON.stringify({
+          courtId,
+          start,
+          end
+        })
+      });
+      
+      const data = await response.json();
+      console.log('✅ Bookings by court and date:', data);
+      return data;
+      
+    } catch (error) {
+      console.error('❌ Failed to get bookings by court and date, using mock data:', error);
+      return this.createMockBookingData({ courtIds: [courtId], startDateTime: start, endDateTime: end }).content;
+    }
+  }
+
+  /**
+   * Get daily calendar (matches your backend /admin/bookings/calendar/daily/{date})
+   */
+  async getDailyCalendar(date: string): Promise<AdminBookingCalendarResponse> {
+    console.log('📅 Getting daily calendar for:', date);
+    
+    try {
+      const response = await this.makeAPICall(`${this.baseUrl}/admin/bookings/calendar/daily/${date}`);
+      
+      const data = await response.json();
+      console.log('✅ Daily calendar:', data);
+      return data;
+      
+    } catch (error) {
+      console.error('❌ Failed to get daily calendar, using mock data:', error);
+      return this.createMockCalendarResponse(date, 'daily');
+    }
+  }
+
+  /**
+   * Get weekly calendar (matches your backend /admin/bookings/calendar/weekly/{date})
+   */
+  async getWeeklyCalendar(startDate: string): Promise<AdminBookingCalendarResponse> {
+    console.log('📅 Getting weekly calendar starting from:', startDate);
+    
+    try {
+      const response = await this.makeAPICall(`${this.baseUrl}/admin/bookings/calendar/weekly/${startDate}`);
+      
+      const data = await response.json();
+      console.log('✅ Weekly calendar:', data);
+      return data;
+      
+    } catch (error) {
+      console.error('❌ Failed to get weekly calendar, using mock data:', error);
+      return this.createMockCalendarResponse(startDate, 'weekly');
+    }
+  }
+
+  /**
+   * Get monthly calendar (matches your backend /admin/bookings/calendar/monthly/{year}/{month})
+   */
+  async getMonthlyCalendar(year: number, month: number): Promise<AdminBookingCalendarResponse> {
+    console.log('📅 Getting monthly calendar for:', year, month);
+    
+    try {
+      const response = await this.makeAPICall(`${this.baseUrl}/admin/bookings/calendar/monthly/${year}/${month}`);
+      
+      const data = await response.json();
+      console.log('✅ Monthly calendar:', data);
+      return data;
+      
+    } catch (error) {
+      console.error('❌ Failed to get monthly calendar, using mock data:', error);
+      return this.createMockCalendarResponse(`${year}-${month.toString().padStart(2, '0')}-01`, 'monthly');
+    }
+  }
+
+  /**
+   * Get court timeline (matches your backend /admin/bookings/timeline/{courtId})
+   */
+  async getCourtTimeline(courtId: number, date?: string): Promise<AdminCourtTimelineResponse> {
+    console.log('🏟️ Getting court timeline for court:', courtId, 'date:', date);
+    
+    try {
+      const url = date 
+        ? `${this.baseUrl}/admin/bookings/timeline/${courtId}?date=${date}`
+        : `${this.baseUrl}/admin/bookings/timeline/${courtId}`;
+        
+      const response = await this.makeAPICall(url);
+      
+      const data = await response.json();
+      console.log('✅ Court timeline:', data);
+      return data;
+      
+    } catch (error) {
+      console.error('❌ Failed to get court timeline, using mock data:', error);
+      return this.createMockTimelineResponse(courtId, date || new Date().toISOString().split('T')[0]);
+    }
+  }
+
+  /**
    * Export bookings to CSV
    */
   async exportBookings(filters: AdminBookingFilterRequest): Promise<void> {
@@ -313,6 +512,52 @@ private createMockStats(): BookingFilterSummary {
     ]);
 
     return [headers, ...rows].map(row => row.join(',')).join('\n');
+  }
+
+  private createMockCalendarResponse(date: string, viewType: string): AdminBookingCalendarResponse {
+    return {
+      date,
+      courts: [
+        {
+          court: {
+            id: 1,
+            name: 'Court 1',
+            location: 'Mock Location',
+            type: 'HARD',
+            hourlyFee: 65,
+            hasSeedSystem: true
+          },
+          timeSlots: [],
+          bookings: [],
+          revenue: 520
+        }
+      ],
+      totalBookings: 15,
+      totalRevenue: 1250.50
+    };
+  }
+
+  private createMockTimelineResponse(courtId: number, date: string): AdminCourtTimelineResponse {
+    return {
+      court: {
+        id: courtId,
+        name: `Court ${courtId}`,
+        location: 'Mock Location',
+        type: 'HARD',
+        hourlyFee: 65,
+        hasSeedSystem: true
+      },
+      date,
+      timeSlots: [],
+      bookings: [],
+      statistics: {
+        totalSlots: 16,
+        bookedSlots: 8,
+        availableSlots: 8,
+        revenue: 520,
+        occupancyRate: 50
+      }
+    };
   }
 
   private downloadCSVFile(content: string, filename: string): void {
