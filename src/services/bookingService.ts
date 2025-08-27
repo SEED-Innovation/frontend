@@ -15,9 +15,9 @@ export class BookingService {
   // Use your .env file for the API URL (no /api suffix since controller is /admin/bookings)
   private baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
   
-  // Get the login token from localStorage
+  // Get the login token from localStorage (matches useAdminAuth)
   private getToken(): string {
-    return localStorage.getItem('token') || '';
+    return localStorage.getItem('accessToken') || '';
   }
 
   // Helper method to make API calls with authentication

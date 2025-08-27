@@ -10,7 +10,7 @@ export class UserService {
   private baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
   
   private getToken(): string {
-    return localStorage.getItem('token') || '';
+    return localStorage.getItem('accessToken') || '';
   }
 
   private getHeaders() {
