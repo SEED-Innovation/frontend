@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
-import { courtService, Court, CreateCourtRequest } from '@/lib/api/services/courtService';
+import { courtService, Court, CreateCourtRequest, SetCourtAvailabilityRequest, AdminCourtAvailabilityResponse } from '@/lib/api/services/courtService';
 import { adminService } from '@/services';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -228,19 +228,33 @@ const CourtManagement = () => {
     setDeleteDialogOpen(true);
   };
 
-  const handleSetAvailability = () => {
+  const handleSetAvailability = async () => {
     if (!availabilityData.courtId || !availabilityData.dayOfWeek || !availabilityData.startTime || !availabilityData.endTime) {
       toast.error('Please fill in all availability fields');
       return;
     }
 
-    toast.success('Court availability updated');
-    setAvailabilityData({
-      courtId: '',
-      dayOfWeek: '',
-      startTime: '',
-      endTime: ''
-    });
+    try {
+      const requestData: SetCourtAvailabilityRequest = {
+        courtId: parseInt(availabilityData.courtId),
+        dayOfWeek: availabilityData.dayOfWeek.toUpperCase(),
+        start: availabilityData.startTime,
+        end: availabilityData.endTime
+      };
+
+      await courtService.setAvailability(requestData);
+      
+      toast.success('Court availability updated successfully');
+      setAvailabilityData({
+        courtId: '',
+        dayOfWeek: '',
+        startTime: '',
+        endTime: ''
+      });
+    } catch (error) {
+      console.error('Error setting court availability:', error);
+      toast.error('Failed to update court availability');
+    }
   };
 
   const getStatusColor = (status?: string) => {

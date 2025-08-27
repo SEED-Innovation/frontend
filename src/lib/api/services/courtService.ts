@@ -40,6 +40,22 @@ export interface UpdateCourtRequest {
     amenities?: string[];
 }
 
+export interface SetCourtAvailabilityRequest {
+    courtId: number;
+    dayOfWeek: string;
+    start: string;
+    end: string;
+}
+
+export interface AdminCourtAvailabilityResponse {
+    id: number;
+    courtId: number;
+    dayOfWeek: string;
+    startTime: string;
+    endTime: string;
+    isActive: boolean;
+}
+
 class CourtService {
     private baseUrl = `${import.meta.env.VITE_API_URL}/admin/courts`;
 
@@ -245,6 +261,23 @@ class CourtService {
 
         if (!response.ok) {
             throw new Error(`Failed to update court status: ${response.statusText}`);
+        }
+
+        return response.json();
+    }
+
+    /**
+     * Set court availability
+     */
+    async setAvailability(availabilityData: SetCourtAvailabilityRequest): Promise<AdminCourtAvailabilityResponse> {
+        const response = await fetch(`${this.baseUrl}/availability/set`, {
+            method: 'POST',
+            headers: this.getAuthHeaders(),
+            body: JSON.stringify(availabilityData)
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to set court availability: ${response.statusText}`);
         }
 
         return response.json();
