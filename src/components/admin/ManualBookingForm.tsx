@@ -424,7 +424,7 @@ const loadCourts = async () => {
                     
                     <div className="border-t pt-2 flex items-center justify-between font-medium">
                         <span>Estimated Total:</span>
-                        <span className="text-lg">${estimatedPrice.toFixed(2)}</span>
+                        <span className="text-lg">${estimatedPrice ? estimatedPrice.toFixed(2) : '0.00'}</span>
                     </div>
                 </div>
             </div>

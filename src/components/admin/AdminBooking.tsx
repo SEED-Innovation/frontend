@@ -1377,7 +1377,7 @@ const renderManageView = () => (
                                                                 {formatPrice(totalAmount)}
                                                             </p>
                                                             <p className="text-xs text-gray-500">
-                                                                {duration.toFixed(1)}h × {formatPrice(booking.court.hourlyFee)}/h
+                                                                {duration ? duration.toFixed(1) : '0.0'}h × {formatPrice(booking.court.hourlyFee || 0)}/h
                                                             </p>
                                                         </div>
                                                         {booking.payment && (
