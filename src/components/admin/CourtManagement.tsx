@@ -47,6 +47,8 @@ const CourtManagement = () => {
     startTime: '',
     endTime: ''
   });
+  const [courtSearchOpen, setCourtSearchOpen] = useState(false);
+  const [courtSearchValue, setCourtSearchValue] = useState("");
 
   // Fetch courts on component mount
   useEffect(() => {
@@ -610,18 +612,58 @@ const CourtManagement = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="court">Select Court</Label>
-                  <Select onValueChange={(value) => setAvailabilityData({...availabilityData, courtId: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select court" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {courts.map((court) => (
-                        <SelectItem key={court.id} value={court.id}>
-                          {court.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Popover open={courtSearchOpen} onOpenChange={setCourtSearchOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={courtSearchOpen}
+                        className="w-full justify-between"
+                      >
+                        {availabilityData.courtId
+                          ? courts.find((court) => court.id === availabilityData.courtId)?.name
+                          : "Select court..."}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0">
+                      <Command>
+                        <CommandInput
+                          placeholder="Search courts..."
+                          value={courtSearchValue}
+                          onValueChange={setCourtSearchValue}
+                        />
+                        <CommandList>
+                          <CommandEmpty>No court found.</CommandEmpty>
+                          <CommandGroup>
+                            {courts
+                              .filter((court) =>
+                                court.name.toLowerCase().includes(courtSearchValue.toLowerCase())
+                              )
+                              .map((court) => (
+                                <CommandItem
+                                  key={court.id}
+                                  value={court.name}
+                                  onSelect={() => {
+                                    setAvailabilityData({...availabilityData, courtId: court.id})
+                                    setCourtSearchOpen(false)
+                                    setCourtSearchValue("")
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      availabilityData.courtId === court.id ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  {court.name}
+                                </CommandItem>
+                              ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div>
                   <Label htmlFor="dayOfWeek">Day of Week</Label>
