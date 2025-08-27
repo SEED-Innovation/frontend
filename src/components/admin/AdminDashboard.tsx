@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
@@ -12,26 +12,86 @@ import {
   MapPin
 } from 'lucide-react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { bookingService } from '@/services/bookingService';
+import { userService } from '@/services/userService';
 
 const AdminDashboard = () => {
   const { user, hasPermission } = useAdminAuth();
-
-  // Mock dashboard data
-  const dashboardStats = {
-    totalRevenue: 24580,
-    todayBookings: 18,
+  
+  // State for real data
+  const [recentBookings, setRecentBookings] = useState([]);
+  const [dashboardStats, setDashboardStats] = useState({
+    totalRevenue: 0,
+    todayBookings: 0,
     activeCourts: 12,
-    totalUsers: 1247,
-    pendingPayments: 5,
+    totalUsers: 0,
+    pendingPayments: 0,
+    pendingBookings: 0,
     monthlyGrowth: 12.5
-  };
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
-  const recentBookings = [
-    { id: '1', court: 'Court A', player: 'John Smith', time: '14:00', status: 'confirmed' },
-    { id: '2', court: 'Court B', player: 'Sarah Wilson', time: '15:30', status: 'pending' },
-    { id: '3', court: 'Court C', player: 'Mike Johnson', time: '16:00', status: 'confirmed' },
-    { id: '4', court: 'Court A', player: 'Emma Davis', time: '17:30', status: 'pending' },
-  ];
+  // Load real data on component mount
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        console.log('🔄 Loading real dashboard data...');
+        
+        // Load recent bookings (last 5)
+        const bookingsResponse = await bookingService.getAdminBookings({
+          page: 0,
+          size: 5,
+          sortBy: 'startTime',
+          sortDirection: 'DESC'
+        });
+        
+        // Load stats
+        const statsResponse = await bookingService.getBookingStats();
+        
+        // Load users count
+        const usersResponse = await userService.getAllUsers();
+        
+        // Format recent bookings for display
+        const bookings = Array.isArray(bookingsResponse) ? bookingsResponse : (bookingsResponse?.content || []);
+        const formattedBookings = bookings.slice(0, 5).map(booking => ({
+          id: booking.id,
+          court: booking.court?.name || 'Unknown Court',
+          player: booking.user?.fullName || booking.user?.name || 'Unknown User',
+          time: new Date(booking.startTime).toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          }),
+          status: booking.status?.toLowerCase() || 'unknown'
+        }));
+        
+        // Update state with real data
+        setRecentBookings(formattedBookings);
+        setDashboardStats({
+          totalRevenue: statsResponse.totalRevenue || 0,
+          todayBookings: bookings.length || 0,
+          activeCourts: 12, // Keep static for now
+          totalUsers: usersResponse?.length || 0,
+          pendingPayments: statsResponse.pendingBookings || 0,
+          pendingBookings: statsResponse.pendingBookings || 0,
+          monthlyGrowth: 12.5 // Keep static for now
+        });
+        
+        console.log('✅ Dashboard data loaded:', {
+          bookings: formattedBookings,
+          stats: statsResponse,
+          users: usersResponse?.length
+        });
+        
+      } catch (error) {
+        console.error('❌ Failed to load dashboard data:', error);
+        // Keep default/mock data on error
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadDashboardData();
+  }, []);
 
   const courtStatus = [
     { name: 'Court A', status: 'active', bookings: 8, revenue: 2400 },
@@ -97,7 +157,7 @@ const AdminDashboard = () => {
           color="bg-green-500"
         />
         <StatCard
-          title="Today's Bookings"
+          title="Recent Bookings"
           value={dashboardStats.todayBookings}
           change={8.2}
           icon={Calendar}
@@ -110,7 +170,7 @@ const AdminDashboard = () => {
           color="bg-purple-500"
         />
         <StatCard
-          title="Total Players"
+          title="Total Users"
           value={dashboardStats.totalUsers.toLocaleString()}
           change={3.4}
           icon={Users}
@@ -130,12 +190,24 @@ const AdminDashboard = () => {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Clock className="w-5 h-5 mr-2" />
-                Recent Bookings
+                Recent Activity - Live Data
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {recentBookings.map((booking, index) => (
+              {isLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <span className="ml-2 text-muted-foreground">Loading recent bookings...</span>
+                </div>
+              ) : recentBookings.length === 0 ? (
+                <div className="text-center py-8">
+                  <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-muted-foreground mb-2">No Recent Activity</h3>
+                  <p className="text-sm text-muted-foreground">No bookings found in the database yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {recentBookings.map((booking, index) => (
                   <motion.div
                     key={booking.id}
                     initial={{ opacity: 0, x: -10 }}
@@ -161,9 +233,10 @@ const AdminDashboard = () => {
                     }`}>
                       {booking.status}
                     </span>
-                  </motion.div>
-                ))}
-              </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>
