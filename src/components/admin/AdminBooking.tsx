@@ -333,12 +333,22 @@ useEffect(() => {
         try {
             console.log('📋 Loading REAL bookings with filters:', filters);
             
-            const response: PaginatedBookingResponse = await bookingService.getAdminBookings(filters);
+            const response: any = await bookingService.getAdminBookings(filters);
             
             console.log('✅ REAL Bookings loaded:', response);
+            console.log('🔍 Response structure check:', {
+                hasBookings: !!response.bookings,
+                hasContent: !!response.content,
+                bookingsLength: response.bookings?.length,
+                contentLength: response.content?.length
+            });
             
-            setBookings(response.content || []);
-            setCurrentPage(response.page || 0);
+            // Handle both possible response structures
+            const bookingsArray = response.bookings || response.content || [];
+            console.log('📋 Final bookings array:', bookingsArray, 'Length:', bookingsArray.length);
+            
+            setBookings(bookingsArray);
+            setCurrentPage(response.currentPage || response.page || 0);
             setTotalPages(response.totalPages || 0);
             setTotalElements(response.totalElements || 0);
             setCurrentFilters(filters);
