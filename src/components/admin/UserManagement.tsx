@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Plus, UserPlus, Download, Eye, Ban, Crown, Users, UserX, Mail, Phone, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,8 @@ const UserManagement = () => {
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [showEditUser, setShowEditUser] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [adminNames, setAdminNames] = useState<string[]>([]);
+  const [isLoadingAdmins, setIsLoadingAdmins] = useState(false);
   const [newUser, setNewUser] = useState({
     fullName: '',
     email: '',
@@ -98,6 +100,27 @@ const UserManagement = () => {
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Fetch admin names when component mounts
+  useEffect(() => {
+    fetchAdminNames();
+  }, []);
+
+  const fetchAdminNames = async () => {
+    setIsLoadingAdmins(true);
+    try {
+      const names = await userService.getAllAdminNames();
+      setAdminNames(names);
+      console.log('✅ Admin names loaded:', names);
+    } catch (error) {
+      console.error('❌ Failed to fetch admin names:', error);
+      toast.error('Failed to load admin names. You may not have permission to view this data.');
+      // Fallback to mock data for demonstration
+      setAdminNames(['Admin User 1', 'Admin User 2', 'Manager John']);
+    } finally {
+      setIsLoadingAdmins(false);
+    }
+  };
 
   const handleCreateUser = async () => {
     if (!newUser.fullName || !newUser.email || !newUser.phone) {
@@ -469,13 +492,43 @@ const UserManagement = () => {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Crown className="w-5 h-5 mr-2" />
-                Premium Users
+                Admin Managers ({adminNames.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">
-                Premium users with active subscriptions will appear here.
-              </p>
+              {isLoadingAdmins ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="text-gray-600">Loading admin names...</div>
+                </div>
+              ) : adminNames.length > 0 ? (
+                <div className="space-y-3">
+                  {adminNames.map((adminName, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                          {adminName.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-gray-900">{adminName}</h4>
+                          <p className="text-sm text-gray-600">Admin User</p>
+                        </div>
+                      </div>
+                      <Badge className="bg-orange-100 text-orange-800 flex items-center space-x-1">
+                        <Crown className="w-3 h-3" />
+                        <span>Admin</span>
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Crown className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-600">No admin users found.</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    You may not have permission to view admin data.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

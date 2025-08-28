@@ -216,6 +216,32 @@ export class UserService {
     }
   }
 
+  /**
+   * GET /admin/users/admins/list - Get all admin names (SUPER_ADMIN only)
+   */
+  async getAllAdminNames(): Promise<string[]> {
+    console.log('👥 UserService.getAllAdminNames called');
+    
+    try {
+      const response = await fetch(`${this.baseUrl}/admin/users/admins/list`, {
+        method: 'GET',
+        headers: this.getHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to get admin names: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ Admin names from DB:', data);
+      return data;
+      
+    } catch (error) {
+      console.error('❌ Failed to get admin names:', error);
+      throw error;
+    }
+  }
+
   // ================================
   // 🎯 UTILITY METHODS
   // ================================
