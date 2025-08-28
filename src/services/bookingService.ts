@@ -62,10 +62,10 @@ export class BookingService {
       return data;
       
     } catch (error) {
-      console.error('❌ Backend not available, using mock data:', error);
+      console.error('❌ Backend not available:', error);
       
-      // Return fake data when backend is not running
-      return this.createMockBookingData(filters);
+      // Don't return mock data, let the component handle the error
+      throw new Error(`Failed to fetch bookings: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

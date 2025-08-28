@@ -347,10 +347,13 @@ useEffect(() => {
             const bookingsArray = response.bookings || response.content || [];
             console.log('📋 Final bookings array:', bookingsArray, 'Length:', bookingsArray.length);
             
-            // Sort bookings by startTime in descending order (newest first)
-            const sortedBookings = bookingsArray.sort((a: any, b: any) => 
-                new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
-            );
+            // Sort bookings by startTime - nearest to current date first
+            const now = new Date().getTime();
+            const sortedBookings = bookingsArray.sort((a: any, b: any) => {
+                const diffA = Math.abs(new Date(a.startTime).getTime() - now);
+                const diffB = Math.abs(new Date(b.startTime).getTime() - now);
+                return diffA - diffB;
+            });
             
             setBookings(sortedBookings);
             setCurrentPage(response.currentPage || response.page || 0);
@@ -1259,9 +1262,9 @@ const renderManageView = () => (
                         <ClipboardList className="w-6 h-6 text-blue-600" />
                         <div>
                             <CardTitle className="text-xl">Booking Management</CardTitle>
-                            <p className="text-sm text-gray-500 mt-1">
+                            <div className="text-sm text-gray-500 mt-1">
                                 Showing {Math.min((currentPage * pageSize) + 1, totalElements)} to {Math.min((currentPage + 1) * pageSize, totalElements)} of {totalElements} bookings
-                            </p>
+                            </div>
                         </div>
                     </div>
                     <div className="flex items-center space-x-3">
