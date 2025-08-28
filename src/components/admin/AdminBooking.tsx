@@ -333,12 +333,27 @@ useEffect(() => {
         try {
             console.log('📋 Loading REAL bookings with filters:', filters);
             
-            const response: PaginatedBookingResponse = await bookingService.getAdminBookings(filters);
+            const response: any = await bookingService.getAdminBookings(filters);
             
             console.log('✅ REAL Bookings loaded:', response);
+            console.log('🔍 Response structure check:', {
+                hasBookings: !!response.bookings,
+                hasContent: !!response.content,
+                bookingsLength: response.bookings?.length,
+                contentLength: response.content?.length
+            });
             
-            setBookings(response.content || []);
-            setCurrentPage(response.page || 0);
+            // Handle both possible response structures
+            const bookingsArray = response.bookings || response.content || [];
+            console.log('📋 Final bookings array:', bookingsArray, 'Length:', bookingsArray.length);
+            
+            // Sort bookings by startTime in descending order (newest first)
+            const sortedBookings = bookingsArray.sort((a: any, b: any) => 
+                new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+            );
+            
+            setBookings(sortedBookings);
+            setCurrentPage(response.currentPage || response.page || 0);
             setTotalPages(response.totalPages || 0);
             setTotalElements(response.totalElements || 0);
             setCurrentFilters(filters);
@@ -366,11 +381,12 @@ useEffect(() => {
             
             console.log('✅ REAL Stats loaded:', statsData);
             
+            // Handle both old and new stat formats from backend
             setStats({
-                total: statsData.total || 0,
-                pending: statsData.pending || 0,
-                approved: statsData.approved || 0,
-                cancelled: statsData.cancelled || 0,
+                total: statsData.total || statsData.totalBookings || 0,
+                pending: statsData.pending || statsData.pendingBookings || 0,
+                approved: statsData.approved || statsData.confirmedBookings || 0,
+                cancelled: statsData.cancelled || statsData.cancelledBookings || 0,
                 rejected: statsData.rejected || 0,
                 totalRevenue: statsData.totalRevenue || 0,
                 todayBookings: statsData.todayBookings || 0
@@ -420,7 +436,28 @@ useEffect(() => {
     
     const handleFilterChange = (filters: AdminBookingFilterRequest) => {
         console.log('🔍 Filters changed:', filters);
+        setCurrentFilters(filters);
         loadBookings(filters);
+    };
+
+    // Handle search term change with API call
+    const handleSearchChange = async (searchTerm: string) => {
+        setSearchTerm(searchTerm);
+        
+        if (searchTerm.trim()) {
+            // Use real backend search
+            try {
+                const searchResults = await bookingService.searchBookings(searchTerm, 0, pageSize);
+                setBookings(searchResults);
+                console.log('🔍 Search results:', searchResults);
+            } catch (error) {
+                console.error('❌ Search failed:', error);
+                setError('Search failed');
+            }
+        } else {
+            // If search is cleared, reload regular bookings
+            loadBookings(currentFilters);
+        }
     };
 
     const handleApproveBooking = async (bookingId: number, reason?: string) => {
@@ -464,6 +501,31 @@ useEffect(() => {
         refreshBookings();
         
         setTimeout(() => setSuccess(''), 3000);
+    };
+
+    // Handle bulk actions
+    const handleBulkAction = async (action: 'APPROVE' | 'REJECT' | 'CANCEL', reason?: string) => {
+        if (selectedBookings.size === 0) {
+            setError('Please select bookings to perform bulk action');
+            return;
+        }
+
+        try {
+            const bookingIds = Array.from(selectedBookings);
+            console.log(`📦 Performing bulk ${action} on bookings:`, bookingIds);
+            
+            await bookingService.bulkBookingAction(bookingIds, action, reason);
+            
+            setSuccess(`Bulk ${action.toLowerCase()} completed successfully!`);
+            setSelectedBookings(new Set()); // Clear selection
+            refreshBookings();
+            
+            setTimeout(() => setSuccess(''), 3000);
+            
+        } catch (error) {
+            console.error(`❌ Bulk ${action} failed:`, error);
+            setError(`Failed to perform bulk ${action.toLowerCase()}`);
+        }
     };
 
     // ================================
@@ -1080,7 +1142,7 @@ const renderManageView = () => (
                                 placeholder="Search by user, court, or booking ID..."
                                 className="pl-10 h-10"
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={(e) => handleSearchChange(e.target.value)}
                             />
                         </div>
                     </div>
@@ -1315,7 +1377,7 @@ const renderManageView = () => (
                                                                 {formatPrice(totalAmount)}
                                                             </p>
                                                             <p className="text-xs text-gray-500">
-                                                                {duration.toFixed(1)}h × {formatPrice(booking.court.hourlyFee)}/h
+                                                                {duration ? duration.toFixed(1) : '0.0'}h × {formatPrice(booking.court.hourlyFee || 0)}/h
                                                             </p>
                                                         </div>
                                                         {booking.payment && (
