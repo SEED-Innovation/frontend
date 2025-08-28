@@ -415,6 +415,8 @@ const CourtManagement = () => {
                       <SelectItem value="HARD">Hard Court</SelectItem>
                       <SelectItem value="CLAY">Clay Court</SelectItem>
                       <SelectItem value="GRASS">Grass Court</SelectItem>
+                      <SelectItem value="INDOOR">Indoor Court</SelectItem>
+                      <SelectItem value="OUTDOOR">Outdoor Court</SelectItem>
                     </SelectContent>
                   </Select>
               </div>
