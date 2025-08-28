@@ -50,10 +50,18 @@ interface BookingFormData {
     userId: number | null;
     courtId: number | null;
     date: Date | null;
-    startTime: string;
-    endTime: string;
+    duration: number | null; // 60, 90, or 120 minutes
+    selectedSlot: TimeSlot | null;
     matchType: 'SINGLE' | 'DOUBLE' | '';
     notes: string;
+}
+
+interface TimeSlot {
+    startTime: string;
+    endTime: string;
+    formattedTimeRange: string;
+    price: number;
+    available: boolean;
 }
 
 const ManualBookingForm: React.FC<ManualBookingFormProps> = ({
@@ -74,11 +82,14 @@ const ManualBookingForm: React.FC<ManualBookingFormProps> = ({
         userId: null,
         courtId: null,
         date: null,
-        startTime: '',
-        endTime: '',
+        duration: null,
+        selectedSlot: null,
         matchType: '',
         notes: ''
     });
+    
+    const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
+    const [slotsLoading, setSlotsLoading] = useState(false);
     
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [success, setSuccess] = useState('');
@@ -181,7 +192,54 @@ const loadCourts = async () => {
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: '' }));
         }
+        
+        // Reset slots when court, date, or duration changes
+        if (field === 'courtId' || field === 'date' || field === 'duration') {
+            setFormData(prev => ({ ...prev, selectedSlot: null }));
+            setAvailableSlots([]);
+        }
     };
+    
+    // Load available slots when court, date, and duration are selected
+    const loadAvailableSlots = async () => {
+        if (!formData.courtId || !formData.date || !formData.duration) {
+            setAvailableSlots([]);
+            return;
+        }
+        
+        setSlotsLoading(true);
+        try {
+            const response = await fetch('/api/courts/availability', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    courtId: formData.courtId,
+                    date: format(formData.date, 'yyyy-MM-dd'),
+                    durationMinutes: formData.duration
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to load available slots');
+            }
+            
+            const data = await response.json();
+            setAvailableSlots(data.availableSlots || []);
+        } catch (error) {
+            console.error('Failed to load slots:', error);
+            setErrors({ slots: 'Failed to load available time slots' });
+            setAvailableSlots([]);
+        } finally {
+            setSlotsLoading(false);
+        }
+    };
+    
+    // Load slots when dependencies change
+    useEffect(() => {
+        loadAvailableSlots();
+    }, [formData.courtId, formData.date, formData.duration]);
 
     const handleUserSelect = (user: UserResponse) => {
         setSelectedUser(user);
@@ -207,14 +265,12 @@ const loadCourts = async () => {
             newErrors.date = 'Please select a date';
         }
 
-        if (!formData.startTime) {
-            newErrors.startTime = 'Please select start time';
+        if (!formData.duration) {
+            newErrors.duration = 'Please select duration';
         }
 
-        if (!formData.endTime) {
-            newErrors.endTime = 'Please select end time';
-        } else if (formData.startTime && formData.endTime <= formData.startTime) {
-            newErrors.endTime = 'End time must be after start time';
+        if (!formData.selectedSlot) {
+            newErrors.selectedSlot = 'Please select a time slot';
         }
 
         if (!formData.matchType) {
@@ -246,20 +302,11 @@ const loadCourts = async () => {
         setSuccess('');
 
         try {
-            // Combine date and time
-            const startDateTime = new Date(formData.date!);
-            const [startHour, startMinute] = formData.startTime.split(':').map(Number);
-            startDateTime.setHours(startHour, startMinute, 0, 0);
-
-            const endDateTime = new Date(formData.date!);
-            const [endHour, endMinute] = formData.endTime.split(':').map(Number);
-            endDateTime.setHours(endHour, endMinute, 0, 0);
-
             const bookingRequest: CreateBookingRequest = {
                 userId: formData.userId!,
                 courtId: formData.courtId!,
-                startTime: startDateTime.toISOString(),
-                endTime: endDateTime.toISOString(),
+                startTime: formData.selectedSlot!.startTime,
+                endTime: formData.selectedSlot!.endTime,
                 matchType: formData.matchType as 'SINGLE' | 'DOUBLE',
                 notes: formData.notes || undefined
             };
@@ -297,12 +344,13 @@ const loadCourts = async () => {
             userId: null,
             courtId: null,
             date: null,
-            startTime: '',
-            endTime: '',
+            duration: null,
+            selectedSlot: null,
             matchType: '',
             notes: ''
         });
         setSelectedUser(null);
+        setAvailableSlots([]);
         setErrors({});
         setSuccess('');
     };
@@ -316,41 +364,15 @@ const loadCourts = async () => {
     // 🔧 HELPER FUNCTIONS
     // ================================
     
-    const generateTimeOptions = () => {
-        const times = [];
-        for (let hour = 6; hour <= 22; hour++) {
-            for (let minute = 0; minute < 60; minute += 30) {
-                const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-                times.push(timeString);
-            }
-        }
-        return times;
-    };
-
     const getSelectedCourt = () => {
         return courts.find(court => court.id === formData.courtId);
     };
 
-    const calculateBookingDuration = () => {
-        if (!formData.startTime || !formData.endTime) return 0;
-        
-        const [startHour, startMinute] = formData.startTime.split(':').map(Number);
-        const [endHour, endMinute] = formData.endTime.split(':').map(Number);
-        
-        const startMinutes = startHour * 60 + startMinute;
-        const endMinutes = endHour * 60 + endMinute;
-        
-        return (endMinutes - startMinutes) / 60;
-    };
-
-    const calculateEstimatedPrice = () => {
-        const court = getSelectedCourt();
-        const duration = calculateBookingDuration();
-        
-        if (!court || !duration) return 0;
-        
-        return court.hourlyFee * duration;
-    };
+    const getDurationOptions = () => [
+        { value: 60, label: '1 hour (60 min)' },
+        { value: 90, label: '1.5 hours (90 min)' },
+        { value: 120, label: '2 hours (120 min)' }
+    ];
 
     // ================================
     // 🎨 RENDER METHODS
@@ -375,10 +397,8 @@ const loadCourts = async () => {
 
     const renderBookingSummary = () => {
         const court = getSelectedCourt();
-        const duration = calculateBookingDuration();
-        const estimatedPrice = calculateEstimatedPrice();
 
-        if (!selectedUser || !court || !duration) return null;
+        if (!selectedUser || !court || !formData.selectedSlot) return null;
 
         return (
             <div className="bg-gray-50 p-4 rounded-lg space-y-3">
@@ -405,16 +425,13 @@ const loadCourts = async () => {
                     <div className="flex items-center justify-between">
                         <span className="text-gray-600">Time:</span>
                         <span className="font-medium">
-                            {formData.startTime && formData.endTime 
-                                ? `${formData.startTime} - ${formData.endTime}`
-                                : '-'
-                            }
+                            {formData.selectedSlot.formattedTimeRange}
                         </span>
                     </div>
                     
                     <div className="flex items-center justify-between">
                         <span className="text-gray-600">Duration:</span>
-                        <span className="font-medium">{duration} hours</span>
+                        <span className="font-medium">{formData.duration} minutes</span>
                     </div>
                     
                     <div className="flex items-center justify-between">
@@ -423,8 +440,8 @@ const loadCourts = async () => {
                     </div>
                     
                     <div className="border-t pt-2 flex items-center justify-between font-medium">
-                        <span>Estimated Total:</span>
-                        <span className="text-lg">${estimatedPrice ? estimatedPrice.toFixed(2) : '0.00'}</span>
+                        <span>Total Price:</span>
+                        <span className="text-lg">${formData.selectedSlot.price?.toFixed(2) || '0.00'}</span>
                     </div>
                 </div>
             </div>
@@ -602,6 +619,32 @@ const loadCourts = async () => {
                             )}
                         </div>
 
+                        {/* Duration Selection */}
+                        <div>
+                            {renderFormField(
+                                'Duration',
+                                'duration',
+                                <Select
+                                    value={formData.duration?.toString() || ''}
+                                    onValueChange={(value) => handleInputChange('duration', parseInt(value))}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select duration" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {getDurationOptions().map((option) => (
+                                            <SelectItem key={option.value} value={option.value.toString()}>
+                                                <div className="flex items-center space-x-2">
+                                                    <Clock className="w-4 h-4" />
+                                                    <span>{option.label}</span>
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        </div>
+
                         {/* Match Type */}
                         <div>
                             {renderFormField(
@@ -632,59 +675,44 @@ const loadCourts = async () => {
                             )}
                         </div>
 
-                        {/* Start Time */}
-                        <div>
-                            {renderFormField(
-                                'Start Time',
-                                'startTime',
-                                <Select
-                                    value={formData.startTime}
-                                    onValueChange={(value) => handleInputChange('startTime', value)}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select start time" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {generateTimeOptions().map((time) => (
-                                            <SelectItem key={time} value={time}>
-                                                <div className="flex items-center space-x-2">
-                                                    <Clock className="w-4 h-4" />
-                                                    <span>{time}</span>
-                                                </div>
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            )}
-                        </div>
-
-                        {/* End Time */}
-                        <div>
-                            {renderFormField(
-                                'End Time',
-                                'endTime',
-                                <Select
-                                    value={formData.endTime}
-                                    onValueChange={(value) => handleInputChange('endTime', value)}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select end time" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {generateTimeOptions()
-                                            .filter(time => !formData.startTime || time > formData.startTime)
-                                            .map((time) => (
-                                            <SelectItem key={time} value={time}>
-                                                <div className="flex items-center space-x-2">
-                                                    <Clock className="w-4 h-4" />
-                                                    <span>{time}</span>
-                                                </div>
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            )}
-                        </div>
+                        {/* Available Time Slots */}
+                        {formData.courtId && formData.date && formData.duration && (
+                            <div className="md:col-span-2">
+                                {renderFormField(
+                                    'Available Time Slots',
+                                    'selectedSlot',
+                                    <div className="space-y-2">
+                                        {slotsLoading ? (
+                                            <div className="flex items-center justify-center p-4">
+                                                <Loader2 className="w-6 h-6 animate-spin" />
+                                                <span className="ml-2">Loading available slots...</span>
+                                            </div>
+                                        ) : availableSlots.length === 0 ? (
+                                            <div className="p-4 text-center text-gray-500 bg-gray-50 rounded-lg">
+                                                No available slots for selected date and duration
+                                            </div>
+                                        ) : (
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                                                {availableSlots.map((slot, index) => (
+                                                    <Button
+                                                        key={index}
+                                                        type="button"
+                                                        variant={formData.selectedSlot === slot ? "default" : "outline"}
+                                                        className="p-3 h-auto justify-start"
+                                                        onClick={() => handleInputChange('selectedSlot', slot)}
+                                                    >
+                                                        <div className="text-left">
+                                                            <div className="font-medium">{slot.formattedTimeRange}</div>
+                                                            <div className="text-sm text-gray-500">${slot.price?.toFixed(2)}</div>
+                                                        </div>
+                                                    </Button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         {/* Notes */}
                         <div className="md:col-span-2">
