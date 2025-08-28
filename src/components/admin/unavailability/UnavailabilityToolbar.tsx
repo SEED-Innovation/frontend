@@ -2,23 +2,15 @@ import React from 'react';
 import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SearchInput } from '../common/SearchInput';
-import { DayFilter } from '../common/DayFilter';
-import { TimeRangeInputs } from '../common/TimeRangeInputs';
 import { ExportCsvButton } from '../common/ExportCsvButton';
-import { DOW, UnavailabilityRow } from '@/lib/api/admin/types';
+import { UnavailabilityRow } from '@/lib/api/admin/types';
 import { toast } from 'sonner';
 
 interface UnavailabilityToolbarProps {
   searchTerm: string;
   onSearchChange: (term: string) => void;
-  dayFilter: DOW | 'ALL';
-  onDayFilterChange: (day: DOW | 'ALL') => void;
-  startTimeFilter: string;
-  endTimeFilter: string;
-  onStartTimeFilterChange: (time: string) => void;
-  onEndTimeFilterChange: (time: string) => void;
   selectedIds: number[];
-  onBulkDelete: (ids: number[]) => void;
+  onBulkDelete: (ids: number[]) => Promise<void>;
   filteredData: UnavailabilityRow[];
   className?: string;
 }
@@ -26,18 +18,12 @@ interface UnavailabilityToolbarProps {
 export const UnavailabilityToolbar: React.FC<UnavailabilityToolbarProps> = ({
   searchTerm,
   onSearchChange,
-  dayFilter,
-  onDayFilterChange,
-  startTimeFilter,
-  endTimeFilter,
-  onStartTimeFilterChange,
-  onEndTimeFilterChange,
   selectedIds,
   onBulkDelete,
   filteredData,
   className = ""
 }) => {
-  const handleBulkDelete = () => {
+  const handleBulkDelete = async () => {
     if (selectedIds.length === 0) {
       toast.error('No rows selected');
       return;
@@ -49,16 +35,12 @@ export const UnavailabilityToolbar: React.FC<UnavailabilityToolbarProps> = ({
      * Token: Authorization: Bearer <JWT>
      * Replace mock call with real service when backend is ready.
      */
-    onBulkDelete(selectedIds);
-    toast.success(`TODO: Delete ${selectedIds.length} unavailability records - wire backend`);
+    await onBulkDelete(selectedIds);
   };
 
   const csvColumns = [
     { key: 'courtName', label: 'Court Name' },
-    { key: 'dayOfWeek', label: 'Day of Week' },
-    { key: 'start', label: 'Start Time' },
-    { key: 'end', label: 'End Time' },
-    { key: 'reason', label: 'Reason' },
+    { key: 'date', label: 'Date' },
   ];
 
   return (
@@ -69,18 +51,6 @@ export const UnavailabilityToolbar: React.FC<UnavailabilityToolbarProps> = ({
           placeholder="Search court..."
           onSearch={onSearchChange}
           className="w-64"
-        />
-        
-        <DayFilter
-          value={dayFilter}
-          onValueChange={onDayFilterChange}
-        />
-        
-        <TimeRangeInputs
-          startTime={startTimeFilter}
-          endTime={endTimeFilter}
-          onStartTimeChange={onStartTimeFilterChange}
-          onEndTimeChange={onEndTimeFilterChange}
         />
       </div>
 

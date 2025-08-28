@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Edit, Trash2, AlertTriangle, ChevronUp, ChevronDown, Wrench } from 'lucide-react';
+import { Edit, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,11 +7,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { UnavailabilityToolbar } from './UnavailabilityToolbar';
-import { UnavailabilityRow, DOW, UnavailabilityFilters } from '@/lib/api/admin/types';
+import { UnavailabilityRow, UnavailabilityFilters } from '@/lib/api/admin/types';
 import { getUnavailabilitiesMock, deleteUnavailabilityMock, bulkDeleteUnavailabilityMock } from '@/lib/api/admin/unavailability';
 import { toast } from 'sonner';
 
-type SortField = 'courtName' | 'dayOfWeek' | 'start' | 'end' | 'reason';
+type SortField = 'courtName' | 'date';
 type SortDirection = 'asc' | 'desc';
 
 export const UnavailabilityTable: React.FC = () => {
@@ -23,9 +23,6 @@ export const UnavailabilityTable: React.FC = () => {
   
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
-  const [dayFilter, setDayFilter] = useState<DOW | 'ALL'>('ALL');
-  const [startTimeFilter, setStartTimeFilter] = useState('');
-  const [endTimeFilter, setEndTimeFilter] = useState('');
 
   // Load data
   useEffect(() => {
@@ -60,19 +57,6 @@ export const UnavailabilityTable: React.FC = () => {
         return false;
       }
       
-      // Day filter
-      if (dayFilter !== 'ALL' && item.dayOfWeek !== dayFilter) {
-        return false;
-      }
-      
-      // Time filters
-      if (startTimeFilter && item.start < startTimeFilter + ':00') {
-        return false;
-      }
-      if (endTimeFilter && item.end > endTimeFilter + ':59') {
-        return false;
-      }
-      
       return true;
     });
 
@@ -81,32 +65,23 @@ export const UnavailabilityTable: React.FC = () => {
       let aValue = a[sortField];
       let bValue = b[sortField];
       
-      if (sortField === 'dayOfWeek') {
-        const dayOrder = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
-        aValue = dayOrder.indexOf(a.dayOfWeek) as any;
-        bValue = dayOrder.indexOf(b.dayOfWeek) as any;
-      }
-      
       if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
       if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
       return 0;
     });
 
     return filtered;
-  }, [data, searchTerm, dayFilter, startTimeFilter, endTimeFilter, sortField, sortDirection]);
+  }, [data, searchTerm, sortField, sortDirection]);
 
-  // Check for overlapping time slots (same court + day)
-  const getOverlapWarning = (item: UnavailabilityRow) => {
-    const overlaps = data.filter(other => 
+  // Check for date conflicts (same court + date)
+  const getDateConflict = (item: UnavailabilityRow) => {
+    const conflicts = data.filter(other => 
       other.id !== item.id &&
       other.courtId === item.courtId &&
-      other.dayOfWeek === item.dayOfWeek &&
-      ((item.start >= other.start && item.start < other.end) ||
-       (item.end > other.start && item.end <= other.end) ||
-       (item.start <= other.start && item.end >= other.end))
+      other.date === item.date
     );
     
-    return overlaps.length > 0 ? overlaps : null;
+    return conflicts.length > 0 ? conflicts : null;
   };
 
   const handleSort = (field: SortField) => {
@@ -172,14 +147,6 @@ export const UnavailabilityTable: React.FC = () => {
     }
   };
 
-  const formatTime = (time: string) => {
-    return time.substring(0, 5); // "10:00:00" -> "10:00"
-  };
-
-  const formatDayOfWeek = (day: DOW) => {
-    return day.charAt(0) + day.slice(1).toLowerCase();
-  };
-
   const highlightSearchTerm = (text: string, term: string) => {
     if (!term) return text;
     
@@ -193,10 +160,6 @@ export const UnavailabilityTable: React.FC = () => {
         </mark>
       ) : part
     );
-  };
-
-  const isMaintenanceReason = (reason?: string) => {
-    return reason?.toLowerCase().includes('maintenance');
   };
 
   const SortableHeader = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
@@ -221,12 +184,6 @@ export const UnavailabilityTable: React.FC = () => {
         <UnavailabilityToolbar
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
-          dayFilter={dayFilter}
-          onDayFilterChange={setDayFilter}
-          startTimeFilter={startTimeFilter}
-          endTimeFilter={endTimeFilter}
-          onStartTimeFilterChange={setStartTimeFilter}
-          onEndTimeFilterChange={setEndTimeFilter}
           selectedIds={selectedIds}
           onBulkDelete={handleBulkDelete}
           filteredData={filteredAndSortedData}
@@ -246,12 +203,6 @@ export const UnavailabilityTable: React.FC = () => {
         <UnavailabilityToolbar
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
-          dayFilter={dayFilter}
-          onDayFilterChange={setDayFilter}
-          startTimeFilter={startTimeFilter}
-          endTimeFilter={endTimeFilter}
-          onStartTimeFilterChange={setStartTimeFilter}
-          onEndTimeFilterChange={setEndTimeFilter}
           selectedIds={selectedIds}
           onBulkDelete={handleBulkDelete}
           filteredData={filteredAndSortedData}
@@ -269,23 +220,19 @@ export const UnavailabilityTable: React.FC = () => {
                   />
                 </TableHead>
                 <SortableHeader field="courtName">Court</SortableHeader>
-                <SortableHeader field="dayOfWeek">Day of Week</SortableHeader>
-                <SortableHeader field="start">Start Time</SortableHeader>
-                <SortableHeader field="end">End Time</SortableHeader>
-                <SortableHeader field="reason">Reason</SortableHeader>
+                <SortableHeader field="date">Date</SortableHeader>
                 <TableHead className="w-20">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredAndSortedData.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                     No unavailability records found
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredAndSortedData.map((item) => {
-                  const overlaps = getOverlapWarning(item);
                   return (
                     <TableRow key={item.id} className="hover:bg-muted/50">
                       <TableCell>
@@ -307,41 +254,10 @@ export const UnavailabilityTable: React.FC = () => {
                               Court ID: {item.courtId}
                             </TooltipContent>
                           </Tooltip>
-                          {overlaps && (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <AlertTriangle className="h-4 w-4 text-amber-500 cursor-help" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <div className="max-w-sm">
-                                  <p className="font-medium mb-1">Time overlap detected!</p>
-                                  <p>Overlaps with {overlaps.length} other unavailability slot(s) for this court on {formatDayOfWeek(item.dayOfWeek)}</p>
-                                </div>
-                              </TooltipContent>
-                            </Tooltip>
-                          )}
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {formatDayOfWeek(item.dayOfWeek)}
-                        </Badge>
-                      </TableCell>
                       <TableCell className="font-mono">
-                        {formatTime(item.start)}
-                      </TableCell>
-                      <TableCell className="font-mono">
-                        {formatTime(item.end)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2 max-w-xs">
-                          {isMaintenanceReason(item.reason) && (
-                            <Wrench className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                          )}
-                          <span className="text-sm text-muted-foreground truncate">
-                            {item.reason || 'No reason provided'}
-                          </span>
-                        </div>
+                        {item.date}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">

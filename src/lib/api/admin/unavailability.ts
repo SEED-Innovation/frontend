@@ -15,37 +15,25 @@ export async function getUnavailabilitiesMock(filters?: UnavailabilityFilters): 
       id: 101, 
       courtId: 2, 
       courtName: 'Jeddah Corniche Court B', 
-      dayOfWeek: 'THURSDAY', 
-      start: '14:00:00', 
-      end: '18:00:00', 
-      reason: 'Scheduled maintenance - court resurfacing' 
+      date: '2025-08-22'
     },
     { 
       id: 102, 
       courtId: 1, 
       courtName: 'Jeddah Central Court A', 
-      dayOfWeek: 'SUNDAY', 
-      start: '12:00:00', 
-      end: '15:00:00', 
-      reason: 'Private tournament event' 
+      date: '2025-08-25'
     },
     { 
       id: 103, 
       courtId: 3, 
       courtName: 'Faisaliyah Court C', 
-      dayOfWeek: 'FRIDAY', 
-      start: '16:00:00', 
-      end: '20:00:00', 
-      reason: 'Lighting system maintenance' 
+      date: '2025-08-28'
     },
     { 
       id: 104, 
       courtId: 4, 
       courtName: 'King Fahd Court D', 
-      dayOfWeek: 'WEDNESDAY', 
-      start: '10:00:00', 
-      end: '14:00:00', 
-      reason: 'Net replacement and court cleaning' 
+      date: '2025-08-30'
     },
   ];
 
@@ -55,9 +43,7 @@ export async function getUnavailabilitiesMock(filters?: UnavailabilityFilters): 
       if (filters.searchTerm && !item.courtName.toLowerCase().includes(filters.searchTerm.toLowerCase())) {
         return false;
       }
-      if (filters.dayOfWeek && filters.dayOfWeek !== 'ALL' && item.dayOfWeek !== filters.dayOfWeek) {
-        return false;
-      }
+      // Date filtering can be added here if needed
       return true;
     });
   }
@@ -80,10 +66,7 @@ export async function createUnavailabilityMock(data: SetUnavailabilityRequest): 
     id: Date.now(), // Mock ID
     courtId: data.courtId,
     courtName: `Court ${data.courtId}`, // Would be resolved by backend
-    dayOfWeek: data.dayOfWeek,
-    start: data.start,
-    end: data.end,
-    reason: data.reason,
+    date: data.date,
   };
 }
 

@@ -16,8 +16,11 @@ export interface AvailabilityRow {
   end: string;   // "22:00:00"
 }
 
-export interface UnavailabilityRow extends AvailabilityRow {
-  reason?: string;
+export interface UnavailabilityRow {
+  id: number;
+  courtId: number;
+  courtName: string;
+  date: string; // "2025-08-22"
 }
 
 export interface SetAvailabilityRequest {
@@ -27,8 +30,9 @@ export interface SetAvailabilityRequest {
   end: string;
 }
 
-export interface SetUnavailabilityRequest extends SetAvailabilityRequest {
-  reason?: string;
+export interface SetUnavailabilityRequest {
+  courtId: number;
+  date: string; // "2025-08-22"
 }
 
 export interface AvailabilityFilters {
