@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trash2 } from 'lucide-react';
+import { Trash2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SearchInput } from '../common/SearchInput';
 import { DayFilter } from '../common/DayFilter';
@@ -20,6 +20,8 @@ interface AvailabilityToolbarProps {
   selectedIds: number[];
   onBulkDelete: (ids: number[]) => void;
   filteredData: AvailabilityRow[];
+  onRefresh: () => void;
+  loading: boolean;
   className?: string;
 }
 
@@ -35,6 +37,8 @@ export const AvailabilityToolbar: React.FC<AvailabilityToolbarProps> = ({
   selectedIds,
   onBulkDelete,
   filteredData,
+  onRefresh,
+  loading,
   className = ""
 }) => {
   const handleBulkDelete = () => {
@@ -101,6 +105,11 @@ export const AvailabilityToolbar: React.FC<AvailabilityToolbarProps> = ({
             </Button>
           </div>
         )}
+        
+        <Button variant="outline" size="sm" onClick={onRefresh} disabled={loading}>
+          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
         
         <ExportCsvButton
           data={filteredData}

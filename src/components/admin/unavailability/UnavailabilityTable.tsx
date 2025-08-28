@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Edit, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
+import { Edit, Trash2, ChevronUp, ChevronDown, RefreshCw } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -191,6 +191,8 @@ export const UnavailabilityTable: React.FC = () => {
           selectedIds={selectedIds}
           onBulkDelete={handleBulkDelete}
           filteredData={filteredAndSortedData}
+          onRefresh={loadData}
+          loading={loading}
         />
         <div className="space-y-2 p-4">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -210,6 +212,8 @@ export const UnavailabilityTable: React.FC = () => {
           selectedIds={selectedIds}
           onBulkDelete={handleBulkDelete}
           filteredData={filteredAndSortedData}
+          onRefresh={loadData}
+          loading={loading}
         />
         
         <div className="border rounded-lg">

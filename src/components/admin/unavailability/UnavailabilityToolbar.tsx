@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trash2 } from 'lucide-react';
+import { Trash2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SearchInput } from '../common/SearchInput';
 import { ExportCsvButton } from '../common/ExportCsvButton';
@@ -12,6 +12,8 @@ interface UnavailabilityToolbarProps {
   selectedIds: number[];
   onBulkDelete: (ids: number[]) => Promise<void>;
   filteredData: UnavailabilityRow[];
+  onRefresh: () => void;
+  loading: boolean;
   className?: string;
 }
 
@@ -21,6 +23,8 @@ export const UnavailabilityToolbar: React.FC<UnavailabilityToolbarProps> = ({
   selectedIds,
   onBulkDelete,
   filteredData,
+  onRefresh,
+  loading,
   className = ""
 }) => {
   const handleBulkDelete = async () => {
@@ -72,6 +76,11 @@ export const UnavailabilityToolbar: React.FC<UnavailabilityToolbarProps> = ({
             </Button>
           </div>
         )}
+        
+        <Button variant="outline" size="sm" onClick={onRefresh} disabled={loading}>
+          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
         
         <ExportCsvButton
           data={filteredData}

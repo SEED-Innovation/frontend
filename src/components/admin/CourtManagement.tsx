@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Edit, Trash2, Settings, Calendar, DollarSign, Loader2, Search, Filter, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Settings, Calendar, DollarSign, Loader2, Search, Filter, X, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -383,19 +383,24 @@ const CourtManagement = () => {
             }
           </p>
         </div>
-        {hasPermission('SUPER_ADMIN') && (
-          <Dialog open={createDialogOpen} onOpenChange={(open) => {
-            setCreateDialogOpen(open);
-            if (open && hasPermission('SUPER_ADMIN')) {
-              fetchAdmins();
-            }
-          }}>
-            <DialogTrigger asChild>
-              <Button className="flex items-center gap-2">
-                <Plus className="w-4 h-4" />
-                Add New Court
-              </Button>
-            </DialogTrigger>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={fetchCourts} disabled={loading}>
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+          {hasPermission('SUPER_ADMIN') && (
+            <Dialog open={createDialogOpen} onOpenChange={(open) => {
+              setCreateDialogOpen(open);
+              if (open && hasPermission('SUPER_ADMIN')) {
+                fetchAdmins();
+              }
+            }}>
+              <DialogTrigger asChild>
+                <Button className="flex items-center gap-2">
+                  <Plus className="w-4 h-4" />
+                  Add New Court
+                </Button>
+              </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Create New Court</DialogTitle>
@@ -513,8 +518,9 @@ const CourtManagement = () => {
               </Button>
             </div>
           </DialogContent>
-        </Dialog>
-        )}
+            </Dialog>
+          )}
+        </div>
 
         {/* Edit Court Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
