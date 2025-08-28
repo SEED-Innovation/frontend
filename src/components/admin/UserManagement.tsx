@@ -10,15 +10,27 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { userService } from '@/services/userService';
+import { UpdateUserRequest, DeleteUserRequest } from '@/types/user';
 
 const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateUser, setShowCreateUser] = useState(false);
+  const [showEditUser, setShowEditUser] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
   const [newUser, setNewUser] = useState({
     fullName: '',
     email: '',
     phone: '',
     role: 'PLAYER'
+  });
+  const [editUser, setEditUser] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    role: 'PLAYER',
+    plan: 'Free',
+    status: 'Active'
   });
 
   // Mock user data
@@ -100,16 +112,85 @@ const UserManagement = () => {
     setNewUser({ fullName: '', email: '', phone: '', role: 'PLAYER' });
   };
 
-  const handleUpdateUser = async (userId: string, updates: any) => {
-    // TODO: Connect to backend API - PUT /admin/users/{id}
-    console.log('Updating user:', userId, updates);
-    toast.success('User updated successfully');
+  const handleViewUser = (user: any) => {
+    setSelectedUser(user);
+    setEditUser({
+      fullName: user.name,
+      email: user.email,
+      phone: user.phone,
+      role: 'PLAYER', // Default role since mock data doesn't have this
+      plan: user.plan,
+      status: user.status
+    });
+    setShowEditUser(true);
+  };
+
+  const handleSaveUserChanges = async () => {
+    if (!selectedUser) return;
+
+    try {
+      // Map the form data to UpdateUserRequest format
+      const updates: Partial<UpdateUserRequest> = {
+        fullName: editUser.fullName,
+        phone: editUser.phone,
+        role: editUser.role as any, // Cast to UserRole
+        plan: editUser.plan as any, // Cast to SubscriptionPlan
+        enabled: editUser.status === 'Active'
+      };
+
+      await handleUpdateUser(selectedUser.id, updates);
+      setShowEditUser(false);
+      setSelectedUser(null);
+    } catch (error) {
+      console.error('Failed to save user changes:', error);
+    }
+  };
+
+  const handleUpdateUser = async (userId: string | number, updates: Partial<UpdateUserRequest>) => {
+    try {
+      // Create the update request object with the user identifier and updates
+      const updateRequest: UpdateUserRequest = {
+        id: typeof userId === 'string' ? parseInt(userId) : userId,
+        ...updates
+      };
+
+      console.log('Updating user:', updateRequest);
+      
+      // Call the backend API
+      const updatedUser = await userService.updateUser(updateRequest);
+      
+      console.log('User updated successfully:', updatedUser);
+      toast.success('User updated successfully');
+      
+      // TODO: Refresh the user list or update local state if needed
+      
+    } catch (error) {
+      console.error('Failed to update user:', error);
+      toast.error('Failed to update user. Please try again.');
+    }
   };
 
   const handleDeleteUser = async (userEmail: string) => {
-    // TODO: Connect to backend API - DELETE /admin/users with email filter
-    console.log('Deleting user by email:', userEmail);
-    toast.success('User deleted successfully');
+    try {
+      // Create the delete request object with email identifier
+      const deleteRequest: DeleteUserRequest = {
+        email: userEmail
+      };
+
+      console.log('Deleting user by email:', deleteRequest);
+      
+      // Call the backend API
+      await userService.deleteUser(deleteRequest);
+      
+      console.log('User deleted successfully');
+      toast.success('User deleted successfully');
+      
+      // TODO: Refresh the user list or remove from local state if needed
+      
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      toast.error('Failed to delete user. Please try again.');
+    }
   };
 
   return (
@@ -188,6 +269,100 @@ const UserManagement = () => {
               </div>
             </DialogContent>
           </Dialog>
+          
+          {/* Edit User Dialog */}
+          <Dialog open={showEditUser} onOpenChange={setShowEditUser}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Edit User</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="editFullName">Full Name *</Label>
+                  <Input
+                    id="editFullName"
+                    value={editUser.fullName}
+                    onChange={(e) => setEditUser({...editUser, fullName: e.target.value})}
+                    placeholder="Enter full name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editEmail">Email (Read-only)</Label>
+                  <Input
+                    id="editEmail"
+                    type="email"
+                    value={editUser.email}
+                    disabled
+                    className="bg-gray-100"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editPhone">Phone *</Label>
+                  <Input
+                    id="editPhone"
+                    value={editUser.phone}
+                    onChange={(e) => setEditUser({...editUser, phone: e.target.value})}
+                    placeholder="Enter phone number"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editRole">Role</Label>
+                  <Select
+                    value={editUser.role}
+                    onValueChange={(value) => setEditUser({...editUser, role: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="PLAYER">Player</SelectItem>
+                      <SelectItem value="ADMIN">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editPlan">Plan</Label>
+                  <Select
+                    value={editUser.plan}
+                    onValueChange={(value) => setEditUser({...editUser, plan: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Free">Free</SelectItem>
+                      <SelectItem value="Basic">Basic</SelectItem>
+                      <SelectItem value="Premium">Premium</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editStatus">Status</Label>
+                  <Select
+                    value={editUser.status}
+                    onValueChange={(value) => setEditUser({...editUser, status: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Active">Active</SelectItem>
+                      <SelectItem value="Suspended">Suspended</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex justify-end space-x-2 pt-4">
+                  <Button variant="outline" onClick={() => setShowEditUser(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSaveUserChanges}>
+                    Save Changes
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+          
           <Button variant="outline" className="flex items-center space-x-2">
             <Download className="w-4 h-4" />
             <span>Export Users</span>
@@ -198,7 +373,7 @@ const UserManagement = () => {
       <Tabs defaultValue="all" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="all">All Users</TabsTrigger>
-          <TabsTrigger value="premium">Premium Users</TabsTrigger>
+          <TabsTrigger value="premium">Managers</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
@@ -264,7 +439,12 @@ const UserManagement = () => {
                       <Badge className={getStatusColor(user.status)}>
                         {user.status}
                       </Badge>
-                      <Button variant="outline" size="sm" className="mr-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="mr-2"
+                        onClick={() => handleViewUser(user)}
+                      >
                         <Eye className="w-4 h-4 mr-1" />
                         View
                       </Button>
