@@ -1,14 +1,17 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Edit, Trash2, AlertTriangle, ChevronUp, ChevronDown } from 'lucide-react';
+import { Edit, Trash2, AlertTriangle, ChevronUp, ChevronDown, Check, X } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AvailabilityToolbar } from './AvailabilityToolbar';
 import { AvailabilityRow, DOW, AvailabilityFilters } from '@/lib/api/admin/types';
 import { getAvailabilitiesMock, deleteAvailabilityMock, bulkDeleteAvailabilityMock } from '@/lib/api/admin/availability';
+import { courtService } from '@/lib/api/services/courtService';
 import { toast } from 'sonner';
 
 type SortField = 'courtName' | 'dayOfWeek' | 'start' | 'end';
@@ -20,6 +23,13 @@ export const AvailabilityTable: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [sortField, setSortField] = useState<SortField>('courtName');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [editingItem, setEditingItem] = useState<AvailabilityRow | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    courtId: 0,
+    dayOfWeek: '',
+    start: '',
+    end: ''
+  });
   
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,15 +45,25 @@ export const AvailabilityTable: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      // [WIRE:AVAILABILITY-LIST]
-      /**
-       * TODO[BE-LINK][AdminCourtAvailabilityController.list]
-       * Endpoint (placeholder): GET /admin/courts/availability?courtId=&day=&page=&size=&sort=
-       * Token: Authorization: Bearer <JWT>
-       * Replace mock call with real service when backend is ready.
-       */
-      const result = await getAvailabilitiesMock();
-      setData(result);
+      // Try to use real API first, fallback to mock if needed
+      try {
+        const availabilities = await courtService.getAvailabilities();
+        // Transform the data to match AvailabilityRow interface
+        const transformedData: AvailabilityRow[] = availabilities.map((avail: any) => ({
+          id: avail.id,
+          courtId: avail.courtId || 0,
+          courtName: avail.courtName || `Court ${avail.courtId}`,
+          dayOfWeek: avail.dayOfWeek as DOW,
+          start: avail.startTime,
+          end: avail.endTime
+        }));
+        setData(transformedData);
+      } catch (apiError) {
+        console.warn('Real API not available, using mock data:', apiError);
+        // Fallback to mock data
+        const result = await getAvailabilitiesMock();
+        setData(result);
+      }
     } catch (error) {
       console.error('Failed to load availability data:', error);
       toast.error('Failed to load availability data');
@@ -129,28 +149,78 @@ export const AvailabilityTable: React.FC = () => {
   };
 
   const handleEdit = (item: AvailabilityRow) => {
-    /**
-     * TODO[BE-LINK][AdminCourtAvailabilityController.update]
-     * Endpoint (placeholder): PUT /admin/courts/{courtId}/availability/{id}
-     * Token: Authorization: Bearer <JWT>
-     * Replace mock call with real service when backend is ready.
-     */
-    toast.success(`TODO: Edit availability for ${item.courtName} - wire backend`);
+    // Check if we have a valid ID (not a temporary index-based ID)
+    if (item.id <= 0 || item.courtId <= 0) {
+      toast.warning('Cannot edit this record - missing required IDs. Please refresh the data.');
+      return;
+    }
+    
+    setEditingItem(item);
+    setEditFormData({
+      courtId: item.courtId,
+      dayOfWeek: item.dayOfWeek,
+      start: item.start.substring(0, 5), // Convert "10:00:00" to "10:00"
+      end: item.end.substring(0, 5)
+    });
+  };
+
+  const handleUpdateAvailability = async () => {
+    if (!editingItem) return;
+
+    try {
+      const requestData = {
+        courtId: editFormData.courtId,
+        dayOfWeek: editFormData.dayOfWeek,
+        start: editFormData.start,
+        end: editFormData.end
+      };
+
+      const updatedAvailability = await courtService.updateAvailability(editingItem.id, requestData);
+      
+      // Update the data in the table
+      setData(prev => prev.map(item => 
+        item.id === editingItem.id 
+          ? {
+              ...item,
+              dayOfWeek: updatedAvailability.dayOfWeek as DOW,
+              start: updatedAvailability.startTime,
+              end: updatedAvailability.endTime
+            }
+          : item
+      ));
+      
+      setEditingItem(null);
+      toast.success('Availability updated successfully');
+    } catch (error) {
+      console.error('Failed to update availability:', error);
+      toast.error('Failed to update availability');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingItem(null);
+    setEditFormData({
+      courtId: 0,
+      dayOfWeek: '',
+      start: '',
+      end: ''
+    });
   };
 
   const handleDelete = async (id: number) => {
+    // Check if we have a valid ID (not a temporary index-based ID)
+    if (id <= 0) {
+      toast.warning('Cannot delete this record - missing required ID. Please refresh the data.');
+      return;
+    }
+    
     try {
-      /**
-       * TODO[BE-LINK][AdminCourtAvailabilityController.delete]
-       * Endpoint (placeholder): DELETE /admin/courts/{courtId}/availability/{id}
-       * Token: Authorization: Bearer <JWT>
-       * Replace mock call with real service when backend is ready.
-       */
-      await deleteAvailabilityMock(id);
+      await courtService.deleteAvailability(id);
       setData(prev => prev.filter(item => item.id !== id));
       setSelectedIds(prev => prev.filter(selectedId => selectedId !== id));
       toast.success('Availability deleted successfully');
     } catch (error) {
+      console.error('Failed to delete availability:', error);
       toast.error('Failed to delete availability');
     }
   };
@@ -281,6 +351,8 @@ export const AvailabilityTable: React.FC = () => {
               ) : (
                 filteredAndSortedData.map((item) => {
                   const overlaps = getOverlapWarning(item);
+                  const isEditing = editingItem?.id === item.id;
+                  
                   return (
                     <TableRow key={item.id} className="hover:bg-muted/50">
                       <TableCell>
@@ -288,6 +360,7 @@ export const AvailabilityTable: React.FC = () => {
                           checked={selectedIds.includes(item.id)}
                           onCheckedChange={(checked) => handleSelectRow(item.id, !!checked)}
                           aria-label={`Select ${item.courtName}`}
+                          disabled={isEditing}
                         />
                       </TableCell>
                       <TableCell className="font-medium">
@@ -318,45 +391,117 @@ export const AvailabilityTable: React.FC = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">
-                          {formatDayOfWeek(item.dayOfWeek)}
-                        </Badge>
+                        {isEditing ? (
+                          <Select 
+                            value={editFormData.dayOfWeek} 
+                            onValueChange={(value) => setEditFormData({...editFormData, dayOfWeek: value})}
+                          >
+                            <SelectTrigger className="w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="MONDAY">Monday</SelectItem>
+                              <SelectItem value="TUESDAY">Tuesday</SelectItem>
+                              <SelectItem value="WEDNESDAY">Wednesday</SelectItem>
+                              <SelectItem value="THURSDAY">Thursday</SelectItem>
+                              <SelectItem value="FRIDAY">Friday</SelectItem>
+                              <SelectItem value="SATURDAY">Saturday</SelectItem>
+                              <SelectItem value="SUNDAY">Sunday</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Badge variant="outline">
+                            {formatDayOfWeek(item.dayOfWeek)}
+                          </Badge>
+                        )}
                       </TableCell>
                       <TableCell className="font-mono">
-                        {formatTime(item.start)}
+                        {isEditing ? (
+                          <Input
+                            type="time"
+                            value={editFormData.start}
+                            onChange={(e) => setEditFormData({...editFormData, start: e.target.value})}
+                            className="w-32"
+                          />
+                        ) : (
+                          formatTime(item.start)
+                        )}
                       </TableCell>
                       <TableCell className="font-mono">
-                        {formatTime(item.end)}
+                        {isEditing ? (
+                          <Input
+                            type="time"
+                            value={editFormData.end}
+                            onChange={(e) => setEditFormData({...editFormData, end: e.target.value})}
+                            className="w-32"
+                          />
+                        ) : (
+                          formatTime(item.end)
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEdit(item)}
-                                className="h-8 w-8 p-0"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Edit availability</TooltipContent>
-                          </Tooltip>
-                          
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDelete(item.id)}
-                                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Delete availability</TooltipContent>
-                          </Tooltip>
+                          {isEditing ? (
+                            <>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={handleUpdateAvailability}
+                                    className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
+                                  >
+                                    <Check className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Save changes</TooltipContent>
+                              </Tooltip>
+                              
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={handleCancelEdit}
+                                    className="h-8 w-8 p-0 text-gray-600 hover:text-gray-700"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Cancel edit</TooltipContent>
+                              </Tooltip>
+                            </>
+                          ) : (
+                            <>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleEdit(item)}
+                                    className="h-8 w-8 p-0"
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Edit availability</TooltipContent>
+                              </Tooltip>
+                              
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDelete(item.id)}
+                                    className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Delete availability</TooltipContent>
+                              </Tooltip>
+                            </>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

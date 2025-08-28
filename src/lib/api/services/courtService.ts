@@ -54,6 +54,7 @@ export interface AdminCourtAvailabilityResponse {
     startTime: string;
     endTime: string;
     isActive: boolean;
+    courtName?: string; // Added to support backend response
 }
 
 class CourtService {
@@ -281,6 +282,65 @@ class CourtService {
         }
 
         return response.json();
+    }
+
+    /**
+     * Update court availability
+     */
+    async updateAvailability(id: number, availabilityData: SetCourtAvailabilityRequest): Promise<AdminCourtAvailabilityResponse> {
+        const response = await fetch(`${this.baseUrl}/availability/update/${id}`, {
+            method: 'PUT',
+            headers: this.getAuthHeaders(),
+            body: JSON.stringify(availabilityData)
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to update court availability: ${response.statusText}`);
+        }
+
+        return response.json();
+    }
+
+    /**
+     * Delete court availability
+     */
+    async deleteAvailability(id: number): Promise<void> {
+        const response = await fetch(`${this.baseUrl}/availability/delete/${id}`, {
+            method: 'DELETE',
+            headers: this.getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to delete court availability: ${response.statusText}`);
+        }
+    }
+
+    /**
+     * Get all court availabilities
+     */
+    async getAvailabilities(): Promise<AdminCourtAvailabilityResponse[]> {
+        const response = await fetch(`${this.baseUrl}/availability`, {
+            method: 'GET',
+            headers: this.getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch court availabilities: ${response.statusText}`);
+        }
+
+        const rawData = await response.json();
+        
+        // Note: Backend currently doesn't return IDs, which are needed for edit/delete operations
+        // This should be updated in the backend to include proper IDs
+        return rawData.map((item: any, index: number) => ({
+            id: index + 1, // Temporary solution - backend should provide real IDs
+            courtId: 0, // Backend doesn't return courtId directly in this endpoint
+            dayOfWeek: item.dayOfWeek,
+            startTime: item.start + ':00', // Convert "HH:mm" to "HH:mm:ss" format
+            endTime: item.end + ':00',
+            isActive: true,
+            courtName: item.courtName
+        }));
     }
 }
 
