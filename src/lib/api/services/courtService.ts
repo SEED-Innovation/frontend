@@ -57,6 +57,30 @@ export interface AdminCourtAvailabilityResponse {
     courtName?: string; // Added to support backend response
 }
 
+export interface UnavailabilityResponse {
+    courtName: string;
+    date: string; // Format: "dd-MM-yyyy"
+}
+
+export interface UnavailabilityRow {
+    id: number;
+    courtId: number;
+    courtName: string;
+    date: string; // Format: "dd-MM-yyyy"
+}
+
+export interface MarkUnavailableRequest {
+    courtId: number;
+    date: string; // Format: "YYYY-MM-DD"
+}
+
+export interface CourtUnavailableResponse {
+    id: number;
+    courtId: number;
+    date: string;
+    reason?: string;
+}
+
 class CourtService {
     private baseUrl = `${import.meta.env.VITE_API_URL}/admin/courts`;
 
@@ -341,6 +365,47 @@ class CourtService {
             isActive: true,
             courtName: item.courtName
         }));
+    }
+
+    /**
+     * Get all court unavailabilities
+     */
+    async getUnavailabilities(): Promise<UnavailabilityRow[]> {
+        const response = await fetch(`${this.baseUrl}/availability/unavailabilities`, {
+            method: 'GET',
+            headers: this.getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch court unavailabilities: ${response.statusText}`);
+        }
+
+        const rawData = await response.json();
+        
+        // Transform the backend response to match UnavailabilityRow interface
+        return rawData.map((item: any, index: number) => ({
+            id: index + 1, // Generate ID since backend doesn't provide it
+            courtId: 0, // Not provided by current endpoint
+            courtName: item.courtName,
+            date: item.date // Already in "dd-MM-yyyy" format
+        }));
+    }
+
+    /**
+     * Mark a court as unavailable for a specific date
+     */
+    async markUnavailable(requestData: MarkUnavailableRequest): Promise<CourtUnavailableResponse> {
+        const response = await fetch(`${this.baseUrl}/availability/mark-unavailable`, {
+            method: 'POST',
+            headers: this.getAuthHeaders(),
+            body: JSON.stringify(requestData)
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to mark court unavailable: ${response.statusText}`);
+        }
+
+        return response.json();
     }
 }
 

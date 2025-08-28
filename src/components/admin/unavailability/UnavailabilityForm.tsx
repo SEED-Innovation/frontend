@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { CourtLite, SetUnavailabilityRequest } from '@/lib/api/admin/types';
 import { getCourtsLite } from '@/lib/api/admin/courts';
 import { createUnavailabilityMock } from '@/lib/api/admin/unavailability';
+import { courtService, Court, MarkUnavailableRequest } from '@/lib/api/services/courtService';
 import { toast } from 'sonner';
 
 
@@ -20,14 +21,14 @@ interface UnavailabilityFormProps {
 }
 
 export const UnavailabilityForm: React.FC<UnavailabilityFormProps> = ({ onSuccess }) => {
-  const [courts, setCourts] = useState<CourtLite[]>([]);
+  const [courts, setCourts] = useState<Court[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [courtSearchOpen, setCourtSearchOpen] = useState(false);
   const [courtSearchValue, setCourtSearchValue] = useState('');
   
-  const [formData, setFormData] = useState<SetUnavailabilityRequest>({
-    courtId: 0,
+  const [formData, setFormData] = useState({
+    courtId: '',
     date: ''
   });
 
@@ -39,14 +40,27 @@ export const UnavailabilityForm: React.FC<UnavailabilityFormProps> = ({ onSucces
   const loadCourts = async () => {
     try {
       setLoading(true);
-      /**
-       * TODO[BE-LINK][AdminCourtController.list]
-       * Endpoint (placeholder): GET /admin/courts?projection=lite
-       * Token: Authorization: Bearer <JWT>
-       * Replace mock call with real service when backend is ready.
-       */
-      const courtsData = await getCourtsLite();
-      setCourts(courtsData);
+      // Try to fetch from real API first, fallback to mock if needed
+      try {
+        const courtsData = await courtService.getAllCourts();
+        setCourts(courtsData);
+      } catch (apiError) {
+        console.warn('Real API failed, falling back to mock data:', apiError);
+        // Fallback to mock data
+        const courtsData = await getCourtsLite();
+        // Transform CourtLite to Court format for compatibility
+        const transformedCourts: Court[] = courtsData.map(court => ({
+          id: court.id.toString(),
+          name: court.name,
+          location: '', // Not available in CourtLite
+          type: '', // Not available in CourtLite
+          hourlyFee: 0, // Not available in CourtLite
+          hasSeedSystem: false, // Not available in CourtLite
+          amenities: [] // Not available in CourtLite
+        }));
+        setCourts(transformedCourts);
+        toast.info('Using mock data - API not available');
+      }
     } catch (error) {
       console.error('Failed to load courts:', error);
       toast.error('Failed to load courts');
@@ -63,27 +77,42 @@ export const UnavailabilityForm: React.FC<UnavailabilityFormProps> = ({ onSucces
       return;
     }
 
+    // Validate date is not in the past
+    const selectedDate = new Date(formData.date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day for comparison
+    
+    if (selectedDate < today) {
+      toast.error('Cannot mark past dates as unavailable');
+      return;
+    }
+
     try {
       setSubmitting(true);
       
-      const requestData: SetUnavailabilityRequest = {
-        courtId: formData.courtId,
-        date: formData.date
+      const requestData: MarkUnavailableRequest = {
+        courtId: parseInt(formData.courtId),
+        date: formData.date // Should be in YYYY-MM-DD format
       };
 
-      /**
-       * TODO[BE-LINK][AdminCourtUnavailabilityController.create]
-       * Endpoint (placeholder): POST /admin/courts/{courtId}/unavailability
-       * Token: Authorization: Bearer <JWT>
-       * Replace mock call with real service when backend is ready.
-       */
-      await createUnavailabilityMock(requestData);
-      
-      toast.success('Court unavailability set successfully');
+      // Try real API first, fallback to mock if needed
+      try {
+        await courtService.markUnavailable(requestData);
+        toast.success('Court unavailability set successfully');
+      } catch (apiError) {
+        console.warn('Real API failed, falling back to mock:', apiError);
+        // Fallback to mock
+        const mockRequest: SetUnavailabilityRequest = {
+          courtId: parseInt(formData.courtId),
+          date: formData.date
+        };
+        await createUnavailabilityMock(mockRequest);
+        toast.success('Court unavailability set successfully (mock)');
+      }
       
       // Reset form
       setFormData({
-        courtId: 0,
+        courtId: '',
         date: ''
       });
       
@@ -173,6 +202,7 @@ export const UnavailabilityForm: React.FC<UnavailabilityFormProps> = ({ onSucces
                 type="date"
                 value={formData.date}
                 onChange={(e) => setFormData({...formData, date: e.target.value})}
+                min={new Date().toISOString().split('T')[0]} // Prevent past dates
                 required
               />
             </div>

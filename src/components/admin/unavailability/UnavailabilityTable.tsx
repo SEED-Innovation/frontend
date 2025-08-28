@@ -7,8 +7,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { UnavailabilityToolbar } from './UnavailabilityToolbar';
-import { UnavailabilityRow, UnavailabilityFilters } from '@/lib/api/admin/types';
+import { UnavailabilityFilters } from '@/lib/api/admin/types';
 import { getUnavailabilitiesMock, deleteUnavailabilityMock, bulkDeleteUnavailabilityMock } from '@/lib/api/admin/unavailability';
+import { courtService, UnavailabilityRow } from '@/lib/api/services/courtService';
 import { toast } from 'sonner';
 
 type SortField = 'courtName' | 'date';
@@ -32,15 +33,18 @@ export const UnavailabilityTable: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      // [WIRE:UNAVAILABILITY-LIST]
-      /**
-       * TODO[BE-LINK][AdminCourtUnavailabilityController.list]
-       * Endpoint (placeholder): GET /admin/courts/unavailability?courtId=&day=&page=&size=&sort=
-       * Token: Authorization: Bearer <JWT>
-       * Replace mock call with real service when backend is ready.
-       */
-      const result = await getUnavailabilitiesMock();
-      setData(result);
+      
+      // Try to fetch from real API first, fallback to mock if needed
+      try {
+        const result = await courtService.getUnavailabilities();
+        setData(result);
+      } catch (apiError) {
+        console.warn('Real API failed, falling back to mock data:', apiError);
+        // Fallback to mock data
+        const result = await getUnavailabilitiesMock();
+        setData(result);
+        toast.info('Using mock data - API not available');
+      }
     } catch (error) {
       console.error('Failed to load unavailability data:', error);
       toast.error('Failed to load unavailability data');
