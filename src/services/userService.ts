@@ -7,7 +7,7 @@ import {
 } from '@/types/user';
 
 export class UserService {
-  private baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+  private baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
   
   private getToken(): string {
     return localStorage.getItem('accessToken') || '';
