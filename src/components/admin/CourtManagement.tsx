@@ -19,6 +19,11 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+// Import new components
+import { AvailabilityTable } from './availability/AvailabilityTable';
+import { UnavailabilityTable } from './unavailability/UnavailabilityTable';
+import { UnavailabilityForm } from './unavailability/UnavailabilityForm';
+
 const CourtManagement = () => {
   const { user, hasPermission } = useAdminAuth();
   const [courts, setCourts] = useState<Court[]>([]);
@@ -613,9 +618,10 @@ const CourtManagement = () => {
       </div>
 
       <Tabs defaultValue="courts" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="courts">Courts</TabsTrigger>
           <TabsTrigger value="availability">Availability</TabsTrigger>
+          <TabsTrigger value="unavailability">Unavailability</TabsTrigger>
         </TabsList>
 
         <TabsContent value="courts" className="space-y-4">
@@ -1028,7 +1034,8 @@ const CourtManagement = () => {
           )}
         </TabsContent>
 
-        <TabsContent value="availability" className="space-y-4">
+        <TabsContent value="availability" className="space-y-6">
+          {/* Keep existing availability form */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -1134,6 +1141,17 @@ const CourtManagement = () => {
               </Button>
             </CardContent>
           </Card>
+
+          {/* New Availability Table */}
+          <AvailabilityTable />
+        </TabsContent>
+
+        <TabsContent value="unavailability" className="space-y-6">
+          {/* Unavailability Form */}
+          <UnavailabilityForm />
+
+          {/* Unavailability Table */}
+          <UnavailabilityTable />
         </TabsContent>
 
       </Tabs>
