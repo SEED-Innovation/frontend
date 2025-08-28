@@ -626,10 +626,14 @@ const CourtManagement = () => {
       </div>
 
       <Tabs defaultValue="courts" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className={`grid w-full ${hasPermission('SUPER_ADMIN') ? 'grid-cols-3' : 'grid-cols-1'}`}>
           <TabsTrigger value="courts">Courts</TabsTrigger>
-          <TabsTrigger value="availability">Availability</TabsTrigger>
-          <TabsTrigger value="unavailability">Unavailability</TabsTrigger>
+          {hasPermission('SUPER_ADMIN') && (
+            <>
+              <TabsTrigger value="availability">Availability</TabsTrigger>
+              <TabsTrigger value="unavailability">Unavailability</TabsTrigger>
+            </>
+          )}
         </TabsList>
 
         <TabsContent value="courts" className="space-y-4">
@@ -1042,7 +1046,8 @@ const CourtManagement = () => {
           )}
         </TabsContent>
 
-        <TabsContent value="availability" className="space-y-6">
+        {hasPermission('SUPER_ADMIN') && (
+          <TabsContent value="availability" className="space-y-6">
           {/* Keep existing availability form */}
           <Card>
             <CardHeader>
@@ -1152,15 +1157,18 @@ const CourtManagement = () => {
 
           {/* New Availability Table */}
           <AvailabilityTable />
-        </TabsContent>
+          </TabsContent>
+        )}
 
-        <TabsContent value="unavailability" className="space-y-6">
-          {/* Unavailability Form */}
-          <UnavailabilityForm />
+        {hasPermission('SUPER_ADMIN') && (
+          <TabsContent value="unavailability" className="space-y-6">
+            {/* Unavailability Form */}
+            <UnavailabilityForm />
 
-          {/* Unavailability Table */}
-          <UnavailabilityTable />
-        </TabsContent>
+            {/* Unavailability Table */}
+            <UnavailabilityTable />
+          </TabsContent>
+        )}
 
       </Tabs>
     </motion.div>
