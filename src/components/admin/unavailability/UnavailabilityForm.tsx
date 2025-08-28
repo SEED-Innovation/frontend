@@ -5,6 +5,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Check, ChevronsUpDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { CourtLite, DOW, SetUnavailabilityRequest } from '@/lib/api/admin/types';
 import { getCourtsLite } from '@/lib/api/admin/courts';
 import { createUnavailabilityMock } from '@/lib/api/admin/unavailability';
@@ -28,6 +32,8 @@ export const UnavailabilityForm: React.FC<UnavailabilityFormProps> = ({ onSucces
   const [courts, setCourts] = useState<CourtLite[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [courtSearchOpen, setCourtSearchOpen] = useState(false);
+  const [courtSearchValue, setCourtSearchValue] = useState('');
   
   const [formData, setFormData] = useState<SetUnavailabilityRequest>({
     courtId: 0,
@@ -105,6 +111,9 @@ export const UnavailabilityForm: React.FC<UnavailabilityFormProps> = ({ onSucces
         reason: ''
       });
       
+      // Reset search
+      setCourtSearchValue('');
+      
       onSuccess?.();
     } catch (error) {
       console.error('Failed to set unavailability:', error);
@@ -125,22 +134,59 @@ export const UnavailabilityForm: React.FC<UnavailabilityFormProps> = ({ onSucces
             {/* Court Selection */}
             <div>
               <Label htmlFor="court">Court *</Label>
-              <Select 
-                value={formData.courtId ? formData.courtId.toString() : ''} 
-                onValueChange={(value) => setFormData({...formData, courtId: parseInt(value)})}
-                disabled={loading}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={loading ? "Loading courts..." : "Select court"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {courts.map((court) => (
-                    <SelectItem key={court.id} value={court.id.toString()}>
-                      {court.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={courtSearchOpen} onOpenChange={setCourtSearchOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={courtSearchOpen}
+                    className="w-full justify-between"
+                    disabled={loading}
+                  >
+                    {formData.courtId
+                      ? courts.find((court) => court.id === formData.courtId)?.name
+                      : loading ? "Loading courts..." : "Select court..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput
+                      placeholder="Search courts..."
+                      value={courtSearchValue}
+                      onValueChange={setCourtSearchValue}
+                    />
+                    <CommandList>
+                      <CommandEmpty>No court found.</CommandEmpty>
+                      <CommandGroup>
+                        {courts
+                          .filter((court) =>
+                            court.name.toLowerCase().includes(courtSearchValue.toLowerCase())
+                          )
+                          .map((court) => (
+                            <CommandItem
+                              key={court.id}
+                              value={court.name}
+                              onSelect={() => {
+                                setFormData({...formData, courtId: court.id})
+                                setCourtSearchOpen(false)
+                                setCourtSearchValue("")
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  formData.courtId === court.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {court.name}
+                            </CommandItem>
+                          ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             {/* Day of Week */}
