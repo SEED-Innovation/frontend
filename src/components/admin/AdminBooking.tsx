@@ -190,74 +190,91 @@ const [availableCourts, setAvailableCourts] = useState<any[]>([]);
 
 // Add these helper functions after your existing event handlers around line 300
 
-// Filter function
-const filteredBookings = bookings.filter(booking => {
-    // Search filter
-    if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        const matchesSearch = 
-            booking.user.fullName.toLowerCase().includes(searchLower) ||
-            booking.user.email.toLowerCase().includes(searchLower) ||
-            booking.court.name.toLowerCase().includes(searchLower) ||
-            booking.id.toString().includes(searchLower);
-        if (!matchesSearch) return false;
-    }
-
-    // Status filter
-    if (statusFilter !== 'all' && booking.status !== statusFilter) {
-        return false;
-    }
-
-    // Date filter with proper error handling
-    if (dateFilter !== 'all') {
+// Filter function - Fixed with proper error handling
+const filteredBookings = React.useMemo(() => {
+    return bookings.filter(booking => {
         try {
-            const bookingDate = new Date(booking.startTime);
-            const now = new Date();
-            
-            switch (dateFilter) {
-                case 'today':
-                    if (!isSameDay(bookingDate, now)) return false;
-                    break;
-                case 'week':
-                    const dayOfWeek = now.getDay();
-                    const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-                    const weekStart = new Date(now.getFullYear(), now.getMonth(), diff);
-                    const weekEnd = new Date(weekStart);
-                    weekEnd.setDate(weekStart.getDate() + 6);
-                    if (bookingDate < weekStart || bookingDate > weekEnd) return false;
-                    break;
-                case 'month':
-                    if (bookingDate.getMonth() !== now.getMonth() || 
-                        bookingDate.getFullYear() !== now.getFullYear()) return false;
-                    break;
+            // Search filter
+            if (searchTerm) {
+                const searchLower = searchTerm.toLowerCase();
+                const userFullName = booking.user?.fullName || '';
+                const userEmail = booking.user?.email || '';
+                const courtName = booking.court?.name || '';
+                const bookingId = booking.id?.toString() || '';
+                
+                const matchesSearch = 
+                    userFullName.toLowerCase().includes(searchLower) ||
+                    userEmail.toLowerCase().includes(searchLower) ||
+                    courtName.toLowerCase().includes(searchLower) ||
+                    bookingId.includes(searchLower);
+                    
+                if (!matchesSearch) return false;
             }
+
+            // Status filter
+            if (statusFilter !== 'all' && booking.status !== statusFilter) {
+                return false;
+            }
+
+            // Date filter with safe date handling
+            if (dateFilter !== 'all') {
+                try {
+                    const bookingDate = new Date(booking.startTime);
+                    const now = new Date();
+                    
+                    // Helper function for same day comparison
+                    const isSameDay = (d1: Date, d2: Date) => {
+                        return d1.getDate() === d2.getDate() &&
+                               d1.getMonth() === d2.getMonth() &&
+                               d1.getFullYear() === d2.getFullYear();
+                    };
+                    
+                    switch (dateFilter) {
+                        case 'today':
+                            if (!isSameDay(bookingDate, now)) return false;
+                            break;
+                        case 'week':
+                            const dayOfWeek = now.getDay();
+                            const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+                            const weekStart = new Date(now.getFullYear(), now.getMonth(), diff);
+                            const weekEnd = new Date(weekStart);
+                            weekEnd.setDate(weekStart.getDate() + 6);
+                            weekEnd.setHours(23, 59, 59, 999);
+                            
+                            if (bookingDate < weekStart || bookingDate > weekEnd) return false;
+                            break;
+                        case 'month':
+                            if (bookingDate.getMonth() !== now.getMonth() || 
+                                bookingDate.getFullYear() !== now.getFullYear()) return false;
+                            break;
+                    }
+                } catch (error) {
+                    console.warn('Error filtering by date:', error);
+                    return true; // Don't filter out if there's an error
+                }
+            }
+
+            // Court filter using real court data
+            if (courtFilter !== 'all' && courtFilter !== '') {
+                const courtId = booking.court?.id?.toString();
+                if (courtId !== courtFilter) return false;
+            }
+
+            return true;
         } catch (error) {
-            console.warn('Error filtering by date:', error);
-            return true; // Don't filter out if there's an error
+            console.error('Error filtering booking:', error);
+            return true; // Include booking if filtering fails
         }
-    }
+    });
+}, [bookings, searchTerm, statusFilter, dateFilter, courtFilter]);
 
-    // Court filter using real court data
-    if (courtFilter !== 'all') {
-        const courtMatches = booking.court && booking.court.id.toString() === courtFilter;
-        if (!courtMatches) return false;
-    }
-
-    return true;
-});
-
-// Pagination function
-const paginatedBookings = filteredBookings.slice(
-    currentPage * pageSize,
-    (currentPage + 1) * pageSize
-);
-
-// Helper functions
-const isSameDay = (date1: Date, date2: Date) => {
-    return date1.getDate() === date2.getDate() &&
-           date1.getMonth() === date2.getMonth() &&
-           date1.getFullYear() === date2.getFullYear();
-};
+// Pagination function - Fixed with proper state handling
+const paginatedBookings = React.useMemo(() => {
+    return filteredBookings.slice(
+        currentPage * pageSize,
+        (currentPage + 1) * pageSize
+    );
+}, [filteredBookings, currentPage, pageSize]);
 
 const formatTime = (dateString: string) => {
     return new Date(dateString).toLocaleTimeString('en-US', {
@@ -292,8 +309,8 @@ const handleCancelBooking = async (bookingId: number, reason: string) => {
     }
 };
 
-// Update the useEffect to handle pagination changes
-useEffect(() => {
+// Update pagination when filters change
+React.useEffect(() => {
     const newTotalPages = Math.ceil(filteredBookings.length / pageSize);
     setTotalPages(newTotalPages);
     

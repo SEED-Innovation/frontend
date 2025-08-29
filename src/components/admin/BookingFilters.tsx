@@ -249,10 +249,16 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
             : [...selectedCourtIds, courtId];
         setSelectedCourtIds(newCourtIds);
         
-        // Apply filter immediately
-        const quickFilter = buildFilterRequest();
-        quickFilter.courtIds = newCourtIds.length > 0 ? newCourtIds : undefined;
-        onFilterChange(quickFilter);
+        // Apply filter immediately with proper error handling
+        try {
+            const quickFilter = buildFilterRequest();
+            quickFilter.courtIds = newCourtIds.length > 0 ? newCourtIds : undefined;
+            console.log('🏟️ Applying court filter:', quickFilter);
+            onFilterChange(quickFilter);
+        } catch (error) {
+            console.error('❌ Error applying court filter:', error);
+            toast.error('Failed to apply court filter');
+        }
     };
 
     const handleMatchTypeToggle = (matchType: string) => {
