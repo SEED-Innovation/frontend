@@ -144,6 +144,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = "" }) => {
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
+    const [courts, setCourts] = useState<any[]>([]);
     
     // UI states
     const [selectedBookings, setSelectedBookings] = useState<Set<number>>(new Set());
@@ -322,13 +323,19 @@ useEffect(() => {
         loadAvailableCourts();
     }, []);
 
+    useEffect(() => {
+        loadBookings(currentFilters);
+    }, [currentFilters]);
+
     const loadAvailableCourts = async () => {
         try {
-            const courts = await courtService.getAllCourts();
-            setAvailableCourts(courts || []);
+            const courtsData = await courtService.getAllCourts();
+            setAvailableCourts(courtsData || []);
+            setCourts(courtsData || []);
         } catch (error) {
             console.error('Failed to load courts for filters:', error);
             setAvailableCourts([]);
+            setCourts([]);
         }
     };
 
@@ -372,9 +379,22 @@ useEffect(() => {
             
             setBookings(sortedBookings);
             setCurrentPage(response.currentPage || response.page || 0);
-            setTotalPages(response.totalPages || 0);
-            setTotalElements(response.totalElements || 0);
+            setTotalPages(response.totalPages || Math.ceil(bookingsArray.length / (filters.size || 20)));
+            setTotalElements(response.totalElements || bookingsArray.length);
             setCurrentFilters(filters);
+
+            // Check for empty results and show appropriate message
+            if (bookingsArray.length === 0) {
+                const today = new Date().toISOString().split('T')[0];
+                const isToday = filters.startDateTime?.includes(today) && filters.endDateTime?.includes(today);
+                
+                if (isToday) {
+                    console.log('📅 No bookings found for today');
+                    // Don't show toast here as it's handled by parent component
+                } else if (filters.courtIds?.length > 0 || filters.search || filters.statuses?.length > 0) {
+                    console.log('🔍 No bookings match current filters');
+                }
+            }
             
         } catch (error) {
             console.error('❌ Failed to load REAL bookings:', error);
@@ -455,7 +475,30 @@ useEffect(() => {
     const handleFilterChange = (filters: AdminBookingFilterRequest) => {
         console.log('🔍 Filters changed:', filters);
         setCurrentFilters(filters);
-        loadBookings(filters);
+        
+        // Check if this is a "today" filter and show alert if no results
+        const today = new Date().toISOString().split('T')[0];
+        const isToday = filters.startDateTime?.includes(today) && filters.endDateTime?.includes(today);
+        
+        if (isToday) {
+            loadBookings(filters).then(() => {
+                // Show alert if no bookings found for today
+                setTimeout(() => {
+                    if (bookings.length === 0) {
+                        alert('ℹ️ No bookings found for today');
+                    }
+                }, 500);
+            });
+        } else {
+            loadBookings(filters);
+        }
+    };
+
+    // Handle pagination
+    const handlePageChange = (newPage: number) => {
+        const newFilters = { ...currentFilters, page: newPage };
+        setCurrentFilters(newFilters);
+        loadBookings(newFilters);
     };
 
     // Handle search term change with API call
@@ -1503,7 +1546,7 @@ const renderManageView = () => (
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => setCurrentPage(0)}
+                                    onClick={() => handlePageChange(0)}
                                     disabled={currentPage === 0}
                                     className="h-8"
                                 >
@@ -1512,7 +1555,7 @@ const renderManageView = () => (
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                                    onClick={() => handlePageChange(Math.max(0, currentPage - 1))}
                                     disabled={currentPage === 0}
                                     className="h-8"
                                 >
@@ -1527,7 +1570,7 @@ const renderManageView = () => (
                                                 key={pageNum}
                                                 variant={pageNum === currentPage ? "default" : "outline"}
                                                 size="sm"
-                                                onClick={() => setCurrentPage(pageNum)}
+                                                onClick={() => handlePageChange(pageNum)}
                                                 className="h-8 w-8"
                                             >
                                                 {pageNum + 1}
@@ -1539,7 +1582,7 @@ const renderManageView = () => (
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
+                                    onClick={() => handlePageChange(Math.min(totalPages - 1, currentPage + 1))}
                                     disabled={currentPage >= totalPages - 1}
                                     className="h-8"
                                 >
@@ -1548,7 +1591,7 @@ const renderManageView = () => (
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => setCurrentPage(totalPages - 1)}
+                                    onClick={() => handlePageChange(totalPages - 1)}
                                     disabled={currentPage >= totalPages - 1}
                                     className="h-8"
                                 >

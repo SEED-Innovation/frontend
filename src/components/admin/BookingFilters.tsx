@@ -36,6 +36,7 @@ import { formatDateOnly } from '@/utils';
 import { courtService } from '@/services';
 import { adaptCourts } from '@/utils/courtAdapter';
 import { Court as ExistingCourt } from '@/lib/api/services/courtService';
+import { toast } from 'sonner';
 
 interface BookingFiltersProps {
     onFilterChange: (filters: AdminBookingFilterRequest) => void;
@@ -226,6 +227,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
             
         } catch (error) {
             console.error(`❌ Error applying ${filterType} filter:`, error);
+            toast.error(`Failed to apply ${filterType} filter`);
         }
     };
 
@@ -246,6 +248,11 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
             ? selectedCourtIds.filter(id => id !== courtId)
             : [...selectedCourtIds, courtId];
         setSelectedCourtIds(newCourtIds);
+        
+        // Apply filter immediately
+        const quickFilter = buildFilterRequest();
+        quickFilter.courtIds = newCourtIds.length > 0 ? newCourtIds : undefined;
+        onFilterChange(quickFilter);
     };
 
     const handleMatchTypeToggle = (matchType: string) => {
@@ -270,6 +277,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
                     className="pl-10"
+                    disabled={isLoading}
                 />
             </div>
 
@@ -282,6 +290,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                         size="sm"
                         variant={selectedStatuses.includes('PENDING') ? 'default' : 'outline'}
                         className="text-xs"
+                        disabled={isLoading}
                     >
                         ⏳ Pending
                     </Button>
@@ -290,6 +299,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                         size="sm"
                         variant={selectedStatuses.includes('APPROVED') ? 'default' : 'outline'}
                         className="text-xs"
+                        disabled={isLoading}
                     >
                         ✅ Approved
                     </Button>
@@ -298,6 +308,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                         size="sm"
                         variant={selectedStatuses.includes('CANCELLED') ? 'default' : 'outline'}
                         className="text-xs"
+                        disabled={isLoading}
                     >
                         ❌ Cancelled
                     </Button>
@@ -306,6 +317,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                         size="sm"
                         variant={selectedStatuses.includes('REJECTED') ? 'default' : 'outline'}
                         className="text-xs"
+                        disabled={isLoading}
                     >
                         🚫 Rejected
                     </Button>
@@ -321,6 +333,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                         size="sm"
                         variant="outline"
                         className="text-xs"
+                        disabled={isLoading}
                     >
                         📅 Today
                     </Button>
@@ -329,6 +342,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                         size="sm"
                         variant="outline"
                         className="text-xs"
+                        disabled={isLoading}
                     >
                         📅 This Week
                     </Button>
@@ -337,383 +351,158 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                         size="sm"
                         variant="outline"
                         className="text-xs"
+                        disabled={isLoading}
                     >
                         📅 This Month
                     </Button>
                 </div>
             </div>
-        </div>
-    );
 
-    const renderAdvancedFilters = () => {
-        if (!showAdvanced) return null;
-
-        return (
-            <div className="space-y-6 border-t pt-6">
-                {/* Date Range */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <Label>Start Date</Label>
-                        <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    className="w-full justify-start text-left font-normal"
-                                >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {startDate ? formatDateOnly(startDate.toISOString()) : "Pick start date"}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                    mode="single"
-                                    selected={startDate}
-                                    onSelect={(date) => {
-                                        setStartDate(date);
-                                        setStartDateOpen(false);
-                                    }}
-                                    initialFocus
-                                />
-                            </PopoverContent>
-                        </Popover>
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label>End Date</Label>
-                        <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    className="w-full justify-start text-left font-normal"
-                                >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {endDate ? formatDateOnly(endDate.toISOString()) : "Pick end date"}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                    mode="single"
-                                    selected={endDate}
-                                    onSelect={(date) => {
-                                        setEndDate(date);
-                                        setEndDateOpen(false);
-                                    }}
-                                    initialFocus
-                                />
-                            </PopoverContent>
-                        </Popover>
-                    </div>
-                </div>
-
-                {/* Status Filters */}
+            {/* Court Selection with Search */}
+            {courts.length > 0 && (
                 <div className="space-y-2">
-                    <Label>Booking Status</Label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                        {/* Use hardcoded values instead of Object.values(BookingStatus) to avoid enum issues */}
-                        {['PENDING', 'APPROVED', 'CANCELLED', 'REJECTED'].map(status => (
-                            <div key={status} className="flex items-center space-x-2">
-                                <Checkbox
-                                    id={`status-${status}`}
-                                    checked={selectedStatuses.includes(status)}
-                                    onCheckedChange={() => handleStatusToggle(status)}
-                                />
-                                <Label htmlFor={`status-${status}`} className="text-sm">
-                                    {status}
-                                </Label>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Court Filters */}
-                <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                        <Label>Courts</Label>
-                        {courts.length > 5 && (
-                            <div className="relative w-48">
-                                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3" />
-                                <Input
-                                    placeholder="Search courts..."
-                                    className="pl-7 h-7 text-xs"
-                                    onChange={(e) => setCourtSearchQuery(e.target.value)}
-                                />
-                            </div>
-                        )}
-                    </div>
-                    {courtsLoading ? (
-                        <div className="text-sm text-gray-500">Loading courts...</div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-40 overflow-y-auto">
-                            {filteredCourts.map(court => (
+                    <Label className="text-sm font-medium">Filter by Court</Label>
+                    
+                    {/* Court search input if more than 5 courts */}
+                    {courts.length > 5 && (
+                        <div className="relative">
+                            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3" />
+                            <Input
+                                placeholder="Search courts..."
+                                value={courtSearchQuery}
+                                onChange={(e) => setCourtSearchQuery(e.target.value)}
+                                className="pl-8 h-8 text-xs"
+                            />
+                        </div>
+                    )}
+                    
+                    {/* Courts list */}
+                    <div className="max-h-32 overflow-y-auto space-y-1">
+                        {filteredCourts.length > 0 ? (
+                            filteredCourts.map(court => (
                                 <div key={court.id} className="flex items-center space-x-2">
                                     <Checkbox
                                         id={`court-${court.id}`}
                                         checked={selectedCourtIds.includes(court.id)}
                                         onCheckedChange={() => handleCourtToggle(court.id)}
+                                        disabled={isLoading}
                                     />
-                                    <Label htmlFor={`court-${court.id}`} className="text-sm flex-1">
+                                    <Label htmlFor={`court-${court.id}`} className="text-xs cursor-pointer">
                                         {court.name}
-                                        <span className="text-gray-500 ml-1">({court.location})</span>
                                     </Label>
                                 </div>
-                            ))}
+                            ))
+                        ) : courtSearchQuery ? (
+                            <p className="text-xs text-muted-foreground">No courts found matching "{courtSearchQuery}"</p>
+                        ) : (
+                            <p className="text-xs text-muted-foreground">No courts available</p>
+                        )}
+                    </div>
+                    
+                    {/* Selected courts indicator */}
+                    {selectedCourtIds.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                            {selectedCourtIds.map(courtId => {
+                                const court = courts.find(c => c.id === courtId);
+                                return court ? (
+                                    <Badge 
+                                        key={courtId} 
+                                        variant="secondary" 
+                                        className="text-xs"
+                                    >
+                                        {court.name}
+                                        <X 
+                                            className="ml-1 h-3 w-3 cursor-pointer" 
+                                            onClick={() => handleCourtToggle(courtId)}
+                                        />
+                                    </Badge>
+                                ) : null;
+                            })}
                         </div>
                     )}
                 </div>
+            )}
+        </div>
+    );
 
-                {/* Match Type Filters */}
-                <div className="space-y-2">
-                    <Label>Match Type</Label>
-                    <div className="flex flex-wrap gap-2">
-                        {/* Use hardcoded values instead of Object.values(MatchType) */}
-                        {['SINGLE', 'DOUBLE'].map(matchType => (
-                            <div key={matchType} className="flex items-center space-x-2">
-                                <Checkbox
-                                    id={`match-${matchType}`}
-                                    checked={selectedMatchTypes.includes(matchType)}
-                                    onCheckedChange={() => handleMatchTypeToggle(matchType)}
-                                />
-                                <Label htmlFor={`match-${matchType}`} className="text-sm">
-                                    {matchType}
-                                </Label>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Payment Filters */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <Label>Payment Status</Label>
-                        <Select
-                            value={filters.hasPayment === true ? 'has-payment' : filters.hasPayment === false ? 'no-payment' : 'all'}
-                            onValueChange={(value) => {
-                                const newFilters = { ...filters };
-                                if (value === 'has-payment') {
-                                    newFilters.hasPayment = true;
-                                } else if (value === 'no-payment') {
-                                    newFilters.hasPayment = false;
-                                } else {
-                                    delete newFilters.hasPayment;
-                                }
-                                setFilters(newFilters);
-                            }}
-                        >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Bookings</SelectItem>
-                                <SelectItem value="has-payment">Has Payment</SelectItem>
-                                <SelectItem value="no-payment">No Payment</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label>Payment Completion</Label>
-                        <Select
-                            value={filters.isPaid === true ? 'paid' : filters.isPaid === false ? 'unpaid' : 'all'}
-                            onValueChange={(value) => {
-                                const newFilters = { ...filters };
-                                if (value === 'paid') {
-                                    newFilters.isPaid = true;
-                                } else if (value === 'unpaid') {
-                                    newFilters.isPaid = false;
-                                } else {
-                                    delete newFilters.isPaid;
-                                }
-                                setFilters(newFilters);
-                            }}
-                        >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Payments</SelectItem>
-                                <SelectItem value="paid">Paid</SelectItem>
-                                <SelectItem value="unpaid">Unpaid</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
-
-                {/* Sorting */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <Label>Sort By</Label>
-                        <Select
-                            value={filters.sortBy || 'startTime'}
-                            onValueChange={(value) => setFilters({ ...filters, sortBy: value })}
-                        >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="startTime">Start Time</SelectItem>
-                                <SelectItem value="createdAt">Created Date</SelectItem>
-                                <SelectItem value="user.fullName">User Name</SelectItem>
-                                <SelectItem value="court.name">Court Name</SelectItem>
-                                <SelectItem value="status">Status</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label>Sort Direction</Label>
-                        <Select
-                            value={filters.sortDirection || 'DESC'}
-                            onValueChange={(value: 'ASC' | 'DESC') => setFilters({ ...filters, sortDirection: value })}
-                        >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="ASC">Ascending</SelectItem>
-                                <SelectItem value="DESC">Descending</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
-            </div>
-        );
-    };
-
-    const renderActiveFilters = () => {
-        if (activeFiltersCount === 0) return null;
-
-        return (
-            <div className="flex flex-wrap gap-2 pt-4 border-t">
-                {searchQuery && (
-                    <Badge variant="secondary" className="flex items-center gap-1">
-                        Search: "{searchQuery}"
-                        <X 
-                            className="w-3 h-3 cursor-pointer" 
-                            onClick={() => setSearchQuery('')} 
-                        />
-                    </Badge>
-                )}
-                
-                {selectedStatuses.map(status => (
-                    <Badge key={status} variant="secondary" className="flex items-center gap-1">
-                        Status: {status}
-                        <X 
-                            className="w-3 h-3 cursor-pointer" 
-                            onClick={() => handleStatusToggle(status)} 
-                        />
-                    </Badge>
-                ))}
-                
-                {selectedCourtIds.map(courtId => {
-                    const court = courts.find(c => c.id === courtId);
-                    return (
-                        <Badge key={courtId} variant="secondary" className="flex items-center gap-1">
-                            Court: {court?.name || `ID ${courtId}`}
-                            <X 
-                                className="w-3 h-3 cursor-pointer" 
-                                onClick={() => handleCourtToggle(courtId)} 
-                            />
-                        </Badge>
-                    );
-                })}
-                
-                {startDate && (
-                    <Badge variant="secondary" className="flex items-center gap-1">
-                        From: {formatDateOnly(startDate.toISOString())}
-                        <X 
-                            className="w-3 h-3 cursor-pointer" 
-                            onClick={() => setStartDate(undefined)} 
-                        />
-                    </Badge>
-                )}
-                
-                {endDate && (
-                    <Badge variant="secondary" className="flex items-center gap-1">
-                        To: {formatDateOnly(endDate.toISOString())}
-                        <X 
-                            className="w-3 h-3 cursor-pointer" 
-                            onClick={() => setEndDate(undefined)} 
-                        />
-                    </Badge>
-                )}
-            </div>
-        );
-    };
-
-    // ================================
-    // 🎨 MAIN RENDER
-    // ================================
-    
     return (
         <Card className={className}>
             <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                        <Filter className="w-5 h-5" />
-                        Booking Filters
-                        {activeFiltersCount > 0 && (
-                            <Badge variant="secondary">{activeFiltersCount}</Badge>
-                        )}
-                    </CardTitle>
-                    
                     <div className="flex items-center gap-2">
+                        <Filter className="w-5 h-5" />
+                        <CardTitle className="text-lg">Booking Filters</CardTitle>
+                        {activeFiltersCount > 0 && (
+                            <Badge variant="secondary" className="text-xs">
+                                {activeFiltersCount} active
+                            </Badge>
+                        )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                        {activeFiltersCount > 0 && (
+                            <Button
+                                onClick={clearAllFilters}
+                                size="sm"
+                                variant="ghost"
+                                className="text-xs"
+                                disabled={isLoading}
+                            >
+                                <RotateCcw className="w-3 h-3 mr-1" />
+                                Clear All
+                            </Button>
+                        )}
                         <Button
                             onClick={() => setShowAdvanced(!showAdvanced)}
-                            variant="outline"
                             size="sm"
+                            variant="outline"
+                            className="text-xs"
                         >
                             {showAdvanced ? 'Simple' : 'Advanced'}
                         </Button>
-                        
                         {onExport && (
                             <Button
                                 onClick={onExport}
-                                variant="outline"
                                 size="sm"
+                                variant="secondary"
+                                className="text-xs"
                                 disabled={isLoading}
                             >
-                                <Download className="w-4 h-4 mr-2" />
+                                <Download className="w-3 h-3 mr-1" />
                                 Export
                             </Button>
                         )}
                     </div>
                 </div>
             </CardHeader>
-            
-            <CardContent className="space-y-6">
+
+            <CardContent className="space-y-4">
                 {renderQuickFilters()}
-                {renderAdvancedFilters()}
-                {renderActiveFilters()}
                 
-                {/* Action Buttons */}
-                <div className="flex justify-between pt-4 border-t">
-                    <Button
-                        onClick={clearAllFilters}
-                        variant="outline"
-                        disabled={isLoading || activeFiltersCount === 0}
-                    >
-                        <RotateCcw className="w-4 h-4 mr-2" />
-                        Clear All
-                    </Button>
-                    
+                {/* Apply Filters Button */}
+                <div className="flex gap-2 pt-4 border-t">
                     <Button
                         onClick={applyFilters}
+                        className="flex-1"
                         disabled={isLoading}
-                        className="min-w-24"
                     >
                         {isLoading ? (
                             <>
                                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                                Filtering...
+                                Loading...
                             </>
                         ) : (
-                            <>
-                                <Search className="w-4 h-4 mr-2" />
-                                Apply Filters
-                            </>
+                            'Apply Filters'
                         )}
                     </Button>
                 </div>
+
+                {/* Loading indicator for courts */}
+                {courtsLoading && (
+                    <div className="text-center py-2">
+                        <div className="inline-block w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin mr-2" />
+                        <span className="text-xs text-muted-foreground">Loading courts...</span>
+                    </div>
+                )}
             </CardContent>
         </Card>
     );
