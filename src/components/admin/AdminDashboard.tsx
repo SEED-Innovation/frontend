@@ -37,10 +37,10 @@ const AdminDashboard = () => {
       try {
         console.log('🔄 AdminDashboard: Loading real dashboard data...');
         
-        // Load recent bookings (last 5)
+        // Load recent bookings (last 10) with proper sorting
         const bookingsResponse = await bookingService.getAdminBookings({
           page: 0,
-          size: 5,
+          size: 10,
           sortBy: 'startTime',
           sortDirection: 'DESC'
         });
@@ -59,15 +59,24 @@ const AdminDashboard = () => {
         const bookings = Array.isArray(bookingsResponse) ? bookingsResponse : (bookingsResponse?.content || []);
         console.log('📋 AdminDashboard: Extracted bookings array:', bookings);
         console.log('📋 AdminDashboard: Bookings array length:', bookings.length);
-        const formattedBookings = bookings.slice(0, 5).map(booking => ({
+        
+        // Sort by startTime descending to show newest first
+        const sortedBookings = bookings.sort((a, b) => 
+          new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+        );
+        
+        const formattedBookings = sortedBookings.slice(0, 5).map(booking => ({
           id: booking.id,
           court: booking.court?.name || 'Unknown Court',
           player: booking.user?.fullName || booking.user?.name || 'Unknown User',
-          time: new Date(booking.startTime).toLocaleTimeString('en-US', { 
+          time: new Date(booking.startTime).toLocaleString('en-US', { 
+            month: 'numeric',
+            day: 'numeric', 
+            year: 'numeric',
             hour: '2-digit', 
-            minute: '2-digit' 
+            minute: '2-digit'
           }),
-          status: booking.status?.toLowerCase() || 'unknown'
+          status: booking.status?.toUpperCase() || 'UNKNOWN'
         }));
         
         console.log('🎯 AdminDashboard: Formatted bookings for UI:', formattedBookings);

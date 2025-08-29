@@ -96,7 +96,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed }) => {
       initial={{ x: -280 }}
       animate={{ x: 0, width: collapsed ? 80 : 280 }}
       transition={{ duration: 0.3, ease: 'easeInOut' }}
-      className="fixed left-0 top-0 h-full bg-white border-r border-gray-200 z-40 overflow-hidden"
+      className="fixed left-0 top-0 h-full bg-white border-r border-gray-200 z-40 overflow-hidden shadow-lg"
     >
       {/* Logo */}
       <div className="h-16 flex items-center px-4 border-b border-gray-200">
@@ -141,7 +141,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed }) => {
       )}
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         {filteredItems.map((item, index) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.href;

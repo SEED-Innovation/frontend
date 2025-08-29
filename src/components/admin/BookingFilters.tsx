@@ -219,17 +219,45 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
         onFilterChange(quickFilter);
     };
 
-    const handleQuickDateFilter = (days: number) => {
-        const today = new Date();
-        const futureDate = new Date();
-        futureDate.setDate(today.getDate() + days);
+    const handleQuickDateFilter = (filterType: 'today' | 'week' | 'month') => {
+        const now = new Date();
+        let startDateTime: Date;
+        let endDateTime: Date;
+
+        switch (filterType) {
+            case 'today':
+                startDateTime = new Date(now);
+                startDateTime.setHours(0, 0, 0, 0);
+                endDateTime = new Date(now);
+                endDateTime.setHours(23, 59, 59, 999);
+                break;
+            case 'week':
+                startDateTime = new Date(now);
+                startDateTime.setDate(now.getDate() - now.getDay()); // Start of week (Sunday)
+                startDateTime.setHours(0, 0, 0, 0);
+                endDateTime = new Date(startDateTime);
+                endDateTime.setDate(startDateTime.getDate() + 6); // End of week (Saturday)
+                endDateTime.setHours(23, 59, 59, 999);
+                break;
+            case 'month':
+                startDateTime = new Date(now.getFullYear(), now.getMonth(), 1); // First day of month
+                endDateTime = new Date(now.getFullYear(), now.getMonth() + 1, 0); // Last day of month
+                endDateTime.setHours(23, 59, 59, 999);
+                break;
+            default:
+                return;
+        }
         
-        setStartDate(today);
-        setEndDate(futureDate);
+        setStartDate(startDateTime);
+        setEndDate(endDateTime);
         
         const quickFilter = buildFilterRequest();
-        quickFilter.startDateTime = today.toISOString();
-        quickFilter.endDateTime = futureDate.toISOString();
+        quickFilter.startDateTime = startDateTime.toISOString();
+        quickFilter.endDateTime = endDateTime.toISOString();
+        console.log(`🗓️ Applying ${filterType} filter:`, {
+            start: startDateTime.toISOString(),
+            end: endDateTime.toISOString()
+        });
         onFilterChange(quickFilter);
     };
 
@@ -316,7 +344,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                 <Label className="text-sm font-medium">Quick Date Filters</Label>
                 <div className="flex flex-wrap gap-2">
                     <Button
-                        onClick={() => handleQuickDateFilter(1)}
+                        onClick={() => handleQuickDateFilter('today')}
                         size="sm"
                         variant="outline"
                         className="text-xs"
@@ -324,7 +352,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                         📅 Today
                     </Button>
                     <Button
-                        onClick={() => handleQuickDateFilter(7)}
+                        onClick={() => handleQuickDateFilter('week')}
                         size="sm"
                         variant="outline"
                         className="text-xs"
@@ -332,7 +360,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                         📅 This Week
                     </Button>
                     <Button
-                        onClick={() => handleQuickDateFilter(30)}
+                        onClick={() => handleQuickDateFilter('month')}
                         size="sm"
                         variant="outline"
                         className="text-xs"
