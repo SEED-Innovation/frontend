@@ -1,10 +1,13 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import AdminLayout from '@/components/admin/AdminLayout';
+import { motion } from 'framer-motion';
+import AdminSidebar from '@/components/admin/AdminSidebar';
+import AdminHeader from '@/components/admin/AdminHeader';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import UserManagement from '@/components/admin/UserManagement';
 import CourtManagement from '@/components/admin/CourtManagement';
+import BookingManagement from '@/components/admin/BookingManagement';
 import PaymentManagement from '@/components/admin/PaymentManagement';
 import ReportsAnalytics from '@/components/admin/ReportsAnalytics';
 import SessionMonitoring from '@/components/admin/SessionMonitoring';
@@ -16,6 +19,7 @@ import AdminBooking from '@/components/admin/AdminBooking';
 
 
 const Admin = () => {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { loading, user } = useAdminAuth();
 
   if (loading) {
@@ -26,27 +30,42 @@ const Admin = () => {
     );
   }
 
-  // Redirect if user is not authenticated or doesn't have admin privileges
+  //***** */ Redirect if user is not authenticated or doesn't have admin privileges
   if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
     window.location.href = '/admin-login';
     return null;
   }
 
   return (
-    <AdminLayout>
-      <Routes>
-        <Route path="/" element={<AdminDashboard />} />
-        <Route path="/players" element={<UserManagement />} />
-        <Route path="/courts" element={<CourtManagement />} />
-        <Route path="/bookings" element={<AdminBooking />} />
-        <Route path="/sessions" element={<SessionMonitoring />} />
-        <Route path="/payments" element={<PaymentManagement />} />
-        <Route path="/analytics" element={<SystemAnalytics />} />
-        <Route path="/settings" element={<AdminSettings />} />
-        <Route path="/profile" element={<AdminProfile />} />
-        <Route path="/reports" element={<ReportsAnalytics />} />
-      </Routes>
-    </AdminLayout>
+    <div className="min-h-screen bg-gray-50">
+      <AdminSidebar collapsed={sidebarCollapsed} />
+      <AdminHeader 
+        onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
+        collapsed={sidebarCollapsed}
+      />
+      
+      <motion.main
+        animate={{ marginLeft: sidebarCollapsed ? 80 : 280 }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        className="pt-16 min-h-screen"
+      >
+        <div className="p-6">
+          <Routes>
+            <Route path="/" element={<AdminDashboard />} />
+            <Route path="/players" element={<UserManagement />} />
+            <Route path="/courts" element={<CourtManagement />} />
+            {/* <Route path="/bookings" element={<BookingManagement />} /> */}
+            <Route path="/bookings" element={<AdminBooking />} />
+            <Route path="/sessions" element={<SessionMonitoring />} />
+            <Route path="/payments" element={<PaymentManagement />} />
+            <Route path="/analytics" element={<SystemAnalytics />} />
+            <Route path="/settings" element={<AdminSettings />} />
+            <Route path="/profile" element={<AdminProfile />} />
+            <Route path="/reports" element={<ReportsAnalytics />} />
+          </Routes>
+        </div>
+      </motion.main>
+    </div>
   );
 };
 
