@@ -67,7 +67,7 @@ import {
     PaginatedBookingResponse 
 } from '@/types/booking';
 import { UserResponse } from '@/types/user';
-import { bookingService, userService } from '@/services';
+import { bookingService, userService, courtService } from '@/services';
 import { 
     formatDateTime, 
     formatPrice, 
@@ -184,14 +184,8 @@ const [courtFilter, setCourtFilter] = useState<string>('all');
 // Pagination states
 const [pageSize, setPageSize] = useState<number>(20);
 
-// Derived states for filtering and pagination
-const [availableCourts] = useState([
-    { id: 1, name: 'Court 1' },
-    { id: 2, name: 'Court 2' },
-    { id: 3, name: 'Court 3' },
-    { id: 4, name: 'Court 4' },
-    { id: 5, name: 'Court 5' }
-]);
+// Derived states for filtering and pagination  
+const [availableCourts, setAvailableCourts] = useState<any[]>([]);
 
 // Add these helper functions after your existing event handlers around line 300
 
@@ -213,29 +207,39 @@ const filteredBookings = bookings.filter(booking => {
         return false;
     }
 
-    // Date filter
+    // Date filter with proper error handling
     if (dateFilter !== 'all') {
-        const bookingDate = new Date(booking.startTime);
-        const now = new Date();
-        
-        switch (dateFilter) {
-            case 'today':
-                if (!isSameDay(bookingDate, now)) return false;
-                break;
-            case 'week':
-                const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-                if (bookingDate < weekAgo) return false;
-                break;
-            case 'month':
-                if (bookingDate.getMonth() !== now.getMonth() || 
-                    bookingDate.getFullYear() !== now.getFullYear()) return false;
-                break;
+        try {
+            const bookingDate = new Date(booking.startTime);
+            const now = new Date();
+            
+            switch (dateFilter) {
+                case 'today':
+                    if (!isSameDay(bookingDate, now)) return false;
+                    break;
+                case 'week':
+                    const dayOfWeek = now.getDay();
+                    const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+                    const weekStart = new Date(now.getFullYear(), now.getMonth(), diff);
+                    const weekEnd = new Date(weekStart);
+                    weekEnd.setDate(weekStart.getDate() + 6);
+                    if (bookingDate < weekStart || bookingDate > weekEnd) return false;
+                    break;
+                case 'month':
+                    if (bookingDate.getMonth() !== now.getMonth() || 
+                        bookingDate.getFullYear() !== now.getFullYear()) return false;
+                    break;
+            }
+        } catch (error) {
+            console.warn('Error filtering by date:', error);
+            return true; // Don't filter out if there's an error
         }
     }
 
-    // Court filter
-    if (courtFilter !== 'all' && booking.court.id.toString() !== courtFilter) {
-        return false;
+    // Court filter using real court data
+    if (courtFilter !== 'all') {
+        const courtMatches = booking.court && booking.court.id.toString() === courtFilter;
+        if (!courtMatches) return false;
     }
 
     return true;
@@ -315,7 +319,18 @@ useEffect(() => {
         loadBookings();
         loadStats();
         loadAllUsers();
+        loadAvailableCourts();
     }, []);
+
+    const loadAvailableCourts = async () => {
+        try {
+            const courts = await courtService.getAllCourts();
+            setAvailableCourts(courts || []);
+        } catch (error) {
+            console.error('Failed to load courts for filters:', error);
+            setAvailableCourts([]);
+        }
+    };
 
     // ================================
     // 🔧 DATA LOADING FUNCTIONS - REAL DATA ONLY

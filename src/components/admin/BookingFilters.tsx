@@ -77,6 +77,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>(filters.statuses || []);
     const [selectedCourtIds, setSelectedCourtIds] = useState<number[]>(filters.courtIds || []);
     const [selectedMatchTypes, setSelectedMatchTypes] = useState<string[]>(filters.matchTypes || []);
+    const [courtSearchQuery, setCourtSearchQuery] = useState('');
 
     // ================================
     // 🔄 EFFECTS
@@ -108,67 +109,26 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
     const loadCourts = async () => {
         setCourtsLoading(true);
         try {
-            console.log('🏟️ Loading courts from existing service...');
+            console.log('🏟️ Loading REAL courts from service...');
             
             const existingCourts: ExistingCourt[] = await courtService.getAllCourts();
             
             console.log('✅ Raw courts from API:', existingCourts);
             
-            // Convert to our format with proper error handling
-            const adaptedCourts = adaptCourts(existingCourts);
-            
-            console.log('✅ Adapted courts:', adaptedCourts);
-            
-            setCourts(adaptedCourts);
+            if (existingCourts && existingCourts.length > 0) {
+                // Convert to our format with proper error handling
+                const adaptedCourts = adaptCourts(existingCourts);
+                console.log('✅ Adapted courts:', adaptedCourts);
+                setCourts(adaptedCourts);
+            } else {
+                console.warn('⚠️ No courts returned from API, loading fallback courts');
+                setCourts([]);
+            }
             
         } catch (error) {
-            console.error('❌ Failed to load courts:', error);
-            
-            // Fallback to mock data with all required properties
-            setCourts([
-                { 
-                    id: 1, 
-                    name: 'Elite Tennis Academy', 
-                    location: 'Tennis District', 
-                    type: 'HARD', 
-                    hourlyFee: 65,
-                    hasSeedSystem: true,
-                    rating: null,
-                    totalRatings: null,
-                    distanceInMeters: null,
-                    formattedDistance: null,
-                    latitude: null,
-                    longitude: null
-                },
-                { 
-                    id: 2, 
-                    name: 'Grand Slam Arena', 
-                    location: 'Sports Complex', 
-                    type: 'CLAY', 
-                    hourlyFee: 75,
-                    hasSeedSystem: false,
-                    rating: null,
-                    totalRatings: null,
-                    distanceInMeters: null,
-                    formattedDistance: null,
-                    latitude: null,
-                    longitude: null
-                },
-                { 
-                    id: 3, 
-                    name: 'Wimbledon Court', 
-                    location: 'Premium Zone', 
-                    type: 'GRASS', 
-                    hourlyFee: 85,
-                    hasSeedSystem: true,
-                    rating: null,
-                    totalRatings: null,
-                    distanceInMeters: null,
-                    formattedDistance: null,
-                    latitude: null,
-                    longitude: null
-                }
-            ]);
+            console.error('❌ Failed to load real courts:', error);
+            // Don't set fallback courts, keep empty array and show no courts available
+            setCourts([]);
         } finally {
             setCourtsLoading(false);
         }
@@ -219,18 +179,54 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
         onFilterChange(quickFilter);
     };
 
-    const handleQuickDateFilter = (days: number) => {
-        const today = new Date();
-        const futureDate = new Date();
-        futureDate.setDate(today.getDate() + days);
-        
-        setStartDate(today);
-        setEndDate(futureDate);
-        
-        const quickFilter = buildFilterRequest();
-        quickFilter.startDateTime = today.toISOString();
-        quickFilter.endDateTime = futureDate.toISOString();
-        onFilterChange(quickFilter);
+    const handleQuickDateFilter = (filterType: string) => {
+        try {
+            const today = new Date();
+            let startDateTime: Date;
+            let endDateTime: Date;
+
+            switch (filterType) {
+                case 'today':
+                    startDateTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
+                    endDateTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+                    break;
+                
+                case 'week':
+                    const dayOfWeek = today.getDay();
+                    const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // Monday start
+                    startDateTime = new Date(today.getFullYear(), today.getMonth(), diff, 0, 0, 0);
+                    endDateTime = new Date(startDateTime);
+                    endDateTime.setDate(startDateTime.getDate() + 6);
+                    endDateTime.setHours(23, 59, 59);
+                    break;
+                
+                case 'month':
+                    startDateTime = new Date(today.getFullYear(), today.getMonth(), 1, 0, 0, 0);
+                    endDateTime = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59);
+                    break;
+                
+                default:
+                    console.warn('Unknown date filter type:', filterType);
+                    return;
+            }
+            
+            setStartDate(startDateTime);
+            setEndDate(endDateTime);
+            
+            const quickFilter = buildFilterRequest();
+            quickFilter.startDateTime = startDateTime.toISOString();
+            quickFilter.endDateTime = endDateTime.toISOString();
+            
+            console.log(`🔍 Applying ${filterType} filter:`, {
+                start: quickFilter.startDateTime,
+                end: quickFilter.endDateTime
+            });
+            
+            onFilterChange(quickFilter);
+            
+        } catch (error) {
+            console.error(`❌ Error applying ${filterType} filter:`, error);
+        }
     };
 
     const handleStatusToggle = (status: string) => {
@@ -239,6 +235,11 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
             : [...selectedStatuses, status];
         setSelectedStatuses(newStatuses);
     };
+
+    // Filter courts based on search query
+    const filteredCourts = courts.filter(court => 
+        court.name.toLowerCase().includes(courtSearchQuery.toLowerCase())
+    );
 
     const handleCourtToggle = (courtId: number) => {
         const newCourtIds = selectedCourtIds.includes(courtId)
@@ -316,7 +317,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                 <Label className="text-sm font-medium">Quick Date Filters</Label>
                 <div className="flex flex-wrap gap-2">
                     <Button
-                        onClick={() => handleQuickDateFilter(1)}
+                        onClick={() => handleQuickDateFilter('today')}
                         size="sm"
                         variant="outline"
                         className="text-xs"
@@ -324,7 +325,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                         📅 Today
                     </Button>
                     <Button
-                        onClick={() => handleQuickDateFilter(7)}
+                        onClick={() => handleQuickDateFilter('week')}
                         size="sm"
                         variant="outline"
                         className="text-xs"
@@ -332,7 +333,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                         📅 This Week
                     </Button>
                     <Button
-                        onClick={() => handleQuickDateFilter(30)}
+                        onClick={() => handleQuickDateFilter('month')}
                         size="sm"
                         variant="outline"
                         className="text-xs"
@@ -426,12 +427,24 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
 
                 {/* Court Filters */}
                 <div className="space-y-2">
-                    <Label>Courts</Label>
+                    <div className="flex items-center justify-between">
+                        <Label>Courts</Label>
+                        {courts.length > 5 && (
+                            <div className="relative w-48">
+                                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3" />
+                                <Input
+                                    placeholder="Search courts..."
+                                    className="pl-7 h-7 text-xs"
+                                    onChange={(e) => setCourtSearchQuery(e.target.value)}
+                                />
+                            </div>
+                        )}
+                    </div>
                     {courtsLoading ? (
                         <div className="text-sm text-gray-500">Loading courts...</div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-40 overflow-y-auto">
-                            {courts.map(court => (
+                            {filteredCourts.map(court => (
                                 <div key={court.id} className="flex items-center space-x-2">
                                     <Checkbox
                                         id={`court-${court.id}`}
