@@ -27,6 +27,7 @@ const AdminDashboard = () => {
     totalUsers: 0,
     pendingPayments: 0,
     pendingBookings: 0,
+    confirmedBookings: 0,
     monthlyGrowth: 12.5
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -76,12 +77,13 @@ const AdminDashboard = () => {
         // Update state with real data
         setRecentBookings(formattedBookings);
         setDashboardStats({
-          totalRevenue: statsResponse.totalRevenue || 0,
-          todayBookings: bookings.length || 0,
+          totalRevenue: statsResponse.totalRevenue || statsResponse.confirmedRevenue || 0,
+          todayBookings: statsResponse.totalBookings || bookings.length || 0,
           activeCourts: 12, // Keep static for now
           totalUsers: usersResponse?.length || 0,
           pendingPayments: statsResponse.pendingBookings || 0,
           pendingBookings: statsResponse.pendingBookings || 0,
+          confirmedBookings: statsResponse.confirmedBookings || 0,
           monthlyGrowth: 12.5 // Keep static for now
         });
         
@@ -166,30 +168,31 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Revenue"
-          value={`$${dashboardStats.totalRevenue.toLocaleString()}`}
+          value={`﷼${dashboardStats.totalRevenue.toLocaleString()}`}
           change={dashboardStats.monthlyGrowth}
           icon={DollarSign}
           color="bg-green-500"
         />
         <StatCard
-          title="Recent Bookings"
+          title="Total Bookings"
           value={dashboardStats.todayBookings}
-          change={8.2}
+          change={null}
           icon={Calendar}
           color="bg-blue-500"
         />
         <StatCard
-          title="Active Courts"
-          value={dashboardStats.activeCourts}
-          icon={MapPin}
-          color="bg-purple-500"
+          title="Approved"
+          value={dashboardStats.confirmedBookings}
+          change={null}
+          icon={Activity}
+          color="bg-green-500"
         />
         <StatCard
-          title="Total Users"
-          value={dashboardStats.totalUsers.toLocaleString()}
-          change={3.4}
-          icon={Users}
-          color="bg-orange-500"
+          title="Pending"
+          value={dashboardStats.pendingBookings}
+          change={null}
+          icon={Clock}
+          color="bg-yellow-500"
         />
       </div>
 
