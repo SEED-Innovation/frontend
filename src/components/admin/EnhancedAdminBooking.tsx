@@ -262,8 +262,23 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                                                     <TableCell className="py-8">
                                                         <div className="flex items-center space-x-4">
                                                             <div className="relative">
-                                                                <div className="w-16 h-16 bg-gradient-to-br from-primary to-admin-accent rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
-                                                                    {booking.user?.fullName?.charAt(0) || booking.user?.email?.charAt(0) || 'U'}
+                                                                <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-lg">
+                                                                    {booking.user?.profilePictureUrl ? (
+                                                                        <img 
+                                                                            src={booking.user.profilePictureUrl} 
+                                                                            alt={`${booking.user.fullName || 'User'} profile`}
+                                                                            className="h-full w-full object-cover"
+                                                                            onError={(e) => {
+                                                                                const target = e.target as HTMLImageElement;
+                                                                                target.style.display = 'none';
+                                                                                const fallback = target.parentElement?.querySelector('.fallback-avatar');
+                                                                                if (fallback) fallback.classList.remove('hidden');
+                                                                            }}
+                                                                        />
+                                                                    ) : null}
+                                                                    <div className={`w-full h-full bg-gradient-to-br from-primary to-admin-accent rounded-2xl flex items-center justify-center text-white font-bold text-xl fallback-avatar ${booking.user?.profilePictureUrl ? 'hidden' : ''}`}>
+                                                                        {booking.user?.fullName?.charAt(0) || booking.user?.email?.charAt(0) || 'U'}
+                                                                    </div>
                                                                 </div>
                                                                 <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-admin-accent rounded-full flex items-center justify-center">
                                                                     <Users className="w-3 h-3 text-white" />
@@ -286,9 +301,24 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                                                     
                                                     <TableCell className="py-8">
                                                         <div className="space-y-3">
-                                                            <div className="flex items-center space-x-2">
-                                                                <div className="p-2 bg-primary/10 rounded-lg">
-                                                                    <Building2 className="w-4 h-4 text-primary" />
+                                                            <div className="flex items-center space-x-3">
+                                                                <div className="w-12 h-12 rounded-lg overflow-hidden">
+                                                                    {booking.court?.imageUrl ? (
+                                                                        <img 
+                                                                            src={booking.court.imageUrl} 
+                                                                            alt={`${booking.court.name} court`}
+                                                                            className="h-full w-full object-cover"
+                                                                            onError={(e) => {
+                                                                                const target = e.target as HTMLImageElement;
+                                                                                target.style.display = 'none';
+                                                                                const fallback = target.parentElement?.querySelector('.fallback-court');
+                                                                                if (fallback) fallback.classList.remove('hidden');
+                                                                            }}
+                                                                        />
+                                                                    ) : null}
+                                                                    <div className={`w-full h-full bg-primary/10 rounded-lg flex items-center justify-center fallback-court ${booking.court?.imageUrl ? 'hidden' : ''}`}>
+                                                                        <Building2 className="w-4 h-4 text-primary" />
+                                                                    </div>
                                                                 </div>
                                                                 <p className="font-bold text-foreground text-lg">{booking.court?.name}</p>
                                                             </div>

@@ -534,18 +534,35 @@ const loadCourts = async () => {
                                             />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {filteredUsers.length === 0 ? (
+                                             {filteredUsers.length === 0 ? (
                                                 <SelectItem value="no-users" disabled>
                                                     {usersLoading ? "Loading..." : "No users found"}
                                                 </SelectItem>
                                             ) : (
                                                 filteredUsers.map((user) => (
                                                     <SelectItem key={user.id} value={user.id.toString()}>
-                                                        <div className="flex items-center space-x-2">
-                                                            <User className="w-4 h-4 text-gray-400" />
-                                                            <div className="flex flex-col">
-                                                                <span className="font-medium">{user.fullName}</span>
-                                                                <span className="text-xs text-gray-500">{user.email}</span>
+                                                        <div className="flex items-center space-x-3">
+                                                            <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                                                                {user.profilePictureUrl ? (
+                                                                    <img 
+                                                                        src={user.profilePictureUrl} 
+                                                                        alt={`${user.fullName || 'User'} profile`}
+                                                                        className="h-full w-full object-cover"
+                                                                        onError={(e) => {
+                                                                            const target = e.target as HTMLImageElement;
+                                                                            target.style.display = 'none';
+                                                                            const fallback = target.parentElement?.querySelector('.fallback-icon');
+                                                                            if (fallback) fallback.classList.remove('hidden');
+                                                                        }}
+                                                                    />
+                                                                ) : null}
+                                                                <div className={`w-full h-full bg-muted rounded-full flex items-center justify-center fallback-icon ${user.profilePictureUrl ? 'hidden' : ''}`}>
+                                                                    <User className="w-4 h-4 text-gray-400" />
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex flex-col flex-1 min-w-0">
+                                                                <span className="font-medium truncate">{user.fullName}</span>
+                                                                <span className="text-xs text-gray-500 truncate">{user.email}</span>
                                                             </div>
                                                         </div>
                                                     </SelectItem>
@@ -579,9 +596,29 @@ const loadCourts = async () => {
                                     <SelectContent>
                                         {courts.map((court) => (
                                             <SelectItem key={court.id} value={court.id.toString()}>
-                                                <div className="flex items-center space-x-2">
-                                                    <MapPin className="w-4 h-4 text-gray-400" />
-                                                    <span>{court.name} - {court.location} (${court.hourlyFee}/hr)</span>
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="w-8 h-8 rounded-md overflow-hidden flex-shrink-0">
+                                                        {court.imageUrl ? (
+                                                            <img 
+                                                                src={court.imageUrl} 
+                                                                alt={`${court.name} court`}
+                                                                className="h-full w-full object-cover"
+                                                                onError={(e) => {
+                                                                    const target = e.target as HTMLImageElement;
+                                                                    target.style.display = 'none';
+                                                                    const fallback = target.parentElement?.querySelector('.fallback-icon');
+                                                                    if (fallback) fallback.classList.remove('hidden');
+                                                                }}
+                                                            />
+                                                        ) : null}
+                                                        <div className={`w-full h-full bg-muted rounded-md flex items-center justify-center fallback-icon ${court.imageUrl ? 'hidden' : ''}`}>
+                                                            <MapPin className="w-4 h-4 text-gray-400" />
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="font-medium truncate">{court.name}</div>
+                                                        <div className="text-xs text-gray-500 truncate">{court.location} - ${court.hourlyFee}/hr</div>
+                                                    </div>
                                                 </div>
                                             </SelectItem>
                                         ))}
