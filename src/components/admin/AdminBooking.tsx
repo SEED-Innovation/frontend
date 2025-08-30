@@ -1395,20 +1395,20 @@ const renderManageView = () => (
                                                 {/* Booking & User Column */}
                                                 <TableCell className="py-4">
                                                     <div className="flex items-start space-x-3">
-                                                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                                                            {booking.user.fullName.split(' ').map(n => n[0]).join('').toUpperCase()}
-                                                        </div>
-                                                        <div className="min-w-0 flex-1">
-                                                            <p className="font-medium text-gray-900 truncate">
-                                                                {booking.user.fullName}
-                                                            </p>
-                                                            <p className="text-sm text-gray-500 truncate">
-                                                                {booking.user.email}
-                                                            </p>
-                                                            <p className="text-xs text-gray-400 mt-1">
-                                                                Booking #{booking.id}
-                                                            </p>
-                                                        </div>
+                                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                                            {booking.user.fullName ? booking.user.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : booking.user.email ? booking.user.email[0].toUpperCase() : 'U'}
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="font-medium text-gray-900 truncate">
+                                                {booking.user.fullName || booking.user.email || 'Unknown User'}
+                                            </p>
+                                            <p className="text-sm text-gray-500 truncate">
+                                                {booking.user.email}
+                                            </p>
+                                            <p className="text-xs text-gray-400 mt-1">
+                                                Booking #{booking.id}
+                                            </p>
+                                        </div>
                                                     </div>
                                                 </TableCell>
 
@@ -1421,19 +1421,19 @@ const renderManageView = () => (
                                                         <p className="text-sm text-gray-600">
                                                             {formatDateTime(booking.startTime)}
                                                         </p>
-                                                        <p className="text-sm text-gray-500">
-                                                            {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
-                                                        </p>
-                                                        <div className="flex items-center space-x-2 mt-1">
-                                                            <Badge variant="outline" className="text-xs">
-                                                                {booking.matchType || 'SINGLE'}
-                                                            </Badge>
-                                                            {isSaudiWeekend && (
-                                                                <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-700">
-                                                                    {dayOfWeek === 5 ? 'Friday' : 'Saturday'}
-                                                                </Badge>
-                                                            )}
-                                                        </div>
+                                        <div className="text-sm text-gray-500">
+                                            {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
+                                        </div>
+                                        <div className="flex items-center space-x-2 mt-1">
+                                            <Badge variant="outline" className="text-xs">
+                                                {booking.matchType || 'SINGLE'}
+                                            </Badge>
+                                            {isSaudiWeekend && (
+                                                <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-700">
+                                                    {dayOfWeek === 5 ? 'Friday' : 'Saturday'}
+                                                </Badge>
+                                            )}
+                                        </div>
                                                     </div>
                                                 </TableCell>
 
