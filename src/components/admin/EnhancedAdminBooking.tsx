@@ -166,7 +166,29 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                                     <SelectItem value="all">All Courts</SelectItem>
                                     {courts.map((court) => (
                                         <SelectItem key={court.id} value={court.id.toString()}>
-                                            {court.name}
+                                            <div className="flex items-center space-x-3 py-1">
+                                                <div className="relative w-8 h-8 rounded-md overflow-hidden bg-muted flex-shrink-0">
+                                                    {court.imageUrl ? (
+                                                        <img 
+                                                            src={court.imageUrl} 
+                                                            alt={court.name}
+                                                            className="w-full h-full object-cover"
+                                                             onError={(e) => {
+                                                                 e.currentTarget.style.display = 'none';
+                                                                 const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                                                                 if (fallback) fallback.style.display = 'flex';
+                                                             }}
+                                                        />
+                                                    ) : null}
+                                                    <div className={`absolute inset-0 flex items-center justify-center ${court.imageUrl ? 'hidden' : 'flex'}`}>
+                                                        <MapPin className="w-4 h-4 text-muted-foreground" />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium">{court.name}</p>
+                                                    <p className="text-xs text-muted-foreground">{court.location}</p>
+                                                </div>
+                                            </div>
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
