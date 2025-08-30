@@ -23,6 +23,8 @@ import { formatDateTime, formatPrice, calculateDuration } from '@/utils';
 import { getStatusColor, getStatusIcon, getPaymentStatusColor } from '@/utils/bookingUtils';
 import { bookingService } from '@/services/bookingService';
 import { userService } from '@/services/userService';
+import { courtService } from '@/services';
+import { adaptCourts } from '@/utils/courtAdapter';
 
 interface AdminBookingProps {
     className?: string;
@@ -52,11 +54,12 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
         setError(null);
 
         try {
-            // Load bookings, stats, and users concurrently
-            const [bookingsResponse, statsResponse, usersResponse] = await Promise.all([
+            // Load bookings, stats, users, and courts concurrently
+            const [bookingsResponse, statsResponse, usersResponse, courtsResponse] = await Promise.all([
                 bookingService.getAdminBookings({}),
                 bookingService.getBookingStats(),
-                userService.getAllUsers()
+                userService.getAllUsers(),
+                courtService.getAllCourts()
             ]);
 
             console.log('✅ REAL Bookings loaded:', bookingsResponse);
@@ -71,17 +74,16 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
 
             console.log('✅ REAL Stats loaded:', statsResponse);
             console.log('✅ REAL Users loaded:', usersResponse);
+            console.log('✅ REAL Courts loaded:', courtsResponse);
+
+            // Adapt courts to the expected format
+            const adaptedCourts = adaptCourts(courtsResponse || []);
+            console.log('✅ Adapted courts:', adaptedCourts);
 
             setBookings(bookingsArray);
             setStats(statsResponse || {});
             setAllUsers(usersResponse || []);
-
-            // Mock courts data - replace with actual court service call
-            setCourts([
-                { id: 1, name: 'Court 1', hourlyFee: 100 },
-                { id: 2, name: 'Court 2', hourlyFee: 120 },
-                { id: 3, name: 'Court 3', hourlyFee: 150 }
-            ]);
+            setCourts(adaptedCourts);
 
         } catch (err) {
             console.error('❌ Error loading admin booking data:', err);
