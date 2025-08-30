@@ -35,7 +35,6 @@ export const CurrencyDisplay: React.FC<CurrencyDisplayProps> = ({
       sizeClasses[size],
       className
     )}>
-      <span>{amount.toFixed(2)}</span>
       {showSymbol && (
         <img 
           src={sarSymbol} 
@@ -43,6 +42,7 @@ export const CurrencyDisplay: React.FC<CurrencyDisplayProps> = ({
           className={cn("inline-block", symbolSizeClasses[size])}
         />
       )}
+      <span>{amount.toFixed(2)}</span>
     </div>
   );
 };
