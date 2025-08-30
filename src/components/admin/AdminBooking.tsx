@@ -152,45 +152,45 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
         <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-admin-primary to-admin-accent p-8 text-white shadow-xl mb-8"
+            className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-admin-primary to-admin-accent p-6 text-white shadow-lg mb-6"
         >
             <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent" />
-            <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-white/10 to-transparent rounded-full -translate-y-48 translate-x-48" />
+            <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-white/10 to-transparent rounded-full -translate-y-40 translate-x-40" />
             
             <div className="relative z-10 flex items-center justify-between">
-                <div className="space-y-4">
-                    <div className="flex items-center space-x-4">
-                        <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm">
-                            <Crown className="w-8 h-8 text-yellow-300" />
+                <div className="space-y-3">
+                    <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+                            <Crown className="w-6 h-6 text-yellow-300" />
                         </div>
                         <div>
-                            <h1 className="text-4xl font-bold mb-2">Advanced Booking Management</h1>
-                            <p className="text-blue-100 text-lg font-medium">Complete Tennis Court Administration System</p>
+                            <h1 className="text-3xl font-bold mb-1">Advanced Booking Management</h1>
+                            <p className="text-blue-100 text-base font-medium">Complete Tennis Court Administration System</p>
                         </div>
                     </div>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-2 gap-4">
                     <motion.div 
                         whileHover={{ scale: 1.05 }}
-                        className="text-center p-4 bg-white/10 rounded-2xl backdrop-blur-sm border border-white/20"
+                        className="text-center p-3 bg-white/10 rounded-xl backdrop-blur-sm border border-white/20"
                     >
-                        <div className="flex items-center justify-center mb-2">
-                            <Activity className="w-6 h-6 text-blue-300 mr-2" />
-                            <p className="text-3xl font-bold text-white">{bookings.length}</p>
+                        <div className="flex items-center justify-center mb-1">
+                            <Activity className="w-5 h-5 text-blue-300 mr-2" />
+                            <p className="text-2xl font-bold text-white">{bookings.length}</p>
                         </div>
-                        <p className="text-sm text-blue-200 font-medium">Total Bookings</p>
+                        <p className="text-xs text-blue-200 font-medium">Total Bookings</p>
                     </motion.div>
                     
                     <motion.div 
                         whileHover={{ scale: 1.05 }}
-                        className="text-center p-4 bg-white/10 rounded-2xl backdrop-blur-sm border border-white/20"
+                        className="text-center p-3 bg-white/10 rounded-xl backdrop-blur-sm border border-white/20"
                     >
-                        <div className="flex items-center justify-center mb-2">
-                            <Clock className="w-6 h-6 text-yellow-300 mr-2" />
-                            <p className="text-3xl font-bold text-white">{stats.pending || 0}</p>
+                        <div className="flex items-center justify-center mb-1">
+                            <Clock className="w-5 h-5 text-yellow-300 mr-2" />
+                            <p className="text-2xl font-bold text-white">{stats.pending || 0}</p>
                         </div>
-                        <p className="text-sm text-yellow-200 font-medium">Pending Review</p>
+                        <p className="text-xs text-yellow-200 font-medium">Pending Review</p>
                     </motion.div>
                 </div>
             </div>
@@ -199,51 +199,51 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
 
     const renderNavigationTabs = () => (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <Tabs value={currentView} onValueChange={(value: any) => setCurrentView(value)} className="space-y-8">
-                <TabsList className="grid w-full grid-cols-4 p-2 bg-gradient-to-r from-admin-surface to-admin-secondary border-2 border-border rounded-2xl h-16">
+            <Tabs value={currentView} onValueChange={(value: any) => setCurrentView(value)} className="space-y-6">
+                <TabsList className="grid w-full grid-cols-4 p-1.5 bg-gradient-to-r from-admin-surface to-admin-secondary border-2 border-border rounded-xl h-12">
                     <TabsTrigger 
                         value="manage" 
-                        className="flex items-center space-x-3 h-12 rounded-xl font-semibold text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg transition-all duration-200"
+                        className="flex items-center space-x-2 h-9 rounded-lg font-medium text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
                     >
-                        <Users className="w-5 h-5" />
+                        <Users className="w-4 h-4" />
                         <span>Manage Bookings</span>
                     </TabsTrigger>
                     <TabsTrigger 
                         value="analytics" 
-                        className="flex items-center space-x-3 h-12 rounded-xl font-semibold text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg transition-all duration-200"
+                        className="flex items-center space-x-2 h-9 rounded-lg font-medium text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
                     >
-                        <TrendingUp className="w-5 h-5" />
+                        <TrendingUp className="w-4 h-4" />
                         <span>Analytics</span>
                     </TabsTrigger>
                     <TabsTrigger 
                         value="dashboard" 
-                        className="flex items-center space-x-3 h-12 rounded-xl font-semibold text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg transition-all duration-200"
+                        className="flex items-center space-x-2 h-9 rounded-lg font-medium text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
                     >
-                        <BarChart3 className="w-5 h-5" />
+                        <BarChart3 className="w-4 h-4" />
                         <span>Dashboard</span>
                     </TabsTrigger>
                     <TabsTrigger 
                         value="settings" 
-                        className="flex items-center space-x-3 h-12 rounded-xl font-semibold text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg transition-all duration-200"
+                        className="flex items-center space-x-2 h-9 rounded-lg font-medium text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
                     >
-                        <Settings className="w-5 h-5" />
+                        <Settings className="w-4 h-4" />
                         <span>Settings</span>
                     </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="manage" className="space-y-8">
+                <TabsContent value="manage" className="space-y-6">
                     {renderManageView()}
                 </TabsContent>
 
-                <TabsContent value="analytics" className="space-y-8">
+                <TabsContent value="analytics" className="space-y-6">
                     {renderAnalyticsView()}
                 </TabsContent>
 
-                <TabsContent value="dashboard" className="space-y-8">
+                <TabsContent value="dashboard" className="space-y-6">
                     {renderDashboardView()}
                 </TabsContent>
 
-                <TabsContent value="settings" className="space-y-8">
+                <TabsContent value="settings" className="space-y-6">
                     {renderSettingsView()}
                 </TabsContent>
             </Tabs>
@@ -251,30 +251,30 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
     );
 
     const renderManageView = () => (
-        <div className="space-y-8">
+        <div className="space-y-6">
             {/* Action Bar with Manual Booking */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                <Card className="border-0 shadow-xl bg-card/80 backdrop-blur-sm">
-                    <CardHeader className="pb-4">
+                <Card className="border-0 shadow-lg bg-card/80 backdrop-blur-sm">
+                    <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
-                            <CardTitle className="flex items-center text-2xl font-bold text-foreground">
-                                <PlusCircle className="w-7 h-7 mr-3 text-primary" />
+                            <CardTitle className="flex items-center text-xl font-bold text-foreground">
+                                <PlusCircle className="w-6 h-6 mr-2 text-primary" />
                                 Booking Actions & Tools
                             </CardTitle>
-                            <Badge className="px-6 py-2 text-base bg-primary/10 text-primary border-primary/20 font-semibold">
+                            <Badge className="px-4 py-1 text-sm bg-primary/10 text-primary border-primary/20 font-medium">
                                 Professional Tools
                             </Badge>
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             {/* Manual Booking Creation */}
                             <ManualBookingForm
                                 onBookingCreated={handleBookingCreated}
                                 triggerButton={
-                                    <Button className="w-full h-16 bg-gradient-to-r from-primary to-admin-accent hover:from-primary/90 hover:to-admin-accent/90 text-primary-foreground font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 group">
-                                        <div className="flex flex-col items-center space-y-2">
-                                            <PlusCircle className="w-6 h-6 group-hover:scale-110 transition-transform duration-200" />
+                                    <Button className="w-full h-12 bg-gradient-to-r from-primary to-admin-accent hover:from-primary/90 hover:to-admin-accent/90 text-primary-foreground font-medium text-base rounded-lg shadow-md hover:shadow-lg transition-all duration-200 group">
+                                        <div className="flex flex-col items-center space-y-1">
+                                            <PlusCircle className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
                                             <span>Create Manual Booking</span>
                                         </div>
                                     </Button>
@@ -284,10 +284,10 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                             {/* Export Data */}
                             <Button 
                                 variant="outline" 
-                                className="w-full h-16 border-2 border-admin-accent/30 hover:border-admin-accent hover:bg-admin-accent/5 font-bold text-lg rounded-xl group"
+                                className="w-full h-12 border-2 border-admin-accent/30 hover:border-admin-accent hover:bg-admin-accent/5 font-medium text-base rounded-lg group"
                             >
-                                <div className="flex flex-col items-center space-y-2">
-                                    <Download className="w-6 h-6 text-admin-accent group-hover:scale-110 transition-transform duration-200" />
+                                <div className="flex flex-col items-center space-y-1">
+                                    <Download className="w-5 h-5 text-admin-accent group-hover:scale-110 transition-transform duration-200" />
                                     <span className="text-admin-accent">Export Bookings</span>
                                 </div>
                             </Button>
@@ -296,22 +296,22 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                             <Button 
                                 onClick={loadData}
                                 variant="outline" 
-                                className="w-full h-16 border-2 border-status-info/30 hover:border-status-info hover:bg-status-info/5 font-bold text-lg rounded-xl group"
+                                className="w-full h-12 border-2 border-status-info/30 hover:border-status-info hover:bg-status-info/5 font-medium text-base rounded-lg group"
                             >
-                                <div className="flex flex-col items-center space-y-2">
-                                    <RefreshCw className="w-6 h-6 text-status-info group-hover:scale-110 transition-transform duration-200" />
+                                <div className="flex flex-col items-center space-y-1">
+                                    <RefreshCw className="w-5 h-5 text-status-info group-hover:scale-110 transition-transform duration-200" />
                                     <span className="text-status-info">Refresh Data</span>
                                 </div>
                             </Button>
 
                             {/* Quick Stats */}
-                            <div className="p-4 bg-gradient-to-br from-admin-surface to-admin-secondary rounded-xl border border-border">
-                                <div className="text-center space-y-2">
+                            <div className="p-3 bg-gradient-to-br from-admin-surface to-admin-secondary rounded-lg border border-border">
+                                <div className="text-center space-y-1">
                                     <div className="flex items-center justify-center">
-                                        <Award className="w-6 h-6 text-primary mr-2" />
-                                        <span className="text-2xl font-bold text-foreground">{allUsers.length}</span>
+                                        <Award className="w-5 h-5 text-primary mr-2" />
+                                        <span className="text-xl font-bold text-foreground">{allUsers.length}</span>
                                     </div>
-                                    <p className="text-sm text-muted-foreground font-medium">Total Users</p>
+                                    <p className="text-xs text-muted-foreground font-medium">Total Users</p>
                                 </div>
                             </div>
                         </div>
