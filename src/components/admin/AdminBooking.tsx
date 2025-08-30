@@ -23,6 +23,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
     ClipboardList,
     BarChart3,
@@ -52,7 +54,15 @@ import {
     ChevronsRight,
     Edit,
     MoreHorizontal,
-    Trash2
+    Trash2,
+    MapPin,
+    Mail,
+    Phone,
+    ArrowUpDown,
+    MoreVertical,
+    Sparkles,
+    Zap,
+    Crown
 } from 'lucide-react';
 
 // Import our components
