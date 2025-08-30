@@ -72,7 +72,13 @@ export const calculateTotalPrice = (start: string, end: string, hourlyRate: numb
 };
 
 export const formatPrice = (amount: number, currency: string = 'SAR'): string => {
+    // Using the new Saudi Riyal symbol
     return `${amount.toFixed(2)} ${currency}`;
+};
+
+export const formatPriceWithSymbol = (amount: number): string => {
+    // Format with new SAR symbol - will be displayed with the symbol image
+    return `${amount.toFixed(2)}`;
 };
 
 // ================================
