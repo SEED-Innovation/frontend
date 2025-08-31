@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { EnhancedAdminBooking } from './EnhancedAdminBooking';
 import ManualBookingForm from './ManualBookingForm';
+import BookingAnalyticsCharts from './BookingAnalyticsCharts';
 import { CurrencyDisplay } from '@/components/ui/currency-display';
 import {
     ClipboardList, BarChart3, CheckCircle, Clock, XCircle, AlertTriangle,
@@ -190,7 +191,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                     >
                         <div className="flex items-center justify-center mb-1">
                             <Clock className="w-5 h-5 text-yellow-300 mr-2" />
-                            <p className="text-2xl font-bold text-white">{stats.pending || 0}</p>
+                            <p className="text-2xl font-bold text-white">{stats?.summary?.pendingBookings || 0}</p>
                         </div>
                         <p className="text-xs text-yellow-200 font-medium">Pending Review</p>
                     </motion.div>
@@ -270,7 +271,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                         </Badge>
                         <Badge className="px-3 py-1 bg-status-warning/10 text-status-warning border-status-warning/20 font-medium">
                             <Clock className="w-3 h-3 mr-1" />
-                            {stats.pending || 0} Pending
+                            {stats?.summary?.pendingBookings || 0} Pending
                         </Badge>
                     </div>
                     
@@ -383,50 +384,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
 
     const renderAnalyticsView = () => (
         <div className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Revenue Analytics */}
-                <Card className="border-0 shadow-xl bg-card/90 backdrop-blur-sm">
-                    <CardHeader>
-                        <CardTitle className="flex items-center text-2xl font-bold">
-                            <DollarSign className="w-7 h-7 mr-3 text-admin-accent" />
-                            Revenue Analytics
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="text-center">
-                            <div className="text-4xl font-bold text-admin-accent mb-2">
-                                <CurrencyDisplay amount={stats.totalRevenue || 0} size="xl" />
-                            </div>
-                            <p className="text-muted-foreground">Total Revenue</p>
-                            <div className="mt-4 text-sm text-muted-foreground">
-                                <p>From {stats.approved || 0} approved bookings</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Booking Stats */}
-                <Card className="border-0 shadow-xl bg-card/90 backdrop-blur-sm">
-                    <CardHeader>
-                        <CardTitle className="flex items-center text-2xl font-bold">
-                            <Activity className="w-7 h-7 mr-3 text-primary" />
-                            Booking Statistics
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="grid grid-cols-2 gap-6">
-                            <div className="text-center p-4 bg-status-success/10 rounded-xl">
-                                <div className="text-3xl font-bold text-status-success mb-2">{stats.approved || 0}</div>
-                                <p className="text-sm text-muted-foreground">Approved</p>
-                            </div>
-                            <div className="text-center p-4 bg-status-pending/10 rounded-xl">
-                                <div className="text-3xl font-bold text-status-pending mb-2">{stats.pending || 0}</div>
-                                <p className="text-sm text-muted-foreground">Pending</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+            <BookingAnalyticsCharts stats={stats} bookings={bookings} />
         </div>
     );
 
@@ -453,7 +411,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-medium text-muted-foreground">Pending</p>
-                                <p className="text-3xl font-bold text-status-pending">{stats.pending || 0}</p>
+                                <p className="text-3xl font-bold text-status-pending">{stats?.summary?.pendingBookings || 0}</p>
                             </div>
                             <div className="p-3 bg-status-pending/20 rounded-xl">
                                 <Clock className="w-6 h-6 text-status-pending" />
@@ -467,7 +425,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-medium text-muted-foreground">Approved</p>
-                                <p className="text-3xl font-bold text-status-success">{stats.approved || 0}</p>
+                                <p className="text-3xl font-bold text-status-success">{stats?.summary?.confirmedBookings || 0}</p>
                             </div>
                             <div className="p-3 bg-status-success/20 rounded-xl">
                                 <CheckCircle className="w-6 h-6 text-status-success" />
@@ -482,7 +440,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                             <div>
                                 <p className="text-sm font-medium text-muted-foreground">Revenue</p>
                                 <div className="text-2xl font-bold text-foreground">
-                                    <CurrencyDisplay amount={stats.totalRevenue || 0} size="lg" />
+                                    <CurrencyDisplay amount={stats?.summary?.totalRevenue || 0} size="lg" />
                                 </div>
                             </div>
                             <div className="p-3 bg-admin-accent/20 rounded-xl">
