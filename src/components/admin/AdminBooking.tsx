@@ -9,16 +9,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
 import { EnhancedAdminBooking } from './EnhancedAdminBooking';
 import ManualBookingForm from './ManualBookingForm';
 import BookingAnalyticsCharts from './BookingAnalyticsCharts';
 import { CurrencyDisplay } from '@/components/ui/currency-display';
 import {
     ClipboardList, BarChart3, CheckCircle, Clock, XCircle, AlertTriangle,
-    Search, Settings, TrendingUp, DollarSign, Calendar, Filter, Plus,
+    Search, Settings, TrendingUp, Calendar, Filter, Plus,
     Download, RefreshCw, Eye, Users, FileText, Activity, FileSpreadsheet,
     CalendarRange, User, MapPin, Mail, Phone, Building, Award, Crown,
-    Sparkles, Zap, PlusCircle
+    Sparkles, Zap, PlusCircle, PieChart as PieChartIcon
 } from 'lucide-react';
 import { formatDateTime, formatPrice, calculateDuration } from '@/utils';
 import { getStatusColor, getStatusIcon, getPaymentStatusColor } from '@/utils/bookingUtils';
@@ -330,70 +331,190 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
         </div>
     );
 
-    const renderDashboardView = () => (
-        <div className="space-y-8">
-            {/* Quick Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card className="border-0 shadow-lg bg-gradient-to-br from-primary/5 to-primary/10 hover:shadow-xl transition-shadow duration-200">
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-muted-foreground">Total Bookings</p>
-                                <p className="text-3xl font-bold text-foreground">{bookings.length}</p>
-                            </div>
-                            <div className="p-3 bg-primary/20 rounded-xl">
-                                <Activity className="w-6 h-6 text-primary" />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+    const renderDashboardView = () => {
+        // Prepare data for the big sector chart
+        const sectorChartData = [
+            { 
+                name: 'Confirmed Bookings', 
+                value: stats?.confirmedBookings || 0, 
+                color: 'hsl(var(--status-success))',
+                percentage: ((stats?.confirmedBookings || 0) / (stats?.totalBookings || 1) * 100).toFixed(1)
+            },
+            { 
+                name: 'Pending Bookings', 
+                value: stats?.pendingBookings || 0, 
+                color: 'hsl(var(--status-warning))',
+                percentage: ((stats?.pendingBookings || 0) / (stats?.totalBookings || 1) * 100).toFixed(1)
+            },
+            { 
+                name: 'Cancelled Bookings', 
+                value: stats?.cancelledBookings || 0, 
+                color: 'hsl(var(--status-error))',
+                percentage: ((stats?.cancelledBookings || 0) / (stats?.totalBookings || 1) * 100).toFixed(1)
+            },
+        ].filter(item => item.value > 0);
 
-                <Card className="border-0 shadow-lg bg-gradient-to-br from-status-pending/5 to-status-pending/10 hover:shadow-xl transition-shadow duration-200">
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-muted-foreground">Pending</p>
-                                <p className="text-3xl font-bold text-status-pending">{stats?.pendingBookings || 0}</p>
-                            </div>
-                            <div className="p-3 bg-status-pending/20 rounded-xl">
-                                <Clock className="w-6 h-6 text-status-pending" />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="border-0 shadow-lg bg-gradient-to-br from-status-success/5 to-status-success/10 hover:shadow-xl transition-shadow duration-200">
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-muted-foreground">Approved</p>
-                                <p className="text-3xl font-bold text-status-success">{stats?.confirmedBookings || 0}</p>
-                            </div>
-                            <div className="p-3 bg-status-success/20 rounded-xl">
-                                <CheckCircle className="w-6 h-6 text-status-success" />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="border-0 shadow-lg bg-gradient-to-br from-admin-accent/5 to-admin-accent/10 hover:shadow-xl transition-shadow duration-200">
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-muted-foreground">Revenue</p>
-                                <div className="text-2xl font-bold text-foreground">
-                                    <CurrencyDisplay amount={stats?.totalRevenue || 0} size="lg" />
+        return (
+            <div className="space-y-8">
+                {/* Quick Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <Card className="border-0 shadow-lg bg-gradient-to-br from-primary/5 to-primary/10 hover:shadow-xl transition-shadow duration-200">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Total Bookings</p>
+                                    <p className="text-3xl font-bold text-foreground">{stats?.totalBookings || 0}</p>
+                                </div>
+                                <div className="p-3 bg-primary/20 rounded-xl">
+                                    <Activity className="w-6 h-6 text-primary" />
                                 </div>
                             </div>
-                            <div className="p-3 bg-admin-accent/20 rounded-xl">
-                                <DollarSign className="w-6 h-6 text-admin-accent" />
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border-0 shadow-lg bg-gradient-to-br from-status-pending/5 to-status-pending/10 hover:shadow-xl transition-shadow duration-200">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Pending</p>
+                                    <p className="text-3xl font-bold text-status-pending">{stats?.pendingBookings || 0}</p>
+                                </div>
+                                <div className="p-3 bg-status-pending/20 rounded-xl">
+                                    <Clock className="w-6 h-6 text-status-pending" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border-0 shadow-lg bg-gradient-to-br from-status-success/5 to-status-success/10 hover:shadow-xl transition-shadow duration-200">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Confirmed</p>
+                                    <p className="text-3xl font-bold text-status-success">{stats?.confirmedBookings || 0}</p>
+                                </div>
+                                <div className="p-3 bg-status-success/20 rounded-xl">
+                                    <CheckCircle className="w-6 h-6 text-status-success" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border-0 shadow-lg bg-gradient-to-br from-admin-accent/5 to-admin-accent/10 hover:shadow-xl transition-shadow duration-200">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Revenue</p>
+                                    <div className="text-2xl font-bold text-foreground">
+                                        <CurrencyDisplay amount={stats?.totalRevenue || 0} size="lg" />
+                                    </div>
+                                </div>
+                                <div className="p-3 bg-admin-accent/20 rounded-xl">
+                                    <TrendingUp className="w-6 h-6 text-admin-accent" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Big Sector Chart */}
+                <Card className="border-0 shadow-2xl bg-gradient-to-br from-card/95 to-card/90 backdrop-blur-sm">
+                    <CardHeader className="text-center pb-6">
+                        <CardTitle className="flex items-center justify-center text-3xl font-bold bg-gradient-to-r from-primary to-admin-accent bg-clip-text text-transparent">
+                            <PieChartIcon className="w-8 h-8 mr-4 text-primary" />
+                            Booking Status Overview
+                        </CardTitle>
+                        <p className="text-muted-foreground text-lg mt-2">Complete breakdown of all tennis court bookings</p>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                            {/* Large Pie Chart */}
+                            <div className="h-96 flex items-center justify-center">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={sectorChartData}
+                                            cx="50%"
+                                            cy="50%"
+                                            labelLine={false}
+                                            label={({ name, percentage }) => `${percentage}%`}
+                                            outerRadius={120}
+                                            innerRadius={40}
+                                            fill="#8884d8"
+                                            dataKey="value"
+                                            stroke="hsl(var(--background))"
+                                            strokeWidth={3}
+                                        >
+                                            {sectorChartData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip 
+                                            contentStyle={{
+                                                backgroundColor: 'hsl(var(--background))',
+                                                border: '1px solid hsl(var(--border))',
+                                                borderRadius: '12px',
+                                                boxShadow: '0 10px 40px -10px rgba(0,0,0,0.3)',
+                                            }}
+                                            formatter={(value: any, name: string) => [
+                                                `${value} bookings (${sectorChartData.find(d => d.name === name)?.percentage}%)`,
+                                                name
+                                            ]}
+                                        />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+
+                            {/* Legend and Details */}
+                            <div className="space-y-6">
+                                <div className="text-center lg:text-left">
+                                    <h3 className="text-2xl font-bold text-foreground mb-2">Booking Distribution</h3>
+                                    <p className="text-muted-foreground">Real-time analysis of your tennis court bookings</p>
+                                </div>
+                                
+                                <div className="space-y-4">
+                                    {sectorChartData.map((item, index) => (
+                                        <motion.div
+                                            key={index}
+                                            initial={{ opacity: 0, x: 20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: index * 0.1 }}
+                                            className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-background/50 to-background/30 border border-border/50 hover:border-border transition-all duration-200"
+                                        >
+                                            <div className="flex items-center space-x-3">
+                                                <div 
+                                                    className="w-4 h-4 rounded-full shadow-lg"
+                                                    style={{ backgroundColor: item.color }}
+                                                />
+                                                <span className="font-medium text-foreground">{item.name}</span>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-xl font-bold text-foreground">{item.value}</div>
+                                                <div className="text-sm text-muted-foreground">{item.percentage}%</div>
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                </div>
+
+                                {/* Quick Insights */}
+                                <div className="mt-6 p-4 bg-gradient-to-r from-primary/5 to-admin-accent/5 rounded-xl border border-primary/10">
+                                    <h4 className="font-semibold text-foreground mb-2 flex items-center">
+                                        <TrendingUp className="w-4 h-4 mr-2 text-primary" />
+                                        Quick Insights
+                                    </h4>
+                                    <div className="text-sm text-muted-foreground space-y-1">
+                                        <p>• Total revenue: <CurrencyDisplay amount={stats?.totalRevenue || 0} size="sm" /></p>
+                                        <p>• Success rate: {(((stats?.confirmedBookings || 0) / (stats?.totalBookings || 1)) * 100).toFixed(1)}%</p>
+                                        <p>• Pending attention: {stats?.pendingBookings || 0} bookings</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
             </div>
-        </div>
-    );
+        );
+    };
 
     const renderSettingsView = () => (
         <Card className="border-0 shadow-xl bg-card/90 backdrop-blur-sm">
