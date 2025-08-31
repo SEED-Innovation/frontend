@@ -191,7 +191,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                     >
                         <div className="flex items-center justify-center mb-1">
                             <Clock className="w-5 h-5 text-yellow-300 mr-2" />
-                            <p className="text-2xl font-bold text-white">{stats?.summary?.pendingBookings || 0}</p>
+                            <p className="text-2xl font-bold text-white">{stats?.pendingBookings || 0}</p>
                         </div>
                         <p className="text-xs text-yellow-200 font-medium">Pending Review</p>
                     </motion.div>
@@ -269,11 +269,11 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                         </Badge>
                         <Badge className="px-4 py-2 bg-status-warning/10 text-status-warning border-status-warning/20 font-medium text-sm">
                             <Clock className="w-4 h-4 mr-2" />
-                            {stats?.summary?.pendingBookings || 0} Pending
+                            {stats?.pendingBookings || 0} Pending
                         </Badge>
                         <Badge className="px-4 py-2 bg-status-success/10 text-status-success border-status-success/20 font-medium text-sm">
                             <CheckCircle className="w-4 h-4 mr-2" />
-                            {stats?.summary?.confirmedBookings || 0} Confirmed
+                            {stats?.confirmedBookings || 0} Confirmed
                         </Badge>
                     </div>
                     
@@ -353,7 +353,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-medium text-muted-foreground">Pending</p>
-                                <p className="text-3xl font-bold text-status-pending">{stats?.summary?.pendingBookings || 0}</p>
+                                <p className="text-3xl font-bold text-status-pending">{stats?.pendingBookings || 0}</p>
                             </div>
                             <div className="p-3 bg-status-pending/20 rounded-xl">
                                 <Clock className="w-6 h-6 text-status-pending" />
@@ -367,7 +367,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-medium text-muted-foreground">Approved</p>
-                                <p className="text-3xl font-bold text-status-success">{stats?.summary?.confirmedBookings || 0}</p>
+                                <p className="text-3xl font-bold text-status-success">{stats?.confirmedBookings || 0}</p>
                             </div>
                             <div className="p-3 bg-status-success/20 rounded-xl">
                                 <CheckCircle className="w-6 h-6 text-status-success" />
@@ -382,7 +382,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                             <div>
                                 <p className="text-sm font-medium text-muted-foreground">Revenue</p>
                                 <div className="text-2xl font-bold text-foreground">
-                                    <CurrencyDisplay amount={stats?.summary?.totalRevenue || 0} size="lg" />
+                                    <CurrencyDisplay amount={stats?.totalRevenue || 0} size="lg" />
                                 </div>
                             </div>
                             <div className="p-3 bg-admin-accent/20 rounded-xl">

@@ -14,11 +14,10 @@ const COLORS = ['hsl(var(--primary))', 'hsl(var(--admin-accent))', 'hsl(var(--st
 const BookingAnalyticsCharts: React.FC<BookingAnalyticsChartsProps> = ({ stats, bookings }) => {
   // Transform booking data for charts
   const getBookingStatusData = () => {
-    const summary = stats?.summary || {};
     return [
-      { name: 'Confirmed', value: summary.confirmedBookings || 0, color: 'hsl(var(--status-success))' },
-      { name: 'Pending', value: summary.pendingBookings || 0, color: 'hsl(var(--status-warning))' },
-      { name: 'Cancelled', value: summary.cancelledBookings || 0, color: 'hsl(var(--status-error))' },
+      { name: 'Confirmed', value: stats?.confirmedBookings || 0, color: 'hsl(var(--status-success))' },
+      { name: 'Pending', value: stats?.pendingBookings || 0, color: 'hsl(var(--status-warning))' },
+      { name: 'Cancelled', value: stats?.cancelledBookings || 0, color: 'hsl(var(--status-error))' },
     ].filter(item => item.value > 0);
   };
 
@@ -44,7 +43,7 @@ const BookingAnalyticsCharts: React.FC<BookingAnalyticsChartsProps> = ({ stats, 
   // Get monthly revenue trend (mock data based on current stats)
   const getRevenueTrend = () => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-    const currentRevenue = stats?.summary?.totalRevenue || 0;
+    const currentRevenue = stats?.totalRevenue || 0;
     
     return months.map((month, index) => ({
       month,
@@ -66,7 +65,7 @@ const BookingAnalyticsCharts: React.FC<BookingAnalyticsChartsProps> = ({ stats, 
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Bookings</p>
-                <p className="text-3xl font-bold text-foreground">{stats?.summary?.totalBookings || 0}</p>
+                <p className="text-3xl font-bold text-foreground">{stats?.totalBookings || 0}</p>
               </div>
               <div className="p-3 bg-primary/20 rounded-xl">
                 <Activity className="w-6 h-6 text-primary" />
@@ -80,7 +79,7 @@ const BookingAnalyticsCharts: React.FC<BookingAnalyticsChartsProps> = ({ stats, 
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Confirmed</p>
-                <p className="text-3xl font-bold text-status-success">{stats?.summary?.confirmedBookings || 0}</p>
+                <p className="text-3xl font-bold text-status-success">{stats?.confirmedBookings || 0}</p>
               </div>
               <div className="p-3 bg-status-success/20 rounded-xl">
                 <TrendingUp className="w-6 h-6 text-status-success" />
@@ -94,7 +93,7 @@ const BookingAnalyticsCharts: React.FC<BookingAnalyticsChartsProps> = ({ stats, 
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Pending</p>
-                <p className="text-3xl font-bold text-status-warning">{stats?.summary?.pendingBookings || 0}</p>
+                <p className="text-3xl font-bold text-status-warning">{stats?.pendingBookings || 0}</p>
               </div>
               <div className="p-3 bg-status-warning/20 rounded-xl">
                 <BarChart3 className="w-6 h-6 text-status-warning" />
@@ -109,7 +108,7 @@ const BookingAnalyticsCharts: React.FC<BookingAnalyticsChartsProps> = ({ stats, 
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
                 <div className="text-2xl font-bold text-foreground">
-                  <CurrencyDisplay amount={stats?.summary?.totalRevenue || 0} size="lg" />
+                  <CurrencyDisplay amount={stats?.totalRevenue || 0} size="lg" />
                 </div>
               </div>
               <div className="p-3 bg-admin-accent/20 rounded-xl">
