@@ -254,112 +254,54 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
     );
 
     const renderManageView = () => {
-        const [showActions, setShowActions] = useState(false);
-        
         return (
             <div className="space-y-6">
-                {/* Quick Access Bar */}
+                {/* Enhanced Stats Bar with Manual Booking */}
                 <motion.div 
                     initial={{ opacity: 0, y: 20 }} 
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex flex-wrap items-center justify-between gap-4 p-4 bg-gradient-to-r from-admin-surface/50 to-admin-secondary/50 rounded-xl border border-border/50 backdrop-blur-sm"
+                    className="flex flex-wrap items-center justify-between gap-4 p-6 bg-gradient-to-r from-admin-surface/50 to-admin-secondary/50 rounded-xl border border-border/50 backdrop-blur-sm"
                 >
-                    <div className="flex items-center space-x-4">
-                        <Badge className="px-3 py-1 bg-primary/10 text-primary border-primary/20 font-medium">
-                            <Activity className="w-3 h-3 mr-1" />
-                            {bookings.length} Total
+                    <div className="flex flex-wrap items-center gap-4">
+                        <Badge className="px-4 py-2 bg-primary/10 text-primary border-primary/20 font-medium text-sm">
+                            <Activity className="w-4 h-4 mr-2" />
+                            {bookings.length} Total Bookings
                         </Badge>
-                        <Badge className="px-3 py-1 bg-status-warning/10 text-status-warning border-status-warning/20 font-medium">
-                            <Clock className="w-3 h-3 mr-1" />
+                        <Badge className="px-4 py-2 bg-status-warning/10 text-status-warning border-status-warning/20 font-medium text-sm">
+                            <Clock className="w-4 h-4 mr-2" />
                             {stats?.summary?.pendingBookings || 0} Pending
+                        </Badge>
+                        <Badge className="px-4 py-2 bg-status-success/10 text-status-success border-status-success/20 font-medium text-sm">
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            {stats?.summary?.confirmedBookings || 0} Confirmed
                         </Badge>
                     </div>
                     
-                    <div className="flex items-center space-x-2">
-                        <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => setShowActions(!showActions)}
-                            className="h-8 px-3 text-muted-foreground hover:text-foreground"
-                        >
-                            <Settings className="w-4 h-4 mr-2" />
-                            {showActions ? 'Hide' : 'Show'} Actions
-                        </Button>
+                    <div className="flex items-center gap-3">
+                        {/* Manual Booking Form - Integrated */}
+                        <ManualBookingForm
+                            onBookingCreated={handleBookingCreated}
+                            triggerButton={
+                                <Button className="h-10 bg-gradient-to-r from-primary to-admin-accent hover:from-primary/90 hover:to-admin-accent/90 text-primary-foreground font-medium text-sm rounded-lg shadow-md hover:shadow-lg transition-all duration-200 group">
+                                    <PlusCircle className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform duration-200" />
+                                    <span>Create New Booking</span>
+                                </Button>
+                            }
+                        />
+                        
                         <Button 
                             onClick={loadData}
-                            variant="ghost" 
+                            variant="outline" 
                             size="sm"
-                            className="h-8 px-3 text-muted-foreground hover:text-foreground"
+                            className="h-10 px-4 border-border/50 hover:border-primary/50 hover:bg-primary/5 text-muted-foreground hover:text-foreground transition-all duration-200"
                         >
-                            <RefreshCw className="w-4 h-4" />
+                            <RefreshCw className="w-4 h-4 mr-2" />
+                            Refresh
                         </Button>
                     </div>
                 </motion.div>
 
-                {/* Collapsible Action Panel */}
-                <AnimatePresence>
-                    {showActions && (
-                        <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="overflow-hidden"
-                        >
-                            <Card className="border-0 shadow-lg bg-card/80 backdrop-blur-sm">
-                                <CardHeader className="pb-3">
-                                    <CardTitle className="flex items-center text-lg font-semibold text-foreground">
-                                        <Zap className="w-5 h-5 mr-2 text-primary" />
-                                        Quick Actions
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                        {/* Manual Booking Creation */}
-                                        <ManualBookingForm
-                                            onBookingCreated={handleBookingCreated}
-                                            triggerButton={
-                                                <Button className="w-full h-10 bg-gradient-to-r from-primary to-admin-accent hover:from-primary/90 hover:to-admin-accent/90 text-primary-foreground font-medium text-sm rounded-lg shadow-md hover:shadow-lg transition-all duration-200 group">
-                                                    <PlusCircle className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform duration-200" />
-                                                    <span>New Booking</span>
-                                                </Button>
-                                            }
-                                        />
-
-                                        {/* Export Data */}
-                                        <Button 
-                                            variant="outline" 
-                                            className="w-full h-10 border border-admin-accent/30 hover:border-admin-accent hover:bg-admin-accent/5 font-medium text-sm rounded-lg group"
-                                        >
-                                            <Download className="w-4 h-4 mr-2 text-admin-accent group-hover:scale-110 transition-transform duration-200" />
-                                            <span className="text-admin-accent">Export</span>
-                                        </Button>
-
-                                        {/* Reports */}
-                                        <Button 
-                                            variant="outline" 
-                                            className="w-full h-10 border border-status-info/30 hover:border-status-info hover:bg-status-info/5 font-medium text-sm rounded-lg group"
-                                        >
-                                            <FileText className="w-4 h-4 mr-2 text-status-info group-hover:scale-110 transition-transform duration-200" />
-                                            <span className="text-status-info">Reports</span>
-                                        </Button>
-
-                                        {/* Analytics Quick View */}
-                                        <div className="p-3 bg-gradient-to-br from-admin-surface to-admin-secondary rounded-lg border border-border">
-                                            <div className="text-center space-y-1">
-                                                <div className="flex items-center justify-center">
-                                                    <Users className="w-4 h-4 text-primary mr-1" />
-                                                    <span className="text-lg font-bold text-foreground">{allUsers.length}</span>
-                                                </div>
-                                                <p className="text-xs text-muted-foreground font-medium">Users</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                {/* Main Content */}
 
                 {/* Main Booking Table - Always Visible */}
                 <motion.div
