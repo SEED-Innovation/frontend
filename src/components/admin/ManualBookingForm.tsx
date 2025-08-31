@@ -107,10 +107,11 @@ const ManualBookingForm: React.FC<ManualBookingFormProps> = ({
 
 
 
-    // Add to your state management section
+// Add to your state management section
 const [users, setUsers] = useState<UserResponse[]>([]);
 const [usersLoading, setUsersLoading] = useState(false);
 const [userSearchTerm, setUserSearchTerm] = useState('');
+const [courtSearchTerm, setCourtSearchTerm] = useState('');
 
 // Add this function to your data loading section
 const loadUsers = async () => {
@@ -140,6 +141,13 @@ useEffect(() => {
 const filteredUsers = users.filter(user => 
     (user.fullName?.toLowerCase() || '').includes(userSearchTerm.toLowerCase()) ||
     (user.email?.toLowerCase() || '').includes(userSearchTerm.toLowerCase())
+);
+
+// Filter courts based on search term
+const filteredCourts = courts.filter(court => 
+    (court.name?.toLowerCase() || '').includes(courtSearchTerm.toLowerCase()) ||
+    (court.location?.toLowerCase() || '').includes(courtSearchTerm.toLowerCase()) ||
+    (court.type?.toLowerCase() || '').includes(courtSearchTerm.toLowerCase())
 );
     
     // ================================
@@ -585,45 +593,62 @@ const loadCourts = async () => {
                             {renderFormField(
                                 'Select Court',
                                 'courtId',
-                                <Select
-                                    value={formData.courtId?.toString() || ''}
-                                    onValueChange={(value) => handleInputChange('courtId', parseInt(value))}
-                                    disabled={courtsLoading}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder={courtsLoading ? "Loading courts..." : "Choose a court"} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {courts.map((court) => (
-                                            <SelectItem key={court.id} value={court.id.toString()}>
-                                                <div className="flex items-center space-x-3">
-                                                    <div className="w-8 h-8 rounded-md overflow-hidden flex-shrink-0">
-                                                        {court.imageUrl ? (
-                                                            <img 
-                                                                src={court.imageUrl} 
-                                                                alt={`${court.name} court`}
-                                                                className="h-full w-full object-cover"
-                                                                onError={(e) => {
-                                                                    const target = e.target as HTMLImageElement;
-                                                                    target.style.display = 'none';
-                                                                    const fallback = target.parentElement?.querySelector('.fallback-icon');
-                                                                    if (fallback) fallback.classList.remove('hidden');
-                                                                }}
-                                                            />
-                                                        ) : null}
-                                                        <div className={`w-full h-full bg-muted rounded-md flex items-center justify-center fallback-icon ${court.imageUrl ? 'hidden' : ''}`}>
-                                                            <MapPin className="w-4 h-4 text-gray-400" />
+                                <div className="space-y-2">
+                                    {/* Search Input */}
+                                    <Input
+                                        placeholder="Search for a court by name, location, or type..."
+                                        value={courtSearchTerm}
+                                        onChange={(e) => setCourtSearchTerm(e.target.value)}
+                                        disabled={courtsLoading}
+                                    />
+                                    
+                                    {/* Court Selection */}
+                                    <Select
+                                        value={formData.courtId?.toString() || ''}
+                                        onValueChange={(value) => handleInputChange('courtId', parseInt(value))}
+                                        disabled={courtsLoading}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder={courtsLoading ? "Loading courts..." : "Choose a court"} />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-white">
+                                            {filteredCourts.length === 0 ? (
+                                                <SelectItem value="no-courts" disabled>
+                                                    {courtsLoading ? "Loading..." : "No courts found"}
+                                                </SelectItem>
+                                            ) : (
+                                                filteredCourts.map((court) => (
+                                                    <SelectItem key={court.id} value={court.id.toString()}>
+                                                        <div className="flex items-center space-x-3">
+                                                            <div className="w-8 h-8 rounded-md overflow-hidden flex-shrink-0">
+                                                                {court.imageUrl ? (
+                                                                    <img 
+                                                                        src={court.imageUrl} 
+                                                                        alt={`${court.name} court`}
+                                                                        className="h-full w-full object-cover"
+                                                                        onError={(e) => {
+                                                                            const target = e.target as HTMLImageElement;
+                                                                            target.style.display = 'none';
+                                                                            const fallback = target.parentElement?.querySelector('.fallback-icon');
+                                                                            if (fallback) fallback.classList.remove('hidden');
+                                                                        }}
+                                                                    />
+                                                                ) : null}
+                                                                <div className={`w-full h-full bg-muted rounded-md flex items-center justify-center fallback-icon ${court.imageUrl ? 'hidden' : ''}`}>
+                                                                    <MapPin className="w-4 h-4 text-gray-400" />
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="font-medium truncate">{court.name}</div>
+                                                                <div className="text-xs text-gray-500 truncate">{court.location} - ${court.hourlyFee}/hr</div>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="font-medium truncate">{court.name}</div>
-                                                        <div className="text-xs text-gray-500 truncate">{court.location} - ${court.hourlyFee}/hr</div>
-                                                    </div>
-                                                </div>
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                                    </SelectItem>
+                                                ))
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             )}
                         </div>
 
