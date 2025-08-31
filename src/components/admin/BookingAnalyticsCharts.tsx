@@ -120,41 +120,8 @@ const BookingAnalyticsCharts: React.FC<BookingAnalyticsChartsProps> = ({ stats, 
         </Card>
       </div>
 
-      {/* Charts Grid */}
+      {/* Charts Grid - 2 Equal Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Booking Status Distribution */}
-        <Card className="border-0 shadow-xl bg-card/90 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center text-xl font-bold">
-              <PieChartIcon className="w-6 h-6 mr-3 text-primary" />
-              Booking Status Distribution
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={statusData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {statusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Court Usage Statistics */}
         <Card className="border-0 shadow-xl bg-card/90 backdrop-blur-sm">
           <CardHeader>
@@ -192,7 +159,7 @@ const BookingAnalyticsCharts: React.FC<BookingAnalyticsChartsProps> = ({ stats, 
         </Card>
 
         {/* Revenue Trend */}
-        <Card className="border-0 shadow-xl bg-card/90 backdrop-blur-sm lg:col-span-2">
+        <Card className="border-0 shadow-xl bg-card/90 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="flex items-center text-xl font-bold">
               <TrendingUp className="w-6 h-6 mr-3 text-status-success" />
