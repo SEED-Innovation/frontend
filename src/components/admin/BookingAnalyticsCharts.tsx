@@ -112,7 +112,7 @@ const BookingAnalyticsCharts: React.FC<BookingAnalyticsChartsProps> = ({ stats, 
                 </div>
               </div>
               <div className="p-3 bg-admin-accent/20 rounded-xl">
-                <DollarSign className="w-6 h-6 text-admin-accent" />
+                <TrendingUp className="w-6 h-6 text-admin-accent" />
               </div>
             </div>
           </CardContent>
