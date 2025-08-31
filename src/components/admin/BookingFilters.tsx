@@ -268,6 +268,32 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
         setSelectedMatchTypes(newMatchTypes);
     };
 
+    // Date helper functions for active button states
+    const isToday = (date: Date): boolean => {
+        const today = new Date();
+        return date.toDateString() === today.toDateString();
+    };
+
+    const isThisWeek = (date: Date): boolean => {
+        const today = new Date();
+        const startOfWeek = new Date(today);
+        const dayOfWeek = startOfWeek.getDay();
+        const diff = startOfWeek.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+        startOfWeek.setDate(diff);
+        startOfWeek.setHours(0, 0, 0, 0);
+        
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        endOfWeek.setHours(23, 59, 59, 999);
+        
+        return date >= startOfWeek && date <= endOfWeek;
+    };
+
+    const isThisMonth = (date: Date): boolean => {
+        const today = new Date();
+        return date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
+    };
+
     // ================================
     // 🎨 RENDER METHODS
     // ================================
@@ -330,14 +356,19 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                 </div>
             </div>
 
-            {/* Quick Date Filters */}
-            <div className="space-y-2">
-                <Label className="text-sm font-medium">Quick Date Filters</Label>
-                <div className="flex flex-wrap gap-2">
+            {/* Enhanced Time & Date Filters */}
+            <div className="space-y-3 p-3 bg-muted/30 rounded-lg border">
+                <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-primary" />
+                    <Label className="text-sm font-semibold">Time & Date Filters</Label>
+                </div>
+                
+                {/* Quick Date Buttons */}
+                <div className="grid grid-cols-3 gap-2">
                     <Button
                         onClick={() => handleQuickDateFilter('today')}
                         size="sm"
-                        variant="outline"
+                        variant={startDate && isToday(startDate) ? 'default' : 'outline'}
                         className="text-xs"
                         disabled={isLoading}
                     >
@@ -346,7 +377,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                     <Button
                         onClick={() => handleQuickDateFilter('week')}
                         size="sm"
-                        variant="outline"
+                        variant={startDate && isThisWeek(startDate) ? 'default' : 'outline'}
                         className="text-xs"
                         disabled={isLoading}
                     >
@@ -355,13 +386,95 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                     <Button
                         onClick={() => handleQuickDateFilter('month')}
                         size="sm"
-                        variant="outline"
+                        variant={startDate && isThisMonth(startDate) ? 'default' : 'outline'}
                         className="text-xs"
                         disabled={isLoading}
                     >
                         📅 This Month
                     </Button>
                 </div>
+
+                {/* Custom Date Range */}
+                <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Start Date</Label>
+                        <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-full justify-start text-left font-normal text-xs"
+                                    disabled={isLoading}
+                                >
+                                    <CalendarIcon className="mr-2 h-3 w-3" />
+                                    {startDate ? formatDateOnly(startDate.toISOString()) : "Pick start"}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                    mode="single"
+                                    selected={startDate}
+                                    onSelect={(date) => {
+                                        setStartDate(date);
+                                        setStartDateOpen(false);
+                                    }}
+                                    initialFocus
+                                    className="pointer-events-auto"
+                                />
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+                    
+                    <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">End Date</Label>
+                        <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-full justify-start text-left font-normal text-xs"
+                                    disabled={isLoading}
+                                >
+                                    <CalendarIcon className="mr-2 h-3 w-3" />
+                                    {endDate ? formatDateOnly(endDate.toISOString()) : "Pick end"}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                    mode="single"
+                                    selected={endDate}
+                                    onSelect={(date) => {
+                                        setEndDate(date);
+                                        setEndDateOpen(false);
+                                    }}
+                                    initialFocus
+                                    className="pointer-events-auto"
+                                    disabled={(date) => startDate ? date < startDate : false}
+                                />
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+                </div>
+
+                {/* Clear Dates Button */}
+                {(startDate || endDate) && (
+                    <Button
+                        onClick={() => {
+                            setStartDate(undefined);
+                            setEndDate(undefined);
+                            const clearedFilter = buildFilterRequest();
+                            clearedFilter.startDateTime = undefined;
+                            clearedFilter.endDateTime = undefined;
+                            onFilterChange(clearedFilter);
+                        }}
+                        size="sm"
+                        variant="ghost"
+                        className="text-xs w-full"
+                    >
+                        <X className="mr-1 h-3 w-3" />
+                        Clear Date Range
+                    </Button>
+                )}
             </div>
 
             {/* Court Selection with Search */}
