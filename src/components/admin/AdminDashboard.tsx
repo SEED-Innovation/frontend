@@ -77,13 +77,13 @@ const AdminDashboard = () => {
         // Update state with real data
         setRecentBookings(formattedBookings);
         setDashboardStats({
-          totalRevenue: statsResponse.totalRevenue || statsResponse.confirmedRevenue || 0,
-          todayBookings: statsResponse.totalBookings || bookings.length || 0,
+          totalRevenue: (statsResponse as any).summary?.totalRevenue || (statsResponse as any).summary?.confirmedRevenue || 0,
+          todayBookings: (statsResponse as any).summary?.totalBookings || bookings.length || 0,
           activeCourts: 12, // Keep static for now
           totalUsers: usersResponse?.length || 0,
-          pendingPayments: statsResponse.pendingBookings || 0,
-          pendingBookings: statsResponse.pendingBookings || 0,
-          confirmedBookings: statsResponse.confirmedBookings || 0,
+          pendingPayments: (statsResponse as any).summary?.pendingBookings || 0,
+          pendingBookings: (statsResponse as any).summary?.pendingBookings || 0,
+          confirmedBookings: (statsResponse as any).summary?.confirmedBookings || 0,
           monthlyGrowth: 12.5 // Keep static for now
         });
         
@@ -295,7 +295,7 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">${court.revenue}</p>
+                      <p className="font-medium">﷼{court.revenue}</p>
                       <p className="text-sm text-gray-500">revenue</p>
                     </div>
                   </motion.div>
