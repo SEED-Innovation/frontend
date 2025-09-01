@@ -177,7 +177,9 @@ export class BookingService {
           userId: request.userId,
           courtId: request.courtId,
           startTime: request.startTime,
-          endTime: request.endTime
+          endTime: request.endTime,
+          matchType: request.matchType,
+          notes: request.notes
         })
       });
       
