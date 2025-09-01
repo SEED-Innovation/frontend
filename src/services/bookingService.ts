@@ -171,16 +171,20 @@ export class BookingService {
     
     try {
       // Call your backend's /admin/bookings/manual endpoint
+      const requestBody = {
+        userId: request.userId,
+        courtId: request.courtId,
+        startTime: request.startTime,
+        endTime: request.endTime,
+        matchType: request.matchType,
+        ...(request.notes && { notes: request.notes })
+      };
+      
+      console.log('📤 Sending request body:', requestBody);
+      
       const response = await this.makeAPICall(`${this.baseUrl}/admin/bookings/manual`, {
         method: 'POST',
-        body: JSON.stringify({
-          userId: request.userId,
-          courtId: request.courtId,
-          startTime: request.startTime,
-          endTime: request.endTime,
-          matchType: request.matchType,
-          notes: request.notes
-        })
+        body: JSON.stringify(requestBody)
       });
       
       const newBooking = await response.json();
