@@ -251,12 +251,13 @@ export const UserRole = {
 
 
 
-// Add this interface to your existing booking types
+// Mobile app compatible booking request format
 export interface CreateBookingRequest {
   userId: number;
   courtId: number;
-  startTime: string;
-  endTime: string;
+  date: string; // YYYY-MM-DD format
+  startTime: string; // HH:mm:ss format
+  durationMinutes: number;
   matchType: 'SINGLE' | 'DOUBLE';
   notes?: string;
 }

@@ -312,11 +312,17 @@ const loadCourts = async () => {
         setSuccess('');
 
         try {
+            // Convert our form data to mobile app compatible format
+            const startDateTime = new Date(formData.selectedSlot!.startTime);
+            const endDateTime = new Date(formData.selectedSlot!.endTime);
+            const durationMinutes = Math.round((endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60));
+            
             const bookingRequest: CreateBookingRequest = {
                 userId: formData.userId!,
                 courtId: formData.courtId!,
-                startTime: formData.selectedSlot!.startTime,
-                endTime: formData.selectedSlot!.endTime,
+                date: formData.date!.toISOString().split('T')[0], // YYYY-MM-DD format
+                startTime: startDateTime.toTimeString().split(' ')[0], // HH:mm:ss format
+                durationMinutes: durationMinutes,
                 matchType: formData.matchType as 'SINGLE' | 'DOUBLE',
                 notes: formData.notes || undefined
             };

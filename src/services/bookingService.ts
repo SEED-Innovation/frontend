@@ -170,12 +170,13 @@ export class BookingService {
     console.log('➕ Creating manual booking:', request);
     
     try {
-      // Call your backend's /admin/bookings/manual endpoint - send only required parameters
+      // Call your backend's /admin/bookings/manual endpoint - use mobile app format
       const requestBody: any = {
         userId: request.userId,
         courtId: request.courtId,
+        date: request.date,
         startTime: request.startTime,
-        endTime: request.endTime,
+        durationMinutes: request.durationMinutes,
         matchType: request.matchType
       };
       
@@ -485,6 +486,16 @@ private createMockStats(): BookingFilterSummary {
 }
 
   private createMockBooking(request: CreateBookingRequest): BookingResponse {
+    // Convert mobile app format back to response format for mock
+    const date = new Date(request.date);
+    const [hours, minutes, seconds] = request.startTime.split(':').map(Number);
+    
+    const startDateTime = new Date(date);
+    startDateTime.setHours(hours, minutes, seconds || 0);
+    
+    const endDateTime = new Date(startDateTime);
+    endDateTime.setMinutes(endDateTime.getMinutes() + request.durationMinutes);
+    
     return {
       id: Date.now(),
       user: { 
@@ -500,8 +511,8 @@ private createMockStats(): BookingFilterSummary {
         hourlyFee: 65, 
         hasSeedSystem: true 
       },
-      startTime: request.startTime,
-      endTime: request.endTime,
+      startTime: startDateTime.toISOString(),
+      endTime: endDateTime.toISOString(),
       status: 'PENDING',
       matchType: request.matchType
     };
