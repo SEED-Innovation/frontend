@@ -170,15 +170,19 @@ export class BookingService {
     console.log('➕ Creating manual booking:', request);
     
     try {
-      // Call your backend's /admin/bookings/manual endpoint
-      const requestBody = {
+      // Call your backend's /admin/bookings/manual endpoint - send only required parameters
+      const requestBody: any = {
         userId: request.userId,
         courtId: request.courtId,
         startTime: request.startTime,
         endTime: request.endTime,
-        matchType: request.matchType,
-        ...(request.notes && { notes: request.notes })
+        matchType: request.matchType
       };
+      
+      // Only add notes if it exists and is not empty
+      if (request.notes && request.notes.trim()) {
+        requestBody.notes = request.notes;
+      }
       
       console.log('📤 Sending request body:', requestBody);
       
