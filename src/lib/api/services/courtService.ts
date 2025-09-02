@@ -412,6 +412,37 @@ class CourtService {
 
         return response.json();
     }
+
+    /**
+     * Update court unavailability
+     */
+    async updateUnavailability(id: number, requestData: MarkUnavailableRequest): Promise<CourtUnavailableResponse> {
+        const response = await fetch(`${this.baseUrl}/availability/unavailability/${id}`, {
+            method: 'PUT',
+            headers: this.getAuthHeaders(),
+            body: JSON.stringify(requestData)
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to update court unavailability: ${response.statusText}`);
+        }
+
+        return response.json();
+    }
+
+    /**
+     * Delete court unavailability
+     */
+    async deleteUnavailability(id: number): Promise<void> {
+        const response = await fetch(`${this.baseUrl}/availability/unavailability/${id}`, {
+            method: 'DELETE',
+            headers: this.getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to delete court unavailability: ${response.statusText}`);
+        }
+    }
 }
 
 export const courtService = new CourtService();
