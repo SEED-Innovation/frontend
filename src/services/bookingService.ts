@@ -194,14 +194,16 @@ export class BookingService {
     console.log('➕ Creating manual booking:', request);
     
     try {
-      // Call your backend's /admin/bookings/manual endpoint - use mobile app format
+      // Call your backend's /admin/bookings/manual endpoint (now supports receipt generation)
       const requestBody: any = {
         userId: request.userId,
         courtId: request.courtId,
         date: request.date,
         startTime: request.startTime,
         durationMinutes: request.durationMinutes,
-        matchType: request.matchType
+        matchType: request.matchType,
+        paymentMethod: 'PENDING', // Default for compatibility
+        sendReceiptEmail: false // Default for compatibility
       };
       
       // Only add notes if it exists and is not empty

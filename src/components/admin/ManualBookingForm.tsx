@@ -37,12 +37,13 @@ import { format } from 'date-fns';
 
 import { BookingResponse, CreateBookingRequest, CourtResponse } from '@/types/booking';
 import { UserResponse } from '@/types/user';
-import { bookingService, courtService, userService } from '@/services';
+import { AdminManualBookingRequest, ManualBookingResponse } from '@/types/receipt';
+import { bookingService, courtService, userService, receiptService } from '@/services';
 import { cn } from '@/lib/utils';
 import UserSearchInput from './UserSearchInput';
 
 interface ManualBookingFormProps {
-    onBookingCreated: (booking: BookingResponse) => void;
+    onBookingCreated: (booking: BookingResponse, receipt?: any) => void;
     triggerButton?: React.ReactNode;
     className?: string;
 }
@@ -55,6 +56,9 @@ interface BookingFormData {
     selectedSlot: TimeSlot | null;
     matchType: 'SINGLE' | 'DOUBLE' | '';
     notes: string;
+    paymentMethod: 'CASH' | 'TAP_TO_MANAGER' | 'PENDING' | '';
+    sendReceiptEmail: boolean;
+    customerEmail: string;
 }
 
 interface TimeSlot {
@@ -86,7 +90,10 @@ const ManualBookingForm: React.FC<ManualBookingFormProps> = ({
         duration: null,
         selectedSlot: null,
         matchType: '',
-        notes: ''
+        notes: '',
+        paymentMethod: '',
+        sendReceiptEmail: true,
+        customerEmail: ''
     });
     
     const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
@@ -95,6 +102,7 @@ const ManualBookingForm: React.FC<ManualBookingFormProps> = ({
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [success, setSuccess] = useState('');
     const [selectedUser, setSelectedUser] = useState<UserResponse | null>(null);
+    const [receiptData, setReceiptData] = useState<any>(null);
 
     // ================================
     // 🔄 EFFECTS
@@ -254,7 +262,11 @@ const loadCourts = async () => {
 
     const handleUserSelect = (user: UserResponse) => {
         setSelectedUser(user);
-        setFormData(prev => ({ ...prev, userId: user.id }));
+        setFormData(prev => ({ 
+            ...prev, 
+            userId: user.id,
+            customerEmail: prev.customerEmail || user.email || '' // Auto-fill email if not set
+        }));
         
         if (errors.userId) {
             setErrors(prev => ({ ...prev, userId: '' }));
@@ -288,6 +300,14 @@ const loadCourts = async () => {
             newErrors.matchType = 'Please select match type';
         }
 
+        if (!formData.paymentMethod) {
+            newErrors.paymentMethod = 'Please select payment method';
+        }
+
+        if (formData.sendReceiptEmail && !formData.customerEmail) {
+            newErrors.customerEmail = 'Email is required when receipt email is enabled';
+        }
+
         // Check if date is in the past
         if (formData.date && formData.date < new Date()) {
             const today = new Date();
@@ -313,7 +333,7 @@ const loadCourts = async () => {
         setSuccess('');
 
         try {
-            // Convert our form data to mobile app compatible format
+            // Convert our form data to backend compatible format
             const startDateTime = new Date(formData.selectedSlot!.startTime);
             const endDateTime = new Date(formData.selectedSlot!.endTime);
             const durationMinutes = Math.round((endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60));
@@ -327,27 +347,30 @@ const loadCourts = async () => {
             const bookingRequest: CreateBookingRequest = {
                 userId: formData.userId!,
                 courtId: formData.courtId!,
-                date: localDateString, // YYYY-MM-DD format without timezone conversion
+                date: localDateString, // YYYY-MM-DD format
                 startTime: startDateTime.toTimeString().split(' ')[0], // HH:mm:ss format
                 durationMinutes: durationMinutes,
                 matchType: formData.matchType as 'SINGLE' | 'DOUBLE',
                 notes: formData.notes || undefined
             };
 
-            console.log('🏗️ Creating manual booking:', bookingRequest);
+            console.log('🏗️ Creating manual booking with receipt:', bookingRequest);
 
-            const newBooking = await bookingService.createManualBooking(bookingRequest);
+            // Create the manual booking (backend now auto-generates receipt)
+            const response = await bookingService.createManualBooking(bookingRequest);
             
-            console.log('✅ Manual booking created:', newBooking);
+            console.log('✅ Manual booking created:', response);
 
-            setSuccess('Booking created successfully!');
-            onBookingCreated(newBooking);
+            // Backend now returns both booking and receipt in response
+            const receipt = (response as any).receipt;
+            setReceiptData(receipt);
+            setSuccess((response as any).message || 'Booking created successfully with receipt!');
+            onBookingCreated(response, receipt);
             
-            // Reset form after short delay
+            // Don't auto-close immediately, let user see receipt info
             setTimeout(() => {
                 resetForm();
-                setIsOpen(false);
-            }, 1500);
+            }, 2000);
 
         } catch (error) {
             console.error('❌ Failed to create booking:', error);
@@ -370,12 +393,16 @@ const loadCourts = async () => {
             duration: null,
             selectedSlot: null,
             matchType: '',
-            notes: ''
+            notes: '',
+            paymentMethod: '',
+            sendReceiptEmail: true,
+            customerEmail: ''
         });
         setSelectedUser(null);
         setAvailableSlots([]);
         setErrors({});
         setSuccess('');
+        setReceiptData(null);
     };
 
     const handleClose = () => {
@@ -794,6 +821,73 @@ const loadCourts = async () => {
                                 )}
                             </div>
                         )}
+
+                        {/* Payment Method */}
+                        <div>
+                            {renderFormField(
+                                'Payment Method',
+                                'paymentMethod',
+                                <Select
+                                    value={formData.paymentMethod}
+                                    onValueChange={(value) => handleInputChange('paymentMethod', value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select payment method" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="CASH">
+                                            <div className="flex items-center space-x-2">
+                                                <span>💵</span>
+                                                <span>Cash Payment</span>
+                                            </div>
+                                        </SelectItem>
+                                        <SelectItem value="TAP_TO_MANAGER">
+                                            <div className="flex items-center space-x-2">
+                                                <span>💳</span>
+                                                <span>Tap/Card to Manager</span>
+                                            </div>
+                                        </SelectItem>
+                                        <SelectItem value="PENDING">
+                                            <div className="flex items-center space-x-2">
+                                                <span>⏳</span>
+                                                <span>Pending Payment</span>
+                                            </div>
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        </div>
+
+                        {/* Receipt Email Options */}
+                        <div>
+                            {renderFormField(
+                                'Receipt Email',
+                                'sendReceiptEmail',
+                                <div className="space-y-3">
+                                    <div className="flex items-center space-x-2">
+                                        <input
+                                            type="checkbox"
+                                            id="sendReceiptEmail"
+                                            checked={formData.sendReceiptEmail}
+                                            onChange={(e) => handleInputChange('sendReceiptEmail', e.target.checked)}
+                                            className="rounded border-gray-300"
+                                        />
+                                        <label htmlFor="sendReceiptEmail" className="text-sm font-medium">
+                                            Send receipt via email
+                                        </label>
+                                    </div>
+                                    {formData.sendReceiptEmail && (
+                                        <Input
+                                            placeholder="Email address for receipt"
+                                            value={formData.customerEmail}
+                                            onChange={(e) => handleInputChange('customerEmail', e.target.value)}
+                                            type="email"
+                                        />
+                                    )}
+                                </div>,
+                                false
+                            )}
+                        </div>
 
                         {/* Notes */}
                         <div className="md:col-span-2">

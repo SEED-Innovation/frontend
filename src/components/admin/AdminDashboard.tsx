@@ -14,12 +14,15 @@ import {
   MapPin,
   BarChart3,
   Trophy,
-  TrendingDown
+  TrendingDown,
+  Receipt,
+  FileText
 } from 'lucide-react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { bookingService } from '@/services/bookingService';
 import { userService } from '@/services/userService';
 import { courtService } from '@/lib/api/services/courtService';
+import { receiptService } from '@/services/receiptService';
 
 const AdminDashboard = () => {
   const { user, hasPermission } = useAdminAuth();
@@ -35,7 +38,9 @@ const AdminDashboard = () => {
     pendingPayments: 0,
     pendingBookings: 0,
     confirmedBookings: 0,
-    monthlyGrowth: 12.5
+    monthlyGrowth: 12.5,
+    receiptRevenue: 0,
+    totalReceipts: 0
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -45,8 +50,8 @@ const AdminDashboard = () => {
       try {
         console.log('🔄 AdminDashboard: Loading real dashboard data...');
         
-        // Load booking stats and court data in parallel
-        const [statsResponse, courtsResponse, usersResponse, bookingsResponse] = await Promise.all([
+        // Load booking stats, court data, and receipt stats in parallel
+        const [statsResponse, courtsResponse, usersResponse, bookingsResponse, receiptStats] = await Promise.all([
           bookingService.getBookingStats(),
           courtService.getAllCourts(),
           userService.getAllUsers(),
@@ -55,7 +60,8 @@ const AdminDashboard = () => {
             size: 20,
             sortBy: 'startTime',
             sortDirection: 'DESC'
-          })
+          }),
+          receiptService.getReceiptStatistics().catch(() => ({ revenue: { total: 0 }, receiptCounts: { total: 0 } }))
         ]);
         
         console.log('📊 AdminDashboard: Raw responses:', { statsResponse, courtsResponse, usersResponse, bookingsResponse });
@@ -124,7 +130,9 @@ const AdminDashboard = () => {
           pendingPayments: (statsResponse as any).pendingBookings || 0,
           pendingBookings: (statsResponse as any).pendingBookings || 0,
           confirmedBookings: (statsResponse as any).confirmedBookings || 0,
-          monthlyGrowth: 12.5 // Keep static for now
+          monthlyGrowth: 12.5, // Keep static for now
+          receiptRevenue: (receiptStats as any).revenue?.total || 0,
+          totalReceipts: (receiptStats as any).receiptCounts?.total || 0
         });
         
         console.log('✅ AdminDashboard: Dashboard data updated successfully');
@@ -221,6 +229,13 @@ const AdminDashboard = () => {
           change={null}
           icon={Clock}
           color="bg-yellow-500"
+        />
+        <StatCard
+          title="Receipt Revenue"
+          value={<CurrencyDisplay amount={dashboardStats.receiptRevenue} size="xl" showSymbol />}
+          change={null}
+          icon={Receipt}
+          color="bg-purple-500"
         />
       </div>
 
