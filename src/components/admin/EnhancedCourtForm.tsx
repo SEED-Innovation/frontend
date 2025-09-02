@@ -55,6 +55,7 @@ export default function EnhancedCourtForm({
   });
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [locationEditable, setLocationEditable] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
 
@@ -71,23 +72,60 @@ export default function EnhancedCourtForm({
     }));
   };
 
-  const validateImageUrl = (url: string) => {
-    if (!url) {
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      setSelectedImageFile(null);
       setImagePreview(null);
+      setFormData(prev => ({ ...prev, imageUrl: '' }));
       return;
     }
-    
-    const img = document.createElement('img');
-    img.onload = () => setImagePreview(url);
-    img.onerror = () => {
-      setImagePreview(null);
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
       toast({ 
-        title: "Invalid image URL", 
-        description: "Could not load image preview",
+        title: "Invalid file type", 
+        description: "Please select an image file",
         variant: "destructive"
       });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ 
+        title: "File too large", 
+        description: "Please select an image smaller than 5MB",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSelectedImageFile(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      setImagePreview(result);
+      // For now, store the data URL in imageUrl - in production you'd upload to a server
+      setFormData(prev => ({ ...prev, imageUrl: result }));
     };
-    img.src = url;
+    reader.readAsDataURL(file);
+  };
+
+  const removeImage = () => {
+    setSelectedImageFile(null);
+    setImagePreview(null);
+    setFormData(prev => ({ ...prev, imageUrl: '' }));
+    // Reset the file input
+    const fileInput = document.getElementById('imageFile') as HTMLInputElement;
+    if (fileInput) fileInput.value = '';
+  };
+
+  const validateImageUrl = (url: string) => {
+    // This function is no longer needed since we're using file upload
+    // Keeping for backward compatibility if needed
   };
 
   const handleLocationSearch = async (address: string) => {
@@ -159,16 +197,11 @@ export default function EnhancedCourtForm({
       managerId: ''
     });
     setImagePreview(null);
+    setSelectedImageFile(null);
+    // Reset file input
+    const fileInput = document.getElementById('imageFile') as HTMLInputElement;
+    if (fileInput) fileInput.value = '';
   };
-
-  useEffect(() => {
-    if (formData.imageUrl) {
-      const timeoutId = setTimeout(() => validateImageUrl(formData.imageUrl!), 500);
-      return () => clearTimeout(timeoutId);
-    } else {
-      setImagePreview(null);
-    }
-  }, [formData.imageUrl]);
 
   useEffect(() => {
     if (formData.location) {
@@ -374,22 +407,43 @@ export default function EnhancedCourtForm({
                 </p>
               </div>
 
-              {/* Image URL */}
+              {/* Image Upload */}
               <div>
-                <Label htmlFor="imageUrl">Cover Image URL</Label>
-                <Input
-                  id="imageUrl"
-                  value={formData.imageUrl}
-                  onChange={(e) => handleInputChange('imageUrl', e.target.value)}
-                  placeholder="https://cdn.example.com/courts/center.jpg"
-                />
+                <Label htmlFor="imageFile">Cover Image</Label>
+                <div className="space-y-2">
+                  <Input
+                    id="imageFile"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="cursor-pointer"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Upload an image file (max 5MB). Supported formats: JPG, PNG, GIF, WebP
+                  </p>
+                </div>
+                
                 {imagePreview && (
-                  <div className="mt-2">
+                  <div className="mt-3 relative">
                     <img
                       src={imagePreview}
                       alt="Court preview"
                       className="w-full h-32 object-cover rounded-lg border"
                     />
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-2 right-2"
+                      onClick={removeImage}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+                
+                {selectedImageFile && (
+                  <div className="mt-2 text-sm text-muted-foreground">
+                    Selected: {selectedImageFile.name} ({(selectedImageFile.size / 1024 / 1024).toFixed(2)} MB)
                   </div>
                 )}
               </div>
