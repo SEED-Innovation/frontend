@@ -32,6 +32,7 @@ import {
     CheckCircle,
     Loader2
 } from 'lucide-react';
+import { CurrencyDisplay } from '@/components/ui/currency-display';
 import { format } from 'date-fns';
 
 import { BookingResponse, CreateBookingRequest, CourtResponse } from '@/types/booking';
@@ -463,7 +464,9 @@ const loadCourts = async () => {
                     
                     <div className="border-t pt-2 flex items-center justify-between font-medium">
                         <span>Total Price:</span>
-                        <span className="text-lg">${formData.selectedSlot.price?.toFixed(2) || '0.00'}</span>
+                        <span className="text-lg">
+                            <CurrencyDisplay amount={formData.selectedSlot.price || 0} size="lg" showSymbol />
+                        </span>
                     </div>
                 </div>
             </div>
@@ -779,7 +782,9 @@ const loadCourts = async () => {
                                                     >
                                                         <div className="text-left">
                                                             <div className="font-medium">{slot.formattedTimeRange}</div>
-                                                            <div className="text-sm text-gray-500">${slot.price?.toFixed(2)}</div>
+                                                            <div className="text-sm text-gray-500">
+                                                                <CurrencyDisplay amount={slot.price || 0} size="sm" showSymbol />
+                                                            </div>
                                                         </div>
                                                     </Button>
                                                 ))}

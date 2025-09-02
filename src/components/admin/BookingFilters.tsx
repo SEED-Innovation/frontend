@@ -389,23 +389,72 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                                 {selectedDate ? formatDateOnly(selectedDate.toISOString()) : "Pick a date"}
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                                mode="single"
-                                selected={selectedDate}
-                                onSelect={(date) => {
-                                    setSelectedDate(date);
-                                    setDatePickerOpen(false);
-                                    // Apply filter immediately when date is selected
-                                    if (date) {
-                                        const quickFilter = buildFilterRequest();
-                                        quickFilter.startDateTime = date.toISOString();
-                                        onFilterChange(quickFilter);
-                                    }
-                                }}
-                                initialFocus
-                                className="pointer-events-auto"
-                            />
+                        <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
+                            <div className="p-0">
+                                <Calendar
+                                    mode="single"
+                                    selected={selectedDate}
+                                    onSelect={(date) => {
+                                        console.log('📅 Calendar date selected:', date);
+                                        if (date) {
+                                            setSelectedDate(date);
+                                            try {
+                                                // Create filter with proper date formatting
+                                                const filterRequest: AdminBookingFilterRequest = {
+                                                    search: searchQuery || undefined,
+                                                    statuses: selectedStatuses.length > 0 ? selectedStatuses : undefined,
+                                                    courtIds: selectedCourtIds.length > 0 ? selectedCourtIds : undefined,
+                                                    matchTypes: selectedMatchTypes.length > 0 ? selectedMatchTypes : undefined,
+                                                    startDateTime: date.toISOString(),
+                                                    page: 0,
+                                                    size: 10
+                                                };
+                                                
+                                                console.log('🔍 Applying calendar filter:', filterRequest);
+                                                onFilterChange(filterRequest);
+                                                toast.success(`Filter applied for ${date.toLocaleDateString()}`);
+                                                setDatePickerOpen(false);
+                                            } catch (error) {
+                                                console.error('❌ Error applying calendar filter:', error);
+                                                toast.error('Failed to apply date filter');
+                                            }
+                                        }
+                                    }}
+                                    disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                                    initialFocus
+                                    className="pointer-events-auto"
+                                />
+                                <div className="p-3 border-t flex gap-2">
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => {
+                                            setSelectedDate(undefined);
+                                            const clearedFilter: AdminBookingFilterRequest = {
+                                                search: searchQuery || undefined,
+                                                statuses: selectedStatuses.length > 0 ? selectedStatuses : undefined,
+                                                courtIds: selectedCourtIds.length > 0 ? selectedCourtIds : undefined,
+                                                matchTypes: selectedMatchTypes.length > 0 ? selectedMatchTypes : undefined,
+                                                page: 0,
+                                                size: 10
+                                            };
+                                            onFilterChange(clearedFilter);
+                                            setDatePickerOpen(false);
+                                            toast.success('Date filter cleared');
+                                        }}
+                                        className="flex-1"
+                                    >
+                                        Clear
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        onClick={() => setDatePickerOpen(false)}
+                                        className="flex-1"
+                                    >
+                                        Apply
+                                    </Button>
+                                </div>
+                            </div>
                         </PopoverContent>
                     </Popover>
                 </div>
@@ -550,20 +599,22 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                 {renderQuickFilters()}
                 
                 {/* Apply Filters Button */}
-                <div className="flex gap-2 pt-4 border-t">
+                <div className="grid grid-cols-2 gap-3 pt-4 border-t">
                     <Button
                         onClick={applyFilters}
-                        className="flex-1"
+                        className="bg-primary hover:bg-primary/90"
                         disabled={isLoading}
                     >
-                        {isLoading ? (
-                            <>
-                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                                Loading...
-                            </>
-                        ) : (
-                            'Apply Filters'
-                        )}
+                        <Filter className="mr-2 h-4 w-4" />
+                        Apply
+                    </Button>
+                    <Button
+                        onClick={clearAllFilters}
+                        variant="outline"
+                        disabled={isLoading}
+                    >
+                        <RotateCcw className="mr-2 h-4 w-4" />
+                        Clear
                     </Button>
                 </div>
 
