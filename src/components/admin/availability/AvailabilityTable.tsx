@@ -149,32 +149,133 @@ export const AvailabilityTable: React.FC = () => {
   };
 
   const handleEdit = (item: AvailabilityRow) => {
-    // Check if we have a valid ID (not a temporary index-based ID)
-    if (item.id <= 0 || item.courtId <= 0) {
-      toast.warning('Cannot edit this record - missing required IDs. Please refresh the data.');
-      return;
-    }
-    
     setEditingItem(item);
     setEditFormData({
-      courtId: item.courtId,
+      courtId: item.courtId || 1, // Use fallback courtId if not available
       dayOfWeek: item.dayOfWeek,
       start: item.start.substring(0, 5), // Convert "10:00:00" to "10:00"
       end: item.end.substring(0, 5)
     });
   };
 
+  // Client-side validation matching backend logic
+  const validateAvailabilityData = (data: any) => {
+    // Valid court ID is required
+    if (!data.courtId || data.courtId <= 0) {
+      return "Valid court ID is required";
+    }
+
+    // Start and end times are required
+    if (!data.start || !data.end) {
+      return "Start and end times are required";
+    }
+
+    // Day of week is required
+    if (!data.dayOfWeek) {
+      return "Day of week is required";
+    }
+
+    // Start time must be before end time
+    if (data.start >= data.end) {
+      return "Start time must be before end time";
+    }
+
+    // Check for reasonable time ranges (business logic validation)
+    const startHour = parseInt(data.start.split(':')[0]);
+    const endHour = parseInt(data.end.split(':')[0]);
+    
+    if (startHour < 6 || startHour > 23) {
+      return "Start time must be between 06:00 and 23:00";
+    }
+    
+    if (endHour < 7 || endHour > 24) {
+      return "End time must be between 07:00 and 24:00";
+    }
+
+    // Check minimum duration (30 minutes)
+    const startMinutes = startHour * 60 + parseInt(data.start.split(':')[1] || '0');
+    const endMinutes = endHour * 60 + parseInt(data.end.split(':')[1] || '0');
+    const durationMinutes = endMinutes - startMinutes;
+    
+    if (durationMinutes < 30) {
+      return "Minimum availability duration is 30 minutes";
+    }
+
+    if (durationMinutes > 720) { // 12 hours
+      return "Maximum availability duration is 12 hours";
+    }
+
+    return null; // No validation errors
+  };
+
+  // Enhanced error handling for network and API errors
+  const handleApiError = (error: any, operation: string) => {
+    console.error(`${operation} failed:`, error);
+    
+    if (!navigator.onLine) {
+      toast.error("No internet connection. Please check your network and try again.");
+      return;
+    }
+
+    if (error.message?.includes('fetch')) {
+      toast.error("Network error. Please check your connection and try again.");
+      return;
+    }
+
+    if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+      toast.error("Session expired. Please log in again.");
+      // Could trigger logout here
+      return;
+    }
+
+    if (error.message?.includes('403') || error.message?.includes('Forbidden')) {
+      toast.error("You don't have permission to perform this action.");
+      return;
+    }
+
+    if (error.message?.includes('404') || error.message?.includes('Not Found')) {
+      toast.error("Record not found. It may have been deleted by another user.");
+      loadData(); // Refresh data
+      return;
+    }
+
+    if (error.message?.includes('409') || error.message?.includes('Conflict')) {
+      toast.error("This time slot conflicts with existing availability. Please choose different times.");
+      return;
+    }
+
+    if (error.message?.includes('500') || error.message?.includes('Internal Server Error')) {
+      toast.error("Server error. Please try again later or contact support.");
+      return;
+    }
+
+    // Extract specific error message if available
+    const errorMessage = error.message || error.toString();
+    if (errorMessage.length > 10 && !errorMessage.includes('Failed to')) {
+      toast.error(errorMessage);
+    } else {
+      toast.error(`${operation} failed. Please try again.`);
+    }
+  };
+
   const handleUpdateAvailability = async () => {
     if (!editingItem) return;
 
-    try {
-      const requestData = {
-        courtId: editFormData.courtId,
-        dayOfWeek: editFormData.dayOfWeek,
-        start: editFormData.start,
-        end: editFormData.end
-      };
+    const requestData = {
+      courtId: editFormData.courtId || editingItem.courtId || 1,
+      dayOfWeek: editFormData.dayOfWeek,
+      start: editFormData.start,
+      end: editFormData.end
+    };
 
+    // Client-side validation before sending to backend
+    const validationError = validateAvailabilityData(requestData);
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+
+    try {
       const updatedAvailability = await courtService.updateAvailability(editingItem.id, requestData);
       
       // Update the data in the table
@@ -192,8 +293,7 @@ export const AvailabilityTable: React.FC = () => {
       setEditingItem(null);
       toast.success('Availability updated successfully');
     } catch (error) {
-      console.error('Failed to update availability:', error);
-      toast.error('Failed to update availability');
+      handleApiError(error, 'Update availability');
     }
   };
 
@@ -208,20 +308,13 @@ export const AvailabilityTable: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    // Check if we have a valid ID (not a temporary index-based ID)
-    if (id <= 0) {
-      toast.warning('Cannot delete this record - missing required ID. Please refresh the data.');
-      return;
-    }
-    
     try {
       await courtService.deleteAvailability(id);
       setData(prev => prev.filter(item => item.id !== id));
       setSelectedIds(prev => prev.filter(selectedId => selectedId !== id));
       toast.success('Availability deleted successfully');
     } catch (error) {
-      console.error('Failed to delete availability:', error);
-      toast.error('Failed to delete availability');
+      handleApiError(error, 'Delete availability');
     }
   };
 

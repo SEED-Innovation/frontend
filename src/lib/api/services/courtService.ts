@@ -86,6 +86,11 @@ export interface CourtUnavailableResponse {
     reason?: string;
 }
 
+export interface UpdateCourtUnavailabilityRequest {
+    courtId: number;
+    date: string; // Format: "YYYY-MM-DD"
+}
+
 class CourtService {
     private baseUrl = `${import.meta.env.VITE_API_URL}/admin/courts`;
 
@@ -307,7 +312,18 @@ class CourtService {
         });
 
         if (!response.ok) {
-            throw new Error(`Failed to set court availability: ${response.statusText}`);
+            // Try to extract error message from backend response
+            let errorMessage = `Failed to set court availability: ${response.statusText}`;
+            try {
+                const errorData = await response.text();
+                if (errorData) {
+                    // Spring Boot ResponseStatusException returns the message directly
+                    errorMessage = errorData;
+                }
+            } catch (e) {
+                // If parsing fails, use the default message
+            }
+            throw new Error(errorMessage);
         }
 
         return response.json();
@@ -324,7 +340,18 @@ class CourtService {
         });
 
         if (!response.ok) {
-            throw new Error(`Failed to update court availability: ${response.statusText}`);
+            // Try to extract error message from backend response
+            let errorMessage = `Failed to update court availability: ${response.statusText}`;
+            try {
+                const errorData = await response.text();
+                if (errorData) {
+                    // Spring Boot ResponseStatusException returns the message directly
+                    errorMessage = errorData;
+                }
+            } catch (e) {
+                // If parsing fails, use the default message
+            }
+            throw new Error(errorMessage);
         }
 
         return response.json();
@@ -340,7 +367,18 @@ class CourtService {
         });
 
         if (!response.ok) {
-            throw new Error(`Failed to delete court availability: ${response.statusText}`);
+            // Try to extract error message from backend response
+            let errorMessage = `Failed to delete court availability: ${response.statusText}`;
+            try {
+                const errorData = await response.text();
+                if (errorData) {
+                    // Spring Boot ResponseStatusException returns the message directly
+                    errorMessage = errorData;
+                }
+            } catch (e) {
+                // If parsing fails, use the default message
+            }
+            throw new Error(errorMessage);
         }
     }
 
@@ -359,12 +397,11 @@ class CourtService {
 
         const rawData = await response.json();
         
-        // Note: Backend currently doesn't return IDs, which are needed for edit/delete operations
-        // This should be updated in the backend to include proper IDs
-        return rawData.map((item: any, index: number) => ({
-            id: index + 1, // Temporary solution - backend should provide real IDs
-            courtId: 0, // Backend doesn't return courtId directly in this endpoint
-            dayOfWeek: item.dayOfWeek,
+        // Backend now returns real IDs - use them for edit/delete operations
+        return rawData.map((item: any) => ({
+            id: parseInt(item.id), // Use real database ID from backend
+            courtId: item.courtId || 0, // Use real court ID if available
+            dayOfWeek: item.dayOfWeek.toUpperCase(), // Ensure uppercase format
             startTime: item.start + ':00', // Convert "HH:mm" to "HH:mm:ss" format
             endTime: item.end + ':00',
             isActive: true,
@@ -388,11 +425,11 @@ class CourtService {
         const rawData = await response.json();
         
         // Transform the backend response to match UnavailabilityRow interface
-        return rawData.map((item: any, index: number) => ({
-            id: index + 1, // Generate ID since backend doesn't provide it
-            courtId: 0, // Not provided by current endpoint
+        return rawData.map((item: any) => ({
+            id: item.id,              // Use real database ID from backend
+            courtId: item.courtId,    // Use real court ID from backend
             courtName: item.courtName,
-            date: item.date // Already in "dd-MM-yyyy" format
+            date: item.date           // Display date format
         }));
     }
 
@@ -407,7 +444,17 @@ class CourtService {
         });
 
         if (!response.ok) {
-            throw new Error(`Failed to mark court unavailable: ${response.statusText}`);
+            // Try to extract error message from backend response
+            let errorMessage = `Failed to mark court unavailable: ${response.statusText}`;
+            try {
+                const errorData = await response.text();
+                if (errorData) {
+                    errorMessage = errorData;
+                }
+            } catch (e) {
+                // If parsing fails, use the default message
+            }
+            throw new Error(errorMessage);
         }
 
         return response.json();
@@ -416,15 +463,25 @@ class CourtService {
     /**
      * Update court unavailability
      */
-    async updateUnavailability(id: number, requestData: MarkUnavailableRequest): Promise<CourtUnavailableResponse> {
-        const response = await fetch(`${this.baseUrl}/availability/unavailability/${id}`, {
+    async updateUnavailability(id: number, requestData: UpdateCourtUnavailabilityRequest): Promise<CourtUnavailableResponse> {
+        const response = await fetch(`${this.baseUrl}/availability/update-unavailability/${id}`, {
             method: 'PUT',
             headers: this.getAuthHeaders(),
             body: JSON.stringify(requestData)
         });
 
         if (!response.ok) {
-            throw new Error(`Failed to update court unavailability: ${response.statusText}`);
+            // Try to extract error message from backend response
+            let errorMessage = `Failed to update unavailability: ${response.statusText}`;
+            try {
+                const errorData = await response.text();
+                if (errorData) {
+                    errorMessage = errorData;
+                }
+            } catch (e) {
+                // If parsing fails, use the default message
+            }
+            throw new Error(errorMessage);
         }
 
         return response.json();
@@ -434,13 +491,23 @@ class CourtService {
      * Delete court unavailability
      */
     async deleteUnavailability(id: number): Promise<void> {
-        const response = await fetch(`${this.baseUrl}/availability/unavailability/${id}`, {
+        const response = await fetch(`${this.baseUrl}/availability/delete-unavailability/${id}`, {
             method: 'DELETE',
             headers: this.getAuthHeaders()
         });
 
         if (!response.ok) {
-            throw new Error(`Failed to delete court unavailability: ${response.statusText}`);
+            // Try to extract error message from backend response
+            let errorMessage = `Failed to delete unavailability: ${response.statusText}`;
+            try {
+                const errorData = await response.text();
+                if (errorData) {
+                    errorMessage = errorData;
+                }
+            } catch (e) {
+                // If parsing fails, use the default message
+            }
+            throw new Error(errorMessage);
         }
     }
 }

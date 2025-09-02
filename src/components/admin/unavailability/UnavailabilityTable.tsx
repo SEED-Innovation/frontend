@@ -63,8 +63,7 @@ export const UnavailabilityTable: React.FC = () => {
         toast.info('Using mock data - API not available');
       }
     } catch (error) {
-      console.error('Failed to load unavailability data:', error);
-      toast.error('Failed to load unavailability data');
+      handleApiError(error, "Loading unavailability data");
     } finally {
       setLoading(false);
     }
@@ -136,18 +135,115 @@ export const UnavailabilityTable: React.FC = () => {
     });
   };
 
+  // Client-side validation matching backend logic for unavailability
+  const validateUnavailabilityData = (data: any) => {
+    // Valid court ID is required
+    if (!data.courtId || data.courtId <= 0) {
+      return "Valid court ID is required";
+    }
+
+    // Date is required
+    if (!data.date) {
+      return "Date is required";
+    }
+
+    // Check if date is not in the past (only if it's a meaningful date)
+    if (data.date) {
+      const selectedDate = new Date(data.date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Reset time to compare only dates
+      
+      if (selectedDate < today) {
+        return "Cannot set unavailability for past dates";
+      }
+
+      // Check if date is too far in the future (business rule)
+      const oneYearFromNow = new Date();
+      oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+      
+      if (selectedDate > oneYearFromNow) {
+        return "Cannot set unavailability more than 1 year in advance";
+      }
+
+      // Check for weekend restrictions (if business rule applies)
+      const dayOfWeek = selectedDate.getDay(); // 0 = Sunday, 6 = Saturday
+      // You can uncomment this if you want to restrict weekends
+      // if (dayOfWeek === 0 || dayOfWeek === 6) {
+      //   return "Cannot set unavailability on weekends";
+      // }
+    }
+
+    return null; // No validation errors
+  };
+
+  // Enhanced error handling for network and API errors
+  const handleApiError = (error: any, operation: string) => {
+    console.error(`${operation} failed:`, error);
+    
+    if (!navigator.onLine) {
+      toast.error("No internet connection. Please check your network and try again.");
+      return;
+    }
+
+    if (error.message?.includes('fetch')) {
+      toast.error("Network error. Please check your connection and try again.");
+      return;
+    }
+
+    if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+      toast.error("Session expired. Please log in again.");
+      return;
+    }
+
+    if (error.message?.includes('403') || error.message?.includes('Forbidden')) {
+      toast.error("You don't have permission to perform this action.");
+      return;
+    }
+
+    if (error.message?.includes('404') || error.message?.includes('Not Found')) {
+      toast.error("Record not found. It may have been deleted by another user.");
+      loadData(); // Refresh data
+      return;
+    }
+
+    if (error.message?.includes('409') || error.message?.includes('Conflict')) {
+      toast.error("This date conflicts with existing unavailability. Please choose a different date.");
+      return;
+    }
+
+    if (error.message?.includes('500') || error.message?.includes('Internal Server Error')) {
+      toast.error("Server error. Please try again later or contact support.");
+      return;
+    }
+
+    // Extract specific error message if available
+    const errorMessage = error.message || error.toString();
+    if (errorMessage.length > 10 && !errorMessage.includes('Failed to')) {
+      toast.error(errorMessage);
+    } else {
+      toast.error(`${operation} failed. Please try again.`);
+    }
+  };
+
   const handleUpdateUnavailability = async () => {
     if (!editingItem) return;
 
     console.log('Starting update...', { editingItem, editFormData });
     console.log('courtService methods:', Object.getOwnPropertyNames(courtService));
 
-    try {
-      const requestData = {
-        courtId: editFormData.courtId || editingItem.courtId || 1, // Ensure we have a valid courtId
-        date: editFormData.date // Already in "YYYY-MM-DD" format
-      };
+    const requestData = {
+      courtId: editFormData.courtId || editingItem.courtId || 1,
+      date: editFormData.date // Already in "YYYY-MM-DD" format
+    };
 
+    // Client-side validation before sending to backend
+    const validationError = validateUnavailabilityData(requestData);
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+
+    try {
       console.log('Calling updateUnavailability with:', { id: editingItem.id, requestData });
       const updatedUnavailability = await courtService.updateUnavailability(editingItem.id, requestData);
       
@@ -169,8 +265,7 @@ export const UnavailabilityTable: React.FC = () => {
       setEditingItem(null);
       toast.success('Unavailability updated successfully');
     } catch (error) {
-      console.error('Failed to update unavailability:', error);
-      toast.error('Failed to update unavailability');
+      handleApiError(error, "Updating unavailability");
     }
   };
 
@@ -193,8 +288,7 @@ export const UnavailabilityTable: React.FC = () => {
       setSelectedIds(prev => prev.filter(selectedId => selectedId !== id));
       toast.success('Unavailability deleted successfully');
     } catch (error) {
-      console.error('Failed to delete unavailability:', error);
-      toast.error('Failed to delete unavailability');
+      handleApiError(error, "Deleting unavailability");
     }
   };
 
@@ -211,7 +305,7 @@ export const UnavailabilityTable: React.FC = () => {
       setSelectedIds([]);
       toast.success(`${ids.length} unavailability records deleted successfully`);
     } catch (error) {
-      toast.error('Failed to delete unavailability records');
+      handleApiError(error, "Bulk deleting unavailability records");
     }
   };
 
