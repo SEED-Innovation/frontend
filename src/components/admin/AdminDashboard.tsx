@@ -257,17 +257,18 @@ const AdminDashboard = () => {
                       className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                     >
                       {/* Player Avatar */}
-                      <div className="relative flex-shrink-0">
-                        <Avatar className="w-12 h-12">
-                          <AvatarImage 
+                      <div className="relative w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-primary to-primary/80 flex-shrink-0">
+                        {player.avatar ? (
+                          <img 
                             src={player.avatar} 
                             alt={player.name}
-                            className="object-cover"
+                            className="w-full h-full object-cover"
                           />
-                          <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white font-semibold">
-                            {player.name ? player.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : <Users className="w-6 h-6" />}
-                          </AvatarFallback>
-                        </Avatar>
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Users className="w-6 h-6 text-white" />
+                          </div>
+                        )}
                         {/* Rank Badge */}
                         <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-white text-xs rounded-full flex items-center justify-center font-bold">
                           {index + 1}
