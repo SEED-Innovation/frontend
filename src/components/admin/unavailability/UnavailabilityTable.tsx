@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Edit, Trash2, ChevronUp, ChevronDown, RefreshCw } from 'lucide-react';
+import { Edit, Trash2, ChevronUp, ChevronDown, RefreshCw, Check, X } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { UnavailabilityToolbar } from './UnavailabilityToolbar';
@@ -21,6 +22,11 @@ export const UnavailabilityTable: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [sortField, setSortField] = useState<SortField>('courtName');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [editingItem, setEditingItem] = useState<UnavailabilityRow | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    courtId: 0,
+    date: ''
+  });
   
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -28,6 +34,9 @@ export const UnavailabilityTable: React.FC = () => {
   // Load data
   useEffect(() => {
     loadData();
+    // Debug: Log courtService to see what methods are available
+    console.log('courtService object:', courtService);
+    console.log('Available methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(courtService)));
   }, []);
 
   const loadData = async () => {
@@ -40,9 +49,17 @@ export const UnavailabilityTable: React.FC = () => {
         setData(result);
       } catch (apiError) {
         console.warn('Real API failed, falling back to mock data:', apiError);
-        // Fallback to mock data
+        // Fallback to mock data which has proper IDs
         const result = await getUnavailabilitiesMock();
-        setData(result);
+        // Convert date format from mock to expected format
+        const transformedData = result.map(item => ({
+          ...item,
+          date: item.date.includes('-') ? 
+            // Convert from "YYYY-MM-DD" to "DD-MM-YYYY" if needed
+            item.date.split('-').reverse().join('-') : 
+            item.date
+        }));
+        setData(transformedData);
         toast.info('Using mock data - API not available');
       }
     } catch (error) {
@@ -108,28 +125,75 @@ export const UnavailabilityTable: React.FC = () => {
   };
 
   const handleEdit = (item: UnavailabilityRow) => {
-    /**
-     * TODO[BE-LINK][AdminCourtUnavailabilityController.update]
-     * Endpoint (placeholder): PUT /admin/courts/{courtId}/unavailability/{id}
-     * Token: Authorization: Bearer <JWT>
-     * Replace mock call with real service when backend is ready.
-     */
-    toast.success(`TODO: Edit unavailability for ${item.courtName} - wire backend`);
+    setEditingItem(item);
+    // Convert date from "dd-MM-yyyy" to "yyyy-MM-dd" for input[type="date"]
+    const dateParts = item.date.split('-');
+    const isoDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+    
+    setEditFormData({
+      courtId: item.courtId || 1, // Use fallback courtId if not available
+      date: isoDate
+    });
+  };
+
+  const handleUpdateUnavailability = async () => {
+    if (!editingItem) return;
+
+    console.log('Starting update...', { editingItem, editFormData });
+    console.log('courtService methods:', Object.getOwnPropertyNames(courtService));
+
+    try {
+      const requestData = {
+        courtId: editFormData.courtId || editingItem.courtId || 1, // Ensure we have a valid courtId
+        date: editFormData.date // Already in "YYYY-MM-DD" format
+      };
+
+      console.log('Calling updateUnavailability with:', { id: editingItem.id, requestData });
+      const updatedUnavailability = await courtService.updateUnavailability(editingItem.id, requestData);
+      
+      // Convert date back to "dd-MM-yyyy" format for display
+      const dateParts = updatedUnavailability.date.split('-');
+      const displayDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+      
+      // Update the data in the table
+      setData(prev => prev.map(item => 
+        item.id === editingItem.id 
+          ? {
+              ...item,
+              courtId: updatedUnavailability.courtId,
+              date: displayDate
+            }
+          : item
+      ));
+      
+      setEditingItem(null);
+      toast.success('Unavailability updated successfully');
+    } catch (error) {
+      console.error('Failed to update unavailability:', error);
+      toast.error('Failed to update unavailability');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingItem(null);
+    setEditFormData({
+      courtId: 0,
+      date: ''
+    });
   };
 
   const handleDelete = async (id: number) => {
+    console.log('Starting delete...', { id });
+    console.log('courtService methods:', Object.getOwnPropertyNames(courtService));
+    console.log('deleteUnavailability function:', courtService.deleteUnavailability);
+    
     try {
-      /**
-       * TODO[BE-LINK][AdminCourtUnavailabilityController.delete]
-       * Endpoint (placeholder): DELETE /admin/courts/{courtId}/unavailability/{id}
-       * Token: Authorization: Bearer <JWT>
-       * Replace mock call with real service when backend is ready.
-       */
-      await deleteUnavailabilityMock(id);
+      await courtService.deleteUnavailability(id);
       setData(prev => prev.filter(item => item.id !== id));
       setSelectedIds(prev => prev.filter(selectedId => selectedId !== id));
       toast.success('Unavailability deleted successfully');
     } catch (error) {
+      console.error('Failed to delete unavailability:', error);
       toast.error('Failed to delete unavailability');
     }
   };
@@ -241,6 +305,8 @@ export const UnavailabilityTable: React.FC = () => {
                 </TableRow>
               ) : (
                 filteredAndSortedData.map((item) => {
+                  const isEditing = editingItem?.id === item.id;
+                  
                   return (
                     <TableRow key={item.id} className="hover:bg-muted/50">
                       <TableCell>
@@ -248,6 +314,7 @@ export const UnavailabilityTable: React.FC = () => {
                           checked={selectedIds.includes(item.id)}
                           onCheckedChange={(checked) => handleSelectRow(item.id, !!checked)}
                           aria-label={`Select ${item.courtName}`}
+                          disabled={isEditing}
                         />
                       </TableCell>
                       <TableCell className="font-medium">
@@ -265,37 +332,80 @@ export const UnavailabilityTable: React.FC = () => {
                         </div>
                       </TableCell>
                       <TableCell className="font-mono">
-                        {item.date}
+                        {isEditing ? (
+                          <Input
+                            type="date"
+                            value={editFormData.date}
+                            onChange={(e) => setEditFormData({...editFormData, date: e.target.value})}
+                            className="w-40"
+                          />
+                        ) : (
+                          item.date
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEdit(item)}
-                                className="h-8 w-8 p-0"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Edit unavailability</TooltipContent>
-                          </Tooltip>
-                          
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDelete(item.id)}
-                                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Delete unavailability</TooltipContent>
-                          </Tooltip>
+                          {isEditing ? (
+                            <>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={handleUpdateUnavailability}
+                                    className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
+                                  >
+                                    <Check className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Save changes</TooltipContent>
+                              </Tooltip>
+                              
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={handleCancelEdit}
+                                    className="h-8 w-8 p-0 text-gray-600 hover:text-gray-700"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Cancel edit</TooltipContent>
+                              </Tooltip>
+                            </>
+                          ) : (
+                            <>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleEdit(item)}
+                                    className="h-8 w-8 p-0"
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Edit unavailability</TooltipContent>
+                              </Tooltip>
+                              
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDelete(item.id)}
+                                    className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Delete unavailability</TooltipContent>
+                              </Tooltip>
+                            </>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
