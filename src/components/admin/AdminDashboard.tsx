@@ -24,7 +24,7 @@ const AdminDashboard = () => {
   const { user, hasPermission } = useAdminAuth();
   
   // State for real data
-  const [bookingInsights, setBookingInsights] = useState([]);
+  const [topPlayers, setTopPlayers] = useState([]);
   const [topCourts, setTopCourts] = useState([]);
   const [dashboardStats, setDashboardStats] = useState({
     totalRevenue: 0,
@@ -62,38 +62,32 @@ const AdminDashboard = () => {
         // Extract bookings array
         const bookings = Array.isArray(bookingsResponse) ? bookingsResponse : ((bookingsResponse as any)?.bookings || (bookingsResponse as any)?.content || []);
         
-        // Create booking insights from existing data
-        const statusCounts = bookings.reduce((acc, booking) => {
-          acc[booking.status] = (acc[booking.status] || 0) + 1;
-          return acc;
-        }, {});
-        
-        const paymentStatusCounts = bookings.reduce((acc, booking) => {
-          const paymentStatus = booking.payment?.status || 'pending';
-          acc[paymentStatus] = (acc[paymentStatus] || 0) + 1;
-          return acc;
-        }, {});
-        
-        const insights = [
-          {
-            id: 'booking-status',
-            title: 'Booking Distribution',
-            data: [
-              { label: 'Confirmed', value: statusCounts.confirmed || 0, color: 'text-green-600', icon: 'check' },
-              { label: 'Pending', value: statusCounts.pending || 0, color: 'text-yellow-600', icon: 'clock' },
-              { label: 'Cancelled', value: statusCounts.cancelled || 0, color: 'text-red-600', icon: 'x' }
-            ]
-          },
-          {
-            id: 'payment-status',
-            title: 'Payment Status',
-            data: [
-              { label: 'Paid', value: paymentStatusCounts.paid || 0, color: 'text-green-600', icon: 'check' },
-              { label: 'Pending', value: paymentStatusCounts.pending || 0, color: 'text-yellow-600', icon: 'clock' },
-              { label: 'Failed', value: paymentStatusCounts.failed || 0, color: 'text-red-600', icon: 'x' }
-            ]
+        // Calculate top players by booking count
+        const playerBookingCounts = bookings.reduce((acc, booking) => {
+          const playerId = booking.user?.id;
+          const playerName = booking.user?.name || booking.user?.email || 'Unknown Player';
+          const playerEmail = booking.user?.email || '';
+          
+          if (playerId && !acc[playerId]) {
+            acc[playerId] = { 
+              id: playerId,
+              name: playerName, 
+              email: playerEmail,
+              bookings: 0, 
+              totalSpent: 0,
+              avatar: booking.user?.avatar || null
+            };
           }
-        ];
+          if (playerId) {
+            acc[playerId].bookings += 1;
+            acc[playerId].totalSpent += booking.payment?.amount || 0;
+          }
+          return acc;
+        }, {});
+        
+        const topPlayersData = Object.values(playerBookingCounts)
+          .sort((a: any, b: any) => b.bookings - a.bookings)
+          .slice(0, 6);
         
         // Calculate court performance
         const courtBookingCounts = bookings.reduce((acc, booking) => {
@@ -118,7 +112,7 @@ const AdminDashboard = () => {
           .slice(0, 6);
         
         // Update state with real data
-        setBookingInsights(insights);
+        setTopPlayers(topPlayersData);
         setTopCourts(topPerformingCourts);
         setDashboardStats({
           totalRevenue: (statsResponse as any).totalRevenue || (statsResponse as any).confirmedRevenue || 0,
@@ -224,9 +218,9 @@ const AdminDashboard = () => {
         />
       </div>
 
-      {/* Booking Insights & Top Courts */}
+      {/* Top Players & Top Courts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Booking Insights */}
+        {/* Top Players */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -235,40 +229,67 @@ const AdminDashboard = () => {
           <Card className="premium-card">
             <CardHeader>
               <CardTitle className="flex items-center">
-                <BarChart3 className="w-5 h-5 mr-2" />
-                Booking Insights
+                <Users className="w-5 h-5 mr-2" />
+                Top Players by Bookings
               </CardTitle>
             </CardHeader>
             <CardContent>
               {isLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                  <span className="ml-2 text-muted-foreground">Loading insights...</span>
+                  <span className="ml-2 text-muted-foreground">Loading players...</span>
                 </div>
-              ) : bookingInsights.length === 0 ? (
+              ) : topPlayers.length === 0 ? (
                 <div className="text-center py-8">
-                  <BarChart3 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-muted-foreground mb-2">No Insights Available</h3>
-                  <p className="text-sm text-muted-foreground">No booking data found for analysis.</p>
+                  <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-muted-foreground mb-2">No Player Data</h3>
+                  <p className="text-sm text-muted-foreground">No players with bookings found.</p>
                 </div>
               ) : (
-                <div className="space-y-6">
-                  {bookingInsights.map((insight, index) => (
+                <div className="space-y-4">
+                  {topPlayers.map((player: any, index) => (
                     <motion.div
-                      key={insight.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
+                      key={player.id}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: 0.1 * index }}
-                      className="space-y-3"
+                      className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                     >
-                      <h4 className="font-medium text-sm text-muted-foreground">{insight.title}</h4>
-                      <div className="grid grid-cols-3 gap-3">
-                        {insight.data.map((item, idx) => (
-                          <div key={idx} className="text-center p-3 bg-gray-50 rounded-lg">
-                            <div className={`text-lg font-bold ${item.color}`}>{item.value}</div>
-                            <div className="text-xs text-muted-foreground mt-1">{item.label}</div>
+                      {/* Player Avatar */}
+                      <div className="relative w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-primary to-primary/80 flex-shrink-0">
+                        {player.avatar ? (
+                          <img 
+                            src={player.avatar} 
+                            alt={player.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Users className="w-6 h-6 text-white" />
                           </div>
-                        ))}
+                        )}
+                        {/* Rank Badge */}
+                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-white text-xs rounded-full flex items-center justify-center font-bold">
+                          {index + 1}
+                        </div>
+                      </div>
+                      
+                      {/* Player Info */}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{player.name}</p>
+                        <p className="text-sm text-gray-500 truncate">
+                          {player.email}
+                        </p>
+                      </div>
+                      
+                      {/* Stats */}
+                      <div className="text-right flex-shrink-0">
+                        <div className="font-medium text-sm">
+                          {player.bookings} bookings
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          <CurrencyDisplay amount={player.totalSpent} size="sm" showSymbol />
+                        </div>
                       </div>
                     </motion.div>
                   ))}
