@@ -68,7 +68,7 @@ const AdminDashboard = () => {
           const playerId = booking.user?.id;
           const playerName = booking.user?.name || booking.user?.email || 'Unknown Player';
           const playerEmail = booking.user?.email || '';
-          const playerAvatar = booking.user?.profilePicture || booking.user?.avatar || booking.user?.image || null;
+          const playerAvatar = booking.user?.profilePictureUrl || booking.user?.profilePicture || booking.user?.avatar || booking.user?.image || null;
           
           if (playerId && !acc[playerId]) {
             acc[playerId] = { 
