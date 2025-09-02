@@ -29,6 +29,11 @@ export interface CreateCourtRequest {
     hourlyFee: number;
     hasSeedSystem: boolean;
     amenities: string[];
+    imageUrl?: string;
+    description?: string;
+    latitude?: number;
+    longitude?: number;
+    manager_id?: { id: number };
 }
 
 export interface UpdateCourtRequest {

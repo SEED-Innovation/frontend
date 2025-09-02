@@ -170,15 +170,26 @@ export class BookingService {
     console.log('➕ Creating manual booking:', request);
     
     try {
-      // Call your backend's /admin/bookings/manual endpoint
+      // Call your backend's /admin/bookings/manual endpoint - use mobile app format
+      const requestBody: any = {
+        userId: request.userId,
+        courtId: request.courtId,
+        date: request.date,
+        startTime: request.startTime,
+        durationMinutes: request.durationMinutes,
+        matchType: request.matchType
+      };
+      
+      // Only add notes if it exists and is not empty
+      if (request.notes && request.notes.trim()) {
+        requestBody.notes = request.notes;
+      }
+      
+      console.log('📤 Sending request body:', requestBody);
+      
       const response = await this.makeAPICall(`${this.baseUrl}/admin/bookings/manual`, {
         method: 'POST',
-        body: JSON.stringify({
-          userId: request.userId,
-          courtId: request.courtId,
-          startTime: request.startTime,
-          endTime: request.endTime
-        })
+        body: JSON.stringify(requestBody)
       });
       
       const newBooking = await response.json();
@@ -475,6 +486,16 @@ private createMockStats(): BookingFilterSummary {
 }
 
   private createMockBooking(request: CreateBookingRequest): BookingResponse {
+    // Convert mobile app format back to response format for mock
+    const date = new Date(request.date);
+    const [hours, minutes, seconds] = request.startTime.split(':').map(Number);
+    
+    const startDateTime = new Date(date);
+    startDateTime.setHours(hours, minutes, seconds || 0);
+    
+    const endDateTime = new Date(startDateTime);
+    endDateTime.setMinutes(endDateTime.getMinutes() + request.durationMinutes);
+    
     return {
       id: Date.now(),
       user: { 
@@ -490,8 +511,8 @@ private createMockStats(): BookingFilterSummary {
         hourlyFee: 65, 
         hasSeedSystem: true 
       },
-      startTime: request.startTime,
-      endTime: request.endTime,
+      startTime: startDateTime.toISOString(),
+      endTime: endDateTime.toISOString(),
       status: 'PENDING',
       matchType: request.matchType
     };

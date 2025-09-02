@@ -13,7 +13,8 @@ import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { courtService, Court, CreateCourtRequest, SetCourtAvailabilityRequest, AdminCourtAvailabilityResponse } from '@/lib/api/services/courtService';
-import { adminService } from '@/services';
+import { adminService } from '@/services/adminService';
+import EnhancedCourtForm from './EnhancedCourtForm';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Check, ChevronsUpDown } from 'lucide-react';
@@ -106,37 +107,10 @@ const CourtManagement = () => {
     }
   };
 
-  const handleCreateCourt = async () => {
-    if (!newCourt.name || !newCourt.type || !newCourt.location) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-
+  const handleCreateCourt = async (courtData: CreateCourtRequest) => {
     try {
-      const courtData: any = {
-        name: newCourt.name,
-        type: newCourt.type,
-        location: newCourt.location,
-        hourlyFee: newCourt.hourlyFee,
-        hasSeedSystem: newCourt.hasSeedSystem,
-        amenities: newCourt.amenities
-      };
-
-      // Add managerId if selected
-      if (newCourt.managerId) {
-        courtData.managerId = newCourt.managerId;
-      }
       const createdCourt = await courtService.createCourt(courtData);
       setCourts([...courts, createdCourt]);
-      setNewCourt({
-        name: '',
-        type: '',
-        location: '',
-        hourlyFee: 0,
-        hasSeedSystem: false,
-        amenities: [],
-        managerId: ''
-      });
       setCreateDialogOpen(false);
       toast.success('Court created successfully');
     } catch (error) {
@@ -389,136 +363,28 @@ const CourtManagement = () => {
             Refresh
           </Button>
           {hasPermission('SUPER_ADMIN') && (
-            <Dialog open={createDialogOpen} onOpenChange={(open) => {
-              setCreateDialogOpen(open);
-              if (open && hasPermission('SUPER_ADMIN')) {
-                fetchAdmins();
-              }
-            }}>
-              <DialogTrigger asChild>
-                <Button className="flex items-center gap-2">
-                  <Plus className="w-4 h-4" />
-                  Add New Court
-                </Button>
-              </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Create New Court</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="name">Court Name *</Label>
-                <Input
-                  id="name"
-                  value={newCourt.name}
-                  onChange={(e) => setNewCourt({...newCourt, name: e.target.value})}
-                  placeholder="e.g., Court 1 - Center"
-                />
-              </div>
-              <div>
-                <Label htmlFor="type">Court Type *</Label>
-                                  <Select onValueChange={(value) => setNewCourt({...newCourt, type: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select court type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="HARD">Hard Court</SelectItem>
-                      <SelectItem value="CLAY">Clay Court</SelectItem>
-                      <SelectItem value="GRASS">Grass Court</SelectItem>
-                      <SelectItem value="INDOOR">Indoor Court</SelectItem>
-                      <SelectItem value="OUTDOOR">Outdoor Court</SelectItem>
-                    </SelectContent>
-                  </Select>
-              </div>
-              <div>
-                <Label htmlFor="location">Location *</Label>
-                <Input
-                  id="location"
-                  value={newCourt.location}
-                  onChange={(e) => setNewCourt({...newCourt, location: e.target.value})}
-                  placeholder="e.g., Main Building"
-                />
-              </div>
-              <div>
-                <Label htmlFor="hourlyFee">Hourly Fee (SAR)</Label>
-                <Input
-                  id="hourlyFee"
-                  type="number"
-                  value={newCourt.hourlyFee}
-                  onChange={(e) => setNewCourt({...newCourt, hourlyFee: Number(e.target.value)})}
-                  placeholder="120"
-                />
-              </div>
-              <div>
-                <Label htmlFor="managerId">Court Manager</Label>
-                <Popover open={managerComboboxOpen} onOpenChange={setManagerComboboxOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={managerComboboxOpen}
-                      className="w-full justify-between"
-                      disabled={adminsLoading}
-                    >
-                      {newCourt.managerId && newCourt.managerId !== "none"
-                        ? admins.find((admin) => admin === newCourt.managerId) || newCourt.managerId
-                        : adminsLoading 
-                          ? "Loading admins..." 
-                          : "Search and select an admin..."}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-full p-0">
-                    <Command>
-                      <CommandInput placeholder="Search admins..." />
-                      <CommandList>
-                        <CommandEmpty>No admin found.</CommandEmpty>
-                        <CommandGroup>
-                          <CommandItem
-                            value="none"
-                            onSelect={() => {
-                              setNewCourt({...newCourt, managerId: "none"});
-                              setManagerComboboxOpen(false);
-                            }}
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                newCourt.managerId === "none" ? "opacity-100" : "opacity-0"
-                              )}
-                            />
-                            No manager assigned
-                          </CommandItem>
-                          {admins.map((admin) => (
-                            <CommandItem
-                              key={admin}
-                              value={admin}
-                              onSelect={(currentValue) => {
-                                setNewCourt({...newCourt, managerId: currentValue === newCourt.managerId ? "" : currentValue});
-                                setManagerComboboxOpen(false);
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  newCourt.managerId === admin ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {admin}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <Button onClick={handleCreateCourt} className="w-full">
-                Create Court
+            <>
+              <Button 
+                className="flex items-center gap-2"
+                onClick={() => {
+                  setCreateDialogOpen(true);
+                  if (hasPermission('SUPER_ADMIN')) {
+                    fetchAdmins();
+                  }
+                }}
+              >
+                <Plus className="w-4 h-4" />
+                Add New Court
               </Button>
-            </div>
-          </DialogContent>
-            </Dialog>
+
+              <EnhancedCourtForm
+                open={createDialogOpen}
+                onOpenChange={setCreateDialogOpen}
+                onSubmit={handleCreateCourt}
+                admins={admins}
+                adminsLoading={adminsLoading}
+              />
+            </>
           )}
         </div>
 
