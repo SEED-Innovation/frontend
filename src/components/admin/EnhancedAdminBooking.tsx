@@ -86,54 +86,7 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-admin-surface via-admin-secondary to-admin-surface p-6 space-y-8">
-            {/* Enhanced Hero Header */}
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-admin-primary to-admin-accent p-8 text-white shadow-xl"
-            >
-                <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent" />
-                <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-white/10 to-transparent rounded-full -translate-y-48 translate-x-48" />
-                
-                <div className="relative z-10 flex items-center justify-between">
-                    <div className="space-y-4">
-                        <div className="flex items-center space-x-4">
-                            <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm">
-                                <Crown className="w-8 h-8 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-4xl font-bold mb-2">Booking Management</h1>
-                                <p className="text-blue-100 text-lg font-medium">Professional Tennis Court Administration</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-6">
-                        <motion.div 
-                            whileHover={{ scale: 1.05 }}
-                            className="text-center p-4 bg-white/10 rounded-2xl backdrop-blur-sm border border-white/20"
-                        >
-                            <div className="flex items-center justify-center mb-2">
-                                <Activity className="w-6 h-6 text-blue-300 mr-2" />
-                                <p className="text-3xl font-bold text-white">{filteredBookings.length}</p>
-                            </div>
-                            <p className="text-sm text-blue-200 font-medium">Total Bookings</p>
-                        </motion.div>
-                        
-                        <motion.div 
-                            whileHover={{ scale: 1.05 }}
-                            className="text-center p-4 bg-white/10 rounded-2xl backdrop-blur-sm border border-white/20"
-                        >
-                            <div className="flex items-center justify-center mb-2">
-                                <Clock className="w-6 h-6 text-yellow-300 mr-2" />
-                                <p className="text-3xl font-bold text-white">{stats.pending || 0}</p>
-                            </div>
-                            <p className="text-sm text-yellow-200 font-medium">Pending Review</p>
-                        </motion.div>
-                    </div>
-                </div>
-            </motion.div>
+        <div className="space-y-8">
 
             {/* Enhanced Filter Section */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
