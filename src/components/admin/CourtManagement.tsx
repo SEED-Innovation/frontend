@@ -67,17 +67,23 @@ const CourtManagement = () => {
   // Advanced filtering state
   const [filters, setFilters] = useState({
     searchTerm: '',
+    manager: '',
     type: '',
     location: '',
     status: '',
     priceRange: [0, 300],
     hasSeedSystem: '',
   });
+  
+  // Manager filter state
+  const [managerSearchOpen, setManagerSearchOpen] = useState(false);
+  const [managerSearchValue, setManagerSearchValue] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
-  // Fetch courts on component mount
+  // Fetch courts and admins on component mount
   useEffect(() => {
     fetchCourts();
+    fetchAdmins(); // Fetch admins for manager filter
   }, []);
 
   const fetchCourts = async () => {
@@ -266,6 +272,11 @@ const CourtManagement = () => {
       if (!matchesSearch) return false;
     }
 
+    // Manager filter
+    if (filters.manager && filters.manager !== 'all-managers') {
+      if (!court.managerId || court.managerId.toString() !== filters.manager) return false;
+    }
+
     // Type filter
     if (filters.type && filters.type !== 'all-types' && court.type !== filters.type) return false;
 
@@ -292,12 +303,14 @@ const CourtManagement = () => {
   // Get unique values for filter dropdowns
   const uniqueTypes = [...new Set(courts.map(court => court.type))].filter(Boolean);
   const uniqueLocations = [...new Set(courts.map(court => court.location))].filter(Boolean);
+  const uniqueManagers = [...new Set(courts.map(court => court.managerId))].filter(Boolean);
   const maxPrice = Math.max(...courts.map(court => court.hourlyFee || 0), 300);
 
   // Clear all filters
   const clearFilters = () => {
     setFilters({
       searchTerm: '',
+      manager: '',
       type: 'all-types',
       location: 'all-locations',
       status: 'all-status',
@@ -310,6 +323,7 @@ const CourtManagement = () => {
   // Check if any filters are active
   const hasActiveFilters = 
     filters.searchTerm !== '' || 
+    (filters.manager !== '' && filters.manager !== 'all-managers') ||
     (filters.type !== '' && filters.type !== 'all-types') ||
     selectedLocations.length > 0 ||
     (filters.status !== '' && filters.status !== 'all-status') ||
@@ -558,7 +572,84 @@ const CourtManagement = () => {
                 exit={{ opacity: 0, height: 0 }}
                 className="bg-muted/30 rounded-lg p-6 space-y-4"
               >
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                  {/* Manager Filter - First */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Manager</Label>
+                    <Popover open={managerSearchOpen} onOpenChange={setManagerSearchOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={managerSearchOpen}
+                          className="w-full justify-between"
+                        >
+                          {filters.manager === '' || filters.manager === 'all-managers'
+                            ? "All Managers"
+                            : admins.find(admin => admin === filters.manager) || `Manager ${filters.manager}`}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0">
+                        <Command>
+                          <CommandInput
+                            placeholder="Search managers..."
+                            value={managerSearchValue}
+                            onValueChange={setManagerSearchValue}
+                          />
+                          <CommandList>
+                            <CommandEmpty>No manager found.</CommandEmpty>
+                            <CommandGroup>
+                              <CommandItem
+                                value="all-managers"
+                                onSelect={() => {
+                                  setFilters(prev => ({ ...prev, manager: '' }));
+                                  setManagerSearchOpen(false);
+                                  setManagerSearchValue("");
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    filters.manager === '' || filters.manager === 'all-managers' ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                All Managers
+                              </CommandItem>
+                              {uniqueManagers
+                                .filter((managerId) => {
+                                  const managerName = admins.find(admin => admin === managerId.toString()) || `Manager ${managerId}`;
+                                  return managerName.toLowerCase().includes(managerSearchValue.toLowerCase());
+                                })
+                                .map((managerId) => {
+                                  const managerName = admins.find(admin => admin === managerId.toString()) || `Manager ${managerId}`;
+                                  return (
+                                    <CommandItem
+                                      key={managerId}
+                                      value={managerName}
+                                      onSelect={() => {
+                                        setFilters(prev => ({ ...prev, manager: managerId.toString() }));
+                                        setManagerSearchOpen(false);
+                                        setManagerSearchValue("");
+                                      }}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          filters.manager === managerId.toString() ? "opacity-100" : "opacity-0"
+                                        )}
+                                      />
+                                      {managerName}
+                                    </CommandItem>
+                                  );
+                                })}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
                   {/* Type Filter */}
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Court Type</Label>
