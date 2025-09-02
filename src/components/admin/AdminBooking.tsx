@@ -56,9 +56,12 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
         setError(null);
 
         try {
-            // Load bookings, stats, users, and courts concurrently
+            // Load bookings, stats, users, and courts concurrently with increased page size
             const [bookingsResponse, statsResponse, usersResponse, courtsResponse] = await Promise.all([
-                bookingService.getAdminBookings({}),
+                bookingService.getAdminBookings({ 
+                    page: 0, 
+                    size: 100  // Increased from default to get more bookings
+                }),
                 bookingService.getBookingStats(),
                 userService.getAllUsers(),
                 courtService.getAllCourts()

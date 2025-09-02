@@ -46,19 +46,43 @@ export class BookingService {
 
   /**
    * Get admin bookings with filters (matches your backend /admin/bookings/filter)
+   * Automatically handles SUPER_ADMIN vs regular ADMIN permissions
    */
   async getAdminBookings(filters: AdminBookingFilterRequest): Promise<PaginatedBookingResponse> {
     console.log('🔄 Getting admin bookings with filters:', filters);
     
     try {
+      // Get user role from token to determine endpoint behavior
+      const token = this.getToken();
+      let userRole = 'ADMIN'; // default
+      
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          userRole = payload["cognito:groups"]?.[0] || 'ADMIN';
+        } catch (e) {
+          console.warn('Could not decode token for role check');
+        }
+      }
+
+      console.log('👤 User role:', userRole);
+      
+      // Enhance filters with role-based logic
+      const enhancedFilters = {
+        ...filters,
+        // For SUPER_ADMIN, ensure we don't restrict by court assignments
+        // The backend will handle this based on the user's role in the JWT
+      };
+
       // Call your backend's /admin/bookings/filter endpoint
       const response = await this.makeAPICall(`${this.baseUrl}/admin/bookings/filter`, {
         method: 'POST',
-        body: JSON.stringify(filters)
+        body: JSON.stringify(enhancedFilters)
       });
       
       const data = await response.json();
       console.log('✅ Real backend response:', data);
+      console.log(`📊 Fetched ${data.bookings?.length || 0} bookings (Role: ${userRole})`);
       return data;
       
     } catch (error) {

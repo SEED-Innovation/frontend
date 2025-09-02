@@ -317,10 +317,16 @@ const loadCourts = async () => {
             const endDateTime = new Date(formData.selectedSlot!.endTime);
             const durationMinutes = Math.round((endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60));
             
+            // Fix timezone issue: use local date formatting instead of toISOString()
+            const year = formData.date!.getFullYear();
+            const month = String(formData.date!.getMonth() + 1).padStart(2, '0');
+            const day = String(formData.date!.getDate()).padStart(2, '0');
+            const localDateString = `${year}-${month}-${day}`;
+            
             const bookingRequest: CreateBookingRequest = {
                 userId: formData.userId!,
                 courtId: formData.courtId!,
-                date: formData.date!.toISOString().split('T')[0], // YYYY-MM-DD format
+                date: localDateString, // YYYY-MM-DD format without timezone conversion
                 startTime: startDateTime.toTimeString().split(' ')[0], // HH:mm:ss format
                 durationMinutes: durationMinutes,
                 matchType: formData.matchType as 'SINGLE' | 'DOUBLE',

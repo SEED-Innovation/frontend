@@ -5,10 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CurrencyDisplay } from '@/components/ui/currency-display';
+import { format } from 'date-fns';
 import {
-    Calendar, Clock, Users, MapPin, Filter, Search, RefreshCw,
+    CalendarIcon, Clock, Users, MapPin, Filter, Search, RefreshCw,
     CheckCircle, XCircle, Eye, Edit, Trash2, MoreVertical,
     ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
     TrendingUp, Activity, Crown, Sparkles, Building2,
@@ -37,6 +40,8 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
     const [statusFilter, setStatusFilter] = useState('all');
     const [dateFilter, setDateFilter] = useState('all');
     const [courtFilter, setCourtFilter] = useState('all');
+    const [startDate, setStartDate] = useState<Date | undefined>();
+    const [endDate, setEndDate] = useState<Date | undefined>();
     const [currentPage, setCurrentPage] = useState(0);
     const [pageSize, setPageSize] = useState(20);
 
@@ -50,10 +55,18 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
 
             const matchesStatus = statusFilter === 'all' || booking.status === statusFilter;
             const matchesCourt = courtFilter === 'all' || booking.court?.id?.toString() === courtFilter;
+            
+            // Date filtering
+            const matchesDate = !startDate && !endDate || (() => {
+                const bookingDate = new Date(booking.startTime);
+                const isAfterStart = !startDate || bookingDate >= startDate;
+                const isBeforeEnd = !endDate || bookingDate <= endDate;
+                return isAfterStart && isBeforeEnd;
+            })();
 
-            return matchesSearch && matchesStatus && matchesCourt;
+            return matchesSearch && matchesStatus && matchesCourt && matchesDate;
         });
-    }, [bookings, searchTerm, statusFilter, courtFilter]);
+    }, [bookings, searchTerm, statusFilter, courtFilter, startDate, endDate]);
 
     const paginatedBookings = useMemo(() => {
         return filteredBookings.slice(
@@ -132,21 +145,21 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
                             <div className="lg:col-span-2">
                                 <div className="relative group">
-                                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5 transition-colors group-hover:text-primary" />
+                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 transition-colors group-hover:text-primary" />
                                     <Input
                                         placeholder="Search bookings, users, courts..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="pl-12 h-14 border-2 border-border hover:border-primary/50 focus:border-primary rounded-xl bg-background/50 text-base font-medium transition-all duration-200"
+                                        className="pl-10 h-10 border border-border hover:border-primary/50 focus:border-primary rounded-lg bg-background/50 text-sm font-medium transition-all duration-200"
                                     />
                                 </div>
                             </div>
                             
                             <Select value={statusFilter} onValueChange={setStatusFilter}>
-                                <SelectTrigger className="h-14 border-2 border-border hover:border-primary/50 rounded-xl bg-background/50 font-medium">
+                                <SelectTrigger className="h-10 border border-border hover:border-primary/50 rounded-lg bg-background/50 font-medium text-sm">
                                     <SelectValue placeholder="Filter by Status" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -159,15 +172,15 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                             </Select>
                             
                             <Select value={courtFilter} onValueChange={setCourtFilter}>
-                                <SelectTrigger className="h-14 border-2 border-border hover:border-primary/50 rounded-xl bg-background/50 font-medium">
+                                <SelectTrigger className="h-10 border border-border hover:border-primary/50 rounded-lg bg-background/50 font-medium text-sm">
                                     <SelectValue placeholder="Filter by Court" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Courts</SelectItem>
                                     {courts.map((court) => (
                                         <SelectItem key={court.id} value={court.id.toString()}>
-                                            <div className="flex items-center space-x-3 py-1">
-                                                <div className="relative w-8 h-8 rounded-md overflow-hidden bg-muted flex-shrink-0">
+                                            <div className="flex items-center space-x-2 py-1">
+                                                <div className="relative w-6 h-6 rounded-md overflow-hidden bg-muted flex-shrink-0">
                                                     {court.imageUrl ? (
                                                         <img 
                                                             src={court.imageUrl} 
@@ -181,11 +194,11 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                                                         />
                                                     ) : null}
                                                     <div className={`absolute inset-0 flex items-center justify-center ${court.imageUrl ? 'hidden' : 'flex'}`}>
-                                                        <MapPin className="w-4 h-4 text-muted-foreground" />
+                                                        <MapPin className="w-3 h-3 text-muted-foreground" />
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <p className="font-medium">{court.name}</p>
+                                                    <p className="font-medium text-xs">{court.name}</p>
                                                     <p className="text-xs text-muted-foreground">{court.location}</p>
                                                 </div>
                                             </div>
@@ -193,10 +206,67 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                                     ))}
                                 </SelectContent>
                             </Select>
+
+                            {/* Date Range Filter */}
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        className="h-10 justify-start text-left font-normal text-sm"
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {startDate && endDate ? (
+                                            `${format(startDate, "MMM d")} - ${format(endDate, "MMM d")}`
+                                        ) : startDate ? (
+                                            `From ${format(startDate, "MMM d")}`
+                                        ) : endDate ? (
+                                            `Until ${format(endDate, "MMM d")}`
+                                        ) : (
+                                            "Date range"
+                                        )}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <div className="p-4 space-y-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium">Start Date</label>
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={startDate}
+                                                    onSelect={setStartDate}
+                                                    className="p-3 pointer-events-auto"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium">End Date</label>
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={endDate}
+                                                    onSelect={setEndDate}
+                                                    className="p-3 pointer-events-auto"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-between pt-2">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => {
+                                                    setStartDate(undefined);
+                                                    setEndDate(undefined);
+                                                }}
+                                            >
+                                                Clear
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
                             
                             <Button 
                                 onClick={onRefresh} 
-                                className="h-14 bg-gradient-to-r from-primary to-admin-accent hover:from-primary/90 hover:to-admin-accent/90 text-primary-foreground font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                                className="h-10 bg-gradient-to-r from-primary to-admin-accent hover:from-primary/90 hover:to-admin-accent/90 text-primary-foreground font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 text-sm"
                             >
                                 <RefreshCw className="w-5 h-5 mr-2" />
                                 Refresh
@@ -346,7 +416,7 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                                                             </div>
                                                             <div className="space-y-2">
                                                                 <div className="flex items-center text-sm text-muted-foreground">
-                                                                    <Calendar className="w-4 h-4 mr-2 text-admin-accent" />
+                                                                    <CalendarIcon className="w-4 h-4 mr-2 text-admin-accent" />
                                                                     {formatDateTime(booking.startTime)}
                                                                 </div>
                                                                 <div className="flex items-center text-sm text-muted-foreground">
