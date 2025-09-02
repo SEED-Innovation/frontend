@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CurrencyDisplay } from '@/components/ui/currency-display';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { 
   TrendingUp, 
   Calendar, 
@@ -256,18 +257,17 @@ const AdminDashboard = () => {
                       className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                     >
                       {/* Player Avatar */}
-                      <div className="relative w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-primary to-primary/80 flex-shrink-0">
-                        {player.avatar ? (
-                          <img 
+                      <div className="relative flex-shrink-0">
+                        <Avatar className="w-12 h-12">
+                          <AvatarImage 
                             src={player.avatar} 
                             alt={player.name}
-                            className="w-full h-full object-cover"
+                            className="object-cover"
                           />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Users className="w-6 h-6 text-white" />
-                          </div>
-                        )}
+                          <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white font-semibold">
+                            {player.name ? player.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : <Users className="w-6 h-6" />}
+                          </AvatarFallback>
+                        </Avatar>
                         {/* Rank Badge */}
                         <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-white text-xs rounded-full flex items-center justify-center font-bold">
                           {index + 1}
