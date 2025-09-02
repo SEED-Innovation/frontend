@@ -28,7 +28,7 @@ export const TimeRangeInputs: React.FC<TimeRangeInputsProps> = ({
           type="time"
           value={startTime}
           onChange={(e) => onStartTimeChange(e.target.value)}
-          className="w-24"
+          className="w-36"
         />
       </div>
       <div className="flex items-center gap-1">
