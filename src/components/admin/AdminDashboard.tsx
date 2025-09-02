@@ -89,7 +89,7 @@ const AdminDashboard = () => {
         
         const topPlayersData = Object.values(playerBookingCounts)
           .sort((a: any, b: any) => b.bookings - a.bookings)
-          .slice(0, 6);
+          .slice(0, 5);
         
         // Calculate court performance
         const courtBookingCounts = bookings.reduce((acc, booking) => {
