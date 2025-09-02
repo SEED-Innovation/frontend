@@ -56,8 +56,8 @@ const AdminDashboard = () => {
         const usersResponse = await userService.getAllUsers();
         console.log('👥 AdminDashboard: Raw users response:', usersResponse);
         
-        // Format recent bookings for display
-        const bookings = Array.isArray(bookingsResponse) ? bookingsResponse : (bookingsResponse?.content || []);
+        // Format recent bookings for display  
+        const bookings = Array.isArray(bookingsResponse) ? bookingsResponse : ((bookingsResponse as any)?.bookings || (bookingsResponse as any)?.content || []);
         console.log('📋 AdminDashboard: Extracted bookings array:', bookings);
         console.log('📋 AdminDashboard: Bookings array length:', bookings.length);
         const formattedBookings = bookings.slice(0, 5).map(booking => ({
@@ -77,13 +77,13 @@ const AdminDashboard = () => {
         // Update state with real data
         setRecentBookings(formattedBookings);
         setDashboardStats({
-          totalRevenue: (statsResponse as any).summary?.totalRevenue || (statsResponse as any).summary?.confirmedRevenue || 0,
-          todayBookings: (statsResponse as any).summary?.totalBookings || bookings.length || 0,
+          totalRevenue: (statsResponse as any).totalRevenue || (statsResponse as any).confirmedRevenue || 0,
+          todayBookings: (statsResponse as any).totalBookings || 0,
           activeCourts: 12, // Keep static for now
           totalUsers: usersResponse?.length || 0,
-          pendingPayments: (statsResponse as any).summary?.pendingBookings || 0,
-          pendingBookings: (statsResponse as any).summary?.pendingBookings || 0,
-          confirmedBookings: (statsResponse as any).summary?.confirmedBookings || 0,
+          pendingPayments: (statsResponse as any).pendingBookings || 0,
+          pendingBookings: (statsResponse as any).pendingBookings || 0,
+          confirmedBookings: (statsResponse as any).confirmedBookings || 0,
           monthlyGrowth: 12.5 // Keep static for now
         });
         

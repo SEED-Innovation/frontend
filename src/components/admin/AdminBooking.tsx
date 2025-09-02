@@ -184,7 +184,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                     >
                         <div className="flex items-center justify-center mb-1">
                             <Activity className="w-5 h-5 text-blue-300 mr-2" />
-                            <p className="text-2xl font-bold text-white">{bookings.length}</p>
+                            <p className="text-2xl font-bold text-white">{stats?.totalBookings || 0}</p>
                         </div>
                         <p className="text-xs text-blue-200 font-medium">Total Bookings</p>
                     </motion.div>
@@ -269,7 +269,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                     <div className="flex flex-wrap items-center gap-4">
                         <Badge className="px-4 py-2 bg-primary/10 text-primary border-primary/20 font-medium text-sm">
                             <Activity className="w-4 h-4 mr-2" />
-                            {bookings.length} Total Bookings
+                            {stats?.totalBookings || 0} Total Bookings
                         </Badge>
                         <Badge className="px-4 py-2 bg-status-warning/10 text-status-warning border-status-warning/20 font-medium text-sm">
                             <Clock className="w-4 h-4 mr-2" />
