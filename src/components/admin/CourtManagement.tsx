@@ -258,9 +258,9 @@ const CourtManagement = () => {
     if (filters.searchTerm) {
       const searchLower = filters.searchTerm.toLowerCase();
       const matchesSearch = 
-        court.name.toLowerCase().includes(searchLower) ||
-        court.type.toLowerCase().includes(searchLower) ||
-        court.location.toLowerCase().includes(searchLower);
+        (court.name?.toLowerCase() || '').includes(searchLower) ||
+        (court.type?.toLowerCase() || '').includes(searchLower) ||
+        (court.location?.toLowerCase() || '').includes(searchLower);
       if (!matchesSearch) return false;
     }
 
@@ -269,14 +269,14 @@ const CourtManagement = () => {
 
     // Location filter
     if (selectedLocations.length > 0 && !selectedLocations.includes('all-locations')) {
-      if (!selectedLocations.includes(court.location)) return false;
+      if (!selectedLocations.includes(court.location || '')) return false;
     }
 
     // Status filter
     if (filters.status && filters.status !== 'all-status' && court.status !== filters.status) return false;
 
     // Price range filter
-    if (court.hourlyFee < filters.priceRange[0] || court.hourlyFee > filters.priceRange[1]) return false;
+    if ((court.hourlyFee || 0) < filters.priceRange[0] || (court.hourlyFee || 0) > filters.priceRange[1]) return false;
 
     // Seed system filter
     if (filters.hasSeedSystem !== '' && filters.hasSeedSystem !== 'all-courts') {
