@@ -8,9 +8,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { MapPin, Image, Trash2, Plus } from 'lucide-react';
+import { MapPin, Image, Trash2, Plus, Check, ChevronsUpDown, X } from 'lucide-react';
 import { CreateCourtRequest } from '@/lib/api/services/courtService';
 import { toast } from '@/hooks/use-toast';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 interface EnhancedCourtFormProps {
   open: boolean;
@@ -57,6 +60,8 @@ export default function EnhancedCourtForm({
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [locationEditable, setLocationEditable] = useState(false);
+  const [managerSearchOpen, setManagerSearchOpen] = useState(false);
+  const [managerSearchValue, setManagerSearchValue] = useState("");
   const mapRef = useRef<HTMLDivElement>(null);
 
   const handleInputChange = (field: keyof typeof formData, value: any) => {
@@ -283,22 +288,99 @@ export default function EnhancedCourtForm({
               
               <div>
                 <Label htmlFor="managerId">Court Manager</Label>
-                <Select 
-                  onValueChange={(value) => handleInputChange('managerId', value)}
-                  disabled={adminsLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={adminsLoading ? "Loading admins..." : "Select manager"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No manager assigned</SelectItem>
-                    {admins.map((admin, index) => (
-                      <SelectItem key={admin} value={index.toString()}>
-                        {admin}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={managerSearchOpen} onOpenChange={setManagerSearchOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={managerSearchOpen}
+                      className="w-full justify-between"
+                      disabled={adminsLoading}
+                    >
+                      {adminsLoading ? "Loading admins..." : 
+                       formData.managerId === '' || formData.managerId === 'none'
+                        ? "Select manager"
+                        : formData.managerId === 'none'
+                        ? "No manager assigned"
+                        : admins[parseInt(formData.managerId)] || "Select manager"}
+                      <div className="flex items-center gap-1">
+                        {formData.managerId && formData.managerId !== '' && formData.managerId !== 'none' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleInputChange('managerId', 'none');
+                            }}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        )}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </div>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0">
+                    <Command>
+                      <CommandInput
+                        placeholder="Search managers..."
+                        value={managerSearchValue}
+                        onValueChange={setManagerSearchValue}
+                      />
+                      <CommandList>
+                        <CommandEmpty>
+                          <div className="p-2">
+                            <p className="text-sm text-muted-foreground">
+                              {adminsLoading ? "Loading admins..." : "No manager found."}
+                            </p>
+                          </div>
+                        </CommandEmpty>
+                        <CommandGroup>
+                          <CommandItem
+                            value="none"
+                            onSelect={() => {
+                              handleInputChange('managerId', 'none');
+                              setManagerSearchOpen(false);
+                              setManagerSearchValue("");
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                formData.managerId === 'none' ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            No manager assigned
+                          </CommandItem>
+                          {admins
+                            .filter((admin) =>
+                              admin.toLowerCase().includes(managerSearchValue.toLowerCase())
+                            )
+                            .map((admin, index) => (
+                              <CommandItem
+                                key={admin}
+                                value={admin}
+                                onSelect={() => {
+                                  handleInputChange('managerId', index.toString());
+                                  setManagerSearchOpen(false);
+                                  setManagerSearchValue("");
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    formData.managerId === index.toString() ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {admin}
+                              </CommandItem>
+                            ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
           </div>
