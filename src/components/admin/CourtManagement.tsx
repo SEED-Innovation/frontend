@@ -107,15 +107,17 @@ const CourtManagement = () => {
     }
   };
 
-  const handleCreateCourt = async (courtData: CreateCourtRequest) => {
+  const handleCreateCourt = async (courtData: CreateCourtRequest): Promise<boolean> => {
     try {
       const createdCourt = await courtService.createCourt(courtData);
       setCourts([...courts, createdCourt]);
       setCreateDialogOpen(false);
       toast.success('Court created successfully');
+      return true; // Success
     } catch (error) {
       console.error('Error creating court:', error);
       toast.error('Failed to create court');
+      return false; // Failure
     }
   };
 

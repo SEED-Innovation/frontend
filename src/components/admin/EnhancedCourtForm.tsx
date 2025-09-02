@@ -15,7 +15,7 @@ import { toast } from '@/hooks/use-toast';
 interface EnhancedCourtFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (courtData: CreateCourtRequest) => void;
+  onSubmit: (courtData: CreateCourtRequest) => Promise<boolean>;
   admins: string[];
   adminsLoading: boolean;
 }
@@ -154,7 +154,7 @@ export default function EnhancedCourtForm({
     );
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!isFormValid()) {
       toast({ 
         title: "Validation Error", 
@@ -180,27 +180,29 @@ export default function EnhancedCourtForm({
         : undefined
     };
 
-    onSubmit(submitData);
+    const success = await onSubmit(submitData);
     
-    // Reset form
-    setFormData({
-      name: '',
-      type: '',
-      location: '',
-      hourlyFee: 0,
-      hasSeedSystem: false,
-      amenities: [],
-      imageUrl: '',
-      description: '',
-      latitude: undefined,
-      longitude: undefined,
-      managerId: ''
-    });
-    setImagePreview(null);
-    setSelectedImageFile(null);
-    // Reset file input
-    const fileInput = document.getElementById('imageFile') as HTMLInputElement;
-    if (fileInput) fileInput.value = '';
+    // Only reset form on successful creation
+    if (success) {
+      setFormData({
+        name: '',
+        type: '',
+        location: '',
+        hourlyFee: 0,
+        hasSeedSystem: false,
+        amenities: [],
+        imageUrl: '',
+        description: '',
+        latitude: undefined,
+        longitude: undefined,
+        managerId: ''
+      });
+      setImagePreview(null);
+      setSelectedImageFile(null);
+      // Reset file input
+      const fileInput = document.getElementById('imageFile') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+    }
   };
 
   useEffect(() => {
