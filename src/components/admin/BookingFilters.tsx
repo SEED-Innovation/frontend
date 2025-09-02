@@ -63,15 +63,11 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [activeFiltersCount, setActiveFiltersCount] = useState(0);
     
-    // Date range states
-    const [startDate, setStartDate] = useState<Date | undefined>(
+    // Date filter states (single date only)
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(
         filters.startDateTime ? new Date(filters.startDateTime) : undefined
     );
-    const [endDate, setEndDate] = useState<Date | undefined>(
-        filters.endDateTime ? new Date(filters.endDateTime) : undefined
-    );
-    const [startDateOpen, setStartDateOpen] = useState(false);
-    const [endDateOpen, setEndDateOpen] = useState(false);
+    const [datePickerOpen, setDatePickerOpen] = useState(false);
 
     // Quick filter states
     const [searchQuery, setSearchQuery] = useState(filters.search || '');
@@ -94,14 +90,13 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
         if (selectedStatuses.length > 0) count++;
         if (selectedCourtIds.length > 0) count++;
         if (selectedMatchTypes.length > 0) count++;
-        if (startDate) count++;
-        if (endDate) count++;
+        if (selectedDate) count++;
         if (filters.userId) count++;
         if (filters.hasPayment !== undefined) count++;
         if (filters.isPaid !== undefined) count++;
         
         setActiveFiltersCount(count);
-    }, [searchQuery, selectedStatuses, selectedCourtIds, selectedMatchTypes, startDate, endDate, filters]);
+    }, [searchQuery, selectedStatuses, selectedCourtIds, selectedMatchTypes, selectedDate, filters]);
 
     // ================================
     // 🔧 HELPER FUNCTIONS
@@ -142,8 +137,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
             statuses: selectedStatuses.length > 0 ? selectedStatuses : undefined,
             courtIds: selectedCourtIds.length > 0 ? selectedCourtIds : undefined,
             matchTypes: selectedMatchTypes.length > 0 ? selectedMatchTypes : undefined,
-            startDateTime: startDate ? startDate.toISOString() : undefined,
-            endDateTime: endDate ? endDate.toISOString() : undefined,
+            startDateTime: selectedDate ? selectedDate.toISOString() : undefined,
             page: 0,
             size: 20
         };
@@ -162,8 +156,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
         setSelectedStatuses([]);
         setSelectedCourtIds([]);
         setSelectedMatchTypes([]);
-        setStartDate(undefined);
-        setEndDate(undefined);
+        setSelectedDate(undefined);
         setFilters({});
         
         onFilterChange({ page: 0, size: 20 });
@@ -183,27 +176,21 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
     const handleQuickDateFilter = (filterType: string) => {
         try {
             const today = new Date();
-            let startDateTime: Date;
-            let endDateTime: Date;
+            let filterDate: Date;
 
             switch (filterType) {
                 case 'today':
-                    startDateTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
-                    endDateTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+                    filterDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
                     break;
                 
                 case 'week':
                     const dayOfWeek = today.getDay();
                     const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // Monday start
-                    startDateTime = new Date(today.getFullYear(), today.getMonth(), diff, 0, 0, 0);
-                    endDateTime = new Date(startDateTime);
-                    endDateTime.setDate(startDateTime.getDate() + 6);
-                    endDateTime.setHours(23, 59, 59);
+                    filterDate = new Date(today.getFullYear(), today.getMonth(), diff, 0, 0, 0);
                     break;
                 
                 case 'month':
-                    startDateTime = new Date(today.getFullYear(), today.getMonth(), 1, 0, 0, 0);
-                    endDateTime = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59);
+                    filterDate = new Date(today.getFullYear(), today.getMonth(), 1, 0, 0, 0);
                     break;
                 
                 default:
@@ -211,16 +198,13 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                     return;
             }
             
-            setStartDate(startDateTime);
-            setEndDate(endDateTime);
+            setSelectedDate(filterDate);
             
             const quickFilter = buildFilterRequest();
-            quickFilter.startDateTime = startDateTime.toISOString();
-            quickFilter.endDateTime = endDateTime.toISOString();
+            quickFilter.startDateTime = filterDate.toISOString();
             
             console.log(`🔍 Applying ${filterType} filter:`, {
-                start: quickFilter.startDateTime,
-                end: quickFilter.endDateTime
+                date: quickFilter.startDateTime
             });
             
             onFilterChange(quickFilter);
@@ -282,11 +266,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
         startOfWeek.setDate(diff);
         startOfWeek.setHours(0, 0, 0, 0);
         
-        const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 6);
-        endOfWeek.setHours(23, 59, 59, 999);
-        
-        return date >= startOfWeek && date <= endOfWeek;
+        return date.toDateString() === startOfWeek.toDateString();
     };
 
     const isThisMonth = (date: Date): boolean => {
@@ -368,7 +348,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                     <Button
                         onClick={() => handleQuickDateFilter('today')}
                         size="sm"
-                        variant={startDate && isToday(startDate) ? 'default' : 'outline'}
+                        variant={selectedDate && isToday(selectedDate) ? 'default' : 'outline'}
                         className="text-xs"
                         disabled={isLoading}
                     >
@@ -377,7 +357,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                     <Button
                         onClick={() => handleQuickDateFilter('week')}
                         size="sm"
-                        variant={startDate && isThisWeek(startDate) ? 'default' : 'outline'}
+                        variant={selectedDate && isThisWeek(selectedDate) ? 'default' : 'outline'}
                         className="text-xs"
                         disabled={isLoading}
                     >
@@ -386,7 +366,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                     <Button
                         onClick={() => handleQuickDateFilter('month')}
                         size="sm"
-                        variant={startDate && isThisMonth(startDate) ? 'default' : 'outline'}
+                        variant={selectedDate && isThisMonth(selectedDate) ? 'default' : 'outline'}
                         className="text-xs"
                         disabled={isLoading}
                     >
@@ -394,77 +374,49 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                     </Button>
                 </div>
 
-                {/* Custom Date Range */}
-                <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Start Date</Label>
-                        <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="w-full justify-start text-left font-normal text-xs"
-                                    disabled={isLoading}
-                                >
-                                    <CalendarIcon className="mr-2 h-3 w-3" />
-                                    {startDate ? formatDateOnly(startDate.toISOString()) : "Pick start"}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                    mode="single"
-                                    selected={startDate}
-                                    onSelect={(date) => {
-                                        setStartDate(date);
-                                        setStartDateOpen(false);
-                                    }}
-                                    initialFocus
-                                    className="pointer-events-auto"
-                                />
-                            </PopoverContent>
-                        </Popover>
-                    </div>
-                    
-                    <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">End Date</Label>
-                        <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="w-full justify-start text-left font-normal text-xs"
-                                    disabled={isLoading}
-                                >
-                                    <CalendarIcon className="mr-2 h-3 w-3" />
-                                    {endDate ? formatDateOnly(endDate.toISOString()) : "Pick end"}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                    mode="single"
-                                    selected={endDate}
-                                    onSelect={(date) => {
-                                        setEndDate(date);
-                                        setEndDateOpen(false);
-                                    }}
-                                    initialFocus
-                                    className="pointer-events-auto"
-                                    disabled={(date) => startDate ? date < startDate : false}
-                                />
-                            </PopoverContent>
-                        </Popover>
-                    </div>
+                {/* Custom Date Picker */}
+                <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Filter by Date</Label>
+                    <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full justify-start text-left font-normal text-xs"
+                                disabled={isLoading}
+                            >
+                                <CalendarIcon className="mr-2 h-3 w-3" />
+                                {selectedDate ? formatDateOnly(selectedDate.toISOString()) : "Pick a date"}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                mode="single"
+                                selected={selectedDate}
+                                onSelect={(date) => {
+                                    setSelectedDate(date);
+                                    setDatePickerOpen(false);
+                                    // Apply filter immediately when date is selected
+                                    if (date) {
+                                        const quickFilter = buildFilterRequest();
+                                        quickFilter.startDateTime = date.toISOString();
+                                        onFilterChange(quickFilter);
+                                    }
+                                }}
+                                initialFocus
+                                className="pointer-events-auto"
+                            />
+                        </PopoverContent>
+                    </Popover>
                 </div>
 
-                {/* Clear Dates Button */}
-                {(startDate || endDate) && (
+                {/* Clear Date Button */}
+                {selectedDate && (
                     <Button
                         onClick={() => {
-                            setStartDate(undefined);
-                            setEndDate(undefined);
+                            setSelectedDate(undefined);
                             const clearedFilter = buildFilterRequest();
                             clearedFilter.startDateTime = undefined;
-                            clearedFilter.endDateTime = undefined;
                             onFilterChange(clearedFilter);
                         }}
                         size="sm"
@@ -472,7 +424,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                         className="text-xs w-full"
                     >
                         <X className="mr-1 h-3 w-3" />
-                        Clear Date Range
+                        Clear Date
                     </Button>
                 )}
             </div>
