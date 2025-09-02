@@ -394,13 +394,21 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                                 mode="single"
                                 selected={selectedDate}
                                 onSelect={(date) => {
+                                    console.log('Calendar date selected:', date);
                                     setSelectedDate(date);
                                     setDatePickerOpen(false);
                                     // Apply filter immediately when date is selected
                                     if (date) {
-                                        const quickFilter = buildFilterRequest();
-                                        quickFilter.startDateTime = date.toISOString();
-                                        onFilterChange(quickFilter);
+                                        try {
+                                            const quickFilter = buildFilterRequest();
+                                            quickFilter.startDateTime = date.toISOString();
+                                            console.log('Applying calendar filter:', quickFilter);
+                                            onFilterChange(quickFilter);
+                                            toast.success(`Filter applied for ${date.toLocaleDateString()}`);
+                                        } catch (error) {
+                                            console.error('Error applying calendar filter:', error);
+                                            toast.error('Failed to apply date filter');
+                                        }
                                     }
                                 }}
                                 initialFocus
@@ -550,20 +558,22 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                 {renderQuickFilters()}
                 
                 {/* Apply Filters Button */}
-                <div className="flex gap-2 pt-4 border-t">
+                <div className="grid grid-cols-2 gap-3 pt-4 border-t">
                     <Button
                         onClick={applyFilters}
-                        className="flex-1"
+                        className="bg-primary hover:bg-primary/90"
                         disabled={isLoading}
                     >
-                        {isLoading ? (
-                            <>
-                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                                Loading...
-                            </>
-                        ) : (
-                            'Apply Filters'
-                        )}
+                        <Filter className="mr-2 h-4 w-4" />
+                        Apply
+                    </Button>
+                    <Button
+                        onClick={clearAllFilters}
+                        variant="outline"
+                        disabled={isLoading}
+                    >
+                        <RotateCcw className="mr-2 h-4 w-4" />
+                        Clear
                     </Button>
                 </div>
 

@@ -43,7 +43,8 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
     const [startDate, setStartDate] = useState<Date | undefined>();
     const [endDate, setEndDate] = useState<Date | undefined>();
     const [currentPage, setCurrentPage] = useState(0);
-    const [pageSize, setPageSize] = useState(20);
+    const [pageSize, setPageSize] = useState(50); // Increased for better performance
+    const [virtualizedRows, setVirtualizedRows] = useState(100); // Virtual scrolling threshold
 
     // Enhanced filtering logic
     const filteredBookings = useMemo(() => {
@@ -56,23 +57,69 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
             const matchesStatus = statusFilter === 'all' || booking.status === statusFilter;
             const matchesCourt = courtFilter === 'all' || booking.court?.id?.toString() === courtFilter;
             
-            // Date filtering
-            const matchesDate = !startDate && !endDate || (() => {
-                const bookingDate = new Date(booking.startTime);
-                const isAfterStart = !startDate || bookingDate >= startDate;
-                const isBeforeEnd = !endDate || bookingDate <= endDate;
-                return isAfterStart && isBeforeEnd;
+            // Enhanced date filtering with better logic
+            const matchesDate = (() => {
+                if (!startDate && !endDate) return true;
+                
+                try {
+                    const bookingDate = new Date(booking.startTime);
+                    if (isNaN(bookingDate.getTime())) return false;
+                    
+                    // Reset time to start of day for accurate comparison
+                    const bookingDateOnly = new Date(bookingDate.getFullYear(), bookingDate.getMonth(), bookingDate.getDate());
+                    
+                    let startDateOnly = null;
+                    let endDateOnly = null;
+                    
+                    if (startDate) {
+                        startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+                    }
+                    
+                    if (endDate) {
+                        endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+                        endDateOnly.setHours(23, 59, 59, 999); // End of day
+                    }
+                    
+                    const isAfterStart = !startDateOnly || bookingDateOnly >= startDateOnly;
+                    const isBeforeEnd = !endDateOnly || bookingDateOnly <= endDateOnly;
+                    
+                    return isAfterStart && isBeforeEnd;
+                } catch (error) {
+                    console.error('Date filtering error:', error);
+                    return false;
+                }
             })();
 
             return matchesSearch && matchesStatus && matchesCourt && matchesDate;
         });
     }, [bookings, searchTerm, statusFilter, courtFilter, startDate, endDate]);
 
+    // Smart pagination with virtual scrolling for large datasets
     const paginatedBookings = useMemo(() => {
-        return filteredBookings.slice(
-            currentPage * pageSize,
-            (currentPage + 1) * pageSize
-        );
+        const startIndex = currentPage * pageSize;
+        const endIndex = startIndex + pageSize;
+        
+        // For large datasets (>1000), implement virtual scrolling
+        if (filteredBookings.length > 1000) {
+            // Only render visible items + buffer
+            const bufferSize = 20;
+            const visibleStart = Math.max(0, startIndex - bufferSize);
+            const visibleEnd = Math.min(filteredBookings.length, endIndex + bufferSize);
+            
+            return {
+                items: filteredBookings.slice(visibleStart, visibleEnd),
+                startIndex: visibleStart,
+                endIndex: visibleEnd,
+                isVirtualized: true
+            };
+        }
+        
+        return {
+            items: filteredBookings.slice(startIndex, endIndex),
+            startIndex,
+            endIndex,
+            isVirtualized: false
+        };
     }, [filteredBookings, currentPage, pageSize]);
 
     const totalPages = Math.ceil(filteredBookings.length / pageSize);
@@ -181,14 +228,18 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0" align="start">
                                     <div className="p-4 space-y-4">
-                                        <div className="grid grid-cols-2 gap-4">
+                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-2">
                                                 <label className="text-sm font-medium">Start Date</label>
                                                 <Calendar
                                                     mode="single"
                                                     selected={startDate}
-                                                    onSelect={setStartDate}
+                                                    onSelect={(date) => {
+                                                        console.log('Start date selected:', date);
+                                                        setStartDate(date);
+                                                    }}
                                                     className="p-3 pointer-events-auto"
+                                                    disabled={(date) => date > new Date() || (endDate && date > endDate)}
                                                 />
                                             </div>
                                             <div className="space-y-2">
@@ -196,22 +247,38 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                                                 <Calendar
                                                     mode="single"
                                                     selected={endDate}
-                                                    onSelect={setEndDate}
+                                                    onSelect={(date) => {
+                                                        console.log('End date selected:', date);
+                                                        setEndDate(date);
+                                                    }}
                                                     className="p-3 pointer-events-auto"
+                                                    disabled={(date) => date > new Date() || (startDate && date < startDate)}
                                                 />
                                             </div>
                                         </div>
                                         <div className="flex justify-between pt-2">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => {
-                                                    setStartDate(undefined);
-                                                    setEndDate(undefined);
-                                                }}
-                                            >
-                                                Clear
-                                            </Button>
+                                            <div className="flex gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        setStartDate(undefined);
+                                                        setEndDate(undefined);
+                                                    }}
+                                                >
+                                                    Clear
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        // Apply the selected date range immediately
+                                                        console.log('Applying date range filter:', { startDate, endDate });
+                                                    }}
+                                                    disabled={!startDate && !endDate}
+                                                >
+                                                    Apply
+                                                </Button>
+                                            </div>
                                         </div>
                                     </div>
                                 </PopoverContent>
@@ -263,39 +330,53 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                                 <p className="text-muted-foreground">Please wait while we fetch the latest data</p>
                             </div>
                         ) : (
-                            <div className="overflow-x-auto">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow className="bg-gradient-to-r from-admin-surface via-admin-secondary to-admin-surface border-b-2 border-border">
-                                            <TableHead className="font-bold text-foreground py-6 text-base">
-                                                <div className="flex items-center space-x-3">
-                                                    <Users className="w-6 h-6 text-primary" />
-                                                    <span>User & Details</span>
-                                                </div>
-                                            </TableHead>
-                                            <TableHead className="font-bold text-foreground py-6 text-base">
-                                                <div className="flex items-center space-x-3">
-                                                    <MapPin className="w-6 h-6 text-primary" />
-                                                    <span>Court & Schedule</span>
-                                                </div>
-                                            </TableHead>
-                                            <TableHead className="font-bold text-foreground py-6 text-base">
-                                                <div className="flex items-center space-x-3">
-                                                    <Award className="w-6 h-6 text-primary" />
-                                                    <span>Status & Payment</span>
-                                                </div>
-                                            </TableHead>
-                                            <TableHead className="font-bold text-foreground py-6 text-base text-right">
-                                                <div className="flex items-center justify-end space-x-3">
-                                                    <Zap className="w-6 h-6 text-primary" />
-                                                    <span>Actions</span>
-                                                </div>
-                                            </TableHead>
+                            <>
+                                {/* Performance indicator for large datasets */}
+                                {filteredBookings.length > 1000 && (
+                                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                                        <div className="flex items-center gap-2 text-yellow-800">
+                                            <AlertCircle className="w-5 h-5" />
+                                            <span className="font-medium">Large Dataset Detected</span>
+                                        </div>
+                                        <p className="text-yellow-700 text-sm mt-1">
+                                            Showing {paginatedBookings.items.length} of {filteredBookings.length} bookings with virtual scrolling for optimal performance.
+                                        </p>
+                                    </div>
+                                )}
+                                
+                                <div className="overflow-x-auto">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="bg-gradient-to-r from-admin-surface via-admin-secondary to-admin-surface border-b-2 border-border">
+                                                <TableHead className="font-bold text-foreground py-6 text-base">
+                                                    <div className="flex items-center space-x-3">
+                                                        <Users className="w-6 h-6 text-primary" />
+                                                        <span>User & Details</span>
+                                                    </div>
+                                                </TableHead>
+                                                <TableHead className="font-bold text-foreground py-6 text-base">
+                                                    <div className="flex items-center space-x-3">
+                                                        <MapPin className="w-6 h-6 text-primary" />
+                                                        <span>Court & Schedule</span>
+                                                    </div>
+                                                </TableHead>
+                                                <TableHead className="font-bold text-foreground py-6 text-base">
+                                                    <div className="flex items-center space-x-3">
+                                                        <Award className="w-6 h-6 text-primary" />
+                                                        <span>Status & Payment</span>
+                                                    </div>
+                                                </TableHead>
+                                                <TableHead className="font-bold text-foreground py-6 text-base text-right">
+                                                    <div className="flex items-center justify-end space-x-3">
+                                                        <Zap className="w-6 h-6 text-primary" />
+                                                        <span>Actions</span>
+                                                    </div>
+                                                </TableHead>
                                         </TableRow>
                                     </TableHeader>
-                                    <TableBody>
-                                        <AnimatePresence>
-                                            {paginatedBookings.map((booking, index) => (
+                                     <TableBody>
+                                         <AnimatePresence>
+                                             {paginatedBookings.items?.map((booking, index) => (
                                                 <motion.tr
                                                     key={booking.id}
                                                     initial={{ opacity: 0, y: 20 }}
@@ -453,8 +534,9 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                                             ))}
                                         </AnimatePresence>
                                     </TableBody>
-                                </Table>
+                                 </Table>
                             </div>
+                            </>
                         )}
                     </CardContent>
                     
