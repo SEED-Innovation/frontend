@@ -146,21 +146,25 @@ const AdminDashboard = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
+      className="h-full"
     >
-      <Card className="premium-card">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">{title}</p>
-              <p className="text-2xl font-bold">{value}</p>
+      <Card className="premium-card h-full relative overflow-hidden group hover-scale transition-all duration-300 hover:shadow-xl">
+        {/* Shining overlay effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
+        
+        <CardContent className="p-6 h-full flex flex-col justify-between relative z-10">
+          <div className="flex items-center justify-between h-full">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-muted-foreground mb-2">{title}</p>
+              <div className="text-2xl font-bold mb-1 truncate">{value}</div>
               {change && (
-                <p className={`text-sm ${change > 0 ? 'text-green-600' : 'text-red-600'} flex items-center mt-1`}>
-                  <TrendingUp className="w-4 h-4 mr-1" />
+                <p className={`text-sm ${change > 0 ? 'text-green-600' : 'text-red-600'} flex items-center`}>
+                  {change > 0 ? <TrendingUp className="w-4 h-4 mr-1" /> : <TrendingDown className="w-4 h-4 mr-1" />}
                   {change > 0 ? '+' : ''}{change}%
                 </p>
               )}
             </div>
-            <div className={`p-3 rounded-full ${color}`}>
+            <div className={`p-3 rounded-full ${color} shadow-lg flex-shrink-0 ml-4 group-hover:scale-110 transition-transform duration-300`}>
               <Icon className="w-6 h-6 text-white" />
             </div>
           </div>
