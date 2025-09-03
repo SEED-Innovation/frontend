@@ -73,6 +73,11 @@ export default function EditCourtForm({
   // Initialize form data when court changes
   useEffect(() => {
     if (court && open) {
+      // Find the current manager name from the managerId
+      const currentManagerName = court.managerId && admins.length > 0 
+        ? admins.find((_, index) => index.toString() === court.managerId?.toString()) || 'none'
+        : 'none';
+      
       setFormData({
         name: court.name,
         location: court.location,
@@ -83,12 +88,12 @@ export default function EditCourtForm({
         description: court.description || '',
         latitude: court.latitude,
         longitude: court.longitude,
-        managerId: court.managerId?.toString() || 'none'
+        managerId: currentManagerName
       });
       setImagePreview(court.imageUrl || null);
       setSelectedImageFile(null);
     }
-  }, [court, open]);
+  }, [court, open, admins]);
 
   const handleInputChange = (field: keyof typeof formData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -203,9 +208,17 @@ export default function EditCourtForm({
       }
 
       // Handle manager assignment (SUPER_ADMIN only)
-      if (isSuperAdmin && formData.managerId !== court?.managerId?.toString()) {
+      const currentManagerName = court?.managerId && admins.length > 0 
+        ? admins.find((_, index) => index.toString() === court.managerId?.toString()) || 'none'
+        : 'none';
+      
+      if (isSuperAdmin && formData.managerId !== currentManagerName) {
         if (formData.managerId && formData.managerId !== 'none') {
-          submitData.manager_id = { id: parseInt(formData.managerId) };
+          // Find admin index by name to get the ID
+          const adminIndex = admins.findIndex(admin => admin === formData.managerId);
+          if (adminIndex !== -1) {
+            submitData.manager_id = { id: adminIndex };
+          }
         }
       }
 
@@ -313,7 +326,7 @@ export default function EditCourtForm({
                          formData.managerId === '' || formData.managerId === 'none'
                           ? "No manager assigned"
                           : formData.managerId && formData.managerId !== 'none'
-                          ? admins[parseInt(formData.managerId)] || "Select manager"
+                          ? formData.managerId
                           : "Select manager"}
                         <div className="flex items-center gap-1">
                           {formData.managerId && formData.managerId !== '' && formData.managerId !== 'none' && (
@@ -374,7 +387,7 @@ export default function EditCourtForm({
                                   key={admin}
                                   value={admin}
                                   onSelect={() => {
-                                    handleInputChange('managerId', index.toString());
+                                    handleInputChange('managerId', admin);
                                     setManagerSearchOpen(false);
                                     setManagerSearchValue("");
                                   }}
@@ -382,7 +395,7 @@ export default function EditCourtForm({
                                   <Check
                                     className={cn(
                                       "mr-2 h-4 w-4",
-                                      formData.managerId === index.toString() ? "opacity-100" : "opacity-0"
+                                      formData.managerId === admin ? "opacity-100" : "opacity-0"
                                     )}
                                   />
                                   {admin}
