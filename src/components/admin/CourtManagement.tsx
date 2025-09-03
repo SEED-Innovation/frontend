@@ -134,6 +134,10 @@ const CourtManagement = () => {
   const handleEditCourt = async (court: Court) => {
     setEditingCourt(court);
     setEditDialogOpen(true);
+    // Ensure admins are loaded for the edit form
+    if (hasPermission('SUPER_ADMIN') && admins.length === 0) {
+      fetchAdmins();
+    }
   };
 
   const handleUpdateCourt = async (courtData: UpdateCourtRequest, imageFile?: File): Promise<boolean> => {
