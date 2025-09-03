@@ -163,20 +163,74 @@ class CourtService {
     }
 
     /**
-     * Update court details
+     * Update court details (JSON + multipart support)
      */
-    async updateCourt(courtId: string, courtData: UpdateCourtRequest): Promise<Court> {
-        const response = await fetch(`${this.baseUrl}/${courtId}`, {
-            method: 'PUT',
-            headers: this.getAuthHeaders(),
-            body: JSON.stringify(courtData)
-        });
+    async updateCourt(courtId: string, data: UpdateCourtRequest, file?: File): Promise<Court> {
+        const url = `${this.baseUrl}/${courtId}`;
+        const token = localStorage.getItem('accessToken');
 
-        if (!response.ok) {
-            throw new Error(`Failed to update court: ${response.statusText}`);
+        if (file) {
+            // Multipart path
+            const fd = new FormData();
+            
+            // Append scalar fields if defined
+            const appendIf = (k: string, v: any) => {
+                if (v === undefined || v === null) return;
+                fd.append(k, String(v));
+            };
+
+            appendIf("name", data.name);
+            appendIf("location", data.location);
+            appendIf("type", data.type);
+            appendIf("hourlyFee", data.hourlyFee);
+            appendIf("hasSeedSystem", data.hasSeedSystem);
+            appendIf("description", data.description);
+            appendIf("latitude", data.latitude);
+            appendIf("longitude", data.longitude);
+
+            // Amenities: repeat key
+            if (Array.isArray(data.amenities)) {
+                data.amenities.forEach(a => fd.append("amenities", a));
+            }
+
+            // Manager (SUPER_ADMIN)
+            if (data.manager_id?.id != null) {
+                fd.append("manager_id.id", String(data.manager_id.id));
+            }
+
+            // File part must be "image"
+            fd.append("image", file);
+
+            const res = await fetch(url, {
+                method: "PUT",
+                headers: { Authorization: `Bearer ${token}` },
+                body: fd
+            });
+            
+            if (!res.ok) {
+                const error = await res.json().catch(() => ({ message: res.statusText }));
+                throw new Error(error.message || `Failed to update court: ${res.statusText}`);
+            }
+            
+            return res.json();
+        } else {
+            // JSON path
+            const res = await fetch(url, {
+                method: "PUT",
+                headers: { 
+                    Authorization: `Bearer ${token}`, 
+                    "Content-Type": "application/json" 
+                },
+                body: JSON.stringify(data)
+            });
+            
+            if (!res.ok) {
+                const error = await res.json().catch(() => ({ message: res.statusText }));
+                throw new Error(error.message || `Failed to update court: ${res.statusText}`);
+            }
+            
+            return res.json();
         }
-
-        return response.json();
     }
 
     /**

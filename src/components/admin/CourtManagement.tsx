@@ -12,9 +12,10 @@ import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
-import { courtService, Court, CreateCourtRequest, SetCourtAvailabilityRequest, AdminCourtAvailabilityResponse } from '@/lib/api/services/courtService';
+import { courtService, Court, CreateCourtRequest, UpdateCourtRequest, SetCourtAvailabilityRequest, AdminCourtAvailabilityResponse } from '@/lib/api/services/courtService';
 import { adminService } from '@/services/adminService';
 import EnhancedCourtForm from './EnhancedCourtForm';
+import EditCourtForm from './EditCourtForm';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Check, ChevronsUpDown } from 'lucide-react';
@@ -135,29 +136,23 @@ const CourtManagement = () => {
     setEditDialogOpen(true);
   };
 
-  const handleUpdateCourt = async () => {
-    if (!editingCourt) return;
+  const handleUpdateCourt = async (courtData: UpdateCourtRequest, imageFile?: File): Promise<boolean> => {
+    if (!editingCourt) return false;
 
     try {
-      const updatedCourt = await courtService.updateCourt(editingCourt.id, {
-        name: editingCourt.name,
-        type: editingCourt.type,
-        location: editingCourt.location,
-        hourlyFee: editingCourt.hourlyFee,
-        hasSeedSystem: editingCourt.hasSeedSystem,
-        amenities: editingCourt.amenities
-      });
+      const updatedCourt = await courtService.updateCourt(editingCourt.id, courtData, imageFile);
       
       setCourts(courts.map(court => 
         court.id === editingCourt.id ? updatedCourt : court
       ));
       
-      setEditDialogOpen(false);
       setEditingCourt(null);
       toast.success('Court updated successfully');
+      return true;
     } catch (error) {
       console.error('Error updating court:', error);
       toast.error('Failed to update court');
+      return false;
     }
   };
 
