@@ -97,7 +97,7 @@ export const DiscountModal: React.FC<DiscountModalProps> = ({
     }
   };
 
-  const hasDiscount = court.discountAmount && court.discountAmount > 0;
+  const hasDiscount = court.discountAmount !== null && court.discountAmount !== undefined && court.discountAmount > 0;
 
   return (
     <>
