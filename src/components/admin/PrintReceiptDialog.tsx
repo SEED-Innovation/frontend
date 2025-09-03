@@ -45,7 +45,7 @@ const PrintReceiptDialog: React.FC<PrintReceiptDialogProps> = ({
             // Use the receiptService to download PDF
             const { receiptService } = await import('@/services/receiptService');
             
-            const blob = await receiptService.downloadReceiptPDF(receiptData.receiptId);
+            const blob = await receiptService.getPrintableReceiptPDF(receiptData.receiptId);
             const url = URL.createObjectURL(blob);
             
             // Open in new window for printing
@@ -101,7 +101,7 @@ const PrintReceiptDialog: React.FC<PrintReceiptDialogProps> = ({
             // Use the receiptService to download PDF for preview
             const { receiptService } = await import('@/services/receiptService');
             
-            const blob = await receiptService.downloadReceiptPDF(receiptData.receiptId);
+            const blob = await receiptService.getPrintableReceiptPDF(receiptData.receiptId);
             const url = URL.createObjectURL(blob);
             
             // Open in new tab for preview

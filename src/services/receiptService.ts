@@ -330,6 +330,22 @@ class ReceiptService {
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   }
+
+  /**
+   * Get printable receipt PDF (for printing/preview)
+   */
+  async getPrintableReceiptPDF(receiptId: number): Promise<Blob> {
+    const response = await fetch(`${this.baseUrl}/receipts/${receiptId}/print`, {
+      method: 'GET',
+      headers: this.getAuthHeaders()
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get printable receipt: ${response.statusText}`);
+    }
+
+    return response.blob();
+  }
 }
 
 export const receiptService = new ReceiptService();
