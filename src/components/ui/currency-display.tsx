@@ -29,6 +29,9 @@ export const CurrencyDisplay: React.FC<CurrencyDisplayProps> = ({
   size = 'md',
   showSymbol = true
 }) => {
+  // Handle null/undefined values
+  const safeAmount = amount ?? 0;
+  
   return (
     <div className={cn(
       "flex items-center gap-1 font-semibold",
@@ -42,7 +45,7 @@ export const CurrencyDisplay: React.FC<CurrencyDisplayProps> = ({
           className={cn("inline-block", symbolSizeClasses[size])}
         />
       )}
-      <span>{amount.toFixed(2)}</span>
+      <span>{safeAmount.toFixed(2)}</span>
     </div>
   );
 };

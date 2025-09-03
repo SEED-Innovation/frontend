@@ -918,17 +918,17 @@ const CourtManagement = () => {
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        {(court.discountAmount && court.discountAmount > 0) ? (
+                        {(court.discountAmount && court.discountAmount > 0 && court.hourlyFee) ? (
                           <>
                             <div className="line-through text-muted-foreground text-sm">
-                              <CurrencyDisplay amount={court.hourlyFee} size="sm" />
+                              <CurrencyDisplay amount={court.hourlyFee || 0} size="sm" />
                             </div>
                             <span className="text-muted-foreground">→</span>
                             <div className="text-primary font-semibold">
                               <CurrencyDisplay 
                                 amount={court.isPercentage 
-                                  ? court.hourlyFee * (1 - court.discountAmount / 100)
-                                  : court.hourlyFee - court.discountAmount
+                                  ? Math.max(0, (court.hourlyFee || 0) * (1 - (court.discountAmount || 0) / 100))
+                                  : Math.max(0, (court.hourlyFee || 0) - (court.discountAmount || 0))
                                 } 
                                 size="md" 
                               />
@@ -936,7 +936,7 @@ const CourtManagement = () => {
                           </>
                         ) : (
                           <div className="font-semibold">
-                            <CurrencyDisplay amount={court.hourlyFee} size="md" />
+                            <CurrencyDisplay amount={court.hourlyFee || 0} size="md" />
                           </div>
                         )}
                       </div>
