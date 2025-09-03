@@ -473,20 +473,27 @@ const loadCourts = async () => {
         label: string,
         field: keyof BookingFormData,
         children: React.ReactNode,
-        required = true
+        required = true,
+        description?: string
     ) => (
-        <div className="space-y-2">
-            <Label htmlFor={field} className="text-sm font-medium">
-                {label} {required && <span className="text-red-500">*</span>}
-            </Label>
-            {children}
+        <div className="space-y-3">
+            <div className="space-y-1">
+                <Label htmlFor={field} className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    {label} 
+                    {required && <span className="text-destructive text-xs">*</span>}
+                </Label>
+                {description && (
+                    <p className="text-xs text-muted-foreground">{description}</p>
+                )}
+            </div>
+            <div className="relative">
+                {children}
+            </div>
             {errors[field] && (
-                <Alert className="mt-2 bg-red-50 border-red-200">
-                    <AlertTriangle className="h-4 w-4 text-red-600" />
-                    <AlertDescription className="text-red-800 font-medium">
-                        {errors[field]}
-                    </AlertDescription>
-                </Alert>
+                <div className="flex items-start gap-2 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+                    <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <span className="font-medium">{errors[field]}</span>
+                </div>
             )}
         </div>
     );
@@ -497,47 +504,54 @@ const loadCourts = async () => {
         if (!selectedUser || !court || !formData.selectedSlot) return null;
 
         return (
-            <div className="bg-gray-50 p-4 rounded-lg space-y-3">
-                <h4 className="font-medium text-gray-900">Booking Summary</h4>
+            <div className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 p-6 rounded-xl space-y-4">
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <CheckCircle className="w-5 h-5 text-primary" />
+                    </div>
+                    <h4 className="text-lg font-semibold text-foreground">Booking Summary</h4>
+                </div>
                 
-                <div className="space-y-2 text-sm">
-                    <div className="flex items-center justify-between">
-                        <span className="text-gray-600">User:</span>
-                        <span className="font-medium">{selectedUser.fullName}</span>
+                <div className="space-y-4">
+                    <div className="grid gap-3">
+                        <div className="flex items-center justify-between py-2 border-b border-border/50">
+                            <span className="text-sm text-muted-foreground font-medium">Customer</span>
+                            <span className="font-semibold text-foreground">{selectedUser.fullName}</span>
+                        </div>
+                        
+                        <div className="flex items-center justify-between py-2 border-b border-border/50">
+                            <span className="text-sm text-muted-foreground font-medium">Court</span>
+                            <span className="font-semibold text-foreground">{court.name}</span>
+                        </div>
+                        
+                        <div className="flex items-center justify-between py-2 border-b border-border/50">
+                            <span className="text-sm text-muted-foreground font-medium">Date</span>
+                            <span className="font-semibold text-foreground">
+                                {formData.date ? format(formData.date, 'PPP') : '-'}
+                            </span>
+                        </div>
+                        
+                        <div className="flex items-center justify-between py-2 border-b border-border/50">
+                            <span className="text-sm text-muted-foreground font-medium">Time</span>
+                            <span className="font-semibold text-foreground">
+                                {formData.selectedSlot.formattedTimeRange}
+                            </span>
+                        </div>
+                        
+                        <div className="flex items-center justify-between py-2 border-b border-border/50">
+                            <span className="text-sm text-muted-foreground font-medium">Duration</span>
+                            <span className="font-semibold text-foreground">{formData.duration} minutes</span>
+                        </div>
+                        
+                        <div className="flex items-center justify-between py-2 border-b border-border/50">
+                            <span className="text-sm text-muted-foreground font-medium">Match Type</span>
+                            <span className="font-semibold text-foreground">{formData.matchType || '-'}</span>
+                        </div>
                     </div>
                     
-                    <div className="flex items-center justify-between">
-                        <span className="text-gray-600">Court:</span>
-                        <span className="font-medium">{court.name}</span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                        <span className="text-gray-600">Date:</span>
-                        <span className="font-medium">
-                            {formData.date ? format(formData.date, 'PPP') : '-'}
-                        </span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                        <span className="text-gray-600">Time:</span>
-                        <span className="font-medium">
-                            {formData.selectedSlot.formattedTimeRange}
-                        </span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                        <span className="text-gray-600">Duration:</span>
-                        <span className="font-medium">{formData.duration} minutes</span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                        <span className="text-gray-600">Match Type:</span>
-                        <span className="font-medium">{formData.matchType || '-'}</span>
-                    </div>
-                    
-                    <div className="border-t pt-2 flex items-center justify-between font-medium">
-                        <span>Total Price:</span>
-                        <span className="text-lg">
+                    <div className="bg-background/80 border border-primary/30 rounded-lg p-4 flex items-center justify-between">
+                        <span className="text-base font-semibold text-foreground">Total Amount</span>
+                        <span className="text-xl font-bold text-primary">
                             <CurrencyDisplay amount={formData.selectedSlot.price || 0} size="lg" showSymbol />
                         </span>
                     </div>
@@ -561,14 +575,16 @@ const loadCourts = async () => {
                 )}
             </DialogTrigger>
             
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center">
-                        <Plus className="w-5 h-5 mr-2" />
+            <DialogContent className="max-w-4xl max-h-[95vh] overflow-hidden flex flex-col">
+                <DialogHeader className="pb-6 border-b border-border">
+                    <DialogTitle className="flex items-center gap-3 text-xl font-semibold">
+                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                            <Plus className="w-5 h-5 text-primary" />
+                        </div>
                         Create Manual Booking
                     </DialogTitle>
-                    <DialogDescription>
-                        Create a new booking on behalf of a user. All fields marked with * are required.
+                    <DialogDescription className="text-base text-muted-foreground mt-2">
+                        Create a new booking on behalf of a user. Complete all required fields to proceed.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -592,10 +608,11 @@ const loadCourts = async () => {
                     </Alert>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* User_Selection */}
-                        <div className="md:col-span-2">
+                <div className="flex-1 overflow-y-auto px-1">
+                    <form onSubmit={handleSubmit} className="space-y-8">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            {/* User Selection */}
+                            <div className="lg:col-span-2">
                             {renderFormField(
                                 'Select User',
                                 'userId',
@@ -949,39 +966,42 @@ const loadCourts = async () => {
                                 false
                             )}
                         </div>
-                    </div>
+                        </div>
 
-                    {/* Booking Summary */}
-                    {renderBookingSummary()}
+                        {/* Booking Summary */}
+                        {renderBookingSummary()}
+                    </form>
+                </div>
 
-                    <DialogFooter className="gap-2">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={handleClose}
-                            disabled={isLoading}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            type="submit"
-                            disabled={isLoading}
-                            className="bg-blue-600 hover:bg-blue-700"
-                        >
-                            {isLoading ? (
-                                <>
-                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    Creating...
-                                </>
-                            ) : (
-                                <>
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    Create Booking
-                                </>
-                            )}
-                        </Button>
-                    </DialogFooter>
-                </form>
+                <DialogFooter className="pt-6 border-t border-border">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleClose}
+                        disabled={isLoading}
+                        className="min-w-[100px]"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        type="submit"
+                        disabled={isLoading}
+                        onClick={handleSubmit}
+                        className="min-w-[140px] bg-primary hover:bg-primary/90"
+                    >
+                        {isLoading ? (
+                            <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Creating...
+                            </>
+                        ) : (
+                            <>
+                                <Plus className="w-4 h-4 mr-2" />
+                                Create Booking
+                            </>
+                        )}
+                    </Button>
+                </DialogFooter>
             </DialogContent>
             
             {/* Print Receipt Dialog */}
