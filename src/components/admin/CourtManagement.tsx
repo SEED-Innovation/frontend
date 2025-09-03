@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Edit, Trash2, Settings, Calendar, DollarSign, Loader2, Search, Filter, X, RefreshCw } from 'lucide-react';
+import { Plus, Edit, Trash2, Settings, Calendar, DollarSign, Loader2, Search, Filter, X, RefreshCw, Percent, TagIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +25,8 @@ import { cn } from '@/lib/utils';
 import { AvailabilityTable } from './availability/AvailabilityTable';
 import { UnavailabilityTable } from './unavailability/UnavailabilityTable';
 import { UnavailabilityForm } from './unavailability/UnavailabilityForm';
+import { DiscountModal } from './DiscountModal';
+import { CurrencyDisplay } from '@/components/ui/currency-display';
 
 const CourtManagement = () => {
   const { user, hasPermission } = useAdminAuth();
@@ -38,6 +40,8 @@ const CourtManagement = () => {
   const [editingCourt, setEditingCourt] = useState<Court | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [courtToDelete, setCourtToDelete] = useState<Court | null>(null);
+  const [discountModalOpen, setDiscountModalOpen] = useState(false);
+  const [discountCourt, setDiscountCourt] = useState<Court | null>(null);
 
   const [newCourt, setNewCourt] = useState<CreateCourtRequest & {managerId?: string}>({
     name: '',
@@ -138,6 +142,15 @@ const CourtManagement = () => {
     if (hasPermission('SUPER_ADMIN') && admins.length === 0) {
       fetchAdmins();
     }
+  };
+
+  const handleDiscountCourt = (court: Court) => {
+    setDiscountCourt(court);
+    setDiscountModalOpen(true);
+  };
+
+  const handleCourtUpdated = (updatedCourt: Court) => {
+    setCourts(courts.map(court => court.id === updatedCourt.id ? updatedCourt : court));
   };
 
   const handleUpdateCourt = async (courtData: UpdateCourtRequest, imageFile?: File): Promise<boolean> => {
@@ -894,9 +907,50 @@ const CourtManagement = () => {
                       <span className="text-gray-600">Location:</span>
                       <span className="font-medium">{court.location}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Hourly Fee:</span>
-                      <span className="font-medium">{court.hourlyFee} SAR</span>
+                    {/* Pricing & Discount Section */}
+                    <div className="p-3 rounded-lg bg-gradient-to-r from-primary/5 to-accent/5 border">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-muted-foreground">Pricing</span>
+                        {(court.discountAmount && court.discountAmount > 0) && (
+                          <Badge variant="secondary" className="text-xs">
+                            {court.isPercentage ? `-${court.discountAmount}%` : `-${court.discountAmount} SAR`}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {(court.discountAmount && court.discountAmount > 0) ? (
+                          <>
+                            <div className="line-through text-muted-foreground text-sm">
+                              <CurrencyDisplay amount={court.hourlyFee} size="sm" />
+                            </div>
+                            <span className="text-muted-foreground">→</span>
+                            <div className="text-primary font-semibold">
+                              <CurrencyDisplay 
+                                amount={court.isPercentage 
+                                  ? court.hourlyFee * (1 - court.discountAmount / 100)
+                                  : court.hourlyFee - court.discountAmount
+                                } 
+                                size="md" 
+                              />
+                            </div>
+                          </>
+                        ) : (
+                          <div className="font-semibold">
+                            <CurrencyDisplay amount={court.hourlyFee} size="md" />
+                          </div>
+                        )}
+                      </div>
+                      {canManageCourt(court) && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full mt-2 h-8 text-xs"
+                          onClick={() => handleDiscountCourt(court)}
+                        >
+                          <TagIcon className="w-3 h-3 mr-1" />
+                          {(court.discountAmount && court.discountAmount > 0) ? 'Edit Discount' : 'Add Discount'}
+                        </Button>
+                      )}
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">SEED System:</span>
@@ -1079,6 +1133,19 @@ const CourtManagement = () => {
         )}
 
       </Tabs>
+
+      {/* Discount Modal */}
+      {discountCourt && (
+        <DiscountModal
+          court={discountCourt}
+          isOpen={discountModalOpen}
+          onClose={() => {
+            setDiscountModalOpen(false);
+            setDiscountCourt(null);
+          }}
+          onCourtUpdated={handleCourtUpdated}
+        />
+      )}
     </motion.div>
   );
 };

@@ -25,6 +25,9 @@ export interface Court {
         email: string;
         profilePictureUrl?: string;
     };
+    // Discount fields
+    discountAmount?: number;
+    isPercentage?: boolean;
 }
 
 export interface CreateCourtRequest {
