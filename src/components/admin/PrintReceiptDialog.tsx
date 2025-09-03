@@ -42,24 +42,10 @@ const PrintReceiptDialog: React.FC<PrintReceiptDialogProps> = ({
         try {
             setIsDownloading(true);
             
-            // Get the print-optimized PDF from the backend
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-            const token = localStorage.getItem('adminToken');
+            // Use the receiptService to download PDF
+            const { receiptService } = await import('@/services/receiptService');
             
-            const response = await fetch(`${apiUrl}/api/player/receipts/${receiptData.receiptId}/print`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/pdf'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to get printable receipt');
-            }
-
-            // Create blob and trigger print
-            const blob = await response.blob();
+            const blob = await receiptService.downloadReceiptPDF(receiptData.receiptId);
             const url = URL.createObjectURL(blob);
             
             // Open in new window for printing
@@ -112,22 +98,10 @@ const PrintReceiptDialog: React.FC<PrintReceiptDialogProps> = ({
         try {
             setIsPreviewing(true);
             
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-            const token = localStorage.getItem('adminToken');
+            // Use the receiptService to download PDF for preview
+            const { receiptService } = await import('@/services/receiptService');
             
-            const response = await fetch(`${apiUrl}/api/player/receipts/${receiptData.receiptId}/print`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/pdf'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to get receipt preview');
-            }
-
-            const blob = await response.blob();
+            const blob = await receiptService.downloadReceiptPDF(receiptData.receiptId);
             const url = URL.createObjectURL(blob);
             
             // Open in new tab for preview

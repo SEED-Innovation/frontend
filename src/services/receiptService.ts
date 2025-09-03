@@ -7,7 +7,7 @@ import {
 } from '@/types/receipt';
 
 class ReceiptService {
-  private baseUrl = `${import.meta.env.VITE_API_URL}`;
+  private baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
   private getAuthHeaders() {
     const token = localStorage.getItem('accessToken');
