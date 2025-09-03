@@ -335,7 +335,7 @@ class ReceiptService {
    * Get printable receipt PDF (for printing/preview)
    */
   async getPrintableReceiptPDF(receiptId: number): Promise<Blob> {
-    const response = await fetch(`${this.baseUrl}/api/player/receipts/${receiptId}/print`, {
+    const response = await fetch(`${this.baseUrl}/api/admin/receipts/${receiptId}/print`, {
       method: 'GET',
       headers: this.getAuthHeaders()
     });
