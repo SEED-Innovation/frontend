@@ -406,12 +406,6 @@ const loadCourts = async () => {
             // Auto-open print dialog if receipt was generated
             if (receipt && receipt.receiptId) {
                 setShowPrintDialog(true);
-            } else {
-                // Only auto-close if no receipt to print
-                setTimeout(() => {
-                    setIsOpen(false);
-                    resetForm();
-                }, 1000);
             }
             
             onBookingCreated(response, receipt);
@@ -995,11 +989,6 @@ const loadCourts = async () => {
                 <PrintReceiptDialog
                     isOpen={showPrintDialog}
                     onClose={() => setShowPrintDialog(false)}
-                    onComplete={() => {
-                        setShowPrintDialog(false);
-                        setIsOpen(false);
-                        resetForm();
-                    }}
                     receiptData={receiptData}
                 />
             )}
