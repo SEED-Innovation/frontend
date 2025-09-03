@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { CurrencyDisplay } from '@/components/ui/currency-display';
 import { format } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
 
 import { BookingResponse, CreateBookingRequest, CourtResponse } from '@/types/booking';
 import { UserResponse } from '@/types/user';
@@ -41,6 +42,7 @@ import { AdminManualBookingRequest, ManualBookingResponse } from '@/types/receip
 import { bookingService, courtService, userService, receiptService } from '@/services';
 import { cn } from '@/lib/utils';
 import UserSearchInput from './UserSearchInput';
+import PrintReceiptDialog from './PrintReceiptDialog';
 
 interface ManualBookingFormProps {
     onBookingCreated: (booking: BookingResponse, receipt?: any) => void;
@@ -103,6 +105,8 @@ const ManualBookingForm: React.FC<ManualBookingFormProps> = ({
     const [success, setSuccess] = useState('');
     const [selectedUser, setSelectedUser] = useState<UserResponse | null>(null);
     const [receiptData, setReceiptData] = useState<any>(null);
+    const [showPrintDialog, setShowPrintDialog] = useState(false);
+    const { toast } = useToast();
 
     // ================================
     // 🔄 EFFECTS
@@ -318,6 +322,17 @@ const loadCourts = async () => {
         }
 
         setErrors(newErrors);
+        
+        // Show friendly toast for validation errors
+        if (Object.keys(newErrors).length > 0) {
+            const firstError = Object.values(newErrors)[0];
+            toast({
+                title: "Form Validation Error",
+                description: firstError,
+                variant: "destructive"
+            });
+        }
+        
         return Object.keys(newErrors).length === 0;
     };
 
@@ -363,14 +378,43 @@ const loadCourts = async () => {
 
             // Backend now returns both booking and receipt in response
             const receipt = (response as any).receipt;
-            setReceiptData(receipt);
+            const selectedCourt = getSelectedCourt();
+            
+            // Prepare receipt data for print dialog
+            const enhancedReceiptData = {
+                receiptId: receipt?.receiptId || receipt?.id,
+                receiptNumber: receipt?.receiptNumber || 'N/A',
+                totalAmount: receipt?.totalAmount || formData.selectedSlot?.price || 0,
+                pdfUrl: receipt?.pdfUrl,
+                userEmail: selectedUser?.email,
+                userName: selectedUser?.fullName,
+                courtName: selectedCourt?.name,
+                bookingDate: formData.date ? format(formData.date, 'MMM dd, yyyy') : undefined,
+                startTime: formData.selectedSlot?.startTime.split(' ')[1] || formData.selectedSlot?.formattedTimeRange?.split(' - ')[0],
+                endTime: formData.selectedSlot?.endTime.split(' ')[1] || formData.selectedSlot?.formattedTimeRange?.split(' - ')[1]
+            };
+            
+            setReceiptData(enhancedReceiptData);
             setSuccess((response as any).message || 'Booking created successfully with receipt!');
+            
+            // Show success toast
+            toast({
+                title: "Booking Created Successfully",
+                description: `Booking confirmed for ${selectedUser?.fullName} at ${selectedCourt?.name}`,
+            });
+            
+            // Auto-open print dialog if receipt was generated
+            if (receipt && receipt.receiptId) {
+                setShowPrintDialog(true);
+            }
+            
             onBookingCreated(response, receipt);
             
-            // Don't auto-close immediately, let user see receipt info
+            // Auto-close form after successful booking
             setTimeout(() => {
+                setIsOpen(false);
                 resetForm();
-            }, 2000);
+            }, 1000);
 
         } catch (error) {
             console.error('❌ Failed to create booking:', error);
@@ -403,6 +447,9 @@ const loadCourts = async () => {
         setErrors({});
         setSuccess('');
         setReceiptData(null);
+        setShowPrintDialog(false);
+        setUserSearchTerm('');
+        setCourtSearchTerm('');
     };
 
     const handleClose = () => {
@@ -440,7 +487,12 @@ const loadCourts = async () => {
             </Label>
             {children}
             {errors[field] && (
-                <p className="text-sm text-red-600">{errors[field]}</p>
+                <Alert className="mt-2 bg-red-50 border-red-200">
+                    <AlertTriangle className="h-4 w-4 text-red-600" />
+                    <AlertDescription className="text-red-800 font-medium">
+                        {errors[field]}
+                    </AlertDescription>
+                </Alert>
             )}
         </div>
     );
@@ -937,6 +989,15 @@ const loadCourts = async () => {
                     </DialogFooter>
                 </form>
             </DialogContent>
+            
+            {/* Print Receipt Dialog */}
+            {receiptData && (
+                <PrintReceiptDialog
+                    isOpen={showPrintDialog}
+                    onClose={() => setShowPrintDialog(false)}
+                    receiptData={receiptData}
+                />
+            )}
         </Dialog>
     );
 };
