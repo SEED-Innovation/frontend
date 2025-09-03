@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 interface PrintReceiptDialogProps {
     isOpen: boolean;
     onClose: () => void;
+    onComplete?: () => void; // Called when print process is complete
     receiptData: {
         receiptId: number;
         receiptNumber: string;
@@ -32,6 +33,7 @@ interface PrintReceiptDialogProps {
 const PrintReceiptDialog: React.FC<PrintReceiptDialogProps> = ({
     isOpen,
     onClose,
+    onComplete,
     receiptData
 }) => {
     const [isDownloading, setIsDownloading] = useState(false);
@@ -160,7 +162,15 @@ const PrintReceiptDialog: React.FC<PrintReceiptDialogProps> = ({
             title: "Email Sent",
             description: "Receipt has been sent to the customer's email",
         });
+        handleComplete();
+    };
+
+    const handleComplete = () => {
         onClose();
+        // Call the completion callback to close parent form
+        if (onComplete) {
+            onComplete();
+        }
     };
 
     return (
@@ -268,7 +278,7 @@ const PrintReceiptDialog: React.FC<PrintReceiptDialogProps> = ({
                         
                         <Button
                             variant="ghost"
-                            onClick={onClose}
+                            onClick={handleComplete}
                             className="w-full"
                         >
                             <X className="w-4 h-4 mr-2" />
