@@ -341,19 +341,19 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                 name: 'Confirmed Bookings', 
                 value: stats?.confirmedBookings || 0, 
                 color: 'hsl(var(--status-success))',
-                percentage: ((stats?.confirmedBookings || 0) / (stats?.totalBookings || 1) * 100).toFixed(1)
+                percentage: (((stats?.confirmedBookings || 0) / Math.max(stats?.totalBookings || 1, 1) * 100) || 0).toFixed(1)
             },
             { 
                 name: 'Pending Bookings', 
                 value: stats?.pendingBookings || 0, 
                 color: 'hsl(var(--status-warning))',
-                percentage: ((stats?.pendingBookings || 0) / (stats?.totalBookings || 1) * 100).toFixed(1)
+                percentage: (((stats?.pendingBookings || 0) / Math.max(stats?.totalBookings || 1, 1) * 100) || 0).toFixed(1)
             },
             { 
                 name: 'Cancelled Bookings', 
                 value: stats?.cancelledBookings || 0, 
                 color: 'hsl(var(--status-error))',
-                percentage: ((stats?.cancelledBookings || 0) / (stats?.totalBookings || 1) * 100).toFixed(1)
+                percentage: (((stats?.cancelledBookings || 0) / Math.max(stats?.totalBookings || 1, 1) * 100) || 0).toFixed(1)
             },
         ].filter(item => item.value > 0);
 
@@ -507,7 +507,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                                     </h4>
                                     <div className="text-sm text-muted-foreground space-y-1">
                                         <p>• Total revenue: <CurrencyDisplay amount={stats?.totalRevenue || 0} size="sm" /></p>
-                                        <p>• Success rate: {(((stats?.confirmedBookings || 0) / (stats?.totalBookings || 1)) * 100).toFixed(1)}%</p>
+                                        <p>• Success rate: {((((stats?.confirmedBookings || 0) / Math.max(stats?.totalBookings || 1, 1)) * 100) || 0).toFixed(1)}%</p>
                                         <p>• Pending attention: {stats?.pendingBookings || 0} bookings</p>
                                     </div>
                                 </div>
