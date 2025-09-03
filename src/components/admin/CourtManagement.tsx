@@ -409,73 +409,14 @@ const CourtManagement = () => {
         </div>
 
         {/* Edit Court Dialog */}
-        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Edit Court</DialogTitle>
-            </DialogHeader>
-            {editingCourt && (
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="edit-name">Court Name *</Label>
-                  <Input
-                    id="edit-name"
-                    value={editingCourt.name}
-                    onChange={(e) => setEditingCourt({...editingCourt, name: e.target.value})}
-                    placeholder="e.g., Court 1 - Center"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-type">Court Type *</Label>
-                  <Select 
-                    value={editingCourt.type} 
-                    onValueChange={(value) => setEditingCourt({...editingCourt, type: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select court type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="HARD">Hard Court</SelectItem>
-                      <SelectItem value="CLAY">Clay Court</SelectItem>
-                      <SelectItem value="GRASS">Grass Court</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="edit-location">Location *</Label>
-                  <Input
-                    id="edit-location"
-                    value={editingCourt.location}
-                    onChange={(e) => setEditingCourt({...editingCourt, location: e.target.value})}
-                    placeholder="e.g., Main Building"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-hourlyFee">Hourly Fee (SAR)</Label>
-                  <Input
-                    id="edit-hourlyFee"
-                    type="number"
-                    value={editingCourt.hourlyFee}
-                    onChange={(e) => setEditingCourt({...editingCourt, hourlyFee: Number(e.target.value)})}
-                    placeholder="120"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button onClick={handleUpdateCourt} className="flex-1">
-                    Update Court
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setEditDialogOpen(false)}
-                    className="flex-1"
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
+        <EditCourtForm
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          court={editingCourt}
+          onSubmit={handleUpdateCourt}
+          admins={admins}
+          adminsLoading={adminsLoading}
+        />
 
         {/* Delete Confirmation Dialog */}
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
