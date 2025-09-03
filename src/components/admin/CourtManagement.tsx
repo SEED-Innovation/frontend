@@ -907,6 +907,32 @@ const CourtManagement = () => {
                       <span className="text-gray-600">Location:</span>
                       <span className="font-medium">{court.location}</span>
                     </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">SEED System:</span>
+                      <span className={`font-medium ${court.hasSeedSystem ? 'text-green-600' : 'text-gray-600'}`}>
+                        {court.hasSeedSystem ? 'Yes' : 'No'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Manager:</span>
+                      <span className="font-medium">
+                        {court.manager ? court.manager.name : 'No manager assigned'}
+                      </span>
+                    </div>
+                    {canManageCourt(court) && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-600">Status:</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className={`text-xs ${court.status === 'AVAILABLE' ? 'text-green-600 border-green-600' : 'text-red-600 border-red-600'}`}
+                          onClick={() => handleToggleStatus(court)}
+                        >
+                          {court.status === 'AVAILABLE' ? 'Available' : 'Unavailable'}
+                        </Button>
+                      </div>
+                    )}
+                    
                     {/* Pricing & Discount Section */}
                     <div className="p-3 rounded-lg bg-gradient-to-r from-primary/5 to-accent/5 border">
                       <div className="flex items-center justify-between mb-2">
@@ -952,31 +978,6 @@ const CourtManagement = () => {
                         </Button>
                       )}
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">SEED System:</span>
-                      <span className={`font-medium ${court.hasSeedSystem ? 'text-green-600' : 'text-gray-600'}`}>
-                        {court.hasSeedSystem ? 'Yes' : 'No'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Manager:</span>
-                      <span className="font-medium">
-                        {court.manager ? court.manager.name : 'No manager assigned'}
-                      </span>
-                    </div>
-                    {canManageCourt(court) && (
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-600">Status:</span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className={`text-xs ${court.status === 'AVAILABLE' ? 'text-green-600 border-green-600' : 'text-red-600 border-red-600'}`}
-                          onClick={() => handleToggleStatus(court)}
-                        >
-                          {court.status === 'AVAILABLE' ? 'Available' : 'Unavailable'}
-                        </Button>
-                      </div>
-                    )}
                     <div className="flex gap-2 pt-2">
                       {canManageCourt(court) && (
                         <Button 
