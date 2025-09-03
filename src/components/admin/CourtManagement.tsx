@@ -150,7 +150,12 @@ const CourtManagement = () => {
   };
 
   const handleCourtUpdated = (updatedCourt: Court) => {
-    setCourts(courts.map(court => court.id === updatedCourt.id ? updatedCourt : court));
+    // Update the court in the local state
+    setCourts(prevCourts => 
+      prevCourts.map(court => 
+        court.id === updatedCourt.id ? updatedCourt : court
+      )
+    );
   };
 
   const handleUpdateCourt = async (courtData: UpdateCourtRequest, imageFile?: File): Promise<boolean> => {
