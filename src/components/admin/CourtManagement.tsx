@@ -80,10 +80,13 @@ const CourtManagement = () => {
   const [managerSearchValue, setManagerSearchValue] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
-  // Fetch courts and admins on component mount
+  // Fetch courts on component mount
   useEffect(() => {
     fetchCourts();
-    fetchAdmins(); // Fetch admins for manager filter
+    // Only fetch admins if we're a SUPER_ADMIN and need them for court creation
+    if (hasPermission('SUPER_ADMIN')) {
+      fetchAdmins();
+    }
   }, []);
 
   const fetchCourts = async () => {
@@ -268,13 +271,14 @@ const CourtManagement = () => {
       const matchesSearch = 
         (court.name?.toLowerCase() || '').includes(searchLower) ||
         (court.type?.toLowerCase() || '').includes(searchLower) ||
-        (court.location?.toLowerCase() || '').includes(searchLower);
+        (court.location?.toLowerCase() || '').includes(searchLower) ||
+        (court.manager?.name?.toLowerCase() || '').includes(searchLower);
       if (!matchesSearch) return false;
     }
 
     // Manager filter
     if (filters.manager && filters.manager !== 'all-managers') {
-      if (!court.managerId || court.managerId.toString() !== filters.manager) return false;
+      if (!court.manager || court.manager.name !== filters.manager) return false;
     }
 
     // Type filter
@@ -303,7 +307,7 @@ const CourtManagement = () => {
   // Get unique values for filter dropdowns
   const uniqueTypes = [...new Set(courts.map(court => court.type))].filter(Boolean);
   const uniqueLocations = [...new Set(courts.map(court => court.location))].filter(Boolean);
-  const uniqueManagers = [...new Set(courts.map(court => court.managerId))].filter(Boolean);
+  const uniqueManagers = [...new Set(courts.map(court => court.manager?.name).filter(Boolean))];
   const maxPrice = Math.max(...courts.map(court => court.hourlyFee || 0), 300);
 
   // Clear all filters
@@ -526,7 +530,7 @@ const CourtManagement = () => {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
-                  placeholder="Search courts by name, type, or location..."
+                  placeholder="Search courts by name, type, location, or manager..."
                   value={filters.searchTerm}
                   onChange={(e) => setFilters(prev => ({ ...prev, searchTerm: e.target.value }))}
                   className="pl-10 max-w-md"
@@ -543,6 +547,7 @@ const CourtManagement = () => {
                   <Badge variant="secondary" className="ml-2 px-1 py-0 text-xs">
                   {[
                     filters.searchTerm !== '',
+                    filters.manager !== '' && filters.manager !== 'all-managers',
                     filters.type !== '' && filters.type !== 'all-types',
                     selectedLocations.length > 0,
                     filters.status !== '' && filters.status !== 'all-status',
@@ -586,7 +591,7 @@ const CourtManagement = () => {
                         >
                           {filters.manager === '' || filters.manager === 'all-managers'
                             ? "All Managers"
-                            : admins.find(admin => admin === filters.manager) || `Manager ${filters.manager}`}
+                            : filters.manager}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </PopoverTrigger>
@@ -617,18 +622,16 @@ const CourtManagement = () => {
                                 All Managers
                               </CommandItem>
                               {uniqueManagers
-                                .filter((managerId) => {
-                                  const managerName = admins.find(admin => admin === managerId.toString()) || `Manager ${managerId}`;
+                                .filter((managerName) => {
                                   return managerName.toLowerCase().includes(managerSearchValue.toLowerCase());
                                 })
-                                .map((managerId) => {
-                                  const managerName = admins.find(admin => admin === managerId.toString()) || `Manager ${managerId}`;
+                                .map((managerName) => {
                                   return (
                                     <CommandItem
-                                      key={managerId}
+                                      key={managerName}
                                       value={managerName}
                                       onSelect={() => {
-                                        setFilters(prev => ({ ...prev, manager: managerId.toString() }));
+                                        setFilters(prev => ({ ...prev, manager: managerName }));
                                         setManagerSearchOpen(false);
                                         setManagerSearchValue("");
                                       }}
@@ -636,7 +639,7 @@ const CourtManagement = () => {
                                       <Check
                                         className={cn(
                                           "mr-2 h-4 w-4",
-                                          filters.manager === managerId.toString() ? "opacity-100" : "opacity-0"
+                                          filters.manager === managerName ? "opacity-100" : "opacity-0"
                                         )}
                                       />
                                       {managerName}
@@ -959,6 +962,12 @@ const CourtManagement = () => {
                       <span className="text-gray-600">SEED System:</span>
                       <span className={`font-medium ${court.hasSeedSystem ? 'text-green-600' : 'text-gray-600'}`}>
                         {court.hasSeedSystem ? 'Yes' : 'No'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Manager:</span>
+                      <span className="font-medium">
+                        {court.manager ? court.manager.name : 'No manager assigned'}
                       </span>
                     </div>
                     {canManageCourt(court) && (

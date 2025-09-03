@@ -20,6 +20,11 @@ export interface Court {
     longitude?: number;
     status?: 'AVAILABLE' | 'UNAVAILABLE';
     managerId?: number;
+    manager?: {
+        name: string;
+        email: string;
+        profilePictureUrl?: string;
+    };
 }
 
 export interface CreateCourtRequest {
