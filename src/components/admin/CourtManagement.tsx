@@ -42,6 +42,8 @@ const CourtManagement = () => {
   const [courtToDelete, setCourtToDelete] = useState<Court | null>(null);
   const [discountModalOpen, setDiscountModalOpen] = useState(false);
   const [discountCourt, setDiscountCourt] = useState<Court | null>(null);
+  const [removeDiscountDialogOpen, setRemoveDiscountDialogOpen] = useState(false);
+  const [courtToRemoveDiscount, setCourtToRemoveDiscount] = useState<Court | null>(null);
 
   const [newCourt, setNewCourt] = useState<CreateCourtRequest & {managerId?: string}>({
     name: '',
@@ -147,6 +149,31 @@ const CourtManagement = () => {
   const handleDiscountCourt = (court: Court) => {
     setDiscountCourt(court);
     setDiscountModalOpen(true);
+  };
+
+  const handleRemoveDiscount = (court: Court) => {
+    setCourtToRemoveDiscount(court);
+    setRemoveDiscountDialogOpen(true);
+  };
+
+  const confirmRemoveDiscount = async () => {
+    if (!courtToRemoveDiscount) return;
+
+    try {
+      const updatedCourt = await courtService.removeDiscount(courtToRemoveDiscount.id);
+      
+      // Update the court in local state
+      setCourts(courts.map(court => 
+        court.id === courtToRemoveDiscount.id ? updatedCourt : court
+      ));
+      
+      toast.success('Discount removed successfully');
+      setRemoveDiscountDialogOpen(false);
+      setCourtToRemoveDiscount(null);
+    } catch (error) {
+      console.error('Error removing discount:', error);
+      toast.error('Failed to remove discount');
+    }
   };
 
   const handleCourtUpdated = (updatedCourt: Court) => {
@@ -458,6 +485,61 @@ const CourtManagement = () => {
                   <Button
                     variant="outline"
                     onClick={() => setDeleteDialogOpen(false)}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Remove Discount Confirmation Dialog */}
+        <Dialog open={removeDiscountDialogOpen} onOpenChange={setRemoveDiscountDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Remove Discount</DialogTitle>
+            </DialogHeader>
+            {courtToRemoveDiscount && (
+              <div className="space-y-4">
+                <p className="text-gray-600">
+                  Are you sure you want to remove the discount from <strong>{courtToRemoveDiscount.name}</strong>?
+                </p>
+                <div className="bg-muted/50 p-3 rounded-lg">
+                  <div className="text-sm text-muted-foreground mb-1">Current pricing:</div>
+                  <div className="flex items-center gap-2">
+                    <div className="line-through text-muted-foreground text-sm">
+                      <CurrencyDisplay amount={courtToRemoveDiscount.hourlyFee || 0} size="sm" />
+                    </div>
+                    <span className="text-muted-foreground">→</span>
+                    <div className="text-primary font-semibold">
+                      <CurrencyDisplay 
+                        amount={courtToRemoveDiscount.isPercentage 
+                          ? Math.max(0, (courtToRemoveDiscount.hourlyFee || 0) * (1 - (courtToRemoveDiscount.discountAmount || 0) / 100))
+                          : Math.max(0, (courtToRemoveDiscount.hourlyFee || 0) - (courtToRemoveDiscount.discountAmount || 0))
+                        } 
+                        size="md" 
+                      />
+                    </div>
+                  </div>
+                  <div className="text-sm text-muted-foreground mt-2">
+                    After removal: <span className="font-medium text-foreground">
+                      <CurrencyDisplay amount={courtToRemoveDiscount.hourlyFee || 0} size="sm" />
+                    </span>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="destructive"
+                    onClick={confirmRemoveDiscount}
+                    className="flex-1"
+                  >
+                    Remove Discount
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setRemoveDiscountDialogOpen(false)}
                     className="flex-1"
                   >
                     Cancel
@@ -942,6 +1024,30 @@ const CourtManagement = () => {
                     <div className="p-3 rounded-lg bg-gradient-to-r from-primary/5 to-accent/5 border">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-medium text-muted-foreground">Pricing</span>
+                        <div className="flex flex-col gap-1">
+                          {canManageCourt(court) && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 text-xs px-2 py-1"
+                              onClick={() => handleDiscountCourt(court)}
+                            >
+                              <TagIcon className="w-3 h-3 mr-1" />
+                              {(court.discountAmount && court.discountAmount > 0) ? 'Edit Discount' : 'Add Discount'}
+                            </Button>
+                          )}
+                          {canManageCourt(court) && (court.discountAmount && court.discountAmount > 0) && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 text-xs px-2 py-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => handleRemoveDiscount(court)}
+                            >
+                              <X className="w-3 h-3 mr-1" />
+                              Remove Discount
+                            </Button>
+                          )}
+                        </div>
                         {(court.discountAmount && court.discountAmount > 0) && (
                           <Badge variant="secondary" className="text-xs">
                             {court.isPercentage ? `-${court.discountAmount}%` : `-${court.discountAmount} SAR`}
@@ -971,17 +1077,6 @@ const CourtManagement = () => {
                           </div>
                         )}
                       </div>
-                      {canManageCourt(court) && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="w-full mt-2 h-8 text-xs"
-                          onClick={() => handleDiscountCourt(court)}
-                        >
-                          <TagIcon className="w-3 h-3 mr-1" />
-                          {(court.discountAmount && court.discountAmount > 0) ? 'Edit Discount' : 'Add Discount'}
-                        </Button>
-                      )}
                     </div>
                     <div className="flex gap-2 pt-2">
                       {canManageCourt(court) && (
