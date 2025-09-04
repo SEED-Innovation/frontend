@@ -19,7 +19,7 @@ import { AdminUser } from '@/types/admin';
 interface EnhancedCourtFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (courtData: CreateCourtRequest) => Promise<boolean>;
+  onSubmit: (courtData: CreateCourtRequest, imageFile?: File) => Promise<boolean>;
   admins: AdminUser[];
   adminsLoading: boolean;
 }
@@ -177,7 +177,6 @@ export default function EnhancedCourtForm({
       hourlyFee: formData.hourlyFee,
       hasSeedSystem: formData.hasSeedSystem,
       amenities: formData.amenities,
-      imageUrl: formData.imageUrl || undefined,
       description: formData.description || undefined,
       latitude: formData.latitude,
       longitude: formData.longitude,
@@ -192,7 +191,8 @@ export default function EnhancedCourtForm({
         : undefined
     };
 
-    const success = await onSubmit(submitData);
+    // Pass the selected image file to the service
+    const success = await onSubmit(submitData, selectedImageFile || undefined);
     
     // Only reset form on successful creation
     if (success) {

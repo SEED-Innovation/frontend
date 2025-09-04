@@ -141,9 +141,9 @@ const CourtManagement = () => {
     }
   };
 
-  const handleCreateCourt = async (courtData: CreateCourtRequest): Promise<boolean> => {
+  const handleCreateCourt = async (courtData: CreateCourtRequest, imageFile?: File): Promise<boolean> => {
     try {
-      const createdCourt = await courtService.createCourt(courtData);
+      const createdCourt = await courtService.createCourt(courtData, imageFile);
       setCourts([...courts, createdCourt]);
       setCreateDialogOpen(false);
       toast.success('Court created successfully');

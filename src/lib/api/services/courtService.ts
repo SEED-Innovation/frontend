@@ -149,20 +149,71 @@ class CourtService {
     }
 
     /**
-     * Create a new court (SUPER_ADMIN only)
+     * Create a new court (SUPER_ADMIN only) - supports both JSON and multipart with image
      */
-    async createCourt(courtData: CreateCourtRequest): Promise<Court> {
-        const response = await fetch(`${this.baseUrl}/create`, {
-            method: 'POST',
-            headers: this.getAuthHeaders(),
-            body: JSON.stringify(courtData)
-        });
+    async createCourt(courtData: CreateCourtRequest, file?: File): Promise<Court> {
+        const url = `${this.baseUrl}/create`;
+        const token = localStorage.getItem('accessToken');
 
-        if (!response.ok) {
-            throw new Error(`Failed to create court: ${response.statusText}`);
+        if (file) {
+            // Multipart path with image
+            const fd = new FormData();
+            
+            // Append scalar fields
+            const appendIf = (k: string, v: any) => {
+                if (v === undefined || v === null) return;
+                fd.append(k, String(v));
+            };
+
+            appendIf("name", courtData.name);
+            appendIf("location", courtData.location);
+            appendIf("type", courtData.type);
+            appendIf("hourlyFee", courtData.hourlyFee);
+            appendIf("hasSeedSystem", courtData.hasSeedSystem);
+            appendIf("description", courtData.description);
+            appendIf("latitude", courtData.latitude);
+            appendIf("longitude", courtData.longitude);
+
+            // Amenities: repeat key for array
+            if (Array.isArray(courtData.amenities)) {
+                courtData.amenities.forEach(a => fd.append("amenities", a));
+            }
+
+            // Manager ID
+            if (courtData.manager_id != null) {
+                fd.append("manager_id", String(courtData.manager_id));
+            }
+
+            // File part must be "image"
+            fd.append("image", file);
+
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}` },
+                body: fd
+            });
+            
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({ message: response.statusText }));
+                throw new Error(error.message || `Failed to create court: ${response.statusText}`);
+            }
+            
+            return response.json();
+        } else {
+            // JSON path without image
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: this.getAuthHeaders(),
+                body: JSON.stringify(courtData)
+            });
+
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({ message: response.statusText }));
+                throw new Error(error.message || `Failed to create court: ${response.statusText}`);
+            }
+
+            return response.json();
         }
-
-        return response.json();
     }
 
     /**
