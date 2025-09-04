@@ -16,7 +16,9 @@ import {
   Trophy,
   TrendingDown,
   Receipt,
-  FileText
+  FileText,
+  UserCheck,
+  Building
 } from 'lucide-react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { bookingService } from '@/services/bookingService';
@@ -34,7 +36,9 @@ const AdminDashboard = () => {
     totalRevenue: 0,
     todayBookings: 0,
     activeCourts: 12,
+    totalCourts: 0,
     totalUsers: 0,
+    totalManagers: 0,
     pendingPayments: 0,
     pendingBookings: 0,
     confirmedBookings: 0,
@@ -119,6 +123,9 @@ const AdminDashboard = () => {
           .sort((a, b) => b.bookings - a.bookings)
           .slice(0, 6);
         
+        // Calculate managers count (users with managerId assigned to courts)
+        const managersCount = courtsResponse?.filter(court => court.managerId).length || 0;
+        
         // Update state with real data
         setTopPlayers(topPlayersData);
         setTopCourts(topPerformingCourts);
@@ -126,7 +133,9 @@ const AdminDashboard = () => {
           totalRevenue: (statsResponse as any).totalRevenue || (statsResponse as any).confirmedRevenue || 0,
           todayBookings: (statsResponse as any).totalBookings || 0,
           activeCourts: courtsResponse?.length || 0,
+          totalCourts: courtsResponse?.length || 0,
           totalUsers: usersResponse?.length || 0,
+          totalManagers: managersCount,
           pendingPayments: (statsResponse as any).pendingBookings || 0,
           pendingBookings: (statsResponse as any).pendingBookings || 0,
           confirmedBookings: (statsResponse as any).confirmedBookings || 0,
@@ -201,37 +210,51 @@ const AdminDashboard = () => {
       </motion.div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         <StatCard
-          title="Total Revenue"
+          title="💰 Total Revenue"
           value={<CurrencyDisplay amount={dashboardStats.totalRevenue} size="xl" showSymbol />}
           change={dashboardStats.monthlyGrowth}
           icon={DollarSign}
           color="bg-green-500"
         />
         <StatCard
-          title="Total Bookings"
+          title="📅 Total Bookings"
           value={dashboardStats.todayBookings}
           change={null}
           icon={Calendar}
           color="bg-blue-500"
         />
         <StatCard
-          title="Approved"
+          title="✅ Approved"
           value={dashboardStats.confirmedBookings}
           change={null}
           icon={Activity}
           color="bg-green-500"
         />
         <StatCard
-          title="Pending"
+          title="⏳ Pending"
           value={dashboardStats.pendingBookings}
           change={null}
           icon={Clock}
           color="bg-yellow-500"
         />
         <StatCard
-          title="Receipt Revenue"
+          title="🎾 Total Courts"
+          value={dashboardStats.totalCourts}
+          change={null}
+          icon={Building}
+          color="bg-indigo-500"
+        />
+        <StatCard
+          title="👨‍💼 Total Managers"
+          value={dashboardStats.totalManagers}
+          change={null}
+          icon={UserCheck}
+          color="bg-orange-500"
+        />
+        <StatCard
+          title="🧾 Receipt Revenue"
           value={<CurrencyDisplay amount={dashboardStats.receiptRevenue} size="xl" showSymbol />}
           change={null}
           icon={Receipt}
