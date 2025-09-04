@@ -1022,58 +1022,66 @@ const CourtManagement = () => {
                     
                     {/* Pricing & Discount Section */}
                     <div className="p-3 rounded-lg bg-gradient-to-r from-primary/5 to-accent/5 border">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-muted-foreground">Pricing</span>
-                        <div className="flex flex-col gap-1">
-                          {canManageCourt(court) && (
+                      <div className="flex items-start justify-between gap-3">
+                        {/* Left side - Pricing info */}
+                        <div className="flex-1">
+                          <span className="text-sm font-medium text-muted-foreground mb-2 block">Pricing</span>
+                          <div className="flex items-center gap-2">
+                            {(court.discountAmount && court.discountAmount > 0 && court.hourlyFee) ? (
+                              <>
+                                <div className="line-through text-muted-foreground text-sm">
+                                  <CurrencyDisplay amount={court.hourlyFee || 0} size="sm" />
+                                </div>
+                                <span className="text-muted-foreground">→</span>
+                                <div className="text-primary font-semibold">
+                                  <CurrencyDisplay 
+                                    amount={court.isPercentage 
+                                      ? Math.max(0, (court.hourlyFee || 0) * (1 - (court.discountAmount || 0) / 100))
+                                      : Math.max(0, (court.hourlyFee || 0) - (court.discountAmount || 0))
+                                    } 
+                                    size="md" 
+                                  />
+                                </div>
+                              </>
+                            ) : (
+                              <div className="font-semibold">
+                                <CurrencyDisplay amount={court.hourlyFee || 0} size="md" />
+                              </div>
+                            )}
+                          </div>
+                          {(court.discountAmount && court.discountAmount > 0) && (
+                            <Badge variant="secondary" className="text-xs mt-2">
+                              {court.isPercentage ? `-${court.discountAmount}%` : `-${court.discountAmount} SAR`}
+                            </Badge>
+                          )}
+                        </div>
+
+                        {/* Right side - Discount controls */}
+                        {canManageCourt(court) && (
+                          <div className="flex flex-col gap-1">
                             <Button
-                              variant="ghost"
+                              variant="outline"
                               size="sm"
-                              className="h-6 text-xs px-2 py-1"
+                              className="h-7 text-xs px-2 py-1 whitespace-nowrap"
                               onClick={() => handleDiscountCourt(court)}
                             >
                               <TagIcon className="w-3 h-3 mr-1" />
                               {(court.discountAmount && court.discountAmount > 0) ? 'Edit Discount' : 'Add Discount'}
                             </Button>
-                          )}
-                          {canManageCourt(court) && (court.discountAmount && court.discountAmount > 0) && (
                             <Button
-                              variant="ghost"
+                              variant="outline"
                               size="sm"
-                              className="h-6 text-xs px-2 py-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              className={`h-7 text-xs px-2 py-1 whitespace-nowrap ${
+                                (court.discountAmount && court.discountAmount > 0) 
+                                  ? 'text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200' 
+                                  : 'text-muted-foreground cursor-not-allowed opacity-50'
+                              }`}
                               onClick={() => handleRemoveDiscount(court)}
+                              disabled={!(court.discountAmount && court.discountAmount > 0)}
                             >
                               <X className="w-3 h-3 mr-1" />
                               Remove Discount
                             </Button>
-                          )}
-                        </div>
-                        {(court.discountAmount && court.discountAmount > 0) && (
-                          <Badge variant="secondary" className="text-xs">
-                            {court.isPercentage ? `-${court.discountAmount}%` : `-${court.discountAmount} SAR`}
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {(court.discountAmount && court.discountAmount > 0 && court.hourlyFee) ? (
-                          <>
-                            <div className="line-through text-muted-foreground text-sm">
-                              <CurrencyDisplay amount={court.hourlyFee || 0} size="sm" />
-                            </div>
-                            <span className="text-muted-foreground">→</span>
-                            <div className="text-primary font-semibold">
-                              <CurrencyDisplay 
-                                amount={court.isPercentage 
-                                  ? Math.max(0, (court.hourlyFee || 0) * (1 - (court.discountAmount || 0) / 100))
-                                  : Math.max(0, (court.hourlyFee || 0) - (court.discountAmount || 0))
-                                } 
-                                size="md" 
-                              />
-                            </div>
-                          </>
-                        ) : (
-                          <div className="font-semibold">
-                            <CurrencyDisplay amount={court.hourlyFee || 0} size="md" />
                           </div>
                         )}
                       </div>
