@@ -183,7 +183,10 @@ export default function EnhancedCourtForm({
       longitude: formData.longitude,
       manager_id: formData.managerId && formData.managerId !== 'none' 
         ? (() => {
+            console.log('Finding admin with name:', formData.managerId);
+            console.log('Available admins:', admins);
             const selectedAdmin = admins.find(admin => admin.name === formData.managerId);
+            console.log('Selected admin:', selectedAdmin);
             return selectedAdmin ? parseInt(selectedAdmin.id) : undefined;
           })()
         : undefined

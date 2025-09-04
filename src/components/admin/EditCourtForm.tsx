@@ -213,7 +213,10 @@ export default function EditCourtForm({
       if (isSuperAdmin && formData.managerId !== currentManagerName) {
         if (formData.managerId && formData.managerId !== 'none') {
           // Find admin by name to get the ID
+          console.log('Finding admin with name:', formData.managerId);
+          console.log('Available admins:', admins);
           const selectedAdmin = admins.find(admin => admin.name === formData.managerId);
+          console.log('Selected admin:', selectedAdmin);
           if (selectedAdmin && selectedAdmin.id) {
             submitData.manager_id = parseInt(selectedAdmin.id);
           }

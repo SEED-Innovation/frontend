@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { courtService, Court, CreateCourtRequest, UpdateCourtRequest, SetCourtAvailabilityRequest, AdminCourtAvailabilityResponse } from '@/lib/api/services/courtService';
 import { adminService } from '@/services/adminService';
+import { userService } from '@/services/userService';
 import { AdminUser } from '@/types/admin';
 import EnhancedCourtForm from './EnhancedCourtForm';
 import EditCourtForm from './EditCourtForm';
@@ -91,10 +92,8 @@ const CourtManagement = () => {
   // Fetch courts on component mount
   useEffect(() => {
     fetchCourts();
-    // Only fetch admins if we're a SUPER_ADMIN and need them for court creation
-    if (hasPermission('SUPER_ADMIN')) {
-      fetchAdmins();
-    }
+    // Always fetch admins for manager assignment functionality
+    fetchAdmins();
   }, []);
 
   const fetchCourts = async () => {
@@ -114,8 +113,26 @@ const CourtManagement = () => {
   const fetchAdmins = async () => {
     try {
       setAdminsLoading(true);
-      const adminsList = await adminService.getAllAdmins();
-      setAdmins(adminsList);
+      console.log('Fetching admins...');
+      
+      // Get all users and filter for admins
+      const allUsers = await userService.getAllUsers();
+      console.log('All users:', allUsers);
+      
+      // Filter users to only include ADMIN role (since SUPER_ADMIN is from Cognito, not user table)
+      const adminUsers = allUsers.filter(user => 
+        user.role === 'ADMIN'
+      ).map(user => ({
+        id: user.id.toString(), // Convert to string for consistency
+        name: user.fullName || `User ${user.id}`,
+        email: user.email,
+        role: 'ADMIN' as const,
+        assignedCourts: [],
+        avatar: user.profilePictureUrl || undefined
+      }));
+      
+      console.log('Filtered admin users:', adminUsers);
+      setAdmins(adminUsers);
     } catch (error) {
       console.error('Error fetching admins:', error);
       toast.error('Failed to load admins');
