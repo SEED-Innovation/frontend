@@ -16,12 +16,14 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 
+import { AdminUser } from '@/types/admin';
+
 interface EditCourtFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   court: Court | null;
   onSubmit: (courtData: UpdateCourtRequest, imageFile?: File) => Promise<boolean>;
-  admins: string[];
+  admins: AdminUser[];
   adminsLoading: boolean;
 }
 
@@ -74,9 +76,7 @@ export default function EditCourtForm({
   useEffect(() => {
     if (court && open) {
       // Find the current manager name from the managerId
-      const currentManagerName = court.managerId && admins.length > 0 
-        ? admins.find((_, index) => index.toString() === court.managerId?.toString()) || 'none'
-        : 'none';
+      const currentManagerName = court.manager?.name || 'none';
       
       setFormData({
         name: court.name,
@@ -208,17 +208,18 @@ export default function EditCourtForm({
       }
 
       // Handle manager assignment (SUPER_ADMIN only)
-      const currentManagerName = court?.managerId && admins.length > 0 
-        ? admins.find((_, index) => index.toString() === court.managerId?.toString()) || 'none'
-        : 'none';
+      const currentManagerName = court?.manager?.name || 'none';
       
       if (isSuperAdmin && formData.managerId !== currentManagerName) {
         if (formData.managerId && formData.managerId !== 'none') {
-          // Find admin index by name to get the ID
-          const adminIndex = admins.findIndex(admin => admin === formData.managerId);
-          if (adminIndex !== -1) {
-            submitData.manager_id = { id: adminIndex };
+          // Find admin by name to get the ID
+          const selectedAdmin = admins.find(admin => admin.name === formData.managerId);
+          if (selectedAdmin && selectedAdmin.id) {
+            submitData.manager_id = parseInt(selectedAdmin.id);
           }
+        } else {
+          // Remove manager assignment
+          submitData.manager_id = null;
         }
       }
 
@@ -379,15 +380,17 @@ export default function EditCourtForm({
                               No manager assigned
                             </CommandItem>
                             {admins
-                              .filter((admin) =>
-                                admin.toLowerCase().includes(managerSearchValue.toLowerCase())
-                              )
-                              .map((admin, index) => (
+                              .filter((admin) => {
+                                const searchTerm = managerSearchValue.toLowerCase();
+                                return admin.name.toLowerCase().includes(searchTerm) || 
+                                       admin.email.toLowerCase().includes(searchTerm);
+                              })
+                              .map((admin) => (
                                 <CommandItem
-                                  key={admin}
-                                  value={admin}
+                                  key={admin.id}
+                                  value={admin.name}
                                   onSelect={() => {
-                                    handleInputChange('managerId', admin);
+                                    handleInputChange('managerId', admin.name);
                                     setManagerSearchOpen(false);
                                     setManagerSearchValue("");
                                   }}
@@ -395,10 +398,13 @@ export default function EditCourtForm({
                                   <Check
                                     className={cn(
                                       "mr-2 h-4 w-4",
-                                      formData.managerId === admin ? "opacity-100" : "opacity-0"
+                                      formData.managerId === admin.name ? "opacity-100" : "opacity-0"
                                     )}
                                   />
-                                  {admin}
+                                  <div className="flex flex-col">
+                                    <span>{admin.name}</span>
+                                    <span className="text-xs text-muted-foreground">{admin.email}</span>
+                                  </div>
                                 </CommandItem>
                               ))}
                           </CommandGroup>

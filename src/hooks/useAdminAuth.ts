@@ -56,13 +56,13 @@ export const useAdminAuth = () => {
 
   // Login function
   const login = useCallback(
-    async (identifier: string, password: string, rememberMe = false) => {
+    async (identifier: string, password: string) => {
       setLoading(true);
       try {
         const resp = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ identifier, password, rememberMe })
+          body: JSON.stringify({ identifier, password })
         });
         if (!resp.ok) {
           const err = await resp.json();

@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { courtService, Court, CreateCourtRequest, UpdateCourtRequest, SetCourtAvailabilityRequest, AdminCourtAvailabilityResponse } from '@/lib/api/services/courtService';
 import { adminService } from '@/services/adminService';
+import { AdminUser } from '@/types/admin';
 import EnhancedCourtForm from './EnhancedCourtForm';
 import EditCourtForm from './EditCourtForm';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -31,7 +32,7 @@ import { CurrencyDisplay } from '@/components/ui/currency-display';
 const CourtManagement = () => {
   const { user, hasPermission } = useAdminAuth();
   const [courts, setCourts] = useState<Court[]>([]);
-  const [admins, setAdmins] = useState<string[]>([]);
+  const [admins, setAdmins] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [adminsLoading, setAdminsLoading] = useState(false);
   const [managerComboboxOpen, setManagerComboboxOpen] = useState(false);

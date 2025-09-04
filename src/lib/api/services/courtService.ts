@@ -41,7 +41,7 @@ export interface CreateCourtRequest {
     description?: string;
     latitude?: number;
     longitude?: number;
-    manager_id?: { id: number };
+    manager_id?: number | null;
 }
 
 export interface UpdateCourtRequest {
@@ -55,7 +55,7 @@ export interface UpdateCourtRequest {
     latitude?: number;
     longitude?: number;
     imageUrl?: string | null;
-    manager_id?: { id: number };
+    manager_id?: number | null;
 }
 
 export interface SetCourtAvailabilityRequest {
@@ -197,8 +197,8 @@ class CourtService {
             }
 
             // Manager (SUPER_ADMIN)
-            if (data.manager_id?.id != null) {
-                fd.append("manager_id.id", String(data.manager_id.id));
+            if (data.manager_id != null) {
+                fd.append("manager_id", String(data.manager_id));
             }
 
             // File part must be "image"

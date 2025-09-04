@@ -1,5 +1,7 @@
+import { AdminUser } from '@/types/admin';
+
 export interface AdminService {
-  getAllAdmins(): Promise<string[]>;
+  getAllAdmins(): Promise<AdminUser[]>;
 }
 
 class AdminServiceImpl implements AdminService {
@@ -11,7 +13,7 @@ class AdminServiceImpl implements AdminService {
     };
   }
 
-  async getAllAdmins(): Promise<string[]> {
+  async getAllAdmins(): Promise<AdminUser[]> {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/courts/all-admins`, {
       method: 'GET',
       headers: this.getAuthHeaders()

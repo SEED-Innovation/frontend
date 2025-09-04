@@ -1,7 +1,7 @@
 export type AdminRole = 'ADMIN' | 'SUPER_ADMIN';
 
 export interface AdminUser {
-  id: string;
+  id: string; // JWT sub, but can be converted to number for backend
   name: string;
   email: string;
   role: AdminRole;

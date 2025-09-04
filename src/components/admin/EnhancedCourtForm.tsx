@@ -14,12 +14,13 @@ import { toast } from '@/hooks/use-toast';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { AdminUser } from '@/types/admin';
 
 interface EnhancedCourtFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (courtData: CreateCourtRequest) => Promise<boolean>;
-  admins: string[];
+  admins: AdminUser[];
   adminsLoading: boolean;
 }
 
@@ -181,7 +182,10 @@ export default function EnhancedCourtForm({
       latitude: formData.latitude,
       longitude: formData.longitude,
       manager_id: formData.managerId && formData.managerId !== 'none' 
-        ? { id: parseInt(formData.managerId) } 
+        ? (() => {
+            const selectedAdmin = admins.find(admin => admin.name === formData.managerId);
+            return selectedAdmin ? parseInt(selectedAdmin.id) : undefined;
+          })()
         : undefined
     };
 
@@ -302,7 +306,7 @@ export default function EnhancedCourtForm({
                         ? "Select manager"
                         : formData.managerId === 'none'
                         ? "No manager assigned"
-                        : admins[parseInt(formData.managerId)] || "Select manager"}
+                        : formData.managerId || "Select manager"}
                       <div className="flex items-center gap-1">
                         {formData.managerId && formData.managerId !== '' && formData.managerId !== 'none' && (
                           <Button
@@ -354,15 +358,17 @@ export default function EnhancedCourtForm({
                             No manager assigned
                           </CommandItem>
                           {admins
-                            .filter((admin) =>
-                              admin.toLowerCase().includes(managerSearchValue.toLowerCase())
-                            )
-                            .map((admin, index) => (
+                            .filter((admin) => {
+                              const searchTerm = managerSearchValue.toLowerCase();
+                              return admin.name.toLowerCase().includes(searchTerm) || 
+                                     admin.email.toLowerCase().includes(searchTerm);
+                            })
+                            .map((admin) => (
                               <CommandItem
-                                key={admin}
-                                value={admin}
+                                key={admin.id}
+                                value={admin.name}
                                 onSelect={() => {
-                                  handleInputChange('managerId', index.toString());
+                                  handleInputChange('managerId', admin.name);
                                   setManagerSearchOpen(false);
                                   setManagerSearchValue("");
                                 }}
@@ -370,10 +376,13 @@ export default function EnhancedCourtForm({
                                 <Check
                                   className={cn(
                                     "mr-2 h-4 w-4",
-                                    formData.managerId === index.toString() ? "opacity-100" : "opacity-0"
+                                    formData.managerId === admin.name ? "opacity-100" : "opacity-0"
                                   )}
                                 />
-                                {admin}
+                                <div className="flex flex-col">
+                                  <span>{admin.name}</span>
+                                  <span className="text-xs text-muted-foreground">{admin.email}</span>
+                                </div>
                               </CommandItem>
                             ))}
                         </CommandGroup>

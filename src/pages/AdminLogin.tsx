@@ -5,7 +5,6 @@ import { Eye, EyeOff, ArrowLeft, Mail, Lock, Shield, Sparkles } from 'lucide-rea
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import SeedLogo from '@/components/ui/seed-logo';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
@@ -13,7 +12,6 @@ import { useAdminAuth } from '@/hooks/useAdminAuth';
 const AdminLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -33,7 +31,7 @@ const AdminLogin = () => {
     
     try {
       // Use real authentication from useAdminAuth hook
-      await login(formData.email, formData.password, rememberMe);
+      await login(formData.email, formData.password);
       toast.success('Welcome to SEED Admin Dashboard! 🎉');
       navigate('/admin');
     } catch (err: unknown) {
@@ -243,20 +241,8 @@ const AdminLogin = () => {
               </div>
             </div>
 
-            {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="remember"
-                  checked={rememberMe}
-                  onCheckedChange={(checked) => setRememberMe(checked === true)}
-                  disabled={isLoading}
-                  className="border-slate-600 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
-                />
-                <Label htmlFor="remember" className="text-sm text-slate-400 cursor-pointer">
-                  Remember me
-                </Label>
-              </div>
+            {/* Forgot Password */}
+            <div className="flex items-center justify-end">
               <button
                 type="button"
                 className="text-sm text-purple-400 hover:text-purple-300 transition-colors duration-200"
