@@ -151,9 +151,25 @@ const CourtManagement = () => {
     setDiscountModalOpen(true);
   };
 
-  const handleRemoveDiscount = (court: Court) => {
-    setCourtToRemoveDiscount(court);
-    setRemoveDiscountDialogOpen(true);
+  const handleRemoveDiscount = async (court: Court) => {
+    try {
+      const updatedCourt = await courtService.removeDiscount(court.id);
+      
+      setCourts(prev => prev.map(c => 
+        c.id === court.id ? updatedCourt : c
+      ));
+
+      toast.success(`Discount removed from ${court.name}`);
+    } catch (error: any) {
+      console.error('Error removing discount:', error);
+      
+      // Handle specific case where no discount exists
+      if (error.message?.includes('No discount') || error.message?.includes('not found')) {
+        toast.error("No discount currently applied to this court");
+      } else {
+        toast.error(error.message || "Failed to remove discount. Please try again.");
+      }
+    }
   };
 
   const confirmRemoveDiscount = async () => {
@@ -1068,17 +1084,15 @@ const CourtManagement = () => {
                               <TagIcon className="w-3 h-3 mr-1" />
                               {(court.discountAmount != null && court.discountAmount > 0) ? 'Edit Discount' : 'Add Discount'}
                             </Button>
-                            {(court.discountAmount != null && court.discountAmount > 0) && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-8 text-xs px-3 py-1 whitespace-nowrap bg-gradient-to-r from-red-50 to-rose-50 border-red-200 text-red-700 hover:from-red-100 hover:to-rose-100 hover:border-red-300 hover:text-red-800 transition-all duration-200 hover-scale animate-fade-in"
-                                onClick={() => handleRemoveDiscount(court)}
-                              >
-                                <X className="w-3 h-3 mr-1" />
-                                Remove Discount
-                              </Button>
-                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 text-xs px-3 py-1 whitespace-nowrap bg-gradient-to-r from-red-50 to-rose-50 border-red-200 text-red-700 hover:from-red-100 hover:to-rose-100 hover:border-red-300 hover:text-red-800 transition-all duration-200 hover-scale"
+                              onClick={() => handleRemoveDiscount(court)}
+                            >
+                              <X className="w-3 h-3 mr-1" />
+                              Remove Discount
+                            </Button>
                           </div>
                         )}
                       </div>
