@@ -40,7 +40,7 @@ export const DiscountModal: React.FC<DiscountModalProps> = ({
     if (!discountAmount || discountAmount <= 0) return court.hourlyFee;
     
     if (isPercentage) {
-      const discount = Math.min(discountAmount, 100); // Cap at 100%
+      const discount = Math.min(discountAmount, 99); // Cap at 99% to prevent 100%
       return Math.max(0, court.hourlyFee * (1 - discount / 100));
     } else {
       return Math.max(0, court.hourlyFee - discountAmount);
@@ -52,7 +52,7 @@ export const DiscountModal: React.FC<DiscountModalProps> = ({
     if (!discountAmount || discountAmount <= 0) return false;
     
     if (isPercentage) {
-      return discountAmount > 0 && discountAmount <= 100;
+      return discountAmount > 0 && discountAmount < 100; // Changed from <= 100 to < 100
     } else {
       return discountAmount > 0 && discountAmount < court.hourlyFee;
     }
@@ -60,10 +60,21 @@ export const DiscountModal: React.FC<DiscountModalProps> = ({
 
   const finalPrice = calculateFinalPrice();
   const hasWarning = !isPercentage && discountAmount >= court.hourlyFee;
+  const isMaxPercentage = isPercentage && discountAmount >= 100;
 
   const handleApplyDiscount = async () => {
+    // Specific validation for 100% discount
+    if (isPercentage && discountAmount >= 100) {
+      toast.error('100% discount is not allowed. Maximum discount is 99%.');
+      return;
+    }
+
     if (!isValidDiscount()) {
-      toast.error('Please enter a valid discount amount');
+      if (isPercentage) {
+        toast.error('Please enter a percentage between 1% and 99%');
+      } else {
+        toast.error('Discount amount must be less than the hourly fee');
+      }
       return;
     }
 
@@ -91,7 +102,7 @@ export const DiscountModal: React.FC<DiscountModalProps> = ({
       onClose();
     } catch (error) {
       console.error('Error removing discount:', error);
-      toast.error('Failed to remove discount. Please try again.');
+      toast.error('No discount currently applied to this court');
     } finally {
       setLoading(false);
     }
@@ -152,13 +163,13 @@ export const DiscountModal: React.FC<DiscountModalProps> = ({
                     id="discount-amount"
                     type="number"
                     min="0"
-                    max={isPercentage ? "100" : court.hourlyFee - 1}
+                    max={isPercentage ? "99" : court.hourlyFee - 1}
                     step={isPercentage ? "0.1" : "1"}
                     value={discountAmount || ''}
                     onChange={(e) => setDiscountAmount(parseFloat(e.target.value) || 0)}
                     placeholder={isPercentage ? "e.g., 20" : "e.g., 15"}
                     disabled={loading}
-                    className={hasWarning ? 'border-destructive' : ''}
+                    className={hasWarning || isMaxPercentage ? 'border-destructive' : ''}
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2">
                     {isPercentage ? (
@@ -171,6 +182,11 @@ export const DiscountModal: React.FC<DiscountModalProps> = ({
                 {hasWarning && (
                   <p className="text-sm text-destructive">
                     Fixed discount cannot be equal to or greater than the hourly fee
+                  </p>
+                )}
+                {isMaxPercentage && (
+                  <p className="text-sm text-destructive">
+                    100% discount is not allowed. Maximum discount is 99%
                   </p>
                 )}
               </div>

@@ -276,7 +276,26 @@ class CourtService {
         });
 
         if (!response.ok) {
-            throw new Error(`Failed to apply discount: ${response.statusText}`);
+            // Try to get specific error message from backend
+            let errorMessage = `Failed to apply discount: ${response.statusText}`;
+            try {
+                const errorData = await response.text();
+                if (errorData) {
+                    errorMessage = errorData;
+                }
+            } catch (e) {
+                // If parsing fails, check for specific error cases
+                if (response.status === 400) {
+                    if (isPercentage && discountAmount >= 100) {
+                        errorMessage = '100% discount is not allowed. Maximum discount is 99%.';
+                    } else if (!isPercentage && discountAmount >= 1000) { // Assuming reasonable upper limit
+                        errorMessage = 'Discount amount is too high. Please enter a reasonable amount.';
+                    } else {
+                        errorMessage = 'Invalid discount amount. Please check your input.';
+                    }
+                }
+            }
+            throw new Error(errorMessage);
         }
 
         return response.json();
@@ -292,7 +311,7 @@ class CourtService {
         });
 
         if (!response.ok) {
-            throw new Error(`Failed to remove discount: ${response.statusText}`);
+            throw new Error(`No discount currently applied to this court: ${response.statusText}`);
         }
 
         return response.json();
