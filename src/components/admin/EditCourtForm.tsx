@@ -329,22 +329,20 @@ export default function EditCourtForm({
                           : formData.managerId && formData.managerId !== 'none'
                           ? formData.managerId
                           : "Select manager"}
-                        <div className="flex items-center gap-1">
-                          {formData.managerId && formData.managerId !== '' && formData.managerId !== 'none' && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleInputChange('managerId', 'none');
-                              }}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          )}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </div>
+                          <div className="flex items-center gap-1">
+                            {formData.managerId && formData.managerId !== '' && formData.managerId !== 'none' && (
+                              <div
+                                className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground rounded cursor-pointer flex items-center justify-center"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleInputChange('managerId', 'none');
+                                }}
+                              >
+                                <X className="h-3 w-3" />
+                              </div>
+                            )}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </div>
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-full p-0">
@@ -382,8 +380,8 @@ export default function EditCourtForm({
                             {admins
                               .filter((admin) => {
                                 const searchTerm = managerSearchValue.toLowerCase();
-                                return admin.name.toLowerCase().includes(searchTerm) || 
-                                       admin.email.toLowerCase().includes(searchTerm);
+                                return (admin.name?.toLowerCase() || '').includes(searchTerm) || 
+                                       (admin.email?.toLowerCase() || '').includes(searchTerm);
                               })
                               .map((admin) => (
                                 <CommandItem
