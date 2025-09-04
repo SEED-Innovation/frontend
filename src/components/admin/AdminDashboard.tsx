@@ -54,11 +54,12 @@ const AdminDashboard = () => {
       try {
         console.log('🔄 AdminDashboard: Loading real dashboard data...');
         
-        // Load booking stats, court data, and receipt stats in parallel
-        const [statsResponse, courtsResponse, usersResponse, bookingsResponse, receiptStats] = await Promise.all([
+        // Load booking stats, court data, admin names, and receipt stats in parallel
+        const [statsResponse, courtsResponse, usersResponse, adminNamesResponse, bookingsResponse, receiptStats] = await Promise.all([
           bookingService.getBookingStats(),
           courtService.getAllCourts(),
           userService.getAllUsers(),
+          userService.getAllAdminNames(),
           bookingService.getAdminBookings({
             page: 0,
             size: 20,
@@ -68,7 +69,7 @@ const AdminDashboard = () => {
           receiptService.getReceiptStatistics().catch(() => ({ revenue: { total: 0 }, receiptCounts: { total: 0 } }))
         ]);
         
-        console.log('📊 AdminDashboard: Raw responses:', { statsResponse, courtsResponse, usersResponse, bookingsResponse });
+        console.log('📊 AdminDashboard: Raw responses:', { statsResponse, courtsResponse, usersResponse, adminNamesResponse, bookingsResponse });
         
         // Extract bookings array
         const bookings = Array.isArray(bookingsResponse) ? bookingsResponse : ((bookingsResponse as any)?.bookings || (bookingsResponse as any)?.content || []);
@@ -123,8 +124,8 @@ const AdminDashboard = () => {
           .sort((a, b) => b.bookings - a.bookings)
           .slice(0, 6);
         
-        // Calculate managers count (users with managerId assigned to courts)
-        const managersCount = courtsResponse?.filter(court => court.managerId).length || 0;
+        // Get actual admin count from the getAllAdmins endpoint
+        const adminCount = Array.isArray(adminNamesResponse) ? adminNamesResponse.length : 0;
         
         // Update state with real data
         setTopPlayers(topPlayersData);
@@ -135,7 +136,7 @@ const AdminDashboard = () => {
           activeCourts: courtsResponse?.length || 0,
           totalCourts: courtsResponse?.length || 0,
           totalUsers: usersResponse?.length || 0,
-          totalManagers: managersCount,
+          totalManagers: adminCount,
           pendingPayments: (statsResponse as any).pendingBookings || 0,
           pendingBookings: (statsResponse as any).pendingBookings || 0,
           confirmedBookings: (statsResponse as any).confirmedBookings || 0,
@@ -247,7 +248,7 @@ const AdminDashboard = () => {
           color="bg-indigo-500"
         />
         <StatCard
-          title="👨‍💼 Total Managers"
+          title="👨‍💼 Total Admins"
           value={dashboardStats.totalManagers}
           change={null}
           icon={UserCheck}
