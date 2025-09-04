@@ -633,81 +633,83 @@ const CourtManagement = () => {
                 exit={{ opacity: 0, height: 0 }}
                 className="bg-muted/30 rounded-lg p-6 space-y-4"
               >
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                  {/* Manager Filter - First */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Manager</Label>
-                    <Popover open={managerSearchOpen} onOpenChange={setManagerSearchOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          aria-expanded={managerSearchOpen}
-                          className="w-full justify-between"
-                        >
-                          {filters.manager === '' || filters.manager === 'all-managers'
-                            ? "All Managers"
-                            : filters.manager}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-full p-0">
-                        <Command>
-                          <CommandInput
-                            placeholder="Search managers..."
-                            value={managerSearchValue}
-                            onValueChange={setManagerSearchValue}
-                          />
-                          <CommandList>
-                            <CommandEmpty>No manager found.</CommandEmpty>
-                            <CommandGroup>
-                              <CommandItem
-                                value="all-managers"
-                                onSelect={() => {
-                                  setFilters(prev => ({ ...prev, manager: '' }));
-                                  setManagerSearchOpen(false);
-                                  setManagerSearchValue("");
-                                }}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    filters.manager === '' || filters.manager === 'all-managers' ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                                All Managers
-                              </CommandItem>
-                              {uniqueManagers
-                                .filter((managerName) => {
-                                  return managerName.toLowerCase().includes(managerSearchValue.toLowerCase());
-                                })
-                                .map((managerName) => {
-                                  return (
-                                    <CommandItem
-                                      key={managerName}
-                                      value={managerName}
-                                      onSelect={() => {
-                                        setFilters(prev => ({ ...prev, manager: managerName }));
-                                        setManagerSearchOpen(false);
-                                        setManagerSearchValue("");
-                                      }}
-                                    >
-                                      <Check
-                                        className={cn(
-                                          "mr-2 h-4 w-4",
-                                          filters.manager === managerName ? "opacity-100" : "opacity-0"
-                                        )}
-                                      />
-                                      {managerName}
-                                    </CommandItem>
-                                  );
-                                })}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
+                <div className={`grid grid-cols-1 md:grid-cols-2 ${hasPermission('SUPER_ADMIN') ? 'lg:grid-cols-5' : 'lg:grid-cols-4'} gap-4`}>
+                  {/* Manager Filter - First - Only for SUPER_ADMIN */}
+                  {hasPermission('SUPER_ADMIN') && (
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Manager</Label>
+                      <Popover open={managerSearchOpen} onOpenChange={setManagerSearchOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={managerSearchOpen}
+                            className="w-full justify-between"
+                          >
+                            {filters.manager === '' || filters.manager === 'all-managers'
+                              ? "All Managers"
+                              : filters.manager}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0">
+                          <Command>
+                            <CommandInput
+                              placeholder="Search managers..."
+                              value={managerSearchValue}
+                              onValueChange={setManagerSearchValue}
+                            />
+                            <CommandList>
+                              <CommandEmpty>No manager found.</CommandEmpty>
+                              <CommandGroup>
+                                <CommandItem
+                                  value="all-managers"
+                                  onSelect={() => {
+                                    setFilters(prev => ({ ...prev, manager: '' }));
+                                    setManagerSearchOpen(false);
+                                    setManagerSearchValue("");
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      filters.manager === '' || filters.manager === 'all-managers' ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  All Managers
+                                </CommandItem>
+                                {uniqueManagers
+                                  .filter((managerName) => {
+                                    return managerName.toLowerCase().includes(managerSearchValue.toLowerCase());
+                                  })
+                                  .map((managerName) => {
+                                    return (
+                                      <CommandItem
+                                        key={managerName}
+                                        value={managerName}
+                                        onSelect={() => {
+                                          setFilters(prev => ({ ...prev, manager: managerName }));
+                                          setManagerSearchOpen(false);
+                                          setManagerSearchValue("");
+                                        }}
+                                      >
+                                        <Check
+                                          className={cn(
+                                            "mr-2 h-4 w-4",
+                                            filters.manager === managerName ? "opacity-100" : "opacity-0"
+                                          )}
+                                        />
+                                        {managerName}
+                                      </CommandItem>
+                                    );
+                                  })}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  )}
 
                   {/* Type Filter */}
                   <div className="space-y-2">
