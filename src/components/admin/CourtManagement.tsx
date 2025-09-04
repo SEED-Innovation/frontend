@@ -1027,7 +1027,7 @@ const CourtManagement = () => {
                         <div className="flex-1">
                           <span className="text-sm font-medium text-muted-foreground mb-2 block">Pricing</span>
                           <div className="flex items-center gap-2">
-                            {(court.discountAmount && court.discountAmount > 0 && court.hourlyFee) ? (
+                            {(court.discountAmount != null && court.discountAmount > 0 && court.hourlyFee) ? (
                               <>
                                 <div className="line-through text-muted-foreground text-sm">
                                   <CurrencyDisplay amount={court.hourlyFee || 0} size="sm" />
@@ -1049,8 +1049,8 @@ const CourtManagement = () => {
                               </div>
                             )}
                           </div>
-                          {(court.discountAmount && court.discountAmount > 0) && (
-                            <Badge variant="secondary" className="text-xs mt-2">
+                          {(court.discountAmount != null && court.discountAmount > 0) && (
+                            <Badge variant="secondary" className="text-xs mt-2 animate-fade-in">
                               {court.isPercentage ? `-${court.discountAmount}%` : `-${court.discountAmount} SAR`}
                             </Badge>
                           )}
@@ -1058,30 +1058,27 @@ const CourtManagement = () => {
 
                         {/* Right side - Discount controls */}
                         {canManageCourt(court) && (
-                          <div className="flex flex-col gap-1">
+                          <div className="flex flex-col gap-2">
                             <Button
                               variant="outline"
                               size="sm"
-                              className="h-7 text-xs px-2 py-1 whitespace-nowrap"
+                              className="h-8 text-xs px-3 py-1 whitespace-nowrap bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 text-blue-700 hover:from-blue-100 hover:to-indigo-100 hover:border-blue-300 hover:text-blue-800 transition-all duration-200 hover-scale"
                               onClick={() => handleDiscountCourt(court)}
                             >
                               <TagIcon className="w-3 h-3 mr-1" />
-                              {(court.discountAmount && court.discountAmount > 0) ? 'Edit Discount' : 'Add Discount'}
+                              {(court.discountAmount != null && court.discountAmount > 0) ? 'Edit Discount' : 'Add Discount'}
                             </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className={`h-7 text-xs px-2 py-1 whitespace-nowrap ${
-                                (court.discountAmount && court.discountAmount > 0) 
-                                  ? 'text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200' 
-                                  : 'text-muted-foreground cursor-not-allowed opacity-50'
-                              }`}
-                              onClick={() => handleRemoveDiscount(court)}
-                              disabled={!(court.discountAmount && court.discountAmount > 0)}
-                            >
-                              <X className="w-3 h-3 mr-1" />
-                              Remove Discount
-                            </Button>
+                            {(court.discountAmount != null && court.discountAmount > 0) && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 text-xs px-3 py-1 whitespace-nowrap bg-gradient-to-r from-red-50 to-rose-50 border-red-200 text-red-700 hover:from-red-100 hover:to-rose-100 hover:border-red-300 hover:text-red-800 transition-all duration-200 hover-scale animate-fade-in"
+                                onClick={() => handleRemoveDiscount(court)}
+                              >
+                                <X className="w-3 h-3 mr-1" />
+                                Remove Discount
+                              </Button>
+                            )}
                           </div>
                         )}
                       </div>
