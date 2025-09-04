@@ -225,9 +225,12 @@ const CourtManagement = () => {
     try {
       const updatedCourt = await courtService.updateCourt(editingCourt.id, courtData, imageFile);
       
-      setCourts(courts.map(court => 
-        court.id === editingCourt.id ? updatedCourt : court
-      ));
+      // Use functional update to ensure we have the latest state
+      setCourts(prevCourts => 
+        prevCourts.map(court => 
+          court.id === editingCourt.id ? updatedCourt : court
+        )
+      );
       
       setEditingCourt(null);
       toast.success('Court updated successfully');
