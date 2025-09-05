@@ -101,8 +101,8 @@ export const UnavailabilityForm: React.FC<UnavailabilityFormProps> = ({ onSucces
         await courtService.markUnavailable(requestData);
         toast.success('Day blocked successfully');
       } catch (apiError) {
-        handleApiError(apiError);
-        throw apiError; // Re-throw to prevent form reset on error
+        handleApiError(apiError); // Let error mapper handle all specific error cases
+        return; // Exit early to prevent form reset
       }
       
       // Reset form
@@ -116,8 +116,8 @@ export const UnavailabilityForm: React.FC<UnavailabilityFormProps> = ({ onSucces
       
       onSuccess?.();
     } catch (error) {
-      console.error('Failed to set unavailability:', error);
-      toast.error('Failed to set court unavailability');
+      // This catch block should rarely be reached now since we handle API errors above
+      console.error('Unexpected error in form submission:', error);
     } finally {
       setSubmitting(false);
     }

@@ -17,61 +17,128 @@ export interface ApiError {
 export function handleApiError(err: any, defaultMessage?: string): void {
   console.error('API Error:', err);
   
-  const errorData: ApiError = err?.response?.data || {};
+  // Try to parse error data from different response formats
+  let errorData: ApiError = {};
+  
+  // Case 1: Standard API error response
+  if (err?.response?.data) {
+    errorData = err.response.data;
+  }
+  // Case 2: Error message contains JSON (like from your logs)
+  else if (err?.message && err.message.startsWith('{')) {
+    try {
+      errorData = JSON.parse(err.message);
+    } catch (parseError) {
+      console.warn('Failed to parse JSON error message:', parseError);
+    }
+  }
+  // Case 3: Direct error object
+  else if (err?.errorCode) {
+    errorData = err;
+  }
+  
   const code = errorData.errorCode;
   const msg = errorData.message;
+  
+  console.log('Parsed error data:', { code, msg, errorData });
+  
+  // Handle unavailability-specific errors
+  if (code && code.includes('Cannot mark unavailable')) {
+    if (code.includes('overlapping bookings exist')) {
+      // Extract booking count if available
+      const approvedMatch = code.match(/APPROVED=(\d+)/);
+      const pendingMatch = code.match(/PENDING=(\d+)/);
+      
+      let bookingDetails = '';
+      if (approvedMatch || pendingMatch) {
+        const approved = approvedMatch ? parseInt(approvedMatch[1]) : 0;
+        const pending = pendingMatch ? parseInt(pendingMatch[1]) : 0;
+        
+        const parts = [];
+        if (approved > 0) parts.push(`${approved} approved booking${approved !== 1 ? 's' : ''}`);
+        if (pending > 0) parts.push(`${pending} pending booking${pending !== 1 ? 's' : ''}`);
+        
+        bookingDetails = ` (${parts.join(' and ')})`;
+      }
+      
+      toast.error(`Cannot block this date: There are existing bookings that must be cancelled first${bookingDetails}.`);
+      return;
+    }
+    
+    if (code.includes('already exists') || code.includes('already marked unavailable')) {
+      toast.info('This date is already blocked for this court.');
+      return;
+    }
+    
+    // Generic unavailability error
+    toast.error('Cannot mark court unavailable: ' + (msg || code));
+    return;
+  }
   
   switch (code) {
     // Booking conflicts
     case 'SLOT_ALREADY_BOOKED':
-      toast.warning(msg ?? 'That slot was just booked by someone else. Choose another.');
+      toast.warning('That time slot was just booked by someone else. Please choose another slot.');
       break;
       
     case 'COURT_UNAVAILABLE_THIS_DAY':
-      toast.warning(msg ?? 'This day just became unavailable. Pick another date.');
+      toast.warning('This court just became unavailable for this date. Please pick another date.');
       break;
       
-    // Blockout conflicts
+    // Blockout conflicts  
     case 'BLOCKOUT_CONFLICT_WITH_BOOKINGS':
-      toast.error(msg ?? 'Cannot block this day: existing bookings need to be cancelled first.');
+      toast.error('Cannot block this date: Existing bookings must be cancelled first.');
       break;
       
     case 'UNAVAILABILITY_ALREADY_EXISTS':
-      toast.info(msg ?? 'This date is already blocked.');
+      toast.info('This date is already blocked for this court.');
       break;
       
     // Permission errors
     case 'FORBIDDEN':
-      toast.error(msg ?? 'You do not have permission to perform this action.');
+      toast.error('Access denied: You do not have permission to perform this action.');
       break;
       
     // Resource errors  
     case 'COURT_NOT_FOUND':
-      toast.error(msg ?? 'Court not found.');
+      toast.error('Court not found. Please refresh and try again.');
       break;
       
     case 'BOOKING_NOT_FOUND':
-      toast.error(msg ?? 'Booking not found.');
+      toast.error('Booking not found. It may have been cancelled or modified.');
       break;
       
     // Validation errors
     case 'VALIDATION_ERROR':
     case 'INVALID_DATE':
     case 'INVALID_TIME_SLOT':
-      toast.error(msg ?? 'Invalid input. Please check your data.');
+      toast.error('Invalid input: ' + (msg || 'Please check your data and try again.'));
+      break;
+      
+    // Date/time specific errors
+    case 'DATE_IN_PAST':
+      toast.error('Cannot set unavailability for past dates.');
+      break;
+      
+    case 'INVALID_DATE_FORMAT':
+      toast.error('Invalid date format. Please use the date picker.');
       break;
       
     // Generic server errors
     case 'INTERNAL_SERVER_ERROR':
-      toast.error('Server error. Please try again later.');
+      toast.error('Server error occurred. Please try again in a moment.');
       break;
       
     // Network/timeout errors
     default:
       if (err?.code === 'NETWORK_ERROR' || err?.message?.includes('timeout')) {
-        toast.error('Connection error. Please check your internet and try again.');
+        toast.error('Connection error. Please check your internet connection and try again.');
+      } else if (msg && msg.trim()) {
+        // Show server message if available and meaningful
+        toast.error(msg);
       } else {
-        toast.error(defaultMessage ?? msg ?? 'Something went wrong. Please try again.');
+        // Last resort: use provided default or generic message
+        toast.error(defaultMessage || 'An unexpected error occurred. Please try again.');
       }
   }
 }
