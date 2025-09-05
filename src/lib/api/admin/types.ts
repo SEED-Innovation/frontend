@@ -5,12 +5,14 @@ export type DOW =
 export interface CourtLite { 
   id: number; 
   name: string; 
+  imageUrl?: string;
 }
 
 export interface AvailabilityRow {
   id: number;
   courtId: number;
   courtName: string;
+  courtImageUrl?: string;
   dayOfWeek: DOW;
   start: string; // "10:00:00"
   end: string;   // "22:00:00"
@@ -20,6 +22,7 @@ export interface UnavailabilityRow {
   id: number;
   courtId: number;
   courtName: string;
+  courtImageUrl?: string;
   date: string; // "2025-08-22"
 }
 

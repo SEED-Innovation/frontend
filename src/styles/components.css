@@ -220,4 +220,35 @@
   .achievement-locked {
     @apply bg-gray-100 border-gray-300 text-gray-400;
   }
+
+  /* Court Image Styling */
+  .court-image {
+    @apply rounded-xl object-cover shadow-md border-2 transition-all duration-300;
+  }
+  
+  .court-image-available {
+    @apply border-primary/20 hover:border-primary/40 hover:shadow-lg;
+  }
+  
+  .court-image-unavailable {
+    @apply border-destructive/30 grayscale hover:grayscale-0 hover:border-destructive/50;
+  }
+  
+  .court-info-enhanced {
+    @apply flex items-center gap-3 p-2 rounded-lg hover:bg-muted/30 transition-colors;
+  }
+  
+  /* Enhanced Select dropdown styling */
+  .select-with-images .select-item {
+    @apply p-3 hover:bg-primary/5 rounded-lg transition-colors;
+  }
+  
+  /* Premium glass effect for availability/unavailability cards */
+  .availability-glass-card {
+    @apply bg-white/80 backdrop-blur-lg border border-primary/10 shadow-xl;
+  }
+  
+  .unavailability-glass-card {
+    @apply bg-white/80 backdrop-blur-lg border border-destructive/10 shadow-xl;
+  }
 }

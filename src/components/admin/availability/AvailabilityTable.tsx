@@ -20,6 +20,7 @@ type SortDirection = 'asc' | 'desc';
 
 export const AvailabilityTable: React.FC = () => {
   const [data, setData] = useState<AvailabilityRow[]>([]);
+  const [courts, setCourts] = useState<{ id: number; name: string; imageUrl?: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [sortField, setSortField] = useState<SortField>('courtName');
@@ -52,13 +53,36 @@ export const AvailabilityTable: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
+      
+      // Load courts data for images and selection
+      try {
+        const courtsData = await courtService.getAllCourts();
+        setCourts(courtsData.map(court => ({
+          id: typeof court.id === 'string' ? parseInt(court.id) : court.id,
+          name: court.name,
+          imageUrl: court.imageUrl
+        })));
+      } catch (error) {
+        console.warn('Failed to load courts data:', error);
+      }
+      
       // Try to use real API first, fallback to mock if needed
       try {
         // const availabilities = await courtService.getAvailabilities();
         // setData(availabilities);
         // For now, use mock data until backend is ready
         const result = await getAvailabilitiesMock();
-        setData(result);
+        
+        // Enhance data with court images
+        const enhancedResult = result.map(item => {
+          const court = courts.find(c => (typeof c.id === 'string' ? parseInt(c.id) : c.id) === item.courtId);
+          return {
+            ...item,
+            courtImageUrl: court?.imageUrl
+          };
+        });
+        
+        setData(enhancedResult);
       } catch (apiError) {
         console.warn('Real API failed, falling back to mock data:', apiError);
         // Fallback to mock data if real API fails
@@ -433,21 +457,48 @@ export const AvailabilityTable: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         {editingItem?.id === item.id ? (
-                          <Input
-                            value={editFormData.courtId.toString()}
-                            onChange={(e) => setEditFormData({...editFormData, courtId: parseInt(e.target.value) || 0})}
-                            className="max-w-[200px] premium-input"
-                            placeholder="Court ID"
-                          />
+                          <Select value={courts.find(c => c.id === editFormData.courtId)?.id?.toString() || ''} onValueChange={(value) => setEditFormData({...editFormData, courtId: parseInt(value)})}>
+                            <SelectTrigger className="max-w-[200px] premium-input">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="glass-card border-primary/20">
+                              {courts.map(court => (
+                                <SelectItem key={court.id} value={court.id.toString()} className="hover:bg-primary/5">
+                                  <div className="flex items-center gap-3">
+                                    {court.imageUrl && (
+                                      <img 
+                                        src={court.imageUrl} 
+                                        alt={court.name}
+                                        className="w-8 h-8 rounded-lg object-cover border border-primary/20"
+                                      />
+                                    )}
+                                    <span>{court.name}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         ) : (
-                          <div className="flex items-center gap-2">
-                            <div className="p-1 bg-primary/10 rounded">
-                              <Clock className="h-3 w-3 text-primary" />
+                          <div className="flex items-center gap-3">
+                            {item.courtImageUrl && (
+                              <motion.img 
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                src={item.courtImageUrl} 
+                                alt={item.courtName}
+                                className="w-12 h-12 rounded-xl object-cover border-2 border-primary/20 shadow-md"
+                              />
+                            )}
+                            <div>
+                              <span 
+                                dangerouslySetInnerHTML={{ __html: highlightSearchTerm(item.courtName, searchTerm) }} 
+                                className="font-semibold text-primary block"
+                              />
+                              <div className="flex items-center gap-1 mt-1">
+                                <Clock className="h-3 w-3 text-muted-foreground" />
+                                <span className="text-xs text-muted-foreground">Available hours</span>
+                              </div>
                             </div>
-                            <span 
-                              dangerouslySetInnerHTML={{ __html: highlightSearchTerm(item.courtName, searchTerm) }} 
-                              className="font-medium"
-                            />
                           </div>
                         )}
                       </TableCell>

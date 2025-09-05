@@ -5,13 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { UnavailabilityToolbar } from './UnavailabilityToolbar';
+import { UnavailabilityRow } from '@/lib/api/admin/types';
 import { unavailabilityService } from '@/lib/api/admin/unavailabilityService';
 import { handleApiError } from '@/utils/errorMapper';
-import { courtService, UnavailabilityRow } from '@/lib/api/services/courtService';
+import { courtService } from '@/lib/api/services/courtService';
 import { toast } from 'sonner';
 
 type SortField = 'courtName' | 'date';
@@ -19,6 +21,7 @@ type SortDirection = 'asc' | 'desc';
 
 export const UnavailabilityTable: React.FC = () => {
   const [data, setData] = useState<UnavailabilityRow[]>([]);
+  const [courts, setCourts] = useState<{ id: number; name: string; imageUrl?: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [sortField, setSortField] = useState<SortField>('courtName');
@@ -42,10 +45,32 @@ export const UnavailabilityTable: React.FC = () => {
     try {
       setLoading(true);
       
+      // Load courts data for images and selection
+      try {
+        const courtsData = await courtService.getAllCourts();
+        setCourts(courtsData.map(court => ({
+          id: typeof court.id === 'string' ? parseInt(court.id) : court.id,
+          name: court.name,
+          imageUrl: court.imageUrl
+        })));
+      } catch (error) {
+        console.warn('Failed to load courts data:', error);
+      }
+      
       // Try to fetch from real API first, fallback to mock if needed
       try {
         const result = await courtService.getUnavailabilities();
-        setData(result);
+        
+        // Enhance data with court images
+        const enhancedResult = result.map(item => {
+          const court = courts.find(c => (typeof c.id === 'string' ? parseInt(c.id) : c.id) === item.courtId);
+          return {
+            ...item,
+            courtImageUrl: court?.imageUrl
+          };
+        });
+        
+        setData(enhancedResult);
       } catch (apiError) {
         console.warn('Real API failed, falling back to mock data:', apiError);
         // Fallback to mock data if real API fails
@@ -340,21 +365,48 @@ export const UnavailabilityTable: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         {editingItem?.id === item.id ? (
-                          <Input
-                            value={editFormData.courtId.toString()}
-                            onChange={(e) => setEditFormData({...editFormData, courtId: parseInt(e.target.value) || 0})}
-                            className="max-w-[200px] premium-input"
-                            placeholder="Court ID"
-                          />
+                          <Select value={courts.find(c => c.id === editFormData.courtId)?.id?.toString() || ''} onValueChange={(value) => setEditFormData({...editFormData, courtId: parseInt(value)})}>
+                            <SelectTrigger className="max-w-[200px] premium-input">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="glass-card border-destructive/20">
+                              {courts.map(court => (
+                                <SelectItem key={court.id} value={court.id.toString()} className="hover:bg-destructive/5">
+                                  <div className="flex items-center gap-3">
+                                    {court.imageUrl && (
+                                      <img 
+                                        src={court.imageUrl} 
+                                        alt={court.name}
+                                        className="w-8 h-8 rounded-lg object-cover border border-destructive/20"
+                                      />
+                                    )}
+                                    <span>{court.name}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         ) : (
-                          <div className="flex items-center gap-2">
-                            <div className="p-1 bg-primary/10 rounded">
-                              <Ban className="h-3 w-3 text-primary" />
+                          <div className="flex items-center gap-3">
+                            {item.courtImageUrl && (
+                              <motion.img 
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                src={item.courtImageUrl} 
+                                alt={item.courtName}
+                                className="w-12 h-12 rounded-xl object-cover border-2 border-destructive/30 shadow-md grayscale"
+                              />
+                            )}
+                            <div>
+                              <span 
+                                dangerouslySetInnerHTML={{ __html: highlightSearchTerm(item.courtName, searchTerm) }} 
+                                className="font-semibold text-destructive block"
+                              />
+                              <div className="flex items-center gap-1 mt-1">
+                                <Ban className="h-3 w-3 text-muted-foreground" />
+                                <span className="text-xs text-muted-foreground">Unavailable</span>
+                              </div>
                             </div>
-                            <span 
-                              dangerouslySetInnerHTML={{ __html: highlightSearchTerm(item.courtName, searchTerm) }} 
-                              className="font-medium"
-                            />
                           </div>
                         )}
                       </TableCell>
