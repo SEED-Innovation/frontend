@@ -1,9 +1,13 @@
 
 import React, { useState } from 'react';
-import { Calendar, Clock, MapPin, Star, Wifi, Coffee, Car, Camera } from 'lucide-react';
+import { Calendar, Clock, MapPin, Star, Wifi, Coffee, Car, Camera, AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useAvailability } from '@/hooks/useAvailability';
+import { handleApiError, isErrorCode } from '@/utils/errorMapper';
+import { bookingService } from '@/services/bookingService';
+import { toast } from 'sonner';
 
 interface Court {
   id: number;
@@ -25,8 +29,21 @@ interface BookingFlowProps {
 const BookingFlow: React.FC<BookingFlowProps> = ({ onBookingComplete }) => {
   const [step, setStep] = useState<'courts' | 'details' | 'booking' | 'payment'>('courts');
   const [selectedCourt, setSelectedCourt] = useState<Court | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
+  const [isBooking, setIsBooking] = useState(false);
+
+  // Fetch real availability data
+  const { 
+    data: availabilityData, 
+    isLoading: availabilityLoading, 
+    error: availabilityError, 
+    refetch: refetchAvailability 
+  } = useAvailability(
+    selectedCourt?.id || 0, 
+    selectedDate, 
+    60
+  );
 
   const courts: Court[] = [
     {
@@ -68,16 +85,51 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ onBookingComplete }) => {
     }
   };
 
-  const handleBooking = () => {
-    if (selectedCourt && selectedSlots.length > 0) {
+  const handleBooking = async () => {
+    if (!selectedCourt || selectedSlots.length === 0) {
+      toast.error('Please select at least one time slot');
+      return;
+    }
+
+    try {
+      setIsBooking(true);
+      
+      // Create booking request for each selected slot
+      for (const slot of selectedSlots) {
+        const bookingRequest = {
+          userId: 1, // TODO: Get from auth context
+          courtId: selectedCourt.id,
+          date: selectedDate,
+          startTime: slot,
+          durationMinutes: 60,
+          matchType: 'SINGLE' as const,
+          notes: ''
+        };
+
+        await bookingService.createBooking(bookingRequest);
+      }
+
       const booking = {
         court: selectedCourt,
-        date: selectedDate || 'Today',
+        date: selectedDate,
         slots: selectedSlots,
         totalHours: selectedSlots.length,
         totalPrice: selectedSlots.length * selectedCourt.pricePerHour
       };
+      
+      toast.success('Booking confirmed successfully!');
       onBookingComplete(booking);
+      
+    } catch (error) {
+      handleApiError(error, 'Failed to create booking');
+      
+      // If there was a race condition, refetch availability
+      if (isErrorCode(error, 'SLOT_ALREADY_BOOKED') || isErrorCode(error, 'COURT_UNAVAILABLE_THIS_DAY')) {
+        await refetchAvailability();
+        setSelectedSlots([]); // Clear selected slots
+      }
+    } finally {
+      setIsBooking(false);
     }
   };
 
@@ -192,24 +244,52 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ onBookingComplete }) => {
                 <CardTitle className="flex items-center">
                   <Clock className="w-5 h-5 mr-2" />
                   Available Time Slots
+                  {availabilityLoading && <RefreshCw className="w-4 h-4 ml-2 animate-spin" />}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-3">
-                  {selectedCourt.availableSlots.map((slot) => (
-                    <button
-                      key={slot}
-                      onClick={() => handleTimeSlotSelect(slot)}
-                      className={`time-slot ${
-                        selectedSlots.includes(slot) 
-                          ? 'time-slot-selected' 
-                          : 'time-slot-available'
-                      }`}
-                    >
-                      {slot}
-                    </button>
-                  ))}
-                </div>
+                {availabilityLoading ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div key={i} className="h-12 bg-gray-200 rounded-lg animate-pulse" />
+                    ))}
+                  </div>
+                ) : availabilityError ? (
+                  <div className="text-center py-8">
+                    <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                    <p className="text-gray-600 mb-4">Failed to load availability</p>
+                    <Button onClick={() => refetchAvailability()} variant="outline">
+                      Try Again
+                    </Button>
+                  </div>
+                ) : !availabilityData || availabilityData.availableCount === 0 ? (
+                  <div className="text-center py-8">
+                    <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600">
+                      {availabilityData?.message || "No available slots for this date"}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    {availabilityData.availableSlots.map((slot) => (
+                      <button
+                        key={slot.start}
+                        onClick={() => handleTimeSlotSelect(slot.start)}
+                        disabled={!slot.available}
+                        className={`time-slot ${
+                          selectedSlots.includes(slot.start)
+                            ? 'time-slot-selected' 
+                            : slot.available 
+                              ? 'time-slot-available'
+                              : 'time-slot-disabled'
+                        }`}
+                      >
+                        <div className="text-sm font-medium">{slot.label || slot.start}</div>
+                        <div className="text-xs">${slot.price}/hr</div>
+                      </button>
+                    ))}
+                  </div>
+                )}
                 
                 {selectedSlots.length > 0 && (
                   <div className="mt-6 p-4 bg-tennis-green-50 rounded-xl">
@@ -249,10 +329,17 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ onBookingComplete }) => {
 
             <Button 
               onClick={handleBooking}
-              disabled={selectedSlots.length === 0}
+              disabled={selectedSlots.length === 0 || isBooking || availabilityLoading}
               className="w-full tennis-button glow-button text-lg py-4"
             >
-              Book Session ({selectedSlots.length} hour{selectedSlots.length !== 1 ? 's' : ''})
+              {isBooking ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Booking...
+                </>
+              ) : (
+                `Book Session (${selectedSlots.length} hour${selectedSlots.length !== 1 ? 's' : ''})`
+              )}
             </Button>
           </div>
         </div>

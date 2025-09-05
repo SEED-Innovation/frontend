@@ -189,7 +189,8 @@
   /* Time slot buttons specific fix */
   .time-slot {
     @apply px-4 py-3 text-sm font-medium rounded-xl transition-all duration-300
-           border-2 cursor-pointer z-50 relative pointer-events-auto !important;
+           border-2 cursor-pointer z-50 relative pointer-events-auto !important
+           flex flex-col;
   }
 
   .time-slot-available {
@@ -200,6 +201,10 @@
   .time-slot-selected {
     @apply border-tennis-purple-500 bg-tennis-purple-500 text-white 
            hover:bg-tennis-purple-600 hover:border-tennis-purple-600;
+  }
+
+  .time-slot-disabled {
+    @apply border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed opacity-60;
   }
 
   /* Achievement badge styles */

@@ -13,6 +13,7 @@ import { CourtLite, SetUnavailabilityRequest } from '@/lib/api/admin/types';
 import { getCourtsLite } from '@/lib/api/admin/courts';
 import { createUnavailabilityMock } from '@/lib/api/admin/unavailability';
 import { courtService, Court, MarkUnavailableRequest } from '@/lib/api/services/courtService';
+import { handleApiError, isErrorCode } from '@/utils/errorMapper';
 import { toast } from 'sonner';
 
 
@@ -95,19 +96,13 @@ export const UnavailabilityForm: React.FC<UnavailabilityFormProps> = ({ onSucces
         date: formData.date // Should be in YYYY-MM-DD format
       };
 
-      // Try real API first, fallback to mock if needed
+      // Call real API
       try {
         await courtService.markUnavailable(requestData);
-        toast.success('Court unavailability set successfully');
+        toast.success('Day blocked successfully');
       } catch (apiError) {
-        console.warn('Real API failed, falling back to mock:', apiError);
-        // Fallback to mock
-        const mockRequest: SetUnavailabilityRequest = {
-          courtId: parseInt(formData.courtId),
-          date: formData.date
-        };
-        await createUnavailabilityMock(mockRequest);
-        toast.success('Court unavailability set successfully (mock)');
+        handleApiError(apiError);
+        throw apiError; // Re-throw to prevent form reset on error
       }
       
       // Reset form

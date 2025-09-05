@@ -41,7 +41,82 @@ export class BookingService {
   }
 
   // ================================
-  // 🎯 MAIN METHODS YOUR ADMIN COMPONENT NEEDS
+  // 🎯 AVAILABILITY & BOOKING METHODS
+  // ================================
+
+  /**
+   * Check court availability for a specific date and duration
+   * This is the single source of truth for customer booking flow
+   */
+  async fetchAvailability(courtId: number, dateISO: string, durationMinutes: number = 60): Promise<{
+    courtId: number;
+    courtName: string;
+    date: string;
+    durationMinutes: number;
+    availableSlots: Array<{ start: string; end: string; label: string; available: boolean; price: number }>;
+    unavailableSlots: string[];
+    availableCount: number;
+    message?: string;
+  }> {
+    console.log('🔄 Fetching availability for court:', courtId, 'date:', dateISO, 'duration:', durationMinutes);
+    
+    try {
+      const response = await this.makeAPICall(`${this.baseUrl}/courts/${courtId}/availability`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      // Add query params
+      const url = new URL(`${this.baseUrl}/courts/${courtId}/availability`);
+      url.searchParams.set('date', dateISO);
+      url.searchParams.set('durationMinutes', durationMinutes.toString());
+
+      const finalResponse = await fetch(url.toString(), {
+        headers: {
+          'Authorization': `Bearer ${this.getToken()}`,
+        },
+      });
+
+      if (!finalResponse.ok) {
+        throw new Error(`API Error: ${finalResponse.status} ${finalResponse.statusText}`);
+      }
+
+      const data = await finalResponse.json();
+      console.log('✅ Real availability data:', data);
+      return data;
+      
+    } catch (error) {
+      console.error('❌ Availability API failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create a new booking (customer or admin initiated)
+   */
+  async createBooking(request: CreateBookingRequest): Promise<BookingResponse> {
+    console.log('➕ Creating booking:', request);
+    
+    try {
+      const response = await this.makeAPICall(`${this.baseUrl}/bookings`, {
+        method: 'POST',
+        body: JSON.stringify(request)
+      });
+      
+      const newBooking = await response.json();
+      console.log('✅ Booking created:', newBooking);
+      return newBooking;
+      
+    } catch (error) {
+      console.error('❌ Booking creation failed:', error);
+      throw error;
+    }
+  }
+
+  // ================================
+  // 🎯 MAIN ADMIN METHODS
   // ================================
 
   /**

@@ -9,7 +9,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Skeleton } from '@/components/ui/skeleton';
 import { UnavailabilityToolbar } from './UnavailabilityToolbar';
 import { UnavailabilityFilters } from '@/lib/api/admin/types';
-import { getUnavailabilitiesMock, deleteUnavailabilityMock, bulkDeleteUnavailabilityMock } from '@/lib/api/admin/unavailability';
+import { unavailabilityService } from '@/lib/api/admin/unavailabilityService';
+import { handleApiError } from '@/utils/errorMapper';
 import { courtService, UnavailabilityRow } from '@/lib/api/services/courtService';
 import { toast } from 'sonner';
 
@@ -49,18 +50,8 @@ export const UnavailabilityTable: React.FC = () => {
         setData(result);
       } catch (apiError) {
         console.warn('Real API failed, falling back to mock data:', apiError);
-        // Fallback to mock data which has proper IDs
-        const result = await getUnavailabilitiesMock();
-        // Convert date format from mock to expected format
-        const transformedData = result.map(item => ({
-          ...item,
-          date: item.date.includes('-') ? 
-            // Convert from "YYYY-MM-DD" to "DD-MM-YYYY" if needed
-            item.date.split('-').reverse().join('-') : 
-            item.date
-        }));
-        setData(transformedData);
-        toast.info('Using mock data - API not available');
+        // Real API failed, show error
+        throw apiError;
       }
     } catch (error) {
       handleApiError(error, "Loading unavailability data");
@@ -294,13 +285,7 @@ export const UnavailabilityTable: React.FC = () => {
 
   const handleBulkDelete = async (ids: number[]) => {
     try {
-      /**
-       * TODO[BE-LINK][AdminCourtUnavailabilityController.bulkDelete]
-       * Endpoint (placeholder): DELETE /admin/courts/unavailability/bulk
-       * Token: Authorization: Bearer <JWT>
-       * Replace mock call with real service when backend is ready.
-       */
-      await bulkDeleteUnavailabilityMock(ids);
+      await unavailabilityService.bulkDeleteUnavailabilities(ids);
       setData(prev => prev.filter(item => !ids.includes(item.id)));
       setSelectedIds([]);
       toast.success(`${ids.length} unavailability records deleted successfully`);
