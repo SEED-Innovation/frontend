@@ -25,7 +25,12 @@ export const AvailabilityTable: React.FC = () => {
   const [sortField, setSortField] = useState<SortField>('courtName');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [editingItem, setEditingItem] = useState<AvailabilityRow | null>(null);
-  const [editFormData, setEditFormData] = useState({
+  const [editFormData, setEditFormData] = useState<{
+    courtId: number;
+    dayOfWeek: DOW | '';
+    start: string;
+    end: string;
+  }>({
     courtId: 0,
     dayOfWeek: '',
     start: '',
@@ -195,10 +200,16 @@ export const AvailabilityTable: React.FC = () => {
         return;
       }
 
+      // Validate day of week
+      if (!editFormData.dayOfWeek) {
+        toast.error('Please select a day of week');
+        return;
+      }
+
       // Call real API
       await courtService.updateAvailability(id, {
         courtId: editFormData.courtId,
-        dayOfWeek: editFormData.dayOfWeek,
+        dayOfWeek: editFormData.dayOfWeek as DOW,
         start: editFormData.start,
         end: editFormData.end
       });
@@ -209,7 +220,7 @@ export const AvailabilityTable: React.FC = () => {
           ? { 
               ...item, 
               courtId: editFormData.courtId,
-              dayOfWeek: editFormData.dayOfWeek,
+              dayOfWeek: editFormData.dayOfWeek as DOW,
               start: editFormData.start,
               end: editFormData.end
             }
@@ -442,7 +453,7 @@ export const AvailabilityTable: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         {editingItem?.id === item.id ? (
-                          <Select value={editFormData.dayOfWeek} onValueChange={(value) => setEditFormData({...editFormData, dayOfWeek: value})}>
+                          <Select value={editFormData.dayOfWeek} onValueChange={(value) => setEditFormData({...editFormData, dayOfWeek: value as DOW})}>
                             <SelectTrigger className="max-w-[150px] premium-input">
                               <SelectValue />
                             </SelectTrigger>
