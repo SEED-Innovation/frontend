@@ -189,7 +189,7 @@
   /* Time slot buttons specific fix */
   .time-slot {
     @apply px-4 py-3 text-sm font-medium rounded-xl transition-all duration-300
-           border-2 cursor-pointer z-50 relative pointer-events-auto !important
+           border-2 cursor-pointer z-50 relative pointer-events-auto
            flex flex-col;
   }
 
