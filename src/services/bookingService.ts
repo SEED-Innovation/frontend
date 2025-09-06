@@ -10,29 +10,6 @@ import {
   AdminBookingFilterResponse
 } from '@/types/booking';
 
-// Safe date/time parsing utilities
-import dayjs from 'dayjs';
-import customParseFormat from 'dayjs/plugin/customParseFormat';
-dayjs.extend(customParseFormat);
-
-// Normalize "startTime" to 24h "HH:mm" or throw
-function normalizeTimeHHmm(input: unknown): string {
-  if (typeof input !== 'string') throw new Error('startTime missing');
-  const raw = input.trim();
-  const parsed = dayjs(raw, ['HH:mm','H:mm','hh:mm A','h:mm A'], true);
-  if (!parsed.isValid()) throw new Error(`Invalid startTime "${raw}"`);
-  return parsed.format('HH:mm');
-}
-
-// Normalize date to "YYYY-MM-DD" or throw
-function normalizeDateYYYYMMDD(input: unknown): string {
-  if (typeof input !== 'string') throw new Error('date missing');
-  const raw = input.trim();
-  const parsed = dayjs(raw, ['YYYY-MM-DD','YYYY/M/D','YYYY-MM-DDTHH:mm:ssZ'], true);
-  if (!parsed.isValid()) throw new Error(`Invalid date "${raw}"`);
-  return parsed.format('YYYY-MM-DD');
-}
-
 // Simple, clean BookingService class
 export class BookingService {
   // Use your .env file for the API URL (no /api suffix since controller is /admin/bookings)
@@ -57,12 +34,7 @@ export class BookingService {
     });
 
     if (!response.ok) {
-      let detail = response.statusText;
-      try {
-        const body = await response.json();
-        detail = body?.message || body?.errorCode || JSON.stringify(body);
-      } catch { /* ignore */ }
-      throw new Error(`API Error: ${response.status} ${detail}`);
+      throw new Error(`API Error: ${response.status} ${response.statusText}`);
     }
 
     return response;
@@ -297,15 +269,12 @@ export class BookingService {
     console.log('➕ Creating manual booking:', request);
     
     try {
-      // ✅ Validate & normalize inputs so we never send "Invalid"
-      const safeDate = normalizeDateYYYYMMDD(request.date);
-      const safeStart = normalizeTimeHHmm(request.startTime);
-
+      // Call your backend's /admin/bookings/manual endpoint (now supports receipt generation)
       const requestBody: any = {
         userId: request.userId,
         courtId: request.courtId,
-        date: safeDate,
-        startTime: safeStart,          // always "HH:mm"
+        date: request.date,
+        startTime: request.startTime,
         durationMinutes: request.durationMinutes,
         matchType: request.matchType,
         paymentMethod: 'PENDING', // Default for compatibility
@@ -329,7 +298,7 @@ export class BookingService {
       return newBooking;
       
     } catch (error) {
-      console.error('❌ Backend not available or input invalid, creating mock booking:', error);
+      console.error('❌ Backend not available, creating mock booking:', error);
       
       // Simulate manual booking creation when backend is not running
       await new Promise(resolve => setTimeout(resolve, 1500));
@@ -618,14 +587,16 @@ private createMockStats(): BookingFilterSummary {
 }
 
   private createMockBooking(request: CreateBookingRequest): BookingResponse {
-    const safeDate = normalizeDateYYYYMMDD(request.date);
-    const safeStart = normalizeTimeHHmm(request.startTime);
-
-    const start = dayjs(`${safeDate} ${safeStart}`, 'YYYY-MM-DD HH:mm', true);
-    if (!start.isValid()) throw new Error('Mock: invalid date/time after normalization');
-
-    const end = start.add(request.durationMinutes, 'minute');
-
+    // Convert mobile app format back to response format for mock
+    const date = new Date(request.date);
+    const [hours, minutes, seconds] = request.startTime.split(':').map(Number);
+    
+    const startDateTime = new Date(date);
+    startDateTime.setHours(hours, minutes, seconds || 0);
+    
+    const endDateTime = new Date(startDateTime);
+    endDateTime.setMinutes(endDateTime.getMinutes() + request.durationMinutes);
+    
     return {
       id: Date.now(),
       user: { 
@@ -641,8 +612,8 @@ private createMockStats(): BookingFilterSummary {
         hourlyFee: 65, 
         hasSeedSystem: true 
       },
-      startTime: start.toDate().toISOString(),
-      endTime: end.toDate().toISOString(),
+      startTime: startDateTime.toISOString(),
+      endTime: endDateTime.toISOString(),
       status: 'PENDING',
       matchType: request.matchType
     };
