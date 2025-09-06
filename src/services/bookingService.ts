@@ -245,7 +245,10 @@ export class BookingService {
   /**
    * Create manual booking (matches your backend /admin/bookings/manual)
    */
-  async createManualBooking(request: CreateBookingRequest): Promise<BookingResponse> {
+  async createManualBooking(request: CreateBookingRequest & { 
+    sendReceiptEmail?: boolean; 
+    customerEmail?: string; 
+  }): Promise<BookingResponse> {
     console.log('➕ Creating manual booking:', request);
     
     try {
@@ -258,7 +261,8 @@ export class BookingService {
         durationMinutes: request.durationMinutes,
         matchType: request.matchType,
         paymentMethod: 'PENDING', // Default for compatibility
-        sendReceiptEmail: false // Default for compatibility
+        sendReceiptEmail: request.sendReceiptEmail || false,
+        customerEmail: request.customerEmail || undefined
       };
       
       // Only add notes if it exists and is not empty

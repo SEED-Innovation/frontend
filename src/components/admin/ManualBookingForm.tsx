@@ -405,17 +405,26 @@ const loadCourts = async () => {
             const day = String(formData.date!.getDate()).padStart(2, '0');
             const localDateString = `${year}-${month}-${day}`;
             
-            const bookingRequest: CreateBookingRequest = {
+            const bookingRequest: CreateBookingRequest & { 
+                sendReceiptEmail?: boolean; 
+                customerEmail?: string; 
+            } = {
                 userId: formData.userId!,
                 courtId: formData.courtId!,
                 date: localDateString, // YYYY-MM-DD format
                 startTime: startTimeString, // HH:mm:ss format
                 durationMinutes: durationMinutes,
                 matchType: formData.matchType as 'SINGLE' | 'DOUBLE',
-                notes: formData.notes || undefined
+                notes: formData.notes || undefined,
+                sendReceiptEmail: formData.sendReceiptEmail,
+                customerEmail: formData.customerEmail || undefined
             };
 
-            console.log('🏗️ Creating manual booking with receipt:', bookingRequest);
+            console.log('🏗️ Creating manual booking with email settings:', {
+                ...bookingRequest,
+                emailWillBeSent: formData.sendReceiptEmail,
+                emailAddress: formData.customerEmail
+            });
 
             // Create the manual booking (backend now auto-generates receipt)
             const response = await bookingService.createManualBooking(bookingRequest);
