@@ -36,6 +36,11 @@ import { CurrencyDisplay } from '@/components/ui/currency-display';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 
+// Import dayjs for safe date parsing
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+dayjs.extend(customParseFormat);
+
 import { BookingResponse, CreateBookingRequest, CourtResponse } from '@/types/booking';
 import { UserResponse } from '@/types/user';
 import { AdminManualBookingRequest, ManualBookingResponse } from '@/types/receipt';
@@ -348,22 +353,50 @@ const loadCourts = async () => {
         setSuccess('');
 
         try {
-            // Convert our form data to backend compatible format
-            const startDateTime = new Date(formData.selectedSlot!.startTime);
-            const endDateTime = new Date(formData.selectedSlot!.endTime);
-            const durationMinutes = Math.round((endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60));
+            // ✅ Safe date/time parsing to prevent "Invalid" errors
+            const dateStr = formData.date ? format(formData.date, 'yyyy-MM-dd') : '';
             
-            // Fix timezone issue: use local date formatting instead of toISOString()
-            const year = formData.date!.getFullYear();
-            const month = String(formData.date!.getMonth() + 1).padStart(2, '0');
-            const day = String(formData.date!.getDate()).padStart(2, '0');
-            const localDateString = `${year}-${month}-${day}`;
+            // Parse the startTime and endTime from the slot (they might be in various formats)
+            const startTimeStr = formData.selectedSlot!.startTime;
+            const endTimeStr = formData.selectedSlot!.endTime;
+            
+            console.log('🔍 Raw slot times:', { startTimeStr, endTimeStr });
+            
+            // Try to extract time from datetime string or use as is
+            let startTime = '';
+            let endTime = '';
+            
+            if (startTimeStr.includes(' ')) {
+                // Format: "2024-01-01 14:00:00" - extract time part
+                startTime = startTimeStr.split(' ')[1].substring(0, 5); // "14:00"
+            } else if (startTimeStr.includes('T')) {
+                // Format: "2024-01-01T14:00:00" - extract time part
+                startTime = dayjs(startTimeStr).format('HH:mm');
+            } else {
+                // Assume it's already in time format "14:00" or "14:00:00"
+                startTime = startTimeStr.substring(0, 5);
+            }
+            
+            if (endTimeStr.includes(' ')) {
+                endTime = endTimeStr.split(' ')[1].substring(0, 5);
+            } else if (endTimeStr.includes('T')) {
+                endTime = dayjs(endTimeStr).format('HH:mm');
+            } else {
+                endTime = endTimeStr.substring(0, 5);
+            }
+            
+            console.log('✅ Parsed times:', { startTime, endTime });
+            
+            // Calculate duration
+            const startMoment = dayjs(`${dateStr} ${startTime}`, 'YYYY-MM-DD HH:mm');
+            const endMoment = dayjs(`${dateStr} ${endTime}`, 'YYYY-MM-DD HH:mm');
+            const durationMinutes = endMoment.diff(startMoment, 'minute');
             
             const bookingRequest: CreateBookingRequest = {
                 userId: formData.userId!,
                 courtId: formData.courtId!,
-                date: localDateString, // YYYY-MM-DD format
-                startTime: startDateTime.toTimeString().split(' ')[0], // HH:mm:ss format
+                date: dateStr, // YYYY-MM-DD format
+                startTime: startTime, // HH:mm format
                 durationMinutes: durationMinutes,
                 matchType: formData.matchType as 'SINGLE' | 'DOUBLE',
                 notes: formData.notes || undefined
