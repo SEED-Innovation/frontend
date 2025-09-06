@@ -204,12 +204,15 @@ export const UnavailabilityTable: React.FC = () => {
 
   const handleBulkDelete = async (ids: number[]) => {
     try {
+      console.log('🗑️ Attempting to bulk delete unavailabilities:', ids);
       await unavailabilityService.bulkDeleteUnavailabilities(ids);
       setData(prev => prev.filter(item => !ids.includes(item.id)));
       setSelectedIds([]);
       toast.success(`${ids.length} unavailabilities deleted successfully`);
     } catch (error) {
+      console.error('❌ Bulk delete failed:', error);
       handleApiError(error);
+      // Don't clear selection if delete failed, so user can retry
     }
   };
 
@@ -229,19 +232,17 @@ export const UnavailabilityTable: React.FC = () => {
     onSort: (field: SortField) => void;
     children: React.ReactNode;
   }> = ({ field, currentField, direction, onSort, children }) => (
-    <TableHead 
-      className="cursor-pointer select-none hover:bg-muted/50 transition-colors"
+    <div 
+      className="flex items-center gap-2 cursor-pointer select-none hover:text-primary transition-colors"
       onClick={() => onSort(field)}
     >
-      <div className="flex items-center gap-2">
-        {children}
-        {currentField === field && (
-          direction === 'asc' ? 
-            <ChevronUp className="h-4 w-4" /> : 
-            <ChevronDown className="h-4 w-4" />
-        )}
-      </div>
-    </TableHead>
+      {children}
+      {currentField === field && (
+        direction === 'asc' ? 
+          <ChevronUp className="h-4 w-4" /> : 
+          <ChevronDown className="h-4 w-4" />
+      )}
+    </div>
   );
 
   if (loading) {
@@ -315,12 +316,12 @@ export const UnavailabilityTable: React.FC = () => {
                     onCheckedChange={handleSelectAll}
                   />
                 </TableHead>
-                <TableHead>
+                <TableHead className="cursor-pointer hover:bg-muted/50 transition-colors">
                   <SortableHeader field="courtName" currentField={sortField} direction={sortDirection} onSort={handleSort}>
                     Court
                   </SortableHeader>
                 </TableHead>
-                <TableHead>
+                <TableHead className="cursor-pointer hover:bg-muted/50 transition-colors">
                   <SortableHeader field="date" currentField={sortField} direction={sortDirection} onSort={handleSort}>
                     Date
                   </SortableHeader>
@@ -329,7 +330,7 @@ export const UnavailabilityTable: React.FC = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              <AnimatePresence mode="wait">
+              <AnimatePresence>
                 {filteredAndSortedData.length === 0 ? (
                   <motion.tr
                     key="empty"
@@ -421,7 +422,58 @@ export const UnavailabilityTable: React.FC = () => {
                         ) : (
                           <Badge variant="destructive" className="gap-1">
                             <Calendar className="h-3 w-3" />
-                            {new Date(item.date).toLocaleDateString()}
+                            {(() => {
+                              try {
+                                // Handle different date formats safely
+                                let dateStr = item.date;
+                                
+                                // Debug: Log the original date format
+                                console.log('🗓️ Processing date:', item.date, 'Type:', typeof item.date);
+                                
+                                // If it's an array format like [2025, 9, 13], convert it
+                                if (Array.isArray(item.date)) {
+                                  const [year, month, day] = item.date;
+                                  // Month in array is 1-indexed, but we need to ensure proper formatting
+                                  dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                                  console.log('🔄 Converted array date to:', dateStr);
+                                } else if (typeof item.date === 'string') {
+                                  dateStr = item.date;
+                                  
+                                  // Handle DD-MM-YYYY format by converting to YYYY-MM-DD
+                                  if (dateStr.match(/^\d{2}-\d{2}-\d{4}$/)) {
+                                    const [day, month, year] = dateStr.split('-');
+                                    dateStr = `${year}-${month}-${day}`;
+                                    console.log('🔄 Converted DD-MM-YYYY to YYYY-MM-DD:', dateStr);
+                                  }
+                                  // Handle DD/MM/YYYY format
+                                  else if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+                                    const [day, month, year] = dateStr.split('/');
+                                    dateStr = `${year}-${month}-${day}`;
+                                    console.log('🔄 Converted DD/MM/YYYY to YYYY-MM-DD:', dateStr);
+                                  }
+                                } else if (item.date && typeof item.date === 'object' && 'year' in item.date) {
+                                  // Handle object format like {year: 2025, month: 9, day: 13}
+                                  const dateObj = item.date as any;
+                                  dateStr = `${dateObj.year}-${String(dateObj.month).padStart(2, '0')}-${String(dateObj.day).padStart(2, '0')}`;
+                                  console.log('🔄 Converted object date to:', dateStr);
+                                }
+                                
+                                const date = new Date(dateStr);
+                                
+                                // Check if date is valid
+                                if (isNaN(date.getTime())) {
+                                  console.error('❌ Invalid date after parsing:', dateStr, 'from original:', item.date);
+                                  return 'Invalid Date';
+                                }
+                                
+                                const formatted = date.toLocaleDateString();
+                                console.log('✅ Successfully formatted date:', formatted);
+                                return formatted;
+                              } catch (error) {
+                                console.error('❌ Date parsing error:', error, 'Date value:', item.date);
+                                return 'Invalid Date';
+                              }
+                            })()}
                           </Badge>
                         )}
                       </TableCell>
