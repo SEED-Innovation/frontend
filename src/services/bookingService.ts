@@ -93,27 +93,7 @@ export class BookingService {
     }
   }
 
-  /**
-   * Create a new booking (customer or admin initiated)
-   */
-  async createBooking(request: CreateBookingRequest): Promise<BookingResponse> {
-    console.log('➕ Creating booking:', request);
-    
-    try {
-      const response = await this.makeAPICall(`${this.baseUrl}/bookings`, {
-        method: 'POST',
-        body: JSON.stringify(request)
-      });
-      
-      const newBooking = await response.json();
-      console.log('✅ Booking created:', newBooking);
-      return newBooking;
-      
-    } catch (error) {
-      console.error('❌ Booking creation failed:', error);
-      throw error;
-    }
-  }
+
 
   // ================================
   // 🎯 MAIN ADMIN METHODS
@@ -269,7 +249,7 @@ export class BookingService {
     console.log('➕ Creating manual booking:', request);
     
     try {
-      // Call your backend's /admin/bookings/manual endpoint (now supports receipt generation)
+      // Call your backend's /admin/bookings/manual endpoint
       const requestBody: any = {
         userId: request.userId,
         courtId: request.courtId,
@@ -298,12 +278,10 @@ export class BookingService {
       return newBooking;
       
     } catch (error) {
-      console.error('❌ Backend not available, creating mock booking:', error);
-      
-      // Simulate manual booking creation when backend is not running
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      return this.createMockBooking(request);
+      console.error('❌ Manual booking creation failed:', error);
+      // Don't fall back to mock data - let the error bubble up
+      // This way you can see the real backend error and fix it
+      throw error;
     }
   }
 
@@ -587,36 +565,94 @@ private createMockStats(): BookingFilterSummary {
 }
 
   private createMockBooking(request: CreateBookingRequest): BookingResponse {
-    // Convert mobile app format back to response format for mock
-    const date = new Date(request.date);
-    const [hours, minutes, seconds] = request.startTime.split(':').map(Number);
-    
-    const startDateTime = new Date(date);
-    startDateTime.setHours(hours, minutes, seconds || 0);
-    
-    const endDateTime = new Date(startDateTime);
-    endDateTime.setMinutes(endDateTime.getMinutes() + request.durationMinutes);
-    
-    return {
-      id: Date.now(),
-      user: { 
-        id: request.userId, 
-        fullName: 'Mock User', 
-        email: 'mock@example.com' 
-      },
-      court: { 
-        id: request.courtId, 
-        name: 'Mock Court', 
-        location: 'Mock Location', 
-        type: 'HARD', 
-        hourlyFee: 65, 
-        hasSeedSystem: true 
-      },
-      startTime: startDateTime.toISOString(),
-      endTime: endDateTime.toISOString(),
-      status: 'PENDING',
-      matchType: request.matchType
-    };
+    try {
+      // Safely handle date parsing for mock data
+      let startDateTime: Date;
+      let endDateTime: Date;
+      
+      // Handle different date formats
+      if (typeof request.date === 'string') {
+        // Try parsing YYYY-MM-DD format
+        const dateParts = request.date.split('-');
+        if (dateParts.length === 3) {
+          const year = parseInt(dateParts[0]);
+          const month = parseInt(dateParts[1]) - 1; // Month is 0-indexed
+          const day = parseInt(dateParts[2]);
+          startDateTime = new Date(year, month, day);
+        } else {
+          startDateTime = new Date(request.date);
+        }
+      } else {
+        startDateTime = new Date(request.date);
+      }
+      
+      // Handle time parsing safely
+      if (request.startTime) {
+        const timeParts = request.startTime.split(':');
+        if (timeParts.length >= 2) {
+          const hours = parseInt(timeParts[0]) || 0;
+          const minutes = parseInt(timeParts[1]) || 0;
+          const seconds = parseInt(timeParts[2]) || 0;
+          startDateTime.setHours(hours, minutes, seconds);
+        }
+      }
+      
+      // Calculate end time
+      endDateTime = new Date(startDateTime.getTime() + (request.durationMinutes * 60 * 1000));
+      
+      // Validate dates
+      if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
+        throw new Error('Invalid date/time in mock booking request');
+      }
+      
+      return {
+        id: Date.now(),
+        user: { 
+          id: request.userId, 
+          fullName: 'Mock User', 
+          email: 'mock@example.com' 
+        },
+        court: { 
+          id: request.courtId, 
+          name: 'Mock Court', 
+          location: 'Mock Location', 
+          type: 'HARD', 
+          hourlyFee: 65, 
+          hasSeedSystem: true 
+        },
+        startTime: startDateTime.toISOString(),
+        endTime: endDateTime.toISOString(),
+        status: 'PENDING',
+        matchType: request.matchType
+      };
+      
+    } catch (error) {
+      console.error('❌ Failed to create mock booking:', error);
+      // Return a basic mock booking with current time if parsing fails
+      const now = new Date();
+      const endTime = new Date(now.getTime() + (60 * 60 * 1000)); // 1 hour later
+      
+      return {
+        id: Date.now(),
+        user: { 
+          id: request.userId, 
+          fullName: 'Mock User', 
+          email: 'mock@example.com' 
+        },
+        court: { 
+          id: request.courtId, 
+          name: 'Mock Court', 
+          location: 'Mock Location', 
+          type: 'HARD', 
+          hourlyFee: 65, 
+          hasSeedSystem: true 
+        },
+        startTime: now.toISOString(),
+        endTime: endTime.toISOString(),
+        status: 'PENDING',
+        matchType: request.matchType || 'SINGLE'
+      };
+    }
   }
 
   private createCSVContent(bookings: BookingResponse[]): string {

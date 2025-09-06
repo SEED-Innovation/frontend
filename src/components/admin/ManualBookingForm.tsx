@@ -348,10 +348,56 @@ const loadCourts = async () => {
         setSuccess('');
 
         try {
-            // Convert our form data to backend compatible format
-            const startDateTime = new Date(formData.selectedSlot!.startTime);
-            const endDateTime = new Date(formData.selectedSlot!.endTime);
-            const durationMinutes = Math.round((endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60));
+            // Extract time from the selected slot more safely
+            let startTimeString = '';
+            let durationMinutes = formData.duration!; // Use the form duration directly
+            
+            console.log('🔍 Debug selectedSlot:', formData.selectedSlot);
+            
+            if (formData.selectedSlot) {
+                // Handle different possible formats for startTime
+                if (formData.selectedSlot.startTime && typeof formData.selectedSlot.startTime === 'string') {
+                    // If startTime is already in HH:mm:ss format, use it directly
+                    if (formData.selectedSlot.startTime.match(/^\d{2}:\d{2}(:\d{2})?$/)) {
+                        startTimeString = formData.selectedSlot.startTime;
+                        // Ensure it has seconds
+                        if (!startTimeString.includes(':00', 5)) {
+                            startTimeString += ':00';
+                        }
+                    } else {
+                        // Try to extract time from formattedTimeRange like "06:00-07:00"
+                        const timeMatch = formData.selectedSlot.formattedTimeRange?.match(/^(\d{2}:\d{2})/);
+                        if (timeMatch) {
+                            startTimeString = timeMatch[1] + ':00';
+                        } else {
+                            throw new Error('Unable to parse start time from selected slot');
+                        }
+                    }
+                } else if (formData.selectedSlot.formattedTimeRange && typeof formData.selectedSlot.formattedTimeRange === 'string') {
+                    // Extract from formattedTimeRange like "14:30-15:30"
+                    const timeMatch = formData.selectedSlot.formattedTimeRange.match(/^(\d{2}:\d{2})/);
+                    if (timeMatch) {
+                        startTimeString = timeMatch[1] + ':00';
+                    } else {
+                        throw new Error('Unable to parse start time from formatted time range');
+                    }
+                } else {
+                    // If all else fails, try to extract from any string representation
+                    const slotString = JSON.stringify(formData.selectedSlot);
+                    const timeMatch = slotString.match(/(\d{2}:\d{2})/);
+                    if (timeMatch) {
+                        startTimeString = timeMatch[1] + ':00';
+                    } else {
+                        throw new Error('No valid time format found in selected slot');
+                    }
+                }
+            }
+            
+            if (!startTimeString) {
+                throw new Error('No valid start time found in selected slot');
+            }
+            
+            console.log('✅ Extracted startTime:', startTimeString);
             
             // Fix timezone issue: use local date formatting instead of toISOString()
             const year = formData.date!.getFullYear();
@@ -363,7 +409,7 @@ const loadCourts = async () => {
                 userId: formData.userId!,
                 courtId: formData.courtId!,
                 date: localDateString, // YYYY-MM-DD format
-                startTime: startDateTime.toTimeString().split(' ')[0], // HH:mm:ss format
+                startTime: startTimeString, // HH:mm:ss format
                 durationMinutes: durationMinutes,
                 matchType: formData.matchType as 'SINGLE' | 'DOUBLE',
                 notes: formData.notes || undefined
@@ -390,8 +436,15 @@ const loadCourts = async () => {
                 userName: selectedUser?.fullName,
                 courtName: selectedCourt?.name,
                 bookingDate: formData.date ? format(formData.date, 'MMM dd, yyyy') : undefined,
-                startTime: formData.selectedSlot?.startTime.split(' ')[1] || formData.selectedSlot?.formattedTimeRange?.split(' - ')[0],
-                endTime: formData.selectedSlot?.endTime.split(' ')[1] || formData.selectedSlot?.formattedTimeRange?.split(' - ')[1]
+                startTime: startTimeString.substring(0, 5), // Extract HH:mm from HH:mm:ss
+                endTime: (() => {
+                    // Calculate end time from start time + duration
+                    const [hours, minutes] = startTimeString.split(':').map(Number);
+                    const totalMinutes = hours * 60 + minutes + durationMinutes;
+                    const endHours = Math.floor(totalMinutes / 60);
+                    const endMins = totalMinutes % 60;
+                    return `${String(endHours).padStart(2, '0')}:${String(endMins).padStart(2, '0')}`;
+                })()
             };
             
             setReceiptData(enhancedReceiptData);
