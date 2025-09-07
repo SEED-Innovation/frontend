@@ -106,7 +106,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ onBookingComplete }) => {
           notes: ''
         };
 
-        await bookingService.createBooking(bookingRequest);
+        await bookingService.createManualBooking(bookingRequest);
       }
 
       const booking = {
