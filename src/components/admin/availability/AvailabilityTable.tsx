@@ -11,7 +11,6 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AvailabilityToolbar } from './AvailabilityToolbar';
 import { AvailabilityRow, DOW, AvailabilityFilters } from '@/lib/api/admin/types';
-import { getAvailabilitiesMock, deleteAvailabilityMock, bulkDeleteAvailabilityMock } from '@/lib/api/admin/availability';
 import { courtService } from '@/lib/api/services/courtService';
 import { toast } from 'sonner';
 
@@ -66,15 +65,22 @@ export const AvailabilityTable: React.FC = () => {
         console.warn('Failed to load courts data:', error);
       }
       
-      // Try to use real API first, fallback to mock if needed
+      // Try to fetch from real API first, fallback to mock if needed
       try {
-        // const availabilities = await courtService.getAvailabilities();
-        // setData(availabilities);
-        // For now, use mock data until backend is ready
-        const result = await getAvailabilitiesMock();
+        const result = await courtService.getAvailabilities();
+        
+        // Transform to match AvailabilityRow interface
+        const transformedData = result.map(item => ({
+          id: item.id,
+          courtId: item.courtId,
+          courtName: item.courtName || `Court ${item.courtId}`,
+          dayOfWeek: item.dayOfWeek as DOW,
+          start: item.startTime.slice(0, 5), // Convert "HH:mm:ss" to "HH:mm"
+          end: item.endTime.slice(0, 5),     // Convert "HH:mm:ss" to "HH:mm"
+        }));
         
         // Enhance data with court images
-        const enhancedResult = result.map(item => {
+        const enhancedResult = transformedData.map(item => {
           const court = courts.find(c => (typeof c.id === 'string' ? parseInt(c.id) : c.id) === item.courtId);
           return {
             ...item,
@@ -86,6 +92,7 @@ export const AvailabilityTable: React.FC = () => {
       } catch (apiError) {
         console.warn('Real API failed, falling back to mock data:', apiError);
         // Fallback to mock data if real API fails
+        const { getAvailabilitiesMock } = await import('@/lib/api/admin/availability');
         const result = await getAvailabilitiesMock();
         setData(result);
         toast.info('Using mock data - API not available');
@@ -268,7 +275,7 @@ export const AvailabilityTable: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await deleteAvailabilityMock(id);
+      await courtService.deleteAvailability(id);
       setData(prev => prev.filter(item => item.id !== id));
       toast.success('Availability deleted successfully');
     } catch (error) {
@@ -279,7 +286,8 @@ export const AvailabilityTable: React.FC = () => {
 
   const handleBulkDelete = async (ids: number[]) => {
     try {
-      await bulkDeleteAvailabilityMock(ids);
+      // Delete each availability individually since there's no bulk delete API
+      await Promise.all(ids.map(id => courtService.deleteAvailability(id)));
       setData(prev => prev.filter(item => !ids.includes(item.id)));
       setSelectedIds([]);
       toast.success(`${ids.length} availabilities deleted successfully`);
