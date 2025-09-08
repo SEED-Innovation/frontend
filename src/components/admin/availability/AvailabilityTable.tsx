@@ -17,6 +17,100 @@ import { toast } from 'sonner';
 type SortField = 'courtName' | 'dayOfWeek' | 'start' | 'end';
 type SortDirection = 'asc' | 'desc';
 
+// Client-side validation function
+const validateAvailabilityData = (data: any) => {
+  // Valid court ID is required
+  if (!data.courtId || data.courtId <= 0) {
+    return "Valid court ID is required";
+  }
+
+  // Start and end times are required
+  if (!data.start || !data.end) {
+    return "Start and end times are required";
+  }
+
+  // Day of week is required
+  if (!data.dayOfWeek) {
+    return "Day of week is required";
+  }
+
+  // Start time must be before end time
+  if (data.start >= data.end) {
+    return "Start time must be before end time";
+  }
+
+  // Business hours validation
+  const startHour = parseInt(data.start.split(':')[0]);
+  const endHour = parseInt(data.end.split(':')[0]);
+  
+  if (startHour < 6 || startHour > 23) {
+    return "Start time must be between 06:00 and 23:00";
+  }
+  
+  if (endHour < 7 || endHour > 24) {
+    return "End time must be between 07:00 and 24:00";
+  }
+
+  // Duration validation
+  const startMinutes = startHour * 60 + parseInt(data.start.split(':')[1] || '0');
+  const endMinutes = endHour * 60 + parseInt(data.end.split(':')[1] || '0');
+  const durationMinutes = endMinutes - startMinutes;
+  
+  if (durationMinutes < 30) {
+    return "Minimum availability duration is 30 minutes";
+  }
+
+  if (durationMinutes > 720) { // 12 hours
+    return "Maximum availability duration is 12 hours";
+  }
+
+  return null; // No validation errors
+};
+
+// Enhanced error handling function
+const handleApiError = (error: any, operation: string) => {
+  console.error(`${operation} failed:`, error);
+  
+  if (!navigator.onLine) {
+    toast.error("No internet connection. Please check your network and try again.");
+    return;
+  }
+
+  if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+    toast.error("Session expired. Please log in again.");
+    return;
+  }
+
+  if (error.message?.includes('403') || error.message?.includes('Forbidden')) {
+    toast.error("You don't have permission to perform this action.");
+    return;
+  }
+
+  if (error.message?.includes('404') || error.message?.includes('Not Found')) {
+    toast.error("Record not found. It may have been deleted by another user.");
+    // Optionally refresh data here
+    return;
+  }
+
+  if (error.message?.includes('409') || error.message?.includes('Conflict')) {
+    toast.error("This time slot conflicts with existing availability. Please choose different times.");
+    return;
+  }
+
+  if (error.message?.includes('500') || error.message?.includes('Internal Server Error')) {
+    toast.error("Server error. Please try again later or contact support.");
+    return;
+  }
+
+  // Extract specific error message if available
+  const errorMessage = error.message || error.toString();
+  if (errorMessage.length > 10 && !errorMessage.includes('Failed to')) {
+    toast.error(errorMessage);
+  } else {
+    toast.error(`${operation} failed. Please try again.`);
+  }
+};
+
 export const AvailabilityTable: React.FC = () => {
   const [data, setData] = useState<AvailabilityRow[]>([]);
   const [courts, setCourts] = useState<{ id: number; name: string; imageUrl?: string }[]>([]);
@@ -225,15 +319,10 @@ export const AvailabilityTable: React.FC = () => {
     try {
       setUpdateLoading(true);
       
-      // Validate time range
-      if (editFormData.start >= editFormData.end) {
-        toast.error('Start time must be before end time');
-        return;
-      }
-
-      // Validate day of week
-      if (!editFormData.dayOfWeek) {
-        toast.error('Please select a day of week');
+      // Client-side validation before API call
+      const validationError = validateAvailabilityData(editFormData);
+      if (validationError) {
+        toast.error(validationError);
         return;
       }
 
@@ -261,8 +350,7 @@ export const AvailabilityTable: React.FC = () => {
       setEditingItem(null);
       toast.success('Availability updated successfully');
     } catch (error) {
-      console.error('Failed to update availability:', error);
-      toast.error('Failed to update availability');
+      handleApiError(error, 'Update availability');
     } finally {
       setUpdateLoading(false);
     }
@@ -279,8 +367,7 @@ export const AvailabilityTable: React.FC = () => {
       setData(prev => prev.filter(item => item.id !== id));
       toast.success('Availability deleted successfully');
     } catch (error) {
-      console.error('Failed to delete availability:', error);
-      toast.error('Failed to delete availability');
+      handleApiError(error, 'Delete availability');
     }
   };
 
@@ -292,8 +379,7 @@ export const AvailabilityTable: React.FC = () => {
       setSelectedIds([]);
       toast.success(`${ids.length} availabilities deleted successfully`);
     } catch (error) {
-      console.error('Failed to bulk delete availabilities:', error);
-      toast.error('Failed to delete availabilities');
+      handleApiError(error, 'Bulk delete availabilities');
     }
   };
 
