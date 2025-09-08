@@ -56,8 +56,8 @@ const validateAvailabilityData = (data: any) => {
   const endMinutes = endHour * 60 + parseInt(data.end.split(':')[1] || '0');
   const durationMinutes = endMinutes - startMinutes;
   
-  if (durationMinutes < 30) {
-    return "Minimum availability duration is 30 minutes";
+  if (durationMinutes < 60) {
+    return "Minimum availability duration is 60 minutes";
   }
 
   if (durationMinutes > 720) { // 12 hours
