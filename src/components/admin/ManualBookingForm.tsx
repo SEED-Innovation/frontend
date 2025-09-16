@@ -125,8 +125,6 @@ const [users, setUsers] = useState<UserResponse[]>([]);
 const [usersLoading, setUsersLoading] = useState(false);
 const [userSearchTerm, setUserSearchTerm] = useState('');
 const [courtSearchTerm, setCourtSearchTerm] = useState('');
-const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-const [courtDropdownOpen, setCourtDropdownOpen] = useState(false);
 
 // Add this function to your data loading section
 const loadUsers = async () => {
@@ -696,39 +694,31 @@ const loadCourts = async () => {
                                         onChange={(e) => {
                                             console.log('🔍 User search input changed:', e.target.value);
                                             setUserSearchTerm(e.target.value);
-                                            // Auto-open dropdown when typing
-                                            if (e.target.value.trim()) {
-                                                setUserDropdownOpen(true);
+                                        }}
+                                        disabled={usersLoading}
+                                    />
+                                    
+                                    {/* User Selection */}
+                                    <Select
+                                        value={formData.userId?.toString() || ''}
+                                        onValueChange={(value) => {
+                                            const userId = parseInt(value);
+                                            const user = users.find(u => u.id === userId);
+                                            if (user) {
+                                                handleUserSelect(user);
                                             }
                                         }}
                                         disabled={usersLoading}
-                                        onFocus={() => setUserDropdownOpen(true)}
-                                    />
-                                    
-                                     {/* User Selection */}
-                                     <Select
-                                         value={formData.userId?.toString() || ''}
-                                         onValueChange={(value) => {
-                                             const userId = parseInt(value);
-                                             const user = users.find(u => u.id === userId);
-                                             if (user) {
-                                                 handleUserSelect(user);
-                                             }
-                                             setUserDropdownOpen(false);
-                                         }}
-                                         disabled={usersLoading}
-                                         open={userDropdownOpen}
-                                         onOpenChange={setUserDropdownOpen}
-                                     >
-                                         <SelectTrigger>
-                                             <SelectValue 
-                                                 placeholder={
-                                                     usersLoading ? "Loading users..." : 
-                                                     selectedUser ? `${selectedUser.fullName} (${selectedUser.email})` :
-                                                     "Choose a user"
-                                                 } 
-                                             />
-                                         </SelectTrigger>
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue 
+                                                placeholder={
+                                                    usersLoading ? "Loading users..." : 
+                                                    selectedUser ? `${selectedUser.fullName} (${selectedUser.email})` :
+                                                    "Choose a user"
+                                                } 
+                                            />
+                                        </SelectTrigger>
                                         <SelectContent>
                                             {filteredUsers.length === 0 ? (
                                                 <SelectItem value="no-users" disabled>
@@ -789,29 +779,19 @@ const loadCourts = async () => {
                                         onChange={(e) => {
                                             console.log('🔍 Court search input changed:', e.target.value);
                                             setCourtSearchTerm(e.target.value);
-                                            // Auto-open dropdown when typing
-                                            if (e.target.value.trim()) {
-                                                setCourtDropdownOpen(true);
-                                            }
                                         }}
                                         disabled={courtsLoading}
-                                        onFocus={() => setCourtDropdownOpen(true)}
                                     />
                                     
-                                     {/* Court Selection */}
-                                     <Select
-                                         value={formData.courtId?.toString() || ''}
-                                         onValueChange={(value) => {
-                                             handleInputChange('courtId', parseInt(value));
-                                             setCourtDropdownOpen(false);
-                                         }}
-                                         disabled={courtsLoading}
-                                         open={courtDropdownOpen}
-                                         onOpenChange={setCourtDropdownOpen}
-                                     >
-                                         <SelectTrigger>
-                                             <SelectValue placeholder={courtsLoading ? "Loading courts..." : "Choose a court"} />
-                                         </SelectTrigger>
+                                    {/* Court Selection */}
+                                    <Select
+                                        value={formData.courtId?.toString() || ''}
+                                        onValueChange={(value) => handleInputChange('courtId', parseInt(value))}
+                                        disabled={courtsLoading}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder={courtsLoading ? "Loading courts..." : "Choose a court"} />
+                                        </SelectTrigger>
                                         <SelectContent className="bg-white">
                                             {filteredCourts.length === 0 ? (
                                                 <SelectItem value="no-courts" disabled>
