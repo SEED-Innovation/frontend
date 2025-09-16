@@ -381,7 +381,7 @@ const Landing = () => {
               const IconComponent = step.icon;
               return (
                 <div key={index} className="text-center animate-fade-in flex flex-col items-center" style={{ animationDelay: `${index * 0.1}s` }}>
-                  <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 tennis-gradient rounded-full mb-6 sm:mb-8">
+                  <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 bg-tennis-gradient rounded-full mb-6 sm:mb-8">
                     <IconComponent className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
                   </div>
                   <div className="text-sm sm:text-base font-bold text-tennis-purple-600 mb-3">STEP {index + 1}</div>
