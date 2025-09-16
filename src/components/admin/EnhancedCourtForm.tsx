@@ -327,7 +327,7 @@ export default function EnhancedCourtForm({
                   id="hourlyFee"
                   type="number"
                   min="0"
-                  step="0.01"
+                  step="1"
                   value={formData.hourlyFee}
                   onChange={(e) => handleInputChange('hourlyFee', Number(e.target.value))}
                   placeholder="120.00"
