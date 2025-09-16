@@ -1,4 +1,4 @@
-import { CourtResponse } from '@/types/booking';
+import { CourtResponse } from '@/types/court';
 import { Court as ExistingCourt } from '@/lib/api/services/courtService';
 
 /**
@@ -11,7 +11,7 @@ export const adaptCourts = (existingCourts: ExistingCourt[]): CourtResponse[] =>
         id: typeof court.id === 'string' ? parseInt(court.id, 10) : court.id,
         name: court.name,
         location: court.location,
-        type: court.type,
+        type: court.type as any,
         sportType: court.sportType,
         hourlyFee: court.hourlyFee,
         hasSeedSystem: court.hasSeedSystem ?? false, // ✅ Handle undefined/null values
@@ -19,7 +19,7 @@ export const adaptCourts = (existingCourts: ExistingCourt[]): CourtResponse[] =>
         amenities: court.amenities || [],
         techFeatures: court.techFeatures || [],
         description: court.description || undefined,
-        openingTimes: court.openingTimes || {},
+        openingTimes: typeof court.openingTimes === 'object' ? JSON.stringify(court.openingTimes) : court.openingTimes || undefined,
         rating: null,
         totalRatings: null,
         distanceInMeters: null,
@@ -39,7 +39,7 @@ export const adaptCourt = (court: ExistingCourt): CourtResponse => {
         id: typeof court.id === 'string' ? parseInt(court.id, 10) : court.id,
         name: court.name,
         location: court.location,
-        type: court.type,
+        type: court.type as any,
         sportType: court.sportType,
         hourlyFee: court.hourlyFee,
         hasSeedSystem: court.hasSeedSystem ?? false,
@@ -47,7 +47,7 @@ export const adaptCourt = (court: ExistingCourt): CourtResponse => {
         amenities: court.amenities || [],
         techFeatures: court.techFeatures || [],
         description: court.description || undefined,
-        openingTimes: court.openingTimes || {},
+        openingTimes: typeof court.openingTimes === 'object' ? JSON.stringify(court.openingTimes) : court.openingTimes || undefined,
         rating: null,
         totalRatings: null,
         distanceInMeters: null,

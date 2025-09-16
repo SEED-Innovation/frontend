@@ -1,6 +1,10 @@
 
 /* SEED Tennis Design System - Main Entry Point */
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* Import modular CSS files */
 @import './styles/base.css';
 @import './styles/components.css';

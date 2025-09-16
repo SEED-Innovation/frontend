@@ -58,7 +58,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
     // ================================
     
     const [filters, setFilters] = useState<AdminBookingFilterRequest>(initialFilters);
-    const [courts, setCourts] = useState<CourtResponse[]>([]);
+    const [courts, setCourts] = useState<import('@/types/court').CourtResponse[]>([]);
     const [courtsLoading, setCourtsLoading] = useState(false);
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [activeFiltersCount, setActiveFiltersCount] = useState(0);
