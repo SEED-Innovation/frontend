@@ -319,7 +319,33 @@ const Landing = () => {
               className="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-8 sm:mb-12 text-white/90 font-medium max-w-4xl mx-auto leading-relaxed px-4"
             >
               <span className="text-2xl sm:text-3xl block mb-4">SPORTS</span>
-              Unleash your A-Game! See it. <strong>SEED</strong> it. Smash it!
+              <span>Unleash your A-Game! </span>
+              <motion.span
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 1.5, duration: 0.6 }}
+                className="inline-block font-bold text-tennis-green-400"
+              >
+                See it.
+              </motion.span>
+              <span> </span>
+              <motion.span
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 2.0, duration: 0.6 }}
+                className="inline-block font-black text-yellow-400"
+              >
+                SEED
+              </motion.span>
+              <span> it. </span>
+              <motion.span
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 2.5, duration: 0.6 }}
+                className="inline-block font-bold text-white"
+              >
+                Smash it!
+              </motion.span>
             </motion.p>
 
             {/* CTA Buttons */}
