@@ -607,7 +607,7 @@ const Landing = () => {
           <p className="text-lg sm:text-2xl text-white/90 mb-8 sm:mb-12 font-medium max-w-4xl mx-auto leading-relaxed text-center">
             Unleash your A-Game with SEED INNOVATION's revolutionary AI-powered tennis analytics. Transform every serve, volley, and stroke into actionable insights.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center">
+          <div className="flex justify-center">
             <Button 
               onClick={handleGetStarted}
               size="lg" 
@@ -615,14 +615,6 @@ const Landing = () => {
             >
               <Play className="w-6 h-6 sm:w-8 sm:h-8 mr-4" />
               Start Your Journey
-            </Button>
-            <Button 
-              onClick={() => navigate('/courts')}
-              size="lg" 
-              className="w-full sm:w-auto bg-white/10 backdrop-blur-md border-2 border-white/30 text-white hover:bg-white/20 font-bold px-12 sm:px-16 py-4 sm:py-6 text-lg sm:text-2xl rounded-2xl shadow-2xl hover:scale-110 transition-all duration-300 transform"
-            >
-              <Eye className="w-6 h-6 sm:w-8 sm:h-8 mr-4" />
-              Find Courts
             </Button>
           </div>
         </div>
