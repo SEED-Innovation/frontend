@@ -269,7 +269,7 @@ const loadCourts = async () => {
         setFormData(prev => ({ 
             ...prev, 
             userId: user.id,
-            customerEmail: prev.customerEmail || user.email || '' // Auto-fill email if not set
+            customerEmail: user.email || '' // Always update email to match selected user
         }));
         
         if (errors.userId) {
