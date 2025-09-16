@@ -478,6 +478,58 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* AI Smart Analysis Video Section */}
+      <section className="py-16 sm:py-24 lg:py-32 bg-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-tennis-purple-50/30 to-tennis-green-50/30" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12 sm:mb-20">
+            <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-gray-900 mb-4 sm:mb-6">
+              See{' '}
+              <span className="bg-gradient-to-r from-tennis-purple-600 to-tennis-green-500 bg-clip-text text-transparent">
+                AI in Action
+              </span>
+            </h2>
+            <p className="text-lg sm:text-2xl text-gray-600 max-w-4xl mx-auto font-medium text-center">
+              Watch how our smart AI technology analyzes tennis matches in real-time
+            </p>
+          </div>
+
+          <div className="max-w-5xl mx-auto">
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-tennis-purple-100 to-tennis-green-100 p-4 sm:p-8">
+              <div className="relative aspect-video rounded-2xl overflow-hidden bg-black">
+                <video 
+                  className="w-full h-full object-cover"
+                  controls
+                  poster="/lovable-uploads/9b877c55-5518-40cb-ba2c-a68fccfbe495.png"
+                >
+                  <source src="/seed-ia-video.mp4" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+              <div className="mt-6 sm:mt-8 text-center">
+                <p className="text-base sm:text-lg text-gray-700 font-medium mb-4">
+                  Experience the power of AI-driven tennis analysis
+                </p>
+                <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+                  <div className="flex items-center text-sm sm:text-base text-gray-600">
+                    <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-tennis-purple-500 mr-2" />
+                    Real-time tracking
+                  </div>
+                  <div className="flex items-center text-sm sm:text-base text-gray-600">
+                    <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-tennis-green-500 mr-2" />
+                    Smart analytics
+                  </div>
+                  <div className="flex items-center text-sm sm:text-base text-gray-600">
+                    <Target className="w-4 h-4 sm:w-5 sm:h-5 text-tennis-purple-500 mr-2" />
+                    Precision insights
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* What You Get Section */}
       <section className="py-16 sm:py-24 lg:py-32 bg-gradient-to-br from-gray-50 to-white relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-tennis-purple-50/50 to-tennis-green-50/50" />
