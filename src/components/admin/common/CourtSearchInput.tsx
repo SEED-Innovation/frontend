@@ -1,27 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, User, Mail, Phone, Check, ChevronDown, X, Loader2 } from 'lucide-react';
+import { Search, Check, ChevronDown, Loader2, Building2, MapPin } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { userService } from '@/services';
-import { UserResponse } from '@/types/user';
+import { courtService } from '@/services';
+import { CourtResponse } from '@/types/booking';
 
-interface UserSearchInputProps {
-  onUserSelect: (user: UserResponse | null) => void;
-  selectedUser?: UserResponse | null;
+interface CourtSearchInputProps {
+  onCourtSelect: (court: CourtResponse | null) => void;
+  selectedCourt?: CourtResponse | null;
   placeholder?: string;
   className?: string;
   disabled?: boolean;
   allowClear?: boolean;
 }
 
-const UserSearchInput: React.FC<UserSearchInputProps> = ({
-  onUserSelect,
-  selectedUser,
-  placeholder = "Search users...",
+const CourtSearchInput: React.FC<CourtSearchInputProps> = ({
+  onCourtSelect,
+  selectedCourt,
+  placeholder = "Search courts...",
   className = "",
   disabled = false,
   allowClear = true
@@ -29,8 +29,8 @@ const UserSearchInput: React.FC<UserSearchInputProps> = ({
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState<UserResponse[]>([]);
-  const [recentUsers, setRecentUsers] = useState<UserResponse[]>([]);
+  const [courts, setCourts] = useState<CourtResponse[]>([]);
+  const [recentCourts, setRecentCourts] = useState<CourtResponse[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   
@@ -40,8 +40,8 @@ const UserSearchInput: React.FC<UserSearchInputProps> = ({
   const ITEMS_PER_PAGE = 6;
 
   useEffect(() => {
-    if (open && recentUsers.length === 0) {
-      loadRecentUsers();
+    if (open && recentCourts.length === 0) {
+      loadRecentCourts();
     }
 
     return () => {
@@ -59,62 +59,97 @@ const UserSearchInput: React.FC<UserSearchInputProps> = ({
       }
       
       searchTimeoutRef.current = setTimeout(() => {
-        searchUsersWithPagination(searchTerm, 1);
+        searchCourts(searchTerm, 1);
       }, 300);
     } else {
-      setSearchResults([]);
+      setCourts([]);
       setPage(1);
       setHasMore(true);
     }
   }, [searchTerm]);
 
-  const loadRecentUsers = async () => {
+  const loadRecentCourts = async () => {
     try {
       setLoading(true);
-      const response = await userService.getAllUsers();
+      const response = await courtService.getAllCourts();
       // Take first 6 as "recent"
-      setRecentUsers(response?.slice(0, ITEMS_PER_PAGE) || []);
+      const recentItems = response.slice(0, ITEMS_PER_PAGE).map(court => ({
+        id: parseInt(court.id),
+        name: court.name,
+        location: court.location,
+        type: court.type,
+        hourlyFee: court.hourlyFee,
+        hasSeedSystem: court.hasSeedSystem,
+        imageUrl: court.imageUrl || '',
+        amenities: court.amenities || [],
+        techFeatures: court.techFeatures || [],
+        description: court.description || '',
+        openingTimes: court.openingTimes || {},
+        rating: null,
+        totalRatings: null,
+        distanceInMeters: null,
+        formattedDistance: null,
+        latitude: null,
+        longitude: null
+      }));
+      setRecentCourts(recentItems);
     } catch (error) {
-      console.error('Failed to load recent users:', error);
+      console.error('Failed to load recent courts:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const searchUsersWithPagination = async (term: string, pageNum: number = 1) => {
+  const searchCourts = async (term: string, pageNum: number = 1) => {
     try {
       setLoading(true);
-      const response = await userService.getAllUsers();
+      const response = await courtService.getAllCourts();
       
       // Client-side filtering for search
-      const filtered = response.filter(user =>
-        (user.fullName?.toLowerCase() || '').includes(term.toLowerCase()) ||
-        (user.email?.toLowerCase() || '').includes(term.toLowerCase())
+      const filtered = response.filter(court =>
+        court.name.toLowerCase().includes(term.toLowerCase()) ||
+        court.location.toLowerCase().includes(term.toLowerCase()) ||
+        court.type.toLowerCase().includes(term.toLowerCase())
       );
+
+      // Convert to CourtResponse format
+      const convertedCourts = filtered.map(court => ({
+        id: parseInt(court.id),
+        name: court.name,
+        location: court.location,
+        type: court.type,
+        hourlyFee: court.hourlyFee,
+        hasSeedSystem: court.hasSeedSystem,
+        imageUrl: court.imageUrl || '',
+        amenities: court.amenities || [],
+        techFeatures: court.techFeatures || [],
+        description: court.description || '',
+        openingTimes: court.openingTimes || {},
+        rating: null,
+        totalRatings: null,
+        distanceInMeters: null,
+        formattedDistance: null,
+        latitude: null,
+        longitude: null
+      }));
 
       // Paginate results
       const startIndex = (pageNum - 1) * ITEMS_PER_PAGE;
       const endIndex = startIndex + ITEMS_PER_PAGE;
-      const paginatedResults = filtered.slice(startIndex, endIndex);
+      const paginatedResults = convertedCourts.slice(startIndex, endIndex);
 
       if (pageNum === 1) {
-        setSearchResults(paginatedResults);
+        setCourts(paginatedResults);
       } else {
-        setSearchResults(prev => [...prev, ...paginatedResults]);
+        setCourts(prev => [...prev, ...paginatedResults]);
       }
 
-      setHasMore(endIndex < filtered.length);
+      setHasMore(endIndex < convertedCourts.length);
       setPage(pageNum);
     } catch (error) {
-      console.error('Failed to search users:', error);
+      console.error('Failed to search courts:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadMore = () => {
-    if (hasMore && !loading && searchTerm.trim()) {
-      searchUsersWithPagination(searchTerm, page + 1);
     }
   };
 
@@ -122,32 +157,33 @@ const UserSearchInput: React.FC<UserSearchInputProps> = ({
     setSearchTerm(value);
   };
 
-  const handleUserSelect = (user: UserResponse) => {
-    onUserSelect(user);
+  const handleCourtSelect = (court: CourtResponse) => {
+    onCourtSelect(court);
     setOpen(false);
     setSearchTerm('');
   };
 
   const handleClearSelection = () => {
-    onUserSelect(null);
+    onCourtSelect(null);
   };
 
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen);
     if (!newOpen) {
       setSearchTerm('');
-      setSearchResults([]);
+      setCourts([]);
       setPage(1);
       setHasMore(true);
     }
   };
 
-  const getUserDisplayName = (user: UserResponse) => {
-    return user.fullName || user.email || 'Unknown User';
+  const loadMore = () => {
+    if (hasMore && !loading && searchTerm.trim()) {
+      searchCourts(searchTerm, page + 1);
+    }
   };
 
-  const getUserInitials = (user: UserResponse) => {
-    const name = getUserDisplayName(user);
+  const getCourtInitials = (name: string) => {
     return name
       .split(' ')
       .map(word => word.charAt(0))
@@ -162,65 +198,60 @@ const UserSearchInput: React.FC<UserSearchInputProps> = ({
     return text.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-800">$1</mark>');
   };
 
-  const renderUserItem = (user: UserResponse, isRecent = false) => (
+  const renderCourtItem = (court: CourtResponse, isRecent = false) => (
     <CommandItem
-      key={`${isRecent ? 'recent' : 'search'}-${user.id}`}
-      value={getUserDisplayName(user)}
-      onSelect={() => handleUserSelect(user)}
+      key={`${isRecent ? 'recent' : 'search'}-${court.id}`}
+      value={court.name}
+      onSelect={() => handleCourtSelect(court)}
       className="flex items-center gap-3 p-3 cursor-pointer hover:bg-accent"
     >
       <Avatar className="h-8 w-8">
-        <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${getUserDisplayName(user)}`} />
+        <AvatarImage src={court.imageUrl} alt={court.name} />
         <AvatarFallback className="text-xs">
-          {getUserInitials(user)}
+          {getCourtInitials(court.name)}
         </AvatarFallback>
       </Avatar>
       
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate" 
            dangerouslySetInnerHTML={{ 
-             __html: highlightMatch(getUserDisplayName(user), searchTerm) 
+             __html: highlightMatch(court.name, searchTerm) 
            }} 
         />
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Mail className="h-3 w-3" />
+          <MapPin className="h-3 w-3" />
           <span className="truncate"
                 dangerouslySetInnerHTML={{ 
-                  __html: highlightMatch(user.email, searchTerm) 
+                  __html: highlightMatch(court.location, searchTerm) 
                 }} 
           />
-          {isRecent && (
-            <Badge variant="outline" className="text-xs">Recent</Badge>
-          )}
+          <Badge variant="outline" className="text-xs">
+            {court.type}
+          </Badge>
         </div>
-        {user.phone && (
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Phone className="h-3 w-3" />
-            <span>{user.phone}</span>
-          </div>
-        )}
       </div>
       
       <div className="flex items-center gap-2">
-        {selectedUser?.id === user.id && (
+        <span className="text-xs font-medium">{court.hourlyFee} SAR/hr</span>
+        {selectedCourt?.id === court.id && (
           <Check className="h-4 w-4 text-primary" />
         )}
       </div>
     </CommandItem>
   );
 
-  const renderSelectedUser = () => (
+  const renderSelectedCourt = () => (
     <div className={cn("flex items-center gap-2 p-2 border rounded-md bg-background", className)}>
       <Avatar className="h-6 w-6">
-        <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${getUserDisplayName(selectedUser!)}`} />
+        <AvatarImage src={selectedCourt?.imageUrl} alt={selectedCourt?.name} />
         <AvatarFallback className="text-xs">
-          {getUserInitials(selectedUser!)}
+          {selectedCourt ? getCourtInitials(selectedCourt.name) : ''}
         </AvatarFallback>
       </Avatar>
       
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate">{getUserDisplayName(selectedUser!)}</p>
-        <p className="text-xs text-muted-foreground truncate">{selectedUser?.email}</p>
+        <p className="text-sm font-medium truncate">{selectedCourt?.name}</p>
+        <p className="text-xs text-muted-foreground truncate">{selectedCourt?.location}</p>
       </div>
       
       {allowClear && (
@@ -251,32 +282,32 @@ const UserSearchInput: React.FC<UserSearchInputProps> = ({
         {loading && searchTerm.trim() && (
           <div className="flex items-center justify-center py-6">
             <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            <span className="text-sm text-muted-foreground">Searching users...</span>
+            <span className="text-sm text-muted-foreground">Searching courts...</span>
           </div>
         )}
 
         {!searchTerm.trim() && !loading && (
-          <CommandGroup heading="Recent Users">
-            {recentUsers.length > 0 ? (
-              recentUsers.map(user => renderUserItem(user, true))
+          <CommandGroup heading="Recent Courts">
+            {recentCourts.length > 0 ? (
+              recentCourts.map(court => renderCourtItem(court, true))
             ) : (
               <div className="flex items-center justify-center py-6">
-                <User className="h-8 w-8 text-muted-foreground/50" />
-                <span className="text-sm text-muted-foreground ml-2">No recent users</span>
+                <Building2 className="h-8 w-8 text-muted-foreground/50" />
+                <span className="text-sm text-muted-foreground ml-2">No recent courts</span>
               </div>
             )}
           </CommandGroup>
         )}
 
         {searchTerm.trim() && !loading && (
-          <CommandGroup heading={`Search Results (${searchResults.length}${hasMore ? '+' : ''})`}>
-            {searchResults.length > 0 ? (
+          <CommandGroup heading={`Search Results (${courts.length}${hasMore ? '+' : ''})`}>
+            {courts.length > 0 ? (
               <>
-                {searchResults.map(user => renderUserItem(user))}
+                {courts.map(court => renderCourtItem(court))}
                 {hasMore && (
                   <CommandItem onSelect={loadMore} className="justify-center py-3">
                     <Button variant="ghost" size="sm" onClick={loadMore}>
-                      Load more users...
+                      Load more courts...
                     </Button>
                   </CommandItem>
                 )}
@@ -286,7 +317,7 @@ const UserSearchInput: React.FC<UserSearchInputProps> = ({
                 <div className="flex flex-col items-center py-6">
                   <Search className="h-8 w-8 text-muted-foreground/50" />
                   <span className="text-sm text-muted-foreground mt-2">
-                    No users found for "{searchTerm}"
+                    No courts found for "{searchTerm}"
                   </span>
                 </div>
               </CommandEmpty>
@@ -297,8 +328,8 @@ const UserSearchInput: React.FC<UserSearchInputProps> = ({
     </Command>
   );
 
-  if (selectedUser && !open) {
-    return renderSelectedUser();
+  if (selectedCourt && !open) {
+    return renderSelectedCourt();
   }
 
   return (
@@ -312,9 +343,9 @@ const UserSearchInput: React.FC<UserSearchInputProps> = ({
           className={cn("justify-between", className)}
         >
           <div className="flex items-center gap-2">
-            <User className="h-4 w-4 text-muted-foreground" />
+            <Building2 className="h-4 w-4 text-muted-foreground" />
             <span className="truncate">
-              {selectedUser ? getUserDisplayName(selectedUser) : placeholder}
+              {selectedCourt ? selectedCourt.name : placeholder}
             </span>
           </div>
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -328,4 +359,4 @@ const UserSearchInput: React.FC<UserSearchInputProps> = ({
   );
 };
 
-export default UserSearchInput;
+export default CourtSearchInput;

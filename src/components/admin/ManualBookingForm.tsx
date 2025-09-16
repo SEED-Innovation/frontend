@@ -26,8 +26,6 @@ import {
     Plus,
     Calendar as CalendarIcon,
     Clock,
-    User,
-    MapPin,
     AlertTriangle,
     CheckCircle,
     Loader2
@@ -38,10 +36,10 @@ import { useToast } from '@/hooks/use-toast';
 
 import { BookingResponse, CreateBookingRequest, CourtResponse } from '@/types/booking';
 import { UserResponse } from '@/types/user';
-import { AdminManualBookingRequest, ManualBookingResponse } from '@/types/receipt';
-import { bookingService, courtService, userService, receiptService } from '@/services';
+import { bookingService } from '@/services';
 import { cn } from '@/lib/utils';
 import UserSearchInput from './UserSearchInput';
+import CourtSearchInput from './common/CourtSearchInput';
 import PrintReceiptDialog from './PrintReceiptDialog';
 
 interface ManualBookingFormProps {
@@ -82,8 +80,7 @@ const ManualBookingForm: React.FC<ManualBookingFormProps> = ({
     
     const [isOpen, setIsOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [courts, setCourts] = useState<CourtResponse[]>([]);
-    const [courtsLoading, setCourtsLoading] = useState(false);
+    const [selectedCourt, setSelectedCourt] = useState<CourtResponse | null>(null);
     
     const [formData, setFormData] = useState<BookingFormData>({
         userId: null,
@@ -113,95 +110,32 @@ const ManualBookingForm: React.FC<ManualBookingFormProps> = ({
     // ================================
     
     useEffect(() => {
-        if (isOpen) {
-            loadCourts();
-        }
-    }, [isOpen]);
+        // Load slots when dependencies change
+        loadAvailableSlots();
+    }, [formData.courtId, formData.date, formData.duration]);
 
-
-
-// Add to your state management section
-const [users, setUsers] = useState<UserResponse[]>([]);
-const [usersLoading, setUsersLoading] = useState(false);
-const [userSearchTerm, setUserSearchTerm] = useState('');
-const [courtSearchTerm, setCourtSearchTerm] = useState('');
-
-// Add this function to your data loading section
-const loadUsers = async () => {
-    setUsersLoading(true);
-    try {
-        console.log('👥 Loading REAL users from database...');
-        const response = await userService.getAllUsers();
-        console.log('✅ REAL Users loaded:', response);
-        setUsers(response || []);
-    } catch (error) {
-        console.error('❌ Failed to load users:', error);
-        setErrors({ users: 'Failed to load users' });
-    } finally {
-        setUsersLoading(false);
-    }
-};
-
-// Update your useEffect to also load users
-useEffect(() => {
-    if (isOpen) {
-        loadCourts();
-        loadUsers();
-    }
-}, [isOpen]);
-
-// Filter users based on search term
-const filteredUsers = users.filter(user => 
-    (user.fullName?.toLowerCase() || '').includes(userSearchTerm.toLowerCase()) ||
-    (user.email?.toLowerCase() || '').includes(userSearchTerm.toLowerCase())
-);
-
-// Filter courts based on search term
-const filteredCourts = courts.filter(court => 
-    (court.name?.toLowerCase() || '').includes(courtSearchTerm.toLowerCase()) ||
-    (court.location?.toLowerCase() || '').includes(courtSearchTerm.toLowerCase()) ||
-    (court.type?.toLowerCase() || '').includes(courtSearchTerm.toLowerCase())
-);
-    
     // ================================
     // 🔧 DATA LOADING
     // ================================
     
-const loadCourts = async () => {
-    setCourtsLoading(true);
-    try {
-        const response = await courtService.getAllCourts();
-        
-        // Convert Court[] to CourtResponse[]
-        const convertedCourts: CourtResponse[] = response.map((court) => ({
-            id: parseInt(court.id), // Convert string to number
-            name: court.name,
-            location: court.location,
-            type: court.type,
-            hourlyFee: court.hourlyFee,
-            hasSeedSystem: court.hasSeedSystem,
-            imageUrl: court.imageUrl || '',
-            amenities: court.amenities || [],
-            techFeatures: court.techFeatures || [],
-            description: court.description || '',
-            openingTimes: court.openingTimes || {},
-            rating: null,
-            totalRatings: null,
-            distanceInMeters: null,
-            formattedDistance: null,
-            latitude: null,
-            longitude: null
+    // Court selection handler
+    const handleCourtSelect = (court: CourtResponse | null) => {
+        setSelectedCourt(court);
+        setFormData(prev => ({ 
+            ...prev, 
+            courtId: court ? court.id : null
         }));
         
-        setCourts(convertedCourts);
-    } catch (error) {
-        console.error('Failed to load courts:', error);
-        setErrors({ courts: 'Failed to load courts' });
-    } finally {
-        setCourtsLoading(false);
-    }
-};
+        if (court && errors.courtId) {
+            setErrors(prev => ({ ...prev, courtId: '' }));
+        }
+    };
 
+    // Get selected court for display
+    const getSelectedCourtData = () => {
+        return selectedCourt;
+    };
+    
     // ================================
     // 🎯 FORM HANDLERS
     // ================================
@@ -258,21 +192,16 @@ const loadCourts = async () => {
             setSlotsLoading(false);
         }
     };
-    
-    // Load slots when dependencies change
-    useEffect(() => {
-        loadAvailableSlots();
-    }, [formData.courtId, formData.date, formData.duration]);
 
-    const handleUserSelect = (user: UserResponse) => {
+    const handleUserSelect = (user: UserResponse | null) => {
         setSelectedUser(user);
         setFormData(prev => ({ 
             ...prev, 
-            userId: user.id,
-            customerEmail: prev.customerEmail || user.email || '' // Auto-fill email if not set
+            userId: user ? user.id : null,
+            customerEmail: prev.customerEmail || (user ? user.email || '' : '') // Auto-fill email if not set
         }));
         
-        if (errors.userId) {
+        if (user && errors.userId) {
             setErrors(prev => ({ ...prev, userId: '' }));
         }
     };
@@ -433,7 +362,7 @@ const loadCourts = async () => {
 
             // Backend now returns both booking and receipt in response
             const receipt = (response as any).receipt;
-            const selectedCourt = getSelectedCourt();
+            const selectedCourtData = getSelectedCourtData();
             
             // Prepare receipt data for print dialog
             const enhancedReceiptData = {
@@ -443,7 +372,7 @@ const loadCourts = async () => {
                 pdfUrl: receipt?.pdfUrl,
                 userEmail: selectedUser?.email,
                 userName: selectedUser?.fullName,
-                courtName: selectedCourt?.name,
+                courtName: selectedCourtData?.name,
                 bookingDate: formData.date ? format(formData.date, 'MMM dd, yyyy') : undefined,
                 startTime: startTimeString.substring(0, 5), // Extract HH:mm from HH:mm:ss
                 endTime: (() => {
@@ -462,7 +391,7 @@ const loadCourts = async () => {
             // Show success toast
             toast({
                 title: "Booking Created Successfully",
-                description: `Booking confirmed for ${selectedUser?.fullName} at ${selectedCourt?.name}`,
+                description: `Booking confirmed for ${selectedUser?.fullName} at ${selectedCourtData?.name}`,
             });
             
             // Auto-open print dialog if receipt was generated
@@ -471,15 +400,21 @@ const loadCourts = async () => {
             }
             
             onBookingCreated(response, receipt);
-
-        } catch (error) {
-            console.error('❌ Failed to create booking:', error);
             
-            if (error instanceof Error) {
-                setErrors({ submit: error.message });
-            } else {
-                setErrors({ submit: 'Failed to create booking. Please try again.' });
-            }
+            // Reset form after successful submission
+            resetForm();
+            
+        } catch (error) {
+            console.error('❌ Failed to create manual booking:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Failed to create booking';
+            setErrors({ submit: errorMessage });
+            
+            // Show error toast
+            toast({
+                title: "Booking Creation Failed",
+                description: errorMessage,
+                variant: "destructive"
+            });
         } finally {
             setIsLoading(false);
         }
@@ -499,496 +434,276 @@ const loadCourts = async () => {
             customerEmail: ''
         });
         setSelectedUser(null);
+        setSelectedCourt(null);
         setAvailableSlots([]);
         setErrors({});
         setSuccess('');
         setReceiptData(null);
-        setShowPrintDialog(false);
-        setUserSearchTerm('');
-        setCourtSearchTerm('');
-    };
-
-    const handleClose = () => {
-        setIsOpen(false);
-        resetForm();
     };
 
     // ================================
-    // 🔧 HELPER FUNCTIONS
+    // 🎨 HELPER FUNCTIONS
     // ================================
     
-    const getSelectedCourt = () => {
-        return courts.find(court => court.id === formData.courtId);
-    };
-
     const getDurationOptions = () => [
         { value: 60, label: '1 hour (60 min)' },
         { value: 90, label: '1.5 hours (90 min)' },
         { value: 120, label: '2 hours (120 min)' }
     ];
 
-    // ================================
-    // 🎨 RENDER METHODS
-    // ================================
-    
-    const renderFormField = (
-        label: string,
-        field: keyof BookingFormData,
-        children: React.ReactNode,
-        required = true,
-        description?: string
-    ) => (
-        <div className="space-y-3">
-            <div className="space-y-1">
-                <Label htmlFor={field} className="text-sm font-semibold text-foreground flex items-center gap-2">
-                    {label} 
-                    {required && <span className="text-destructive text-xs">*</span>}
-                </Label>
-                {description && (
-                    <p className="text-xs text-muted-foreground">{description}</p>
-                )}
-            </div>
-            <div className="relative">
-                {children}
-            </div>
+    const renderFormField = (label: string, field: string, children: React.ReactNode) => (
+        <div className="space-y-2">
+            <Label htmlFor={field} className="text-sm font-medium">
+                {label} {errors[field] && <span className="text-red-500">*</span>}
+            </Label>
+            {children}
             {errors[field] && (
-                <div className="flex items-start gap-2 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg p-3">
-                    <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                    <span className="font-medium">{errors[field]}</span>
-                </div>
+                <p className="text-sm text-red-600 flex items-center gap-1">
+                    <AlertTriangle className="w-4 h-4" />
+                    {errors[field]}
+                </p>
             )}
         </div>
     );
-
-    const renderBookingSummary = () => {
-        const court = getSelectedCourt();
-
-        if (!selectedUser || !court || !formData.selectedSlot) return null;
-
-        return (
-            <div className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 p-6 rounded-xl space-y-4">
-                <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                        <CheckCircle className="w-5 h-5 text-primary" />
-                    </div>
-                    <h4 className="text-lg font-semibold text-foreground">Booking Summary</h4>
-                </div>
-                
-                <div className="space-y-4">
-                    <div className="grid gap-3">
-                        <div className="flex items-center justify-between py-2 border-b border-border/50">
-                            <span className="text-sm text-muted-foreground font-medium">Customer</span>
-                            <span className="font-semibold text-foreground">{selectedUser.fullName}</span>
-                        </div>
-                        
-                        <div className="flex items-center justify-between py-2 border-b border-border/50">
-                            <span className="text-sm text-muted-foreground font-medium">Court</span>
-                            <span className="font-semibold text-foreground">{court.name}</span>
-                        </div>
-                        
-                        <div className="flex items-center justify-between py-2 border-b border-border/50">
-                            <span className="text-sm text-muted-foreground font-medium">Date</span>
-                            <span className="font-semibold text-foreground">
-                                {formData.date ? format(formData.date, 'PPP') : '-'}
-                            </span>
-                        </div>
-                        
-                        <div className="flex items-center justify-between py-2 border-b border-border/50">
-                            <span className="text-sm text-muted-foreground font-medium">Time</span>
-                            <span className="font-semibold text-foreground">
-                                {formData.selectedSlot.formattedTimeRange}
-                            </span>
-                        </div>
-                        
-                        <div className="flex items-center justify-between py-2 border-b border-border/50">
-                            <span className="text-sm text-muted-foreground font-medium">Duration</span>
-                            <span className="font-semibold text-foreground">{formData.duration} minutes</span>
-                        </div>
-                        
-                        <div className="flex items-center justify-between py-2 border-b border-border/50">
-                            <span className="text-sm text-muted-foreground font-medium">Match Type</span>
-                            <span className="font-semibold text-foreground">{formData.matchType || '-'}</span>
-                        </div>
-                    </div>
-                    
-                    <div className="bg-background/80 border border-primary/30 rounded-lg p-4 flex items-center justify-between">
-                        <span className="text-base font-semibold text-foreground">Total Amount</span>
-                        <span className="text-xl font-bold text-primary">
-                            <CurrencyDisplay amount={formData.selectedSlot.price || 0} size="lg" showSymbol />
-                        </span>
-                    </div>
-                </div>
-            </div>
-        );
-    };
 
     // ================================
     // 🎨 MAIN RENDER
     // ================================
     
     return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-                {triggerButton || (
-                    <Button className={className}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Manual Booking
-                    </Button>
-                )}
-            </DialogTrigger>
-            
-            <DialogContent className="max-w-4xl max-h-[95vh] overflow-hidden flex flex-col">
-                <DialogHeader className="pb-6 border-b border-border">
-                    <DialogTitle className="flex items-center gap-3 text-xl font-semibold">
-                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                            <Plus className="w-5 h-5 text-primary" />
-                        </div>
-                        Create Manual Booking
-                    </DialogTitle>
-                    <DialogDescription className="text-base text-muted-foreground mt-2">
-                        Create a new booking on behalf of a user. Complete all required fields to proceed.
-                    </DialogDescription>
-                </DialogHeader>
-
-                {/* Success Message */}
-                {success && (
-                    <Alert className="bg-green-50 border-green-200">
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                        <AlertDescription className="text-green-800">
-                            {success}
-                        </AlertDescription>
-                    </Alert>
+        <>
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                {triggerButton ? (
+                    <DialogTrigger asChild>
+                        {triggerButton}
+                    </DialogTrigger>
+                ) : (
+                    <DialogTrigger asChild>
+                        <Button className={cn("flex items-center gap-2", className)}>
+                            <Plus className="w-4 h-4" />
+                            Create Manual Booking
+                        </Button>
+                    </DialogTrigger>
                 )}
 
-                {/* Submit Error */}
-                {errors.submit && (
-                    <Alert className="bg-red-50 border-red-200">
-                        <AlertTriangle className="h-4 w-4 text-red-600" />
-                        <AlertDescription className="text-red-800">
-                            {errors.submit}
-                        </AlertDescription>
-                    </Alert>
-                )}
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Plus className="w-5 h-5" />
+                            Create Manual Booking
+                        </DialogTitle>
+                        <DialogDescription>
+                            Create a booking manually for a user. All fields marked with * are required.
+                        </DialogDescription>
+                    </DialogHeader>
 
-                <div className="flex-1 overflow-y-auto px-1">
-                    <form onSubmit={handleSubmit} className="space-y-8">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* Success Message */}
+                        {success && (
+                            <Alert className="border-green-200 bg-green-50">
+                                <CheckCircle className="h-4 w-4 text-green-600" />
+                                <AlertDescription className="text-green-800">
+                                    {success}
+                                </AlertDescription>
+                            </Alert>
+                        )}
+
+                        {/* Error Message */}
+                        {errors.submit && (
+                            <Alert variant="destructive">
+                                <AlertTriangle className="h-4 w-4" />
+                                <AlertDescription>
+                                    {errors.submit}
+                                </AlertDescription>
+                            </Alert>
+                        )}
+
+                        {/* Form Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {/* User Selection */}
                             <div className="lg:col-span-2">
-                            {renderFormField(
-                                'Select User',
-                                'userId',
-                                <div className="space-y-2">
-                                    {/* Search Input */}
-                                    <Input
+                                {renderFormField(
+                                    'Select User',
+                                    'userId',
+                                    <UserSearchInput
+                                        onUserSelect={handleUserSelect}
+                                        selectedUser={selectedUser}
                                         placeholder="Search for a user by name or email..."
-                                        value={userSearchTerm}
-                                        onChange={(e) => setUserSearchTerm(e.target.value)}
-                                        disabled={usersLoading}
+                                        disabled={false}
                                     />
-                                    
-                                    {/* User Selection */}
+                                )}
+                            </div>
+
+                            {/* Court Selection */}
+                            <div className="md:col-span-2">
+                                {renderFormField(
+                                    'Select Court',
+                                    'courtId',
+                                    <CourtSearchInput
+                                        onCourtSelect={handleCourtSelect}
+                                        selectedCourt={selectedCourt}
+                                        placeholder="Search for a court by name, location, or type..."
+                                        disabled={false}
+                                    />
+                                )}
+                            </div>
+
+                            {/* Date Selection */}
+                            <div>
+                                {renderFormField(
+                                    'Date',
+                                    'date',
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                className={cn(
+                                                    "w-full justify-start text-left font-normal",
+                                                    !formData.date && "text-muted-foreground"
+                                                )}
+                                            >
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {formData.date ? format(formData.date, "PPP") : "Pick a date"}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar
+                                                mode="single"
+                                                selected={formData.date || undefined}
+                                                onSelect={(date) => handleInputChange('date', date)}
+                                                disabled={(date) => date < new Date()}
+                                                initialFocus
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                )}
+                            </div>
+
+                            {/* Duration Selection */}
+                            <div>
+                                {renderFormField(
+                                    'Duration',
+                                    'duration',
                                     <Select
-                                        value={formData.userId?.toString() || ''}
-                                        onValueChange={(value) => {
-                                            const userId = parseInt(value);
-                                            const user = users.find(u => u.id === userId);
-                                            if (user) {
-                                                handleUserSelect(user);
-                                            }
-                                        }}
-                                        disabled={usersLoading}
+                                        value={formData.duration?.toString() || ''}
+                                        onValueChange={(value) => handleInputChange('duration', parseInt(value))}
                                     >
                                         <SelectTrigger>
-                                            <SelectValue 
-                                                placeholder={
-                                                    usersLoading ? "Loading users..." : 
-                                                    selectedUser ? `${selectedUser.fullName} (${selectedUser.email})` :
-                                                    "Choose a user"
-                                                } 
-                                            />
+                                            <SelectValue placeholder="Select duration" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                             {filteredUsers.length === 0 ? (
-                                                <SelectItem value="no-users" disabled>
-                                                    {usersLoading ? "Loading..." : "No users found"}
+                                            {getDurationOptions().map((option) => (
+                                                <SelectItem key={option.value} value={option.value.toString()}>
+                                                    <div className="flex items-center space-x-2">
+                                                        <Clock className="w-4 h-4" />
+                                                        <span>{option.label}</span>
+                                                    </div>
                                                 </SelectItem>
-                                            ) : (
-                                                filteredUsers.map((user) => (
-                                                    <SelectItem key={user.id} value={user.id.toString()}>
-                                                        <div className="flex items-center space-x-3">
-                                                            <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
-                                                                {user.profilePictureUrl ? (
-                                                                    <img 
-                                                                        src={user.profilePictureUrl} 
-                                                                        alt={`${user.fullName || 'User'} profile`}
-                                                                        className="h-full w-full object-cover"
-                                                                        onError={(e) => {
-                                                                            const target = e.target as HTMLImageElement;
-                                                                            target.style.display = 'none';
-                                                                            const fallback = target.parentElement?.querySelector('.fallback-icon');
-                                                                            if (fallback) fallback.classList.remove('hidden');
-                                                                        }}
-                                                                    />
-                                                                ) : null}
-                                                                <div className={`w-full h-full bg-muted rounded-full flex items-center justify-center fallback-icon ${user.profilePictureUrl ? 'hidden' : ''}`}>
-                                                                    <User className="w-4 h-4 text-gray-400" />
-                                                                </div>
-                                                            </div>
-                                                            <div className="flex flex-col flex-1 min-w-0">
-                                                                <span className="font-medium truncate">{user.fullName}</span>
-                                                                <span className="text-xs text-gray-500 truncate">{user.email}</span>
-                                                            </div>
-                                                        </div>
-                                                    </SelectItem>
-                                                ))
-                                            )}
+                                            ))}
                                         </SelectContent>
                                     </Select>
-                                    
-                                    {/* Show selected user info */}
-                                    {selectedUser && (
-                                        <div className="p-2 bg-blue-50 rounded border text-sm">
-                                            <strong>Selected:</strong> {selectedUser.fullName} ({selectedUser.email})
+                                )}
+                            </div>
+
+                            {/* Match Type */}
+                            <div>
+                                {renderFormField(
+                                    'Match Type',
+                                    'matchType',
+                                    <Select
+                                        value={formData.matchType}
+                                        onValueChange={(value) => handleInputChange('matchType', value)}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select match type" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="SINGLE">Singles Match</SelectItem>
+                                            <SelectItem value="DOUBLE">Doubles Match</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            </div>
+
+                            {/* Available Time Slots */}
+                            {formData.courtId && formData.date && formData.duration && (
+                                <div className="md:col-span-2">
+                                    {renderFormField(
+                                        'Available Time Slots',
+                                        'selectedSlot',
+                                        <div className="space-y-2">
+                                            {slotsLoading ? (
+                                                <div className="flex items-center justify-center p-4">
+                                                    <Loader2 className="w-6 h-6 animate-spin" />
+                                                    <span className="ml-2">Loading available slots...</span>
+                                                </div>
+                                            ) : availableSlots.length === 0 ? (
+                                                <div className="p-4 text-center text-gray-500 bg-gray-50 rounded-lg">
+                                                    No available slots for selected date and duration
+                                                </div>
+                                            ) : (
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                                                    {availableSlots.map((slot, index) => (
+                                                        <Button
+                                                            key={index}
+                                                            type="button"
+                                                            variant={formData.selectedSlot === slot ? "default" : "outline"}
+                                                            className="p-3 h-auto justify-start"
+                                                            onClick={() => handleInputChange('selectedSlot', slot)}
+                                                        >
+                                                            <div className="text-left">
+                                                                <div className="font-medium">{slot.formattedTimeRange}</div>
+                                                                <div className="text-sm text-gray-500">
+                                                                    <CurrencyDisplay amount={slot.price || 0} size="sm" showSymbol />
+                                                                </div>
+                                                            </div>
+                                                        </Button>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
                             )}
-                        </div>
-                        {/* Court Selection */}
-                        <div className="md:col-span-2">
-                            {renderFormField(
-                                'Select Court',
-                                'courtId',
-                                <div className="space-y-2">
-                                    {/* Search Input */}
-                                    <Input
-                                        placeholder="Search for a court by name, location, or type..."
-                                        value={courtSearchTerm}
-                                        onChange={(e) => setCourtSearchTerm(e.target.value)}
-                                        disabled={courtsLoading}
-                                    />
-                                    
-                                    {/* Court Selection */}
+
+                            {/* Payment Method */}
+                            <div>
+                                {renderFormField(
+                                    'Payment Method',
+                                    'paymentMethod',
                                     <Select
-                                        value={formData.courtId?.toString() || ''}
-                                        onValueChange={(value) => handleInputChange('courtId', parseInt(value))}
-                                        disabled={courtsLoading}
+                                        value={formData.paymentMethod}
+                                        onValueChange={(value) => handleInputChange('paymentMethod', value)}
                                     >
                                         <SelectTrigger>
-                                            <SelectValue placeholder={courtsLoading ? "Loading courts..." : "Choose a court"} />
+                                            <SelectValue placeholder="Select payment method" />
                                         </SelectTrigger>
-                                        <SelectContent className="bg-white">
-                                            {filteredCourts.length === 0 ? (
-                                                <SelectItem value="no-courts" disabled>
-                                                    {courtsLoading ? "Loading..." : "No courts found"}
-                                                </SelectItem>
-                                            ) : (
-                                                filteredCourts.map((court) => (
-                                                    <SelectItem key={court.id} value={court.id.toString()}>
-                                                        <div className="flex items-center space-x-3">
-                                                            <div className="w-8 h-8 rounded-md overflow-hidden flex-shrink-0">
-                                                                {court.imageUrl ? (
-                                                                    <img 
-                                                                        src={court.imageUrl} 
-                                                                        alt={`${court.name} court`}
-                                                                        className="h-full w-full object-cover"
-                                                                        onError={(e) => {
-                                                                            const target = e.target as HTMLImageElement;
-                                                                            target.style.display = 'none';
-                                                                            const fallback = target.parentElement?.querySelector('.fallback-icon');
-                                                                            if (fallback) fallback.classList.remove('hidden');
-                                                                        }}
-                                                                    />
-                                                                ) : null}
-                                                                <div className={`w-full h-full bg-muted rounded-md flex items-center justify-center fallback-icon ${court.imageUrl ? 'hidden' : ''}`}>
-                                                                    <MapPin className="w-4 h-4 text-gray-400" />
-                                                                </div>
-                                                            </div>
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="font-medium truncate">{court.name}</div>
-                                                                <div className="text-xs text-gray-500 truncate">{court.location} - ${court.hourlyFee}/hr</div>
-                                                            </div>
-                                                        </div>
-                                                    </SelectItem>
-                                                ))
-                                            )}
+                                        <SelectContent>
+                                            <SelectItem value="CASH">Cash Payment</SelectItem>
+                                            <SelectItem value="TAP_TO_MANAGER">Tap to Manager</SelectItem>
+                                            <SelectItem value="PENDING">Pending Payment</SelectItem>
                                         </SelectContent>
                                     </Select>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Date Selection */}
-                        <div>
-                            {renderFormField(
-                                'Date',
-                                'date',
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            className={cn(
-                                                "w-full justify-start text-left font-normal",
-                                                !formData.date && "text-muted-foreground"
-                                            )}
-                                        >
-                                            <CalendarIcon className="mr-2 h-4 w-4" />
-                                            {formData.date ? format(formData.date, "PPP") : "Pick a date"}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={formData.date || undefined}
-                                            onSelect={(date) => handleInputChange('date', date)}
-                                            disabled={(date) => date < new Date()}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            )}
-                        </div>
-
-                        {/* Duration Selection */}
-                        <div>
-                            {renderFormField(
-                                'Duration',
-                                'duration',
-                                <Select
-                                    value={formData.duration?.toString() || ''}
-                                    onValueChange={(value) => handleInputChange('duration', parseInt(value))}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select duration" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {getDurationOptions().map((option) => (
-                                            <SelectItem key={option.value} value={option.value.toString()}>
-                                                <div className="flex items-center space-x-2">
-                                                    <Clock className="w-4 h-4" />
-                                                    <span>{option.label}</span>
-                                                </div>
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            )}
-                        </div>
-
-                        {/* Match Type */}
-                        <div>
-                            {renderFormField(
-                                'Match Type',
-                                'matchType',
-                                <Select
-                                    value={formData.matchType}
-                                    onValueChange={(value) => handleInputChange('matchType', value)}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select match type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="SINGLE">
-                                            <div className="flex items-center space-x-2">
-                                                <User className="w-4 h-4" />
-                                                <span>Singles Match</span>
-                                            </div>
-                                        </SelectItem>
-                                        <SelectItem value="DOUBLE">
-                                            <div className="flex items-center space-x-2">
-                                                <User className="w-4 h-4" />
-                                                <span>Doubles Match</span>
-                                            </div>
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            )}
-                        </div>
-
-                        {/* Available Time Slots */}
-                        {formData.courtId && formData.date && formData.duration && (
-                            <div className="md:col-span-2">
-                                {renderFormField(
-                                    'Available Time Slots',
-                                    'selectedSlot',
-                                    <div className="space-y-2">
-                                        {slotsLoading ? (
-                                            <div className="flex items-center justify-center p-4">
-                                                <Loader2 className="w-6 h-6 animate-spin" />
-                                                <span className="ml-2">Loading available slots...</span>
-                                            </div>
-                                        ) : availableSlots.length === 0 ? (
-                                            <div className="p-4 text-center text-gray-500 bg-gray-50 rounded-lg">
-                                                No available slots for selected date and duration
-                                            </div>
-                                        ) : (
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                                                {availableSlots.map((slot, index) => (
-                                                    <Button
-                                                        key={index}
-                                                        type="button"
-                                                        variant={formData.selectedSlot === slot ? "default" : "outline"}
-                                                        className="p-3 h-auto justify-start"
-                                                        onClick={() => handleInputChange('selectedSlot', slot)}
-                                                    >
-                                                        <div className="text-left">
-                                                            <div className="font-medium">{slot.formattedTimeRange}</div>
-                                                            <div className="text-sm text-gray-500">
-                                                                <CurrencyDisplay amount={slot.price || 0} size="sm" showSymbol />
-                                                            </div>
-                                                        </div>
-                                                    </Button>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
                                 )}
                             </div>
-                        )}
 
-                        {/* Payment Method */}
-                        <div>
-                            {renderFormField(
-                                'Payment Method',
-                                'paymentMethod',
-                                <Select
-                                    value={formData.paymentMethod}
-                                    onValueChange={(value) => handleInputChange('paymentMethod', value)}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select payment method" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="CASH">
-                                            <div className="flex items-center space-x-2">
-                                                <span>💵</span>
-                                                <span>Cash Payment</span>
-                                            </div>
-                                        </SelectItem>
-                                        <SelectItem value="TAP_TO_MANAGER">
-                                            <div className="flex items-center space-x-2">
-                                                <span>💳</span>
-                                                <span>Tap/Card to Manager</span>
-                                            </div>
-                                        </SelectItem>
-                                        <SelectItem value="PENDING">
-                                            <div className="flex items-center space-x-2">
-                                                <span>⏳</span>
-                                                <span>Pending Payment</span>
-                                            </div>
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            )}
-                        </div>
+                            {/* Notes */}
+                            <div className="md:col-span-2">
+                                {renderFormField(
+                                    'Notes (Optional)',
+                                    'notes',
+                                    <Textarea
+                                        placeholder="Add any additional notes for this booking..."
+                                        value={formData.notes}
+                                        onChange={(e) => handleInputChange('notes', e.target.value)}
+                                        rows={3}
+                                    />
+                                )}
+                            </div>
 
-                        {/* Receipt Email Options */}
-                        <div>
-                            {renderFormField(
-                                'Receipt Email',
-                                'sendReceiptEmail',
-                                <div className="space-y-3">
+                            {/* Email Settings */}
+                            <div className="md:col-span-2">
+                                <div className="space-y-4">
                                     <div className="flex items-center space-x-2">
                                         <input
                                             type="checkbox"
@@ -997,84 +712,61 @@ const loadCourts = async () => {
                                             onChange={(e) => handleInputChange('sendReceiptEmail', e.target.checked)}
                                             className="rounded border-gray-300"
                                         />
-                                        <label htmlFor="sendReceiptEmail" className="text-sm font-medium">
-                                            Send receipt via email
-                                        </label>
+                                        <Label htmlFor="sendReceiptEmail">Send receipt via email</Label>
                                     </div>
+                                    
                                     {formData.sendReceiptEmail && (
-                                        <Input
-                                            placeholder="Email address for receipt"
-                                            value={formData.customerEmail}
-                                            onChange={(e) => handleInputChange('customerEmail', e.target.value)}
-                                            type="email"
-                                        />
+                                        <div>
+                                            {renderFormField(
+                                                'Customer Email',
+                                                'customerEmail',
+                                                <Input
+                                                    type="email"
+                                                    placeholder="Enter customer email address..."
+                                                    value={formData.customerEmail}
+                                                    onChange={(e) => handleInputChange('customerEmail', e.target.value)}
+                                                />
+                                            )}
+                                        </div>
                                     )}
-                                </div>,
-                                false
-                            )}
+                                </div>
+                            </div>
                         </div>
 
-                        {/* Notes */}
-                        <div className="md:col-span-2">
-                            {renderFormField(
-                                'Notes',
-                                'notes',
-                                <Textarea
-                                    placeholder="Optional notes for this booking..."
-                                    value={formData.notes}
-                                    onChange={(e) => handleInputChange('notes', e.target.value)}
-                                    rows={3}
-                                />,
-                                false
-                            )}
-                        </div>
-                        </div>
-
-                        {/* Booking Summary */}
-                        {renderBookingSummary()}
+                        <DialogFooter className="flex gap-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsOpen(false)}
+                                disabled={isLoading}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={isLoading}
+                                className="flex items-center gap-2"
+                            >
+                                {isLoading ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <Plus className="w-4 h-4" />
+                                )}
+                                {isLoading ? 'Creating...' : 'Create Booking'}
+                            </Button>
+                        </DialogFooter>
                     </form>
-                </div>
+                </DialogContent>
+            </Dialog>
 
-                <DialogFooter className="pt-6 border-t border-border">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleClose}
-                        disabled={isLoading}
-                        className="min-w-[100px]"
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        type="submit"
-                        disabled={isLoading}
-                        onClick={handleSubmit}
-                        className="min-w-[140px] bg-primary hover:bg-primary/90"
-                    >
-                        {isLoading ? (
-                            <>
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                Creating...
-                            </>
-                        ) : (
-                            <>
-                                <Plus className="w-4 h-4 mr-2" />
-                                Create Booking
-                            </>
-                        )}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-            
             {/* Print Receipt Dialog */}
-            {receiptData && (
+            {receiptData && showPrintDialog && (
                 <PrintReceiptDialog
-                    isOpen={showPrintDialog}
-                    onClose={() => setShowPrintDialog(false)}
                     receiptData={receiptData}
+                    onClose={() => setShowPrintDialog(false)}
                 />
             )}
-        </Dialog>
+        </>
     );
 };
 
