@@ -500,8 +500,8 @@ const Landing = () => {
               return (
                 <Card key={index} className="premium-card border-0 animate-fade-in interactive-hover h-full" style={{ animationDelay: `${index * 0.1}s` }}>
                   <CardContent className="p-8 sm:p-10 text-center h-full flex flex-col">
-                    <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 tennis-gradient rounded-3xl mb-6 sm:mb-8">
-                      <IconComponent className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
+                    <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-tennis-purple-100 to-tennis-green-100 rounded-3xl mb-6 sm:mb-8">
+                      <IconComponent className="w-10 h-10 sm:w-12 sm:h-12 text-tennis-purple-600" />
                     </div>
                     <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">{benefit.title}</h3>
                     <p className="text-base sm:text-lg text-gray-600 leading-relaxed flex-1">{benefit.description}</p>
@@ -535,8 +535,8 @@ const Landing = () => {
               return (
                 <Card key={index} className="premium-card border-0 animate-fade-in interactive-hover h-full" style={{ animationDelay: `${index * 0.1}s` }}>
                   <CardContent className="p-8 sm:p-10 text-center h-full flex flex-col">
-                    <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 tennis-gradient rounded-3xl mb-6 sm:mb-8 group-hover:scale-110 transition-transform duration-300">
-                      <IconComponent className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
+                    <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-tennis-purple-100 to-tennis-green-100 rounded-3xl mb-6 sm:mb-8 group-hover:scale-110 transition-transform duration-300">
+                      <IconComponent className="w-10 h-10 sm:w-12 sm:h-12 text-tennis-purple-600" />
                     </div>
                     <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-4 sm:mb-6">{feature.title}</h3>
                     <p className="text-base sm:text-lg lg:text-xl text-gray-600 leading-relaxed flex-1">{feature.description}</p>

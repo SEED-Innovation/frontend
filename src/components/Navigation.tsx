@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, User, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import saudiFlag from '@/assets/saudi-flag.png';
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -60,6 +61,16 @@ const Navigation = () => {
             />
             <span className="text-xl font-bold text-gray-900 hidden sm:block">SEED</span>
           </Link>
+
+          {/* Saudi Flag */}
+          <div className="flex items-center ml-4">
+            <img 
+              src={saudiFlag} 
+              alt="Saudi Arabia" 
+              className="h-6 w-8 object-cover rounded-sm shadow-sm border border-gray-200"
+              title="Saudi Arabia"
+            />
+          </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6 lg:space-x-8">
