@@ -9,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { MapPin, Image, Trash2, Plus, Check, ChevronsUpDown, X } from 'lucide-react';
-import { CreateCourtRequest } from '@/lib/api/services/courtService';
+import { CreateCourtRequest, SportType } from '@/lib/api/services/courtService';
 import { toast } from '@/hooks/use-toast';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -52,9 +52,9 @@ export default function EnhancedCourtForm({
   admins, 
   adminsLoading 
 }: EnhancedCourtFormProps) {
-  const [formData, setFormData] = useState<CreateCourtRequest & { managerId?: string; sportType?: string }>({
+  const [formData, setFormData] = useState<CreateCourtRequest & { managerId?: string }>({
     name: '',
-    sportType: '',
+    sportType: 'TENNIS' as SportType,
     type: '',
     location: '',
     hourlyFee: 0,
@@ -168,10 +168,13 @@ export default function EnhancedCourtForm({
   };
 
   const isFormValid = () => {
+    const isValidSport = formData.sportType === 'TENNIS' || formData.sportType === 'PADEL';
+    const isValidType = formData.sportType === 'PADEL' || (formData.sportType === 'TENNIS' && formData.type);
+    
     return !!(
       formData.name.trim() &&
-      formData.sportType &&
-      formData.type &&
+      isValidSport &&
+      isValidType &&
       formData.location.trim() &&
       formData.hourlyFee >= 0
     );
@@ -215,7 +218,7 @@ export default function EnhancedCourtForm({
     if (success) {
       setFormData({
         name: '',
-        sportType: '',
+        sportType: 'TENNIS' as SportType,
         type: '',
         location: '',
         hourlyFee: 0,
@@ -267,53 +270,56 @@ export default function EnhancedCourtForm({
 
               <div>
                 <Label htmlFor="sportType">Sport Type *</Label>
-                <Select 
-                  value={formData.sportType} 
-                  onValueChange={(value) => handleInputChange('sportType', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select sport type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SPORT_TYPES.map(sport => (
-                      <SelectItem key={sport.value} value={sport.value}>
-                        {sport.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-4 mt-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="sportType"
+                      value="TENNIS"
+                      checked={formData.sportType === 'TENNIS'}
+                      onChange={(e) => handleInputChange('sportType', e.target.value)}
+                      className="text-primary"
+                    />
+                    <span className="flex items-center gap-1">
+                      🎾 Tennis
+                    </span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="sportType"
+                      value="PADEL"
+                      checked={formData.sportType === 'PADEL'}
+                      onChange={(e) => handleInputChange('sportType', e.target.value)}
+                      className="text-primary"
+                    />
+                    <span className="flex items-center gap-1">
+                      🟩 Padel
+                    </span>
+                  </label>
+                </div>
               </div>
 
-              <div>
-                <Label htmlFor="type">Court Type *</Label>
-                <Select 
-                  value={formData.type} 
-                  onValueChange={(value) => handleInputChange('type', value)}
-                  disabled={!formData.sportType}
-                >
-                  <SelectTrigger>
-                    <SelectValue 
-                      placeholder={!formData.sportType ? "Select sport type first" : "Select court type"} 
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {formData.sportType === 'TENNIS' && 
-                      TENNIS_COURT_TYPES.map(type => (
+              {formData.sportType === 'TENNIS' && (
+                <div>
+                  <Label htmlFor="type">Court Surface *</Label>
+                  <Select 
+                    value={formData.type} 
+                    onValueChange={(value) => handleInputChange('type', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select court surface" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TENNIS_COURT_TYPES.map(type => (
                         <SelectItem key={type.value} value={type.value}>
                           {type.label}
                         </SelectItem>
-                      ))
-                    }
-                    {formData.sportType === 'PADEL' && 
-                      PADEL_COURT_TYPES.map(type => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
-                        </SelectItem>
-                      ))
-                    }
-                  </SelectContent>
-                </Select>
-              </div>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <div>
                 <Label htmlFor="hourlyFee">Hourly Fee (SAR) *</Label>

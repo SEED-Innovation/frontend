@@ -1,10 +1,14 @@
 import { CourtTypeType } from './booking';
 
+export type SportType = 'TENNIS' | 'PADEL';
+export type TennisCourtType = 'HARD' | 'CLAY' | 'GRASS';
+
 export interface CourtResponse {
     id: number;
     name: string;
     location: string;
     type: CourtTypeType;
+    sportType?: SportType;
     hourlyFee: number;
     hasSeedSystem?: boolean;
     imageUrl?: string;

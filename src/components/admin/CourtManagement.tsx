@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
-import { courtService, Court, CreateCourtRequest, UpdateCourtRequest, SetCourtAvailabilityRequest, AdminCourtAvailabilityResponse } from '@/lib/api/services/courtService';
+import { courtService, Court, CreateCourtRequest, UpdateCourtRequest, SetCourtAvailabilityRequest, AdminCourtAvailabilityResponse, SportType } from '@/lib/api/services/courtService';
 import { adminService } from '@/services/adminService';
 import { userService } from '@/services/userService';
 import { AdminUser } from '@/types/admin';
@@ -84,22 +84,26 @@ const CourtManagement = () => {
     hasSeedSystem: '',
   });
   
+  // Sport type filter state
+  const [selectedSportType, setSelectedSportType] = useState<SportType | 'ALL'>('ALL');
+  
   // Manager filter state
   const [managerSearchOpen, setManagerSearchOpen] = useState(false);
   const [managerSearchValue, setManagerSearchValue] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
-  // Fetch courts on component mount
+  // Fetch courts on component mount and when sport type changes
   useEffect(() => {
-    fetchCourts();
+    const sportTypeParam = selectedSportType === 'ALL' ? undefined : selectedSportType;
+    fetchCourts(sportTypeParam);
     // Always fetch admins for manager assignment functionality
     fetchAdmins();
-  }, []);
+  }, [selectedSportType]);
 
-  const fetchCourts = async () => {
+  const fetchCourts = async (sportType?: SportType) => {
     try {
       setLoading(true);
-      const fetchedCourts = await courtService.getAllCourts();
+      const fetchedCourts = await courtService.getAllCourts(sportType);
       console.log('Fetched courts:', fetchedCourts);
       setCourts(fetchedCourts);
     } catch (error) {
@@ -459,7 +463,7 @@ const CourtManagement = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={fetchCourts} disabled={loading}>
+          <Button variant="outline" size="sm" onClick={() => fetchCourts(selectedSportType === 'ALL' ? undefined : selectedSportType)} disabled={loading}>
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
@@ -600,6 +604,37 @@ const CourtManagement = () => {
         </TabsList>
 
         <TabsContent value="courts" className="space-y-4">
+          {/* Sport Type Filter */}
+          <div className="flex items-center gap-2 mb-4">
+            <Label className="text-sm font-medium">Filter by Sport:</Label>
+            <div className="flex gap-2">
+              <Button
+                variant={selectedSportType === 'ALL' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedSportType('ALL')}
+                className="h-8"
+              >
+                All Sports
+              </Button>
+              <Button
+                variant={selectedSportType === 'TENNIS' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedSportType('TENNIS')}
+                className="h-8 flex items-center gap-1"
+              >
+                🎾 Tennis
+              </Button>
+              <Button
+                variant={selectedSportType === 'PADEL' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedSportType('PADEL')}
+                className="h-8 flex items-center gap-1"
+              >
+                🟩 Padel
+              </Button>
+            </div>
+          </div>
+
           {/* Advanced Search and Filters */}
           <div className="space-y-4">
             {/* Main Search Bar */}
@@ -1021,12 +1056,20 @@ const CourtManagement = () => {
                   
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                     <CardTitle className="text-lg">{court.name}</CardTitle>
+                    <Badge 
+                      variant="secondary" 
+                      className="text-xs"
+                    >
+                      {court.sportType === 'PADEL' ? '🟩 Padel' : '🎾 Tennis'}
+                    </Badge>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Type:</span>
-                      <span className="font-medium">{court.type}</span>
-                    </div>
+                    {court.sportType === 'TENNIS' && court.type && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Surface:</span>
+                        <span className="font-medium">{court.type}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Location:</span>
                       <span className="font-medium">{court.location}</span>

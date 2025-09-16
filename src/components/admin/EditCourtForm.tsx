@@ -9,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { X, Upload, Check, ChevronsUpDown } from 'lucide-react';
-import { Court, UpdateCourtRequest } from '@/lib/api/services/courtService';
+import { Court, UpdateCourtRequest, SportType } from '@/lib/api/services/courtService';
 import { toast } from '@/hooks/use-toast';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -32,10 +32,18 @@ const AMENITIES_OPTIONS = [
   'WIFI', 'AC', 'SOUND_SYSTEM', 'SEATING', 'WATER_FOUNTAIN'
 ];
 
-const COURT_TYPES = [
+const SPORT_TYPES = [
+  { value: 'TENNIS', label: 'Tennis' },
+  { value: 'PADEL', label: 'Padel' }
+];
+
+const TENNIS_COURT_TYPES = [
   { value: 'HARD', label: 'Hard Court' },
   { value: 'CLAY', label: 'Clay Court' },
-  { value: 'GRASS', label: 'Grass Court' },
+  { value: 'GRASS', label: 'Grass Court' }
+];
+
+const PADEL_COURT_TYPES = [
   { value: 'INDOOR', label: 'Indoor Court' },
   { value: 'OUTDOOR', label: 'Outdoor Court' }
 ];
@@ -155,9 +163,12 @@ export default function EditCourtForm({
   };
 
   const isFormValid = () => {
+    const sport = formData.sportType || 'TENNIS';
+    const isValidType = sport === 'PADEL' || (sport === 'TENNIS' && formData.type);
+    
     return !!(
       formData.name?.trim() &&
-      formData.type &&
+      isValidType &&
       formData.location?.trim() &&
       (formData.hourlyFee === undefined || formData.hourlyFee > 0)
     );
@@ -185,8 +196,15 @@ export default function EditCourtForm({
       if (formData.location && formData.location !== court?.location) {
         submitData.location = formData.location;
       }
-      if (formData.type && formData.type !== court?.type) {
-        submitData.type = formData.type;
+      // Handle sport type and court type together
+      const sport = formData.sportType || 'TENNIS';
+      if (sport !== court?.sportType) {
+        submitData.sportType = sport;
+      }
+      
+      const normalizedType = sport === 'PADEL' ? null : (formData.type || 'HARD');
+      if (normalizedType !== court?.type) {
+        submitData.type = normalizedType;
       }
       if (formData.hourlyFee !== undefined && formData.hourlyFee !== court?.hourlyFee) {
         submitData.hourlyFee = formData.hourlyFee;
@@ -269,20 +287,60 @@ export default function EditCourtForm({
               </div>
 
               <div>
-                <Label htmlFor="type">Court Type *</Label>
-                <Select value={formData.type || ''} onValueChange={(value) => handleInputChange('type', value as CourtType)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select court type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {COURT_TYPES.map(type => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="sportType">Sport Type</Label>
+                {hasPermission('SUPER_ADMIN') ? (
+                  <div className="flex gap-4 mt-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="sportType"
+                        value="TENNIS"
+                        checked={(formData.sportType || 'TENNIS') === 'TENNIS'}
+                        onChange={(e) => handleInputChange('sportType', e.target.value as SportType)}
+                        className="text-primary"
+                      />
+                      <span className="flex items-center gap-1">
+                        🎾 Tennis
+                      </span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="sportType"
+                        value="PADEL"
+                        checked={(formData.sportType || 'TENNIS') === 'PADEL'}
+                        onChange={(e) => handleInputChange('sportType', e.target.value as SportType)}
+                        className="text-primary"
+                      />
+                      <span className="flex items-center gap-1">
+                        🟩 Padel
+                      </span>
+                    </label>
+                  </div>
+                ) : (
+                  <Badge variant="secondary" className="w-fit mt-2">
+                    {(formData.sportType || 'TENNIS') === 'PADEL' ? '🟩 Padel' : '🎾 Tennis'}
+                  </Badge>
+                )}
               </div>
+
+              {(formData.sportType || 'TENNIS') === 'TENNIS' && (
+                <div>
+                  <Label htmlFor="type">Court Surface *</Label>
+                  <Select value={formData.type || ''} onValueChange={(value) => handleInputChange('type', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select court surface" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TENNIS_COURT_TYPES.map(type => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <div>
                 <Label htmlFor="hourlyFee">Hourly Fee (SAR) *</Label>

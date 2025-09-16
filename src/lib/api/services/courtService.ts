@@ -1,9 +1,12 @@
 
+export type SportType = 'TENNIS' | 'PADEL';
+
 export interface Court {
     id: string;
     name: string;
     location: string;
     type: string;
+    sportType?: SportType;
     hourlyFee: number;
     hasSeedSystem: boolean;
     imageUrl?: string;
@@ -33,7 +36,8 @@ export interface Court {
 export interface CreateCourtRequest {
     name: string;
     location: string;
-    type: string;
+    type: string | null;
+    sportType?: SportType;
     hourlyFee: number;
     hasSeedSystem: boolean;
     amenities: string[];
@@ -47,7 +51,8 @@ export interface CreateCourtRequest {
 export interface UpdateCourtRequest {
     name?: string;
     location?: string;
-    type?: string;
+    type?: string | null;
+    sportType?: SportType;
     hourlyFee?: number;
     hasSeedSystem?: boolean;
     amenities?: string[];
@@ -119,8 +124,13 @@ class CourtService {
      * Get all courts - role-based filtering happens on backend
      * SUPER_ADMIN sees all courts, ADMIN sees only managed courts
      */
-    async getAllCourts(): Promise<Court[]> {
-        const response = await fetch(this.baseUrl, {
+    async getAllCourts(sportType?: SportType): Promise<Court[]> {
+        const url = new URL(this.baseUrl);
+        if (sportType) {
+            url.searchParams.append('sportType', sportType);
+        }
+
+        const response = await fetch(url.toString(), {
             method: 'GET',
             headers: this.getAuthHeaders()
         });
@@ -168,6 +178,7 @@ class CourtService {
             appendIf("name", courtData.name);
             appendIf("location", courtData.location);
             appendIf("type", courtData.type);
+            appendIf("sportType", courtData.sportType);
             appendIf("hourlyFee", courtData.hourlyFee);
             appendIf("hasSeedSystem", courtData.hasSeedSystem);
             appendIf("description", courtData.description);
@@ -236,6 +247,7 @@ class CourtService {
             appendIf("name", data.name);
             appendIf("location", data.location);
             appendIf("type", data.type);
+            appendIf("sportType", data.sportType);
             appendIf("hourlyFee", data.hourlyFee);
             appendIf("hasSeedSystem", data.hasSeedSystem);
             appendIf("description", data.description);
