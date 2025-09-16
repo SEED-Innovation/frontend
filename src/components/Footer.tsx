@@ -2,6 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Shield } from 'lucide-react';
+import clientFlag from '@/assets/client-flag.png';
 
 const Footer = () => {
   return (
@@ -15,6 +16,13 @@ const Footer = () => {
                 <span className="text-white font-bold text-sm">S</span>
               </div>
               <span className="text-xl font-bold">SEED</span>
+              {/* Client Flag */}
+              <img 
+                src={clientFlag} 
+                alt="Saudi Arabia" 
+                className="h-4 w-6 object-cover rounded-sm shadow-sm border border-gray-600 ml-2"
+                title="Saudi Arabia"
+              />
             </div>
             <p className="text-gray-400 mb-4">
               AI-powered tennis analytics platform that helps players improve their game through intelligent court monitoring and performance insights.
