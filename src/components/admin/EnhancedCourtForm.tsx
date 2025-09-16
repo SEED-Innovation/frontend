@@ -29,10 +29,18 @@ const AMENITIES_OPTIONS = [
   'WIFI', 'AC', 'SOUND_SYSTEM', 'SEATING', 'WATER_FOUNTAIN'
 ];
 
-const COURT_TYPES = [
+const SPORT_TYPES = [
+  { value: 'TENNIS', label: 'Tennis' },
+  { value: 'PADEL', label: 'Padel' }
+];
+
+const TENNIS_COURT_TYPES = [
   { value: 'HARD', label: 'Hard Court' },
   { value: 'CLAY', label: 'Clay Court' },
-  { value: 'GRASS', label: 'Grass Court' },
+  { value: 'GRASS', label: 'Grass Court' }
+];
+
+const PADEL_COURT_TYPES = [
   { value: 'INDOOR', label: 'Indoor Court' },
   { value: 'OUTDOOR', label: 'Outdoor Court' }
 ];
@@ -44,8 +52,9 @@ export default function EnhancedCourtForm({
   admins, 
   adminsLoading 
 }: EnhancedCourtFormProps) {
-  const [formData, setFormData] = useState<CreateCourtRequest & { managerId?: string }>({
+  const [formData, setFormData] = useState<CreateCourtRequest & { managerId?: string; sportType?: string }>({
     name: '',
+    sportType: '',
     type: '',
     location: '',
     hourlyFee: 0,
@@ -66,7 +75,14 @@ export default function EnhancedCourtForm({
   const mapRef = useRef<HTMLDivElement>(null);
 
   const handleInputChange = (field: keyof typeof formData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
+      // Reset court type when sport type changes
+      if (field === 'sportType') {
+        updated.type = '';
+      }
+      return updated;
+    });
   };
 
   const handleAmenityToggle = (amenity: string) => {
@@ -154,6 +170,7 @@ export default function EnhancedCourtForm({
   const isFormValid = () => {
     return !!(
       formData.name.trim() &&
+      formData.sportType &&
       formData.type &&
       formData.location.trim() &&
       formData.hourlyFee >= 0
@@ -198,6 +215,7 @@ export default function EnhancedCourtForm({
     if (success) {
       setFormData({
         name: '',
+        sportType: '',
         type: '',
         location: '',
         hourlyFee: 0,
@@ -248,17 +266,51 @@ export default function EnhancedCourtForm({
               </div>
 
               <div>
-                <Label htmlFor="type">Court Type *</Label>
-                <Select onValueChange={(value) => handleInputChange('type', value)}>
+                <Label htmlFor="sportType">Sport Type *</Label>
+                <Select 
+                  value={formData.sportType} 
+                  onValueChange={(value) => handleInputChange('sportType', value)}
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select court type" />
+                    <SelectValue placeholder="Select sport type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {COURT_TYPES.map(type => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
+                    {SPORT_TYPES.map(sport => (
+                      <SelectItem key={sport.value} value={sport.value}>
+                        {sport.label}
                       </SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="type">Court Type *</Label>
+                <Select 
+                  value={formData.type} 
+                  onValueChange={(value) => handleInputChange('type', value)}
+                  disabled={!formData.sportType}
+                >
+                  <SelectTrigger>
+                    <SelectValue 
+                      placeholder={!formData.sportType ? "Select sport type first" : "Select court type"} 
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {formData.sportType === 'TENNIS' && 
+                      TENNIS_COURT_TYPES.map(type => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))
+                    }
+                    {formData.sportType === 'PADEL' && 
+                      PADEL_COURT_TYPES.map(type => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))
+                    }
                   </SelectContent>
                 </Select>
               </div>
