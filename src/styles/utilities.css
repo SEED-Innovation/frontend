@@ -1,6 +1,8 @@
 
 /* SEED Tennis Design System - Utilities & Responsive Styles */
 
+@tailwind components;
+
 @layer components {
   /* Responsive Grid Utilities */
   .responsive-grid {

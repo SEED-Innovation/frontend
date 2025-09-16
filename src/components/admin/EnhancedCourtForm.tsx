@@ -194,7 +194,7 @@ export default function EnhancedCourtForm({
       name: formData.name,
       location: formData.location,
       sportType: formData.sportType,
-      type: formData.sportType === 'PADEL' ? null : formData.type,
+      type: formData.type,
       hourlyFee: formData.hourlyFee,
       hasSeedSystem: formData.hasSeedSystem,
       amenities: formData.amenities,

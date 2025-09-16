@@ -604,34 +604,50 @@ const CourtManagement = () => {
         </TabsList>
 
         <TabsContent value="courts" className="space-y-4">
-          {/* Sport Type Filter */}
-          <div className="flex items-center gap-2 mb-4">
-            <Label className="text-sm font-medium">Filter by Sport:</Label>
-            <div className="flex gap-2">
+          {/* Enhanced Sport Type Filter */}
+          <div className="space-y-4 p-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-xl border border-primary/10 mb-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                🏟️ Sport Type Filter
+              </h3>
+              <Badge variant="outline" className="text-xs">
+                {selectedSportType === 'ALL' ? 'All' : selectedSportType}
+              </Badge>
+            </div>
+            <div className="flex gap-3">
               <Button
-                variant={selectedSportType === 'ALL' ? 'default' : 'outline'}
+                variant={selectedSportType === 'ALL' ? 'default' : 'secondary'}
                 size="sm"
                 onClick={() => setSelectedSportType('ALL')}
-                className="h-8"
+                className="h-10 px-4 font-medium transition-all duration-200 hover:scale-105"
               >
+                <span className="mr-2">🌟</span>
                 All Sports
               </Button>
               <Button
-                variant={selectedSportType === 'TENNIS' ? 'default' : 'outline'}
+                variant={selectedSportType === 'TENNIS' ? 'default' : 'secondary'}
                 size="sm"
                 onClick={() => setSelectedSportType('TENNIS')}
-                className="h-8 flex items-center gap-1"
+                className="h-10 px-4 font-medium transition-all duration-200 hover:scale-105"
               >
-                🎾 Tennis
+                <span className="mr-2">🎾</span>
+                Tennis
               </Button>
               <Button
-                variant={selectedSportType === 'PADEL' ? 'default' : 'outline'}
+                variant={selectedSportType === 'PADEL' ? 'default' : 'secondary'}
                 size="sm"
                 onClick={() => setSelectedSportType('PADEL')}
-                className="h-8 flex items-center gap-1"
+                className="h-10 px-4 font-medium transition-all duration-200 hover:scale-105"
               >
-                🟩 Padel
+                <span className="mr-2">🥎</span>
+                Padel
               </Button>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {selectedSportType === 'ALL' 
+                ? `Showing all ${courts.length} courts` 
+                : `Showing ${courts.filter(court => court.sportType === selectedSportType).length} ${selectedSportType.toLowerCase()} courts`
+              }
             </div>
           </div>
 

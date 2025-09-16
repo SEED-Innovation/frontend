@@ -1,6 +1,8 @@
 
 /* SEED Tennis Design System - Component Styles */
 
+@tailwind components;
+
 @layer components {
   .glass-card {
     @apply bg-white/20 backdrop-blur-xl border border-white/30 shadow-2xl;
