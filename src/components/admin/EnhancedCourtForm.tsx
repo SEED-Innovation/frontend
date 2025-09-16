@@ -193,7 +193,8 @@ export default function EnhancedCourtForm({
     const submitData: CreateCourtRequest = {
       name: formData.name,
       location: formData.location,
-      type: formData.type,
+      sportType: formData.sportType,
+      type: formData.sportType === 'PADEL' ? null : formData.type,
       hourlyFee: formData.hourlyFee,
       hasSeedSystem: formData.hasSeedSystem,
       amenities: formData.amenities,
