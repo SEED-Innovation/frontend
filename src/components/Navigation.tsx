@@ -54,6 +54,13 @@ const Navigation = () => {
             to="/" 
             className="flex items-center space-x-3 hover:scale-105 transition-transform duration-300"
           >
+            {/* Saudi Flag - placed to the left of logo */}
+            <img 
+              src={saudiFlag} 
+              alt="Saudi Arabia" 
+              className="h-6 w-9 object-cover rounded-sm shadow-md border border-gray-200 hover:scale-105 transition-transform duration-300"
+              title="Saudi Arabia"
+            />
             <img 
               src="/lovable-uploads/9b877c55-5518-40cb-ba2c-a68fccfbe495.png" 
               alt="SEED Logo" 
@@ -86,15 +93,6 @@ const Navigation = () => {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            {/* Saudi Flag - strategically placed before actions */}
-            <div className="flex items-center mr-2">
-              <img 
-                src={saudiFlag} 
-                alt="Saudi Arabia" 
-                className="h-6 w-9 object-cover rounded-sm shadow-md border border-gray-200 hover:scale-105 transition-transform duration-300"
-                title="Saudi Arabia"
-              />
-            </div>
             <Link to="/profile">
               <Button variant="ghost" size="sm" className="text-gray-700 hover:text-tennis-purple-600 hover:bg-tennis-purple-50 transition-all duration-300">
                 <User className="w-4 h-4 mr-2" />
