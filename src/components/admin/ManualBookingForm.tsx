@@ -760,8 +760,9 @@ const ManualBookingForm: React.FC<ManualBookingFormProps> = ({
             </Dialog>
 
             {/* Print Receipt Dialog */}
-            {receiptData && showPrintDialog && (
+            {receiptData && (
                 <PrintReceiptDialog
+                    isOpen={showPrintDialog}
                     receiptData={receiptData}
                     onClose={() => setShowPrintDialog(false)}
                 />
