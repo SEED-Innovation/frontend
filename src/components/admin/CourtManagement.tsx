@@ -92,18 +92,17 @@ const CourtManagement = () => {
   const [managerSearchValue, setManagerSearchValue] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
-  // Fetch courts on component mount and when sport type changes
+  // Fetch courts on component mount (no longer filter by sport type at API level)
   useEffect(() => {
-    const sportTypeParam = selectedSportType === 'ALL' ? undefined : selectedSportType;
-    fetchCourts(sportTypeParam);
+    fetchCourts(); // Fetch all courts, filtering will happen locally
     // Always fetch admins for manager assignment functionality
     fetchAdmins();
-  }, [selectedSportType]);
+  }, []); // Remove selectedSportType dependency since filtering is now local
 
-  const fetchCourts = async (sportType?: SportType) => {
+  const fetchCourts = async () => {
     try {
       setLoading(true);
-      const fetchedCourts = await courtService.getAllCourts(sportType);
+      const fetchedCourts = await courtService.getAllCourts(); // Remove sportType parameter
       console.log('Fetched courts:', fetchedCourts);
       setCourts(fetchedCourts);
     } catch (error) {
@@ -350,6 +349,11 @@ const CourtManagement = () => {
 
   // Advanced filtering logic
   const filteredCourts = courts.filter((court) => {
+    // Sport type filter
+    if (selectedSportType !== 'ALL' && court.sportType !== selectedSportType) {
+      return false;
+    }
+
     // Search term filter
     if (filters.searchTerm) {
       const searchLower = filters.searchTerm.toLowerCase();
@@ -463,7 +467,7 @@ const CourtManagement = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => fetchCourts(selectedSportType === 'ALL' ? undefined : selectedSportType)} disabled={loading}>
+          <Button variant="outline" size="sm" onClick={() => fetchCourts()} disabled={loading}>
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
