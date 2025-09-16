@@ -1,331 +1,464 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, User, Mail, Phone, Check, ChevronDown, X, Loader2 } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { cn } from '@/lib/utils';
-import { userService } from '@/services';
+import { Badge } from '@/components/ui/badge';
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from '@/components/ui/command';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+    Search,
+    User,
+    Mail,
+    Phone,
+    Check,
+    ChevronsUpDown,
+    X,
+    Loader2
+} from 'lucide-react';
+
 import { UserResponse } from '@/types/user';
+import { userService } from '@/services';
+import { cn } from '@/lib/utils';
 
 interface UserSearchInputProps {
-  onUserSelect: (user: UserResponse | null) => void;
-  selectedUser?: UserResponse | null;
-  placeholder?: string;
-  className?: string;
-  disabled?: boolean;
-  allowClear?: boolean;
+    onUserSelect: (user: UserResponse) => void;
+    selectedUser?: UserResponse | null;
+    placeholder?: string;
+    className?: string;
+    disabled?: boolean;
+    allowClear?: boolean;
+}
+
+interface UserSearchState {
+    open: boolean;
+    loading: boolean;
+    searchTerm: string;
+    users: UserResponse[];
+    recentUsers: UserResponse[];
 }
 
 const UserSearchInput: React.FC<UserSearchInputProps> = ({
-  onUserSelect,
-  selectedUser,
-  placeholder = "Search users...",
-  className = "",
-  disabled = false,
-  allowClear = true
+    onUserSelect,
+    selectedUser = null,
+    placeholder = "Search for a user...",
+    className = "",
+    disabled = false,
+    allowClear = true
 }) => {
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState<UserResponse[]>([]);
-  const [recentUsers, setRecentUsers] = useState<UserResponse[]>([]);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  
-  const searchTimeoutRef = useRef<NodeJS.Timeout>();
-  const inputRef = useRef<HTMLInputElement>(null);
+    // ================================
+    // 🏗️ STATE MANAGEMENT
+    // ================================
+    
+    const [state, setState] = useState<UserSearchState>({
+        open: false,
+        loading: false,
+        searchTerm: '',
+        users: [],
+        recentUsers: []
+    });
 
-  const ITEMS_PER_PAGE = 6;
+    const searchTimeoutRef = useRef<NodeJS.Timeout>();
+    const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (open && recentUsers.length === 0) {
-      loadRecentUsers();
-    }
+    // ================================
+    // 🔄 EFFECTS
+    // ================================
+    
+    useEffect(() => {
+        // Load recent users on component mount
+        loadRecentUsers();
+        
+        // Cleanup timeout on unmount
+        return () => {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+        };
+    }, []);
 
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
+    useEffect(() => {
+        // Debounced search when search term changes
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+
+        if (state.searchTerm.trim().length >= 2) {
+            searchTimeoutRef.current = setTimeout(() => {
+                searchUsers(state.searchTerm);
+            }, 300);
+        } else {
+            setState(prev => ({ ...prev, users: [] }));
+        }
+    }, [state.searchTerm]);
+
+    // ================================
+    // 🔧 DATA LOADING FUNCTIONS
+    // ================================
+    
+    const loadRecentUsers = async () => {
+        try {
+            console.log('📋 Loading recent users...');
+            
+            // Load recently active users or frequently booked users
+            const recentUsers = await userService.getRecentUsers();
+            
+            setState(prev => ({ 
+                ...prev, 
+                recentUsers: recentUsers.slice(0, 5) // Limit to 5 recent users
+            }));
+            
+            console.log('✅ Recent users loaded:', recentUsers);
+            
+        } catch (error) {
+            console.error('❌ Failed to load recent users:', error);
+            
+            // Fallback to empty array
+            setState(prev => ({ ...prev, recentUsers: [] }));
+        }
     };
-  }, [open]);
 
-  useEffect(() => {
-    if (searchTerm.trim()) {
-      // Debounce search
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-      
-      searchTimeoutRef.current = setTimeout(() => {
-        searchUsersWithPagination(searchTerm, 1);
-      }, 300);
-    } else {
-      setSearchResults([]);
-      setPage(1);
-      setHasMore(true);
-    }
-  }, [searchTerm]);
+    const searchUsers = async (searchTerm: string) => {
+        setState(prev => ({ ...prev, loading: true }));
+        
+        try {
+            console.log('🔍 Searching users:', searchTerm);
+            
+            const users = await userService.searchUsers({
+                query: searchTerm,
+                limit: 10
+            });
+            
+            setState(prev => ({ 
+                ...prev, 
+                users: users,
+                loading: false 
+            }));
+            
+            console.log('✅ Users found:', users);
+            
+        } catch (error) {
+            console.error('❌ Failed to search users:', error);
+            
+            setState(prev => ({ 
+                ...prev, 
+                users: [],
+                loading: false 
+            }));
+        }
+    };
 
-  const loadRecentUsers = async () => {
-    try {
-      setLoading(true);
-      const response = await userService.getAllUsers();
-      // Take first 6 as "recent"
-      setRecentUsers(response?.slice(0, ITEMS_PER_PAGE) || []);
-    } catch (error) {
-      console.error('Failed to load recent users:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    // ================================
+    // 🎯 EVENT HANDLERS
+    // ================================
+    
+    const handleSearchChange = (value: string) => {
+        setState(prev => ({ ...prev, searchTerm: value }));
+    };
 
-  const searchUsersWithPagination = async (term: string, pageNum: number = 1) => {
-    try {
-      setLoading(true);
-      const response = await userService.getAllUsers();
-      
-      // Client-side filtering for search
-      const filtered = response.filter(user =>
-        (user.fullName?.toLowerCase() || '').includes(term.toLowerCase()) ||
-        (user.email?.toLowerCase() || '').includes(term.toLowerCase())
-      );
+    const handleUserSelect = (user: UserResponse) => {
+        console.log('👤 User selected:', user);
+        
+        onUserSelect(user);
+        
+        setState(prev => ({ 
+            ...prev, 
+            open: false,
+            searchTerm: '',
+            users: []
+        }));
 
-      // Paginate results
-      const startIndex = (pageNum - 1) * ITEMS_PER_PAGE;
-      const endIndex = startIndex + ITEMS_PER_PAGE;
-      const paginatedResults = filtered.slice(startIndex, endIndex);
+        // Add to recent users (avoid duplicates)
+        setState(prev => ({
+            ...prev,
+            recentUsers: [
+                user,
+                ...prev.recentUsers.filter(u => u.id !== user.id)
+            ].slice(0, 5)
+        }));
+    };
 
-      if (pageNum === 1) {
-        setSearchResults(paginatedResults);
-      } else {
-        setSearchResults(prev => [...prev, ...paginatedResults]);
-      }
+    const handleClearSelection = () => {
+        console.log('🗑️ Clearing user selection');
+        
+        // Create empty user to clear selection
+        onUserSelect({} as UserResponse);
+        
+        setState(prev => ({ 
+            ...prev, 
+            searchTerm: '',
+            users: []
+        }));
+        
+        if (inputRef.current) {
+            inputRef.current.focus();
+        }
+    };
 
-      setHasMore(endIndex < filtered.length);
-      setPage(pageNum);
-    } catch (error) {
-      console.error('Failed to search users:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const handleOpenChange = (open: boolean) => {
+        setState(prev => ({ ...prev, open }));
+        
+        if (!open) {
+            setState(prev => ({ 
+                ...prev, 
+                searchTerm: '',
+                users: []
+            }));
+        }
+    };
 
-  const loadMore = () => {
-    if (hasMore && !loading && searchTerm.trim()) {
-      searchUsersWithPagination(searchTerm, page + 1);
-    }
-  };
+    // ================================
+    // 🔧 HELPER FUNCTIONS
+    // ================================
+    
+    const getUserDisplayName = (user: UserResponse) => {
+        return user.fullName || user.email;
+    };
 
-  const handleSearchChange = (value: string) => {
-    setSearchTerm(value);
-  };
+    const getUserInitials = (user: UserResponse) => {
+        const fullName = getUserDisplayName(user);
+        return fullName
+            .split(' ')
+            .map(name => name[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2);
+    };
 
-  const handleUserSelect = (user: UserResponse) => {
-    onUserSelect(user);
-    setOpen(false);
-    setSearchTerm('');
-  };
+    const highlightMatch = (text: string, searchTerm: string) => {
+        if (!searchTerm) return text;
+        
+        const regex = new RegExp(`(${searchTerm})`, 'gi');
+        const parts = text.split(regex);
+        
+        return parts.map((part, index) => 
+            regex.test(part) ? (
+                <span key={index} className="bg-yellow-200 text-yellow-800 font-medium">
+                    {part}
+                </span>
+            ) : part
+        );
+    };
 
-  const handleClearSelection = () => {
-    onUserSelect(null);
-  };
-
-  const handleOpenChange = (newOpen: boolean) => {
-    setOpen(newOpen);
-    if (!newOpen) {
-      setSearchTerm('');
-      setSearchResults([]);
-      setPage(1);
-      setHasMore(true);
-    }
-  };
-
-  const getUserDisplayName = (user: UserResponse) => {
-    return user.fullName || user.email || 'Unknown User';
-  };
-
-  const getUserInitials = (user: UserResponse) => {
-    const name = getUserDisplayName(user);
-    return name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .substring(0, 2)
-      .toUpperCase();
-  };
-
-  const highlightMatch = (text: string, term: string) => {
-    if (!term) return text;
-    const regex = new RegExp(`(${term})`, 'gi');
-    return text.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-800">$1</mark>');
-  };
-
-  const renderUserItem = (user: UserResponse, isRecent = false) => (
-    <CommandItem
-      key={`${isRecent ? 'recent' : 'search'}-${user.id}`}
-      value={getUserDisplayName(user)}
-      onSelect={() => handleUserSelect(user)}
-      className="flex items-center gap-3 p-3 cursor-pointer hover:bg-accent"
-    >
-      <Avatar className="h-8 w-8">
-        <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${getUserDisplayName(user)}`} />
-        <AvatarFallback className="text-xs">
-          {getUserInitials(user)}
-        </AvatarFallback>
-      </Avatar>
-      
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate" 
-           dangerouslySetInnerHTML={{ 
-             __html: highlightMatch(getUserDisplayName(user), searchTerm) 
-           }} 
-        />
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Mail className="h-3 w-3" />
-          <span className="truncate"
-                dangerouslySetInnerHTML={{ 
-                  __html: highlightMatch(user.email, searchTerm) 
-                }} 
-          />
-          {isRecent && (
-            <Badge variant="outline" className="text-xs">Recent</Badge>
-          )}
-        </div>
-        {user.phone && (
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Phone className="h-3 w-3" />
-            <span>{user.phone}</span>
-          </div>
-        )}
-      </div>
-      
-      <div className="flex items-center gap-2">
-        {selectedUser?.id === user.id && (
-          <Check className="h-4 w-4 text-primary" />
-        )}
-      </div>
-    </CommandItem>
-  );
-
-  const renderSelectedUser = () => (
-    <div className={cn("flex items-center gap-2 p-2 border rounded-md bg-background", className)}>
-      <Avatar className="h-6 w-6">
-        <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${getUserDisplayName(selectedUser!)}`} />
-        <AvatarFallback className="text-xs">
-          {getUserInitials(selectedUser!)}
-        </AvatarFallback>
-      </Avatar>
-      
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate">{getUserDisplayName(selectedUser!)}</p>
-        <p className="text-xs text-muted-foreground truncate">{selectedUser?.email}</p>
-      </div>
-      
-      {allowClear && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleClearSelection}
-          className="h-6 w-6 p-0 hover:bg-muted"
-        >
-          <span className="sr-only">Clear selection</span>
-          ×
-        </Button>
-      )}
-    </div>
-  );
-
-  const renderSearchContent = () => (
-    <Command shouldFilter={false}>
-      <CommandInput
-        ref={inputRef}
-        placeholder={placeholder}
-        value={searchTerm}
-        onValueChange={handleSearchChange}
-        className="border-0 focus:ring-0"
-      />
-      
-      <CommandList className="max-h-[300px] overflow-auto">
-        {loading && searchTerm.trim() && (
-          <div className="flex items-center justify-center py-6">
-            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            <span className="text-sm text-muted-foreground">Searching users...</span>
-          </div>
-        )}
-
-        {!searchTerm.trim() && !loading && (
-          <CommandGroup heading="Recent Users">
-            {recentUsers.length > 0 ? (
-              recentUsers.map(user => renderUserItem(user, true))
-            ) : (
-              <div className="flex items-center justify-center py-6">
-                <User className="h-8 w-8 text-muted-foreground/50" />
-                <span className="text-sm text-muted-foreground ml-2">No recent users</span>
-              </div>
-            )}
-          </CommandGroup>
-        )}
-
-        {searchTerm.trim() && !loading && (
-          <CommandGroup heading={`Search Results (${searchResults.length}${hasMore ? '+' : ''})`}>
-            {searchResults.length > 0 ? (
-              <>
-                {searchResults.map(user => renderUserItem(user))}
-                {hasMore && (
-                  <CommandItem onSelect={loadMore} className="justify-center py-3">
-                    <Button variant="ghost" size="sm" onClick={loadMore}>
-                      Load more users...
-                    </Button>
-                  </CommandItem>
-                )}
-              </>
-            ) : (
-              <CommandEmpty>
-                <div className="flex flex-col items-center py-6">
-                  <Search className="h-8 w-8 text-muted-foreground/50" />
-                  <span className="text-sm text-muted-foreground mt-2">
-                    No users found for "{searchTerm}"
-                  </span>
+    // ================================
+    // 🎨 RENDER METHODS
+    // ================================
+    
+    const renderUserItem = (user: UserResponse, isRecent = false) => {
+        const displayName = getUserDisplayName(user);
+        const initials = getUserInitials(user);
+        
+        return (
+            <CommandItem
+                key={`${isRecent ? 'recent' : 'search'}-${user.id}`}
+                value={`${user.id}-${displayName}-${user.email}`}
+                onSelect={() => handleUserSelect(user)}
+                className="flex items-center space-x-3 p-3 cursor-pointer"
+            >
+                <Avatar className="h-8 w-8">
+                    <AvatarImage 
+                        src={`https://api.dicebear.com/7.x/initials/svg?seed=${displayName}`} 
+                    />
+                    <AvatarFallback className="text-xs">
+                        {initials}
+                    </AvatarFallback>
+                </Avatar>
+                
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2">
+                        <p className="font-medium text-sm truncate">
+                            {state.searchTerm ? 
+                                highlightMatch(displayName, state.searchTerm) : 
+                                displayName
+                            }
+                        </p>
+                        {isRecent && (
+                            <Badge variant="secondary" className="text-xs">
+                                Recent
+                            </Badge>
+                        )}
+                    </div>
+                    
+                    <div className="flex items-center text-xs text-gray-500 mt-1">
+                        <Mail className="w-3 h-3 mr-1" />
+                        <span className="truncate">
+                            {state.searchTerm ? 
+                                highlightMatch(user.email, state.searchTerm) : 
+                                user.email
+                            }
+                        </span>
+                    </div>
+                    
+                    {user.phone && (
+                        <div className="flex items-center text-xs text-gray-500 mt-1">
+                            <Phone className="w-3 h-3 mr-1" />
+                            <span>{user.phone}</span>
+                        </div>
+                    )}
                 </div>
-              </CommandEmpty>
-            )}
-          </CommandGroup>
-        )}
-      </CommandList>
-    </Command>
-  );
+                
+                <Check className={cn(
+                    "ml-auto h-4 w-4",
+                    selectedUser?.id === user.id ? "opacity-100" : "opacity-0"
+                )} />
+            </CommandItem>
+        );
+    };
 
-  if (selectedUser && !open) {
-    return renderSelectedUser();
-  }
+    const renderSelectedUser = () => {
+        if (!selectedUser || !selectedUser.id) return null;
+        
+        const displayName = getUserDisplayName(selectedUser);
+        const initials = getUserInitials(selectedUser);
+        
+        return (
+            <div className="flex items-center space-x-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <Avatar className="h-8 w-8">
+                    <AvatarImage 
+                        src={`https://api.dicebear.com/7.x/initials/svg?seed=${displayName}`} 
+                    />
+                    <AvatarFallback className="text-xs">
+                        {initials}
+                    </AvatarFallback>
+                </Avatar>
+                
+                <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm text-blue-900 truncate">
+                        {displayName}
+                    </p>
+                    <div className="flex items-center text-xs text-blue-600 mt-1">
+                        <Mail className="w-3 h-3 mr-1" />
+                        <span className="truncate">{selectedUser.email}</span>
+                    </div>
+                </div>
+                
+                {allowClear && (
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleClearSelection}
+                        className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800 hover:bg-blue-100"
+                    >
+                        <X className="h-3 w-3" />
+                    </Button>
+                )}
+            </div>
+        );
+    };
 
-  return (
-    <Popover open={open} onOpenChange={handleOpenChange}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          disabled={disabled}
-          className={cn("justify-between", className)}
-        >
-          <div className="flex items-center gap-2">
-            <User className="h-4 w-4 text-muted-foreground" />
-            <span className="truncate">
-              {selectedUser ? getUserDisplayName(selectedUser) : placeholder}
-            </span>
-          </div>
-          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      
-      <PopoverContent className="w-[400px] p-0" align="start">
-        {renderSearchContent()}
-      </PopoverContent>
-    </Popover>
-  );
+    const renderSearchContent = () => {
+        const hasResults = state.users.length > 0;
+        const hasRecentUsers = state.recentUsers.length > 0;
+        const isSearching = state.searchTerm.length >= 2;
+        
+        return (
+            <Command>
+                <CommandInput
+                    ref={inputRef}
+                    placeholder={placeholder}
+                    value={state.searchTerm}
+                    onValueChange={handleSearchChange}
+                    className="h-9"
+                />
+                
+                <CommandList className="max-h-[300px]">
+                    {state.loading && (
+                        <div className="flex items-center justify-center p-6">
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            <span className="text-sm text-gray-500">Searching users...</span>
+                        </div>
+                    )}
+                    
+                    {!state.loading && isSearching && !hasResults && (
+                        <CommandEmpty>
+                            <div className="text-center p-6">
+                                <User className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                                <p className="text-sm text-gray-500">No users found</p>
+                                <p className="text-xs text-gray-400 mt-1">
+                                    Try searching with a different term
+                                </p>
+                            </div>
+                        </CommandEmpty>
+                    )}
+                    
+                    {hasResults && (
+                        <CommandGroup heading={`Search Results (${state.users.length})`}>
+                            {state.users.map(user => renderUserItem(user, false))}
+                        </CommandGroup>
+                    )}
+                    
+                    {!isSearching && hasRecentUsers && (
+                        <CommandGroup heading="Recent Users">
+                            {state.recentUsers.map(user => renderUserItem(user, true))}
+                        </CommandGroup>
+                    )}
+                    
+                    {!isSearching && !hasRecentUsers && (
+                        <div className="text-center p-6">
+                            <Search className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                            <p className="text-sm text-gray-500">Start typing to search users</p>
+                            <p className="text-xs text-gray-400 mt-1">
+                                Enter at least 2 characters
+                            </p>
+                        </div>
+                    )}
+                </CommandList>
+            </Command>
+        );
+    };
+
+    // ================================
+    // 🎨 MAIN RENDER
+    // ================================
+    
+    // If user is selected, show selected user display
+    if (selectedUser && selectedUser.id) {
+        return (
+            <div className={className}>
+                {renderSelectedUser()}
+            </div>
+        );
+    }
+
+    // Otherwise show search input
+    return (
+        <div className={className}>
+            <Popover open={state.open} onOpenChange={handleOpenChange}>
+                <PopoverTrigger asChild>
+                    <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={state.open}
+                        className="w-full justify-between"
+                        disabled={disabled}
+                    >
+                        <div className="flex items-center">
+                            <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                            <span className="truncate">
+                                {selectedUser ? getUserDisplayName(selectedUser) : placeholder}
+                            </span>
+                        </div>
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                </PopoverTrigger>
+                
+                <PopoverContent className="w-full p-0" align="start">
+                    {renderSearchContent()}
+                </PopoverContent>
+            </Popover>
+        </div>
+    );
 };
 
 export default UserSearchInput;
