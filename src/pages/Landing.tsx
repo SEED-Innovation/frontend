@@ -196,7 +196,7 @@ const Landing = () => {
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
               />
-              <span className="text-2xl font-bold hidden sm:block">INNOVATION</span>
+              <span className="text-2xl font-bold hidden sm:block">SEED INNOVATION</span>
             </Link>
             
             {/* Desktop Navigation */}
@@ -371,22 +371,22 @@ const Landing = () => {
                 Three Steps!
               </span>
             </h2>
-            <p className="text-lg sm:text-2xl text-gray-600 max-w-3xl mx-auto font-medium">
+            <p className="text-lg sm:text-2xl text-gray-600 max-w-4xl mx-auto font-medium text-center">
               Unleash your potential with our revolutionary approach to tennis excellence
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12 lg:gap-16 max-w-6xl mx-auto">
             {howItWorks.map((step, index) => {
               const IconComponent = step.icon;
               return (
-                <div key={index} className="text-center animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
-                  <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 tennis-gradient rounded-full mb-4 sm:mb-6">
-                    <IconComponent className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                <div key={index} className="text-center animate-fade-in flex flex-col items-center" style={{ animationDelay: `${index * 0.1}s` }}>
+                  <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 tennis-gradient rounded-full mb-6 sm:mb-8">
+                    <IconComponent className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
                   </div>
-                  <div className="text-xs sm:text-sm font-bold text-tennis-purple-600 mb-2">STEP {index + 1}</div>
-                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">{step.title}</h3>
-                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed">{step.description}</p>
+                  <div className="text-sm sm:text-base font-bold text-tennis-purple-600 mb-3">STEP {index + 1}</div>
+                  <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">{step.title}</h3>
+                  <p className="text-base sm:text-lg text-gray-600 leading-relaxed max-w-sm mx-auto">{step.description}</p>
                 </div>
               );
             })}
@@ -406,21 +406,21 @@ const Landing = () => {
                 All Levels
               </span>
             </h2>
-            <p className="text-lg sm:text-2xl text-gray-600 font-medium">
+            <p className="text-lg sm:text-2xl text-gray-600 font-medium text-center max-w-4xl mx-auto">
               Whether you're just starting or competing professionally
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12 max-w-6xl mx-auto">
             {playerLevels.map((player, index) => (
               <Card key={index} className="premium-card border-0 animate-fade-in interactive-hover" style={{ animationDelay: `${index * 0.2}s` }}>
-                <CardContent className="p-6 sm:p-8 text-center">
-                  <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">{player.level}</h3>
-                  <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 leading-relaxed">{player.description}</p>
-                  <ul className="space-y-2 sm:space-y-3">
+                <CardContent className="p-8 sm:p-10 text-center">
+                  <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-6">{player.level}</h3>
+                  <p className="text-base sm:text-lg text-gray-600 mb-6 sm:mb-8 leading-relaxed">{player.description}</p>
+                  <ul className="space-y-3 sm:space-y-4 text-left">
                     {player.features.map((feature, i) => (
-                      <li key={i} className="flex items-center text-sm sm:text-base text-gray-700">
-                        <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-tennis-green-500 mr-2 sm:mr-3 flex-shrink-0" />
+                      <li key={i} className="flex items-center text-base sm:text-lg text-gray-700">
+                        <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-tennis-green-500 mr-3 sm:mr-4 flex-shrink-0" />
                         {feature}
                       </li>
                     ))}
@@ -445,25 +445,25 @@ const Landing = () => {
               Advanced AI
             </span>
           </h2>
-          <p className="text-lg sm:text-2xl mb-8 sm:mb-12 text-white/90 font-medium max-w-4xl mx-auto leading-relaxed">
+          <p className="text-lg sm:text-2xl mb-8 sm:mb-12 text-white/90 font-medium max-w-5xl mx-auto leading-relaxed text-center">
             Our computer vision technology captures every detail of your game, providing insights that were previously only available to professional players.
           </p>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-12 sm:mb-16">
-            <div className="text-center p-6 sm:p-8 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
-              <Eye className="w-12 h-12 sm:w-16 sm:h-16 text-tennis-green-300 mx-auto mb-4 sm:mb-6" />
-              <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Computer Vision</h3>
-              <p className="text-sm sm:text-base text-white/80">Advanced camera tracking for precise ball and player movement analysis</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12 mb-12 sm:mb-16 max-w-6xl mx-auto">
+            <div className="text-center p-8 sm:p-10 bg-white/10 backdrop-blur-md rounded-3xl border border-white/20">
+              <Eye className="w-16 h-16 sm:w-20 sm:h-20 text-tennis-green-300 mx-auto mb-6 sm:mb-8" />
+              <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Computer Vision</h3>
+              <p className="text-base sm:text-lg text-white/80 leading-relaxed">Advanced camera tracking for precise ball and player movement analysis</p>
             </div>
-            <div className="text-center p-6 sm:p-8 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
-              <BarChart3 className="w-12 h-12 sm:w-16 sm:h-16 text-tennis-green-300 mx-auto mb-4 sm:mb-6" />
-              <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Real-time Processing</h3>
-              <p className="text-sm sm:text-base text-white/80">Instant analysis and feedback delivered within minutes of your session</p>
+            <div className="text-center p-8 sm:p-10 bg-white/10 backdrop-blur-md rounded-3xl border border-white/20">
+              <BarChart3 className="w-16 h-16 sm:w-20 sm:h-20 text-tennis-green-300 mx-auto mb-6 sm:mb-8" />
+              <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Real-time Processing</h3>
+              <p className="text-base sm:text-lg text-white/80 leading-relaxed">Instant analysis and feedback delivered within minutes of your session</p>
             </div>
-            <div className="text-center p-6 sm:p-8 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 sm:col-span-2 lg:col-span-1">
-              <Target className="w-12 h-12 sm:w-16 sm:h-16 text-tennis-green-300 mx-auto mb-4 sm:mb-6" />
-              <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Precision Analytics</h3>
-              <p className="text-sm sm:text-base text-white/80">Shot placement, speed, and accuracy measured with professional-grade precision</p>
+            <div className="text-center p-8 sm:p-10 bg-white/10 backdrop-blur-md rounded-3xl border border-white/20">
+              <Target className="w-16 h-16 sm:w-20 sm:h-20 text-tennis-green-300 mx-auto mb-6 sm:mb-8" />
+              <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Precision Analytics</h3>
+              <p className="text-base sm:text-lg text-white/80 leading-relaxed">Shot placement, speed, and accuracy measured with professional-grade precision</p>
             </div>
           </div>
           
@@ -489,22 +489,22 @@ const Landing = () => {
                 You Get
               </span>
             </h2>
-            <p className="text-lg sm:text-2xl text-gray-600 max-w-3xl mx-auto font-medium">
+            <p className="text-lg sm:text-2xl text-gray-600 max-w-4xl mx-auto font-medium text-center">
               Everything you need to elevate your tennis game
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12 max-w-7xl mx-auto">
             {benefits.map((benefit, index) => {
               const IconComponent = benefit.icon;
               return (
                 <Card key={index} className="premium-card border-0 animate-fade-in interactive-hover h-full" style={{ animationDelay: `${index * 0.1}s` }}>
-                  <CardContent className="p-6 sm:p-8 text-center h-full flex flex-col">
-                    <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 tennis-gradient rounded-3xl mb-4 sm:mb-6">
-                      <IconComponent className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                  <CardContent className="p-8 sm:p-10 text-center h-full flex flex-col">
+                    <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 tennis-gradient rounded-3xl mb-6 sm:mb-8">
+                      <IconComponent className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
                     </div>
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">{benefit.title}</h3>
-                    <p className="text-sm sm:text-base text-gray-600 leading-relaxed flex-1">{benefit.description}</p>
+                    <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">{benefit.title}</h3>
+                    <p className="text-base sm:text-lg text-gray-600 leading-relaxed flex-1">{benefit.description}</p>
                   </CardContent>
                 </Card>
               );
@@ -523,23 +523,23 @@ const Landing = () => {
                 SEED Insights
               </span>
             </h2>
-            <p className="text-lg sm:text-2xl text-gray-600 max-w-3xl mx-auto font-medium">
-              From grassroots to grand slams, SEED isn't just tracking tennis—we're rewriting how it's played, watched, and judged. 
+            <p className="text-lg sm:text-2xl text-gray-600 max-w-5xl mx-auto font-medium text-center leading-relaxed">
+              From grassroots to grand slams, SEED INNOVATION isn't just tracking tennis—we're rewriting how it's played, watched, and judged. 
               Every serve, volley, and stroke is meticulously tracked to elevate player performance and deliver actionable insights that drive continuous improvement.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-12 max-w-7xl mx-auto">
             {features.map((feature, index) => {
               const IconComponent = feature.icon;
               return (
                 <Card key={index} className="premium-card border-0 animate-fade-in interactive-hover h-full" style={{ animationDelay: `${index * 0.1}s` }}>
-                  <CardContent className="p-6 sm:p-8 text-center h-full flex flex-col">
-                    <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 tennis-gradient rounded-3xl mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300">
-                      <IconComponent className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                  <CardContent className="p-8 sm:p-10 text-center h-full flex flex-col">
+                    <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 tennis-gradient rounded-3xl mb-6 sm:mb-8 group-hover:scale-110 transition-transform duration-300">
+                      <IconComponent className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
                     </div>
-                    <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">{feature.title}</h3>
-                    <p className="text-sm sm:text-base lg:text-lg text-gray-600 leading-relaxed flex-1">{feature.description}</p>
+                    <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-4 sm:mb-6">{feature.title}</h3>
+                    <p className="text-base sm:text-lg lg:text-xl text-gray-600 leading-relaxed flex-1">{feature.description}</p>
                   </CardContent>
                 </Card>
               );
@@ -562,30 +562,30 @@ const Landing = () => {
                 Champions
               </span>
             </h2>
-            <p className="text-lg sm:text-2xl text-gray-600 font-medium">
+            <p className="text-lg sm:text-2xl text-gray-600 font-medium text-center max-w-4xl mx-auto">
               See what tennis professionals and enthusiasts are saying
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12 max-w-6xl mx-auto">
             {testimonials.map((testimonial, index) => (
               <Card key={index} className="premium-card border-0 animate-fade-in interactive-hover h-full" style={{ animationDelay: `${index * 0.2}s` }}>
-                <CardContent className="p-6 sm:p-8 h-full flex flex-col">
-                  <div className="flex items-center mb-4 sm:mb-6">
+                <CardContent className="p-8 sm:p-10 h-full flex flex-col">
+                  <div className="flex items-center mb-6 sm:mb-8">
                     <img
                       src={testimonial.image}
                       alt={testimonial.name}
-                      className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover mr-3 sm:mr-4 border-4 border-tennis-purple-200"
+                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover mr-4 sm:mr-6 border-4 border-tennis-purple-200"
                     />
                     <div>
-                      <h4 className="font-bold text-gray-900 text-base sm:text-lg">{testimonial.name}</h4>
-                      <p className="text-gray-600 text-sm sm:text-base">{testimonial.role}</p>
+                      <h4 className="font-bold text-gray-900 text-lg sm:text-xl">{testimonial.name}</h4>
+                      <p className="text-gray-600 text-base sm:text-lg">{testimonial.role}</p>
                     </div>
                   </div>
-                  <p className="text-gray-700 italic text-base sm:text-lg leading-relaxed mb-4 sm:mb-6 flex-1">"{testimonial.quote}"</p>
+                  <p className="text-gray-700 italic text-lg sm:text-xl leading-relaxed mb-6 sm:mb-8 flex-1">"{testimonial.quote}"</p>
                   <div className="flex">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400 fill-current" />
+                      <Star key={i} className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400 fill-current" />
                     ))}
                   </div>
                 </CardContent>
@@ -604,8 +604,8 @@ const Landing = () => {
           <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-white mb-6 sm:mb-8">
             Ready to Play Smarter?
           </h2>
-          <p className="text-lg sm:text-2xl text-white/90 mb-8 sm:mb-12 font-medium max-w-3xl mx-auto leading-relaxed">
-            Unleash your A-Game with SEED's revolutionary AI-powered tennis analytics. Transform every serve, volley, and stroke into actionable insights.
+          <p className="text-lg sm:text-2xl text-white/90 mb-8 sm:mb-12 font-medium max-w-4xl mx-auto leading-relaxed text-center">
+            Unleash your A-Game with SEED INNOVATION's revolutionary AI-powered tennis analytics. Transform every serve, volley, and stroke into actionable insights.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center">
             <Button 
@@ -639,7 +639,7 @@ const Landing = () => {
                   alt="SEED Logo" 
                   className="h-10 sm:h-12 w-auto"
                 />
-                <span className="text-xl sm:text-2xl font-bold">SEED</span>
+                <span className="text-xl sm:text-2xl font-bold">SEED INNOVATION</span>
               </Link>
               <p className="text-gray-400 text-base sm:text-lg mb-4 sm:mb-6 max-w-md">
                 AI-powered tennis analytics platform helping players and coaches achieve excellence through data-driven insights.
@@ -679,7 +679,7 @@ const Landing = () => {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 sm:mt-12 pt-6 sm:pt-8 text-center text-gray-400 text-sm sm:text-base">
-            <p>&copy; 2025 SEED. All rights reserved. Built for the future of tennis.</p>
+            <p>&copy; 2025 SEED INNOVATION. All rights reserved. Built for the future of tennis.</p>
           </div>
         </div>
       </footer>
