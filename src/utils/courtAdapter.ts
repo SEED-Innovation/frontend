@@ -12,6 +12,7 @@ export const adaptCourts = (existingCourts: ExistingCourt[]): CourtResponse[] =>
         name: court.name,
         location: court.location,
         type: court.type,
+        sportType: court.sportType,
         hourlyFee: court.hourlyFee,
         hasSeedSystem: court.hasSeedSystem ?? false, // ✅ Handle undefined/null values
         imageUrl: court.imageUrl || undefined,
@@ -39,6 +40,7 @@ export const adaptCourt = (court: ExistingCourt): CourtResponse => {
         name: court.name,
         location: court.location,
         type: court.type,
+        sportType: court.sportType,
         hourlyFee: court.hourlyFee,
         hasSeedSystem: court.hasSeedSystem ?? false,
         imageUrl: court.imageUrl || undefined,
