@@ -151,17 +151,25 @@ useEffect(() => {
 }, [isOpen]);
 
 // Filter users based on search term
-const filteredUsers = users.filter(user => 
-    (user.fullName?.toLowerCase() || '').includes(userSearchTerm.toLowerCase()) ||
-    (user.email?.toLowerCase() || '').includes(userSearchTerm.toLowerCase())
-);
+const filteredUsers = users.filter(user => {
+    if (!userSearchTerm.trim()) return true; // Show all if no search term
+    const searchLower = userSearchTerm.toLowerCase();
+    const nameMatch = (user.fullName?.toLowerCase() || '').includes(searchLower);
+    const emailMatch = (user.email?.toLowerCase() || '').includes(searchLower);
+    console.log('🔍 User search:', { searchTerm: userSearchTerm, user: user.fullName, nameMatch, emailMatch });
+    return nameMatch || emailMatch;
+});
 
 // Filter courts based on search term
-const filteredCourts = courts.filter(court => 
-    (court.name?.toLowerCase() || '').includes(courtSearchTerm.toLowerCase()) ||
-    (court.location?.toLowerCase() || '').includes(courtSearchTerm.toLowerCase()) ||
-    (court.type?.toLowerCase() || '').includes(courtSearchTerm.toLowerCase())
-);
+const filteredCourts = courts.filter(court => {
+    if (!courtSearchTerm.trim()) return true; // Show all if no search term
+    const searchLower = courtSearchTerm.toLowerCase();
+    const nameMatch = (court.name?.toLowerCase() || '').includes(searchLower);
+    const locationMatch = (court.location?.toLowerCase() || '').includes(searchLower);
+    const typeMatch = (court.type?.toLowerCase() || '').includes(searchLower);
+    console.log('🔍 Court search:', { searchTerm: courtSearchTerm, court: court.name, nameMatch, locationMatch, typeMatch });
+    return nameMatch || locationMatch || typeMatch;
+});
     
     // ================================
     // 🔧 DATA LOADING
@@ -683,7 +691,10 @@ const loadCourts = async () => {
                                     <Input
                                         placeholder="Search for a user by name or email..."
                                         value={userSearchTerm}
-                                        onChange={(e) => setUserSearchTerm(e.target.value)}
+                                        onChange={(e) => {
+                                            console.log('🔍 User search input changed:', e.target.value);
+                                            setUserSearchTerm(e.target.value);
+                                        }}
                                         disabled={usersLoading}
                                     />
                                     
@@ -709,9 +720,9 @@ const loadCourts = async () => {
                                             />
                                         </SelectTrigger>
                                         <SelectContent>
-                                             {filteredUsers.length === 0 ? (
+                                            {filteredUsers.length === 0 ? (
                                                 <SelectItem value="no-users" disabled>
-                                                    {usersLoading ? "Loading..." : "No users found"}
+                                                    {usersLoading ? "Loading..." : `No users found ${userSearchTerm ? `for "${userSearchTerm}"` : ''}`}
                                                 </SelectItem>
                                             ) : (
                                                 filteredUsers.map((user) => (
@@ -765,7 +776,10 @@ const loadCourts = async () => {
                                     <Input
                                         placeholder="Search for a court by name, location, or type..."
                                         value={courtSearchTerm}
-                                        onChange={(e) => setCourtSearchTerm(e.target.value)}
+                                        onChange={(e) => {
+                                            console.log('🔍 Court search input changed:', e.target.value);
+                                            setCourtSearchTerm(e.target.value);
+                                        }}
                                         disabled={courtsLoading}
                                     />
                                     
@@ -781,7 +795,7 @@ const loadCourts = async () => {
                                         <SelectContent className="bg-white">
                                             {filteredCourts.length === 0 ? (
                                                 <SelectItem value="no-courts" disabled>
-                                                    {courtsLoading ? "Loading..." : "No courts found"}
+                                                    {courtsLoading ? "Loading..." : `No courts found ${courtSearchTerm ? `for "${courtSearchTerm}"` : ''}`}
                                                 </SelectItem>
                                             ) : (
                                                 filteredCourts.map((court) => (
