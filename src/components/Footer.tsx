@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Shield } from 'lucide-react';
-import clientFlag from '@/assets/client-flag.png';
+import saudiFlag from '@/assets/saudi-flag.png';
 
 const Footer = () => {
   return (
@@ -16,11 +16,11 @@ const Footer = () => {
                 <span className="text-white font-bold text-sm">S</span>
               </div>
               <span className="text-xl font-bold">SEED</span>
-              {/* Client Flag */}
+              {/* Saudi Flag */}
               <img 
-                src={clientFlag} 
+                src={saudiFlag} 
                 alt="Saudi Arabia" 
-                className="h-4 w-6 object-cover rounded-sm shadow-sm border border-gray-600 ml-2"
+                className="h-5 w-7 object-cover rounded-sm shadow-md border border-gray-600 ml-3 hover:scale-105 transition-transform duration-300"
                 title="Saudi Arabia"
               />
             </div>

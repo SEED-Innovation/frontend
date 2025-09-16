@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, User, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import clientFlag from '@/assets/client-flag.png';
+import saudiFlag from '@/assets/saudi-flag.png';
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -60,13 +60,6 @@ const Navigation = () => {
               className="h-10 w-auto"
             />
             <span className="text-xl font-bold text-gray-900 hidden sm:block">SEED</span>
-            {/* Client Flag next to logo */}
-            <img 
-              src={clientFlag} 
-              alt="Saudi Arabia" 
-              className="h-5 w-7 object-cover rounded-sm shadow-sm border border-gray-200 ml-2"
-              title="Saudi Arabia"
-            />
           </Link>
 
           {/* Desktop Navigation */}
@@ -93,6 +86,15 @@ const Navigation = () => {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
+            {/* Saudi Flag - strategically placed before actions */}
+            <div className="flex items-center mr-2">
+              <img 
+                src={saudiFlag} 
+                alt="Saudi Arabia" 
+                className="h-6 w-9 object-cover rounded-sm shadow-md border border-gray-200 hover:scale-105 transition-transform duration-300"
+                title="Saudi Arabia"
+              />
+            </div>
             <Link to="/profile">
               <Button variant="ghost" size="sm" className="text-gray-700 hover:text-tennis-purple-600 hover:bg-tennis-purple-50 transition-all duration-300">
                 <User className="w-4 h-4 mr-2" />
