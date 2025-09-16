@@ -701,6 +701,167 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Get in Touch Section */}
+      <section className="relative py-20 sm:py-32 bg-gradient-to-br from-gray-900 via-tennis-purple-900 to-gray-900 overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-tennis-green-500/20 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-tennis-purple-500/20 rounded-full blur-3xl"></div>
+        </div>
+        
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black mb-6 bg-gradient-to-r from-white via-tennis-green-300 to-white bg-clip-text text-transparent">
+              Get in Touch
+            </h2>
+            <p className="text-xl sm:text-2xl text-white/80 max-w-3xl mx-auto leading-relaxed">
+              Ready to revolutionize your tennis game? Let's connect and explore how SEED can transform your athletic journey.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+            {/* Contact Form */}
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              viewport={{ once: true }}
+              className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 sm:p-10"
+            >
+              <h3 className="text-2xl font-bold text-white mb-8">Send us a message</h3>
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-white/80 text-sm font-medium mb-2">First Name</label>
+                    <input
+                      type="text"
+                      className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-tennis-green-500 focus:border-transparent transition-all"
+                      placeholder="John"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-white/80 text-sm font-medium mb-2">Last Name</label>
+                    <input
+                      type="text"
+                      className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-tennis-green-500 focus:border-transparent transition-all"
+                      placeholder="Doe"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-white/80 text-sm font-medium mb-2">Email</label>
+                  <input
+                    type="email"
+                    className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-tennis-green-500 focus:border-transparent transition-all"
+                    placeholder="john@example.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-white/80 text-sm font-medium mb-2">Subject</label>
+                  <input
+                    type="text"
+                    className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-tennis-green-500 focus:border-transparent transition-all"
+                    placeholder="Partnership Inquiry"
+                  />
+                </div>
+                <div>
+                  <label className="block text-white/80 text-sm font-medium mb-2">Message</label>
+                  <textarea
+                    rows={5}
+                    className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-tennis-green-500 focus:border-transparent transition-all resize-none"
+                    placeholder="Tell us about your needs..."
+                  ></textarea>
+                </div>
+                <Button
+                  size="lg"
+                  className="w-full bg-tennis-green-500 hover:bg-tennis-green-400 text-white font-bold py-4 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-tennis-green-500/30"
+                >
+                  Send Message
+                </Button>
+              </div>
+            </motion.div>
+
+            {/* Contact Information */}
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              viewport={{ once: true }}
+              className="space-y-8"
+            >
+              <div className="text-center lg:text-left">
+                <h3 className="text-3xl sm:text-4xl font-bold text-white mb-6">
+                  Let's Build the Future of Tennis Together
+                </h3>
+                <p className="text-lg text-white/80 leading-relaxed mb-8">
+                  Whether you're a club owner, coach, or passionate player, we'd love to hear from you. 
+                  Discover how SEED's AI technology can elevate your tennis experience.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-6">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300"
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-tennis-green-500/20 rounded-xl flex items-center justify-center">
+                      <MessageSquare className="w-6 h-6 text-tennis-green-400" />
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-bold text-white">General Inquiries</h4>
+                      <p className="text-white/70">info@seedinnovation.com</p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300"
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-tennis-purple-500/20 rounded-xl flex items-center justify-center">
+                      <Users className="w-6 h-6 text-tennis-purple-400" />
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-bold text-white">Partnerships</h4>
+                      <p className="text-white/70">partners@seedinnovation.com</p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300"
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-yellow-500/20 rounded-xl flex items-center justify-center">
+                      <Award className="w-6 h-6 text-yellow-400" />
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-bold text-white">Support</h4>
+                      <p className="text-white/70">support@seedinnovation.com</p>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+
+              <div className="text-center lg:text-left pt-8">
+                <p className="text-white/60 text-sm">
+                  Response time: Within 24 hours • Available 24/7
+                </p>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
