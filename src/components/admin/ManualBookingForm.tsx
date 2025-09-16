@@ -807,7 +807,9 @@ const loadCourts = async () => {
                                                             </div>
                                                             <div className="flex-1 min-w-0">
                                                                 <div className="font-medium truncate">{court.name}</div>
-                                                                <div className="text-xs text-gray-500 truncate">{court.location} - ${court.hourlyFee}/hr</div>
+                                                                <div className="text-xs text-gray-500 truncate flex items-center gap-1">
+                                                                    {court.location} - <CurrencyDisplay amount={court.hourlyFee} size="sm" showSymbol />/hr
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </SelectItem>
