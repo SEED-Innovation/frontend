@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Plus, UserPlus, Download, Eye, Ban, Crown, Users, UserX, Mail, Phone, Calendar } from 'lucide-react';
+import { Search, Plus, UserPlus, Download, Eye, Ban, Crown, Users, UserX, Mail, Phone, Calendar, Building } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +12,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { userService } from '@/services/userService';
 import { UpdateUserRequest, DeleteUserRequest } from '@/types/user';
+// New imports for enhanced functionality
+import { RefreshButton } from './RefreshButton';
+import { ActionMenu } from './ActionMenu';
+import { FilterChips } from './FilterChips';
+import { DetailDrawer } from './DetailDrawer';
 
 const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -20,6 +25,13 @@ const UserManagement = () => {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [adminNames, setAdminNames] = useState<string[]>([]);
   const [isLoadingAdmins, setIsLoadingAdmins] = useState(false);
+  
+  // New state for enhanced functionality
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [roleFilter, setRoleFilter] = useState('All');
+  const [showDetailDrawer, setShowDetailDrawer] = useState(false);
+  const [detailUser, setDetailUser] = useState<any>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [newUser, setNewUser] = useState({
     fullName: '',
     email: '',
@@ -35,7 +47,7 @@ const UserManagement = () => {
     status: 'Active'
   });
 
-  // Mock user data
+  // Mock user data with enhanced fields
   const users = [
     {
       id: 1,
@@ -46,7 +58,8 @@ const UserManagement = () => {
       status: 'Active',
       joinDate: '2024-01-15',
       totalSessions: 45,
-      rank: 12
+      rank: 12,
+      lastLogin: '2024-03-15T10:30:00Z'
     },
     {
       id: 2,
@@ -57,7 +70,8 @@ const UserManagement = () => {
       status: 'Active',
       joinDate: '2024-02-20',
       totalSessions: 28,
-      rank: 23
+      rank: 23,
+      lastLogin: '2024-03-14T15:45:00Z'
     },
     {
       id: 3,
@@ -68,7 +82,34 @@ const UserManagement = () => {
       status: 'Suspended',
       joinDate: '2024-03-10',
       totalSessions: 5,
-      rank: 156
+      rank: 156,
+      lastLogin: null
+    }
+  ];
+
+  // Mock manager data
+  const managers = [
+    {
+      id: 101,
+      name: 'Admin Manager',
+      email: 'admin@example.com',
+      phone: '+1234567900',
+      role: 'Admin',
+      status: 'Active',
+      joinDate: '2023-12-01',
+      managedCourtsCount: 5,
+      lastLogin: '2024-03-15T08:15:00Z'
+    },
+    {
+      id: 102,
+      name: 'Super Administrator',
+      email: 'super@example.com',
+      phone: '+1234567901',
+      role: 'Super Admin',
+      status: 'Active',
+      joinDate: '2023-11-15',
+      managedCourtsCount: 12,
+      lastLogin: '2024-03-15T09:30:00Z'
     }
   ];
 
@@ -96,10 +137,27 @@ const UserManagement = () => {
     }
   };
 
-  const filteredUsers = users.filter(user =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Enhanced filtering function
+  const getFilteredData = (data: any[], userType: 'user' | 'manager') => {
+    return data.filter(item => {
+      const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           item.email.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesStatus = statusFilter === 'All' || item.status === statusFilter;
+      
+      let matchesRole = true;
+      if (userType === 'user') {
+        matchesRole = roleFilter === 'All' || roleFilter === 'Player';
+      } else {
+        matchesRole = roleFilter === 'All' || item.role === roleFilter;
+      }
+      
+      return matchesSearch && matchesStatus && matchesRole;
+    });
+  };
+
+  const filteredUsers = getFilteredData(users, 'user');
+  const filteredManagers = getFilteredData(managers, 'manager');
 
   // Fetch admin names when component mounts
   useEffect(() => {
@@ -135,7 +193,7 @@ const UserManagement = () => {
     setNewUser({ fullName: '', email: '', phone: '', role: 'PLAYER' });
   };
 
-  const handleViewUser = (user: any) => {
+  const handleEditUser = (user: any) => {
     setSelectedUser(user);
     setEditUser({
       fullName: user.name,
@@ -216,6 +274,49 @@ const UserManagement = () => {
     }
   };
 
+  // New enhanced functions
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await fetchAdminNames();
+      toast.success('Data refreshed successfully');
+    } catch (error) {
+      toast.error('Failed to refresh data');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const handleEnableDisable = (user: any) => {
+    const newStatus = user.status === 'Active' ? 'Suspended' : 'Active';
+    toast.success(`User ${newStatus.toLowerCase()} successfully`);
+  };
+
+  const handleChangeRole = (user: any) => {
+    toast.info('Plan change functionality to be implemented');
+  };
+
+  const handleAssignCourts = (user: any) => {
+    toast.info('Court assignment functionality to be implemented');
+  };
+
+  const handleViewUser = (user: any, userType: 'user' | 'manager') => {
+    setDetailUser({ ...user, userType });
+    setShowDetailDrawer(true);
+  };
+
+  const formatLastLogin = (lastLogin: string | null) => {
+    if (!lastLogin) return 'Never';
+    const date = new Date(lastLogin);
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return date.toLocaleDateString();
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -226,6 +327,7 @@ const UserManagement = () => {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Admin Management</h2>
         <div className="flex space-x-2">
+          <RefreshButton onRefresh={handleRefresh} isLoading={isRefreshing} />
           <Dialog open={showCreateUser} onOpenChange={setShowCreateUser}>
             <DialogTrigger asChild>
               <Button className="flex items-center space-x-2">
@@ -466,7 +568,7 @@ const UserManagement = () => {
                         variant="outline" 
                         size="sm" 
                         className="mr-2"
-                        onClick={() => handleViewUser(user)}
+                        onClick={() => handleEditUser(user)}
                       >
                         <Eye className="w-4 h-4 mr-1" />
                         View
@@ -533,6 +635,14 @@ const UserManagement = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Detail Drawer */}
+      <DetailDrawer
+        user={detailUser}
+        userType={detailUser?.userType || 'user'}
+        isOpen={showDetailDrawer}
+        onClose={() => setShowDetailDrawer(false)}
+      />
     </motion.div>
   );
 };
