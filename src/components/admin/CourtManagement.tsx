@@ -1261,17 +1261,6 @@ const CourtManagement = () => {
               />
             )}
           )}
-          
-          {/* Pagination for paginated courts */}
-          {USE_PAGINATED_COURTS && pagedData && (
-            <PaginationBar
-              page={page}
-              setPage={setPage}
-              hasPrev={pagedData.hasPrevious}
-              hasNext={pagedData.hasNext}
-              totalPages={pagedData.totalPages}
-            />
-          )}
         </TabsContent>
 
         {hasPermission('SUPER_ADMIN') && (
