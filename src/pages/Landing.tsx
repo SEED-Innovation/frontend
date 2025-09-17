@@ -202,28 +202,6 @@ const Landing = () => {
             
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-6">
-              {/* App Download Buttons */}
-              <div className="flex items-center space-x-3">
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <AppStoreButton 
-                    variant="playstore"
-                    href="https://play.google.com/store/apps/details?id=com.devarch.tennis2&utm_source=emea_Med"
-                    size="sm"
-                    className="bg-white/10 backdrop-blur-md border border-white/30 hover:bg-white/20"
-                  />
-                </motion.div>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <AppStoreButton 
-                    variant="appstore"
-                    disabled={true}
-                    size="sm"
-                    className="bg-white/10 backdrop-blur-md border border-white/30"
-                  />
-                </motion.div>
-              </div>
-              
-              <div className="h-6 border-l border-white/30"></div>
-              
               <Link to="/admin-login">
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Button 
@@ -242,6 +220,28 @@ const Landing = () => {
                   Get Started
                 </Button>
               </motion.div>
+              
+              <div className="h-6 border-l border-white/30 mx-2"></div>
+              
+              {/* App Download Buttons - Repositioned to the right */}
+              <div className="flex items-center space-x-3">
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <AppStoreButton 
+                    variant="playstore"
+                    href="https://play.google.com/store/apps/details?id=com.devarch.tennis2&utm_source=emea_Med"
+                    size="sm"
+                    className="bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 hover:border-white/30"
+                  />
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <AppStoreButton 
+                    variant="appstore"
+                    disabled={true}
+                    size="sm"
+                    className="bg-white/10 backdrop-blur-md border border-white/20"
+                  />
+                </motion.div>
+              </div>
             </div>
 
             {/* Mobile Menu Button */}
