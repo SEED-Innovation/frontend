@@ -1,30 +1,46 @@
-import { CourtTypeType } from './booking';
-
 export type SportType = 'TENNIS' | 'PADEL';
-export type TennisCourtType = 'HARD' | 'CLAY' | 'GRASS';
+export type CourtType = 'HARD' | 'CLAY' | 'GRASS' | 'CARPET' | 'ACRYLIC' | null;
 
-export interface CourtResponse {
-    id: number;
-    name: string;
-    location: string;
-    type: CourtTypeType;
-    sportType?: SportType;
-    hourlyFee: number;
-    hasSeedSystem?: boolean;
-    imageUrl?: string;
-    amenities?: string[];
-    techFeatures?: string[];
-    description?: string;
-    openingTimes?: string;
-    status?: string;
-    managerId?: number;
-    rating?: number;
-    totalRatings?: number;
-    distanceInMeters?: number;
-    formattedDistance?: string;
-    latitude?: number;
-    longitude?: number;
+export interface Court {
+  id: number;                 // unify id type (number)
+  name: string;
+  location?: string | null;
+  sportType: SportType;
+  type: CourtType;            // null for PADEL
+  hourlyFee?: number | null;
+  hasSeedSystem?: boolean;
+  imageUrl?: string | null;
+  amenities?: string[];
+  techFeatures?: string[];
+  description?: string | null;
+  managerId?: number | null;
+  manager?: { name?: string; email?: string; profilePictureUrl?: string } | null; // present for SUPER_ADMIN
+  status?: 'AVAILABLE' | 'UNAVAILABLE';
+  // Legacy fields for backward compatibility
+  openingTimes?: string;
+  rating?: number;
+  totalRatings?: number;
+  distanceInMeters?: number;
+  formattedDistance?: string;
+  latitude?: number;
+  longitude?: number;
+  // Discount fields
+  discountAmount?: number;
+  isPercentage?: boolean;
 }
+
+export interface AdminCourtPageResponse {
+  courts: Court[];
+  totalElements: number; // long on BE, number here
+  totalPages: number;
+  currentPage: number;   // 0-based
+  pageSize: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
+// Legacy alias for backward compatibility
+export interface CourtResponse extends Court {}
 
 export interface CourtAvailabilitySlot {
     startTime: string;

@@ -1,4 +1,6 @@
 
+import { AdminCourtPageResponse } from '@/types/court';
+
 export type SportType = 'TENNIS' | 'PADEL';
 
 export interface Court {
@@ -137,6 +139,27 @@ class CourtService {
 
         if (!response.ok) {
             throw new Error(`Failed to fetch courts: ${response.statusText}`);
+        }
+
+        return response.json();
+    }
+
+    /**
+     * Get paginated courts - role-based filtering happens on backend
+     * SUPER_ADMIN sees all courts, ADMIN sees only managed courts
+     */
+    async getCourtsPaged(page = 0, size = 50): Promise<AdminCourtPageResponse> {
+        const url = new URL(`${this.baseUrl}/paged`);
+        url.searchParams.set('page', String(Math.max(0, page)));
+        url.searchParams.set('size', String(Math.min(100, Math.max(1, size))));
+        
+        const response = await fetch(url.toString(), {
+            method: 'GET',
+            headers: this.getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch paged courts: ${response.statusText}`);
         }
 
         return response.json();

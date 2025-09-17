@@ -1,3 +1,7 @@
+// TODO: CourtManagement relies on full in-memory list ("Select All" functionality). 
+// Needs UX redesign (e.g., "Select Page") before enabling pagination.
+// Currently kept on old getAllCourts() path while feature flag is false by default.
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Edit, Trash2, Settings, Calendar, DollarSign, Loader2, Search, Filter, X, RefreshCw, Percent, TagIcon } from 'lucide-react';

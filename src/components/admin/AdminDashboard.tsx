@@ -25,13 +25,21 @@ import { bookingService } from '@/services/bookingService';
 import { userService } from '@/services/userService';
 import { courtService } from '@/lib/api/services/courtService';
 import { receiptService } from '@/services/receiptService';
+import { useCourtsPaged } from '@/lib/hooks/useCourtsPaged';
+import { USE_PAGINATED_COURTS } from '@/lib/config/flags';
+import { PaginationBar } from '@/components/common/PaginationBar';
 
 const AdminDashboard = () => {
   const { user, hasPermission } = useAdminAuth();
   
+  // Pagination state for courts
+  const [courtsPage, setCourtsPage] = useState(0);
+  const courtsPageSize = 50;
+  
   // State for real data
   const [topPlayers, setTopPlayers] = useState([]);
   const [topCourts, setTopCourts] = useState([]);
+  const [allCourts, setAllCourts] = useState([]);
   const [dashboardStats, setDashboardStats] = useState({
     totalRevenue: 0,
     todayBookings: 0,
@@ -48,6 +56,11 @@ const AdminDashboard = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
 
+  // Paginated courts hook
+  const { data: courtsPageData, isFetching: isCourtsFetching } = USE_PAGINATED_COURTS
+    ? useCourtsPaged(courtsPage, courtsPageSize)
+    : { data: null, isFetching: false };
+
   // Load real data on component mount
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -55,19 +68,37 @@ const AdminDashboard = () => {
         console.log('🔄 AdminDashboard: Loading real dashboard data...');
         
         // Load booking stats, court data, admin names, and receipt stats in parallel
-        const [statsResponse, courtsResponse, usersResponse, adminNamesResponse, bookingsResponse, receiptStats] = await Promise.all([
-          bookingService.getBookingStats(),
-          courtService.getAllCourts(),
-          userService.getAllUsers(),
-          userService.getAllAdminNames(),
-          bookingService.getAdminBookings({
-            page: 0,
-            size: 20,
-            sortBy: 'startTime',
-            sortDirection: 'DESC'
-          }),
-          receiptService.getReceiptStatistics().catch(() => ({ revenue: { total: 0 }, receiptCounts: { total: 0 } }))
-        ]);
+        let statsResponse, courtsResponse, usersResponse, adminNamesResponse, bookingsResponse, receiptStats;
+        
+        if (USE_PAGINATED_COURTS) {
+          [statsResponse, usersResponse, adminNamesResponse, bookingsResponse, receiptStats] = await Promise.all([
+            bookingService.getBookingStats(),
+            userService.getAllUsers(),
+            userService.getAllAdminNames(),
+            bookingService.getAdminBookings({
+              page: 0,
+              size: 20,
+              sortBy: 'startTime',
+              sortDirection: 'DESC'
+            }),
+            receiptService.getReceiptStatistics().catch(() => ({ revenue: { total: 0 }, receiptCounts: { total: 0 } }))
+          ]);
+          courtsResponse = [];
+        } else {
+          [statsResponse, courtsResponse, usersResponse, adminNamesResponse, bookingsResponse, receiptStats] = await Promise.all([
+            bookingService.getBookingStats(),
+            courtService.getAllCourts(),
+            userService.getAllUsers(),
+            userService.getAllAdminNames(),
+            bookingService.getAdminBookings({
+              page: 0,
+              size: 20,
+              sortBy: 'startTime',
+              sortDirection: 'DESC'
+            }),
+            receiptService.getReceiptStatistics().catch(() => ({ revenue: { total: 0 }, receiptCounts: { total: 0 } }))
+          ]);
+        }
         
         console.log('📊 AdminDashboard: Raw responses:', { statsResponse, courtsResponse, usersResponse, adminNamesResponse, bookingsResponse });
         
@@ -130,11 +161,17 @@ const AdminDashboard = () => {
         // Update state with real data
         setTopPlayers(topPlayersData);
         setTopCourts(topPerformingCourts);
+        // Get courts count for stats
+        const courtsCount = USE_PAGINATED_COURTS 
+          ? courtsPageData?.totalElements || 0 
+          : courtsResponse?.length || 0;
+
+        setAllCourts(courtsResponse || []);
         setDashboardStats({
           totalRevenue: (statsResponse as any).totalRevenue || (statsResponse as any).confirmedRevenue || 0,
           todayBookings: (statsResponse as any).totalBookings || 0,
-          activeCourts: courtsResponse?.length || 0,
-          totalCourts: courtsResponse?.length || 0,
+          activeCourts: courtsCount,
+          totalCourts: courtsCount,
           totalUsers: usersResponse?.length || 0,
           totalManagers: adminCount,
           pendingPayments: (statsResponse as any).pendingBookings || 0,
@@ -447,6 +484,22 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         </motion.div>
+      )}
+
+      {/* Pagination controls for courts (when using paginated API) */}
+      {USE_PAGINATED_COURTS && courtsPageData && (
+        <div className="mt-8">
+          <div className="text-sm text-muted-foreground mb-2 text-center">
+            Note: Using paginated courts API. Statistics may be limited to current page.
+          </div>
+          <PaginationBar
+            page={courtsPage}
+            setPage={setCourtsPage}
+            hasPrev={!!courtsPageData.hasPrevious}
+            hasNext={!!courtsPageData.hasNext}
+            totalPages={courtsPageData.totalPages}
+          />
+        </div>
       )}
     </div>
   );

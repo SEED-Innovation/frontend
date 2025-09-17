@@ -1,0 +1,1 @@
+export const USE_PAGINATED_COURTS = import.meta.env.VITE_USE_PAGINATED_COURTS === 'true';
