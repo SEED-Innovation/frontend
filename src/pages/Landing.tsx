@@ -201,7 +201,7 @@ const Landing = () => {
             </Link>
             
             {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center space-x-6">
+            <div className="hidden lg:flex items-center space-x-8">
               <Link to="/admin-login">
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Button 
@@ -220,28 +220,6 @@ const Landing = () => {
                   Get Started
                 </Button>
               </motion.div>
-              
-              <div className="h-6 border-l border-white/30 mx-2"></div>
-              
-              {/* App Download Buttons - Repositioned to the right */}
-              <div className="flex items-center space-x-3">
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <AppStoreButton 
-                    variant="playstore"
-                    href="https://play.google.com/store/apps/details?id=com.devarch.tennis2&utm_source=emea_Med"
-                    size="sm"
-                    className="bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 hover:border-white/30"
-                  />
-                </motion.div>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <AppStoreButton 
-                    variant="appstore"
-                    disabled={true}
-                    size="sm"
-                    className="bg-white/10 backdrop-blur-md border border-white/20"
-                  />
-                </motion.div>
-              </div>
             </div>
 
             {/* Mobile Menu Button */}
@@ -259,25 +237,6 @@ const Landing = () => {
           {isMenuOpen && (
             <div className="lg:hidden absolute top-20 left-4 right-4 bg-black/90 backdrop-blur-xl border border-white/20 rounded-2xl p-6 animate-fade-in z-50">
               <div className="space-y-4">
-                {/* Mobile App Download Buttons */}
-                <div className="pb-4 border-b border-white/20">
-                  <p className="text-white/80 text-sm mb-3 font-medium">Download Mobile App</p>
-                  <div className="flex space-x-3">
-                    <AppStoreButton 
-                      variant="playstore"
-                      href="https://play.google.com/store/apps/details?id=com.devarch.tennis2&utm_source=emea_Med"
-                      size="sm"
-                      className="flex-1"
-                    />
-                    <AppStoreButton 
-                      variant="appstore"
-                      disabled={true}
-                      size="sm"
-                      className="flex-1"
-                    />
-                  </div>
-                </div>
-                
                 <Link to="/courts" className="block text-white text-lg font-medium hover:text-tennis-green-400 transition-colors" onClick={() => setIsMenuOpen(false)}>
                   Courts
                 </Link>
@@ -385,7 +344,7 @@ const Landing = () => {
             </motion.p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center animate-fade-in mb-12 sm:mb-16 px-4" style={{ animationDelay: '0.4s' }}>
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center animate-fade-in mb-8 px-4" style={{ animationDelay: '0.4s' }}>
               <Button 
                 onClick={handleGetStarted}
                 size="lg" 
@@ -403,6 +362,31 @@ const Landing = () => {
                 Watch Demo
               </Button>
             </div>
+
+            {/* App Download Buttons - Below Hero CTA */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.8 }}
+              className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-12 sm:mb-16 px-4"
+            >
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <AppStoreButton 
+                  variant="playstore"
+                  href="https://play.google.com/store/apps/details?id=com.devarch.tennis2&utm_source=emea_Med"
+                  size="sm"
+                  className="bg-black/50 backdrop-blur-md border border-white/20 hover:bg-black/70 hover:border-white/30 transition-all duration-300"
+                />
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <AppStoreButton 
+                  variant="appstore"
+                  disabled={true}
+                  size="sm"
+                  className="bg-black/50 backdrop-blur-md border border-white/20 transition-all duration-300"
+                />
+              </motion.div>
+            </motion.div>
 
             {/* Stats */}
             <div className="mt-12 sm:mt-20 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 animate-fade-in px-4" style={{ animationDelay: '0.6s' }}>
