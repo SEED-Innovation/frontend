@@ -455,20 +455,7 @@ const Landing = () => {
                 <p className="text-base sm:text-lg text-gray-700 font-medium mb-4">
                   Experience the power of AI-driven tennis analysis
                 </p>
-                <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
-                  <div className="flex items-center text-sm sm:text-base text-gray-600">
-                    <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-tennis-purple-500 mr-2" />
-                    Real-time tracking
-                  </div>
-                  <div className="flex items-center text-sm sm:text-base text-gray-600">
-                    <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-tennis-green-500 mr-2" />
-                    Smart analytics
-                  </div>
-                  <div className="flex items-center text-sm sm:text-base text-gray-600">
-                    <Target className="w-4 h-4 sm:w-5 sm:h-5 text-tennis-purple-500 mr-2" />
-                    Precision insights
-                  </div>
-                </div>
+                
               </div>
             </div>
           </div>
