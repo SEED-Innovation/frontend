@@ -486,21 +486,6 @@ const AdminDashboard = () => {
         </motion.div>
       )}
 
-      {/* Pagination controls for courts (when using paginated API) */}
-      {USE_PAGINATED_COURTS && courtsPageData && (
-        <div className="mt-8">
-          <div className="text-sm text-muted-foreground mb-2 text-center">
-            Note: Using paginated courts API. Statistics may be limited to current page.
-          </div>
-          <PaginationBar
-            page={courtsPage}
-            setPage={setCourtsPage}
-            hasPrev={!!courtsPageData.hasPrevious}
-            hasNext={!!courtsPageData.hasNext}
-            totalPages={courtsPageData.totalPages}
-          />
-        </div>
-      )}
     </div>
   );
 };
