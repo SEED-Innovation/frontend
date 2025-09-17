@@ -39,19 +39,41 @@ export interface BookingStatus {
 }
 
 export interface PaymentTransaction {
-  id: string;
-  reference: string;
+  paymentId: number;
+  referenceNumber: string;
+  amount: number;
+  status: 'SUCCESS' | 'PENDING' | 'FAILED';
+  paymentMethod: string;
+  paymentDate: string;
+  playerId: number;
   playerName: string;
   playerEmail: string;
-  amount: number;
-  currency: string;
-  status: 'paid' | 'pending' | 'failed';
-  method: 'card' | 'wallet' | 'bank_transfer';
-  tapReference?: string;
+  courtId: number;
   courtName: string;
-  bookingDate: string;
-  createdAt: string;
-  updatedAt: string;
+}
+
+export interface AdminPaymentsPageDto {
+  totalPayments: number;
+  paidCount: number;
+  pendingCount: number;
+  failedCount: number;
+  paymentsPage: {
+    content: PaymentTransaction[];
+    pageable: {
+      pageNumber: number;
+      pageSize: number;
+    };
+    totalPages: number;
+    totalElements: number;
+    last: boolean;
+    first: boolean;
+    numberOfElements: number;
+    empty: boolean;
+  };
+}
+
+export interface PaymentIdRequest {
+  paymentId: number;
 }
 
 export interface SessionRecord {

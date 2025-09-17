@@ -1,9 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { 
   CreditCard, 
   Download, 
-  Filter, 
   Search, 
   CheckCircle, 
   Clock, 
@@ -17,141 +16,200 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PaymentTransaction } from '@/types/admin';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { AdminPaymentsPageDto, PaymentTransaction, PaymentIdRequest } from '@/types/admin';
 import { toast } from 'sonner';
 
-// Mock payment data
-const mockPayments: PaymentTransaction[] = [
-  {
-    id: '1',
-    reference: 'TAP-2024-001',
-    playerName: 'Ahmed Al-Rashid',
-    playerEmail: 'ahmed@example.com',
-    amount: 150,
-    currency: 'SAR',
-    status: 'paid',
-    method: 'card',
-    tapReference: 'ch_TS02A0220231058XgB00123456',
-    courtName: 'Court A',
-    bookingDate: '2024-01-15T10:00:00Z',
-    createdAt: '2024-01-15T09:30:00Z',
-    updatedAt: '2024-01-15T10:05:00Z'
-  },
-  {
-    id: '2',
-    reference: 'TAP-2024-002',
-    playerName: 'Sarah Mohammed',
-    playerEmail: 'sarah@example.com',
-    amount: 200,
-    currency: 'SAR',
-    status: 'pending',
-    method: 'wallet',
-    tapReference: 'ch_TS02A0220231058XgB00123457',
-    courtName: 'Court B',
-    bookingDate: '2024-01-15T14:00:00Z',
-    createdAt: '2024-01-15T13:45:00Z',
-    updatedAt: '2024-01-15T13:45:00Z'
-  },
-  {
-    id: '3',
-    reference: 'TAP-2024-003',
-    playerName: 'Omar Abdullah',
-    playerEmail: 'omar@example.com',
-    amount: 175,
-    currency: 'SAR',
-    status: 'failed',
-    method: 'card',
-    tapReference: 'ch_TS02A0220231058XgB00123458',
-    courtName: 'Court C',
-    bookingDate: '2024-01-15T16:00:00Z',
-    createdAt: '2024-01-15T15:30:00Z',
-    updatedAt: '2024-01-15T15:35:00Z'
-  }
-];
-
 const PaymentManagement = () => {
-  const [payments] = useState<PaymentTransaction[]>(mockPayments);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [methodFilter, setMethodFilter] = useState<string>('all');
+  // State management
+  const [pageData, setPageData] = useState<AdminPaymentsPageDto | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize] = useState(10);
+  const [sort] = useState('paymentDate,desc');
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchInput, setSearchInput] = useState('');
 
-  const filteredPayments = useMemo(() => {
-    return payments.filter(payment => {
-      const matchesSearch = payment.playerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          payment.reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          payment.playerEmail.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === 'all' || payment.status === statusFilter;
-      const matchesMethod = methodFilter === 'all' || payment.method === methodFilter;
-      
-      return matchesSearch && matchesStatus && matchesMethod;
-    });
-  }, [payments, searchTerm, statusFilter, methodFilter]);
+  // Debounced search effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(searchInput);
+      setCurrentPage(0); // Reset to first page when searching
+    }, 300);
 
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  // API base URL
+  const API_BASE = import.meta.env.VITE_API_URL || '';
+
+  // Fetch payments data
+  const fetchPayments = useCallback(async () => {
+    try {
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        size: pageSize.toString(),
+        sort: sort
+      });
+
+      if (statusFilter && statusFilter !== 'all') {
+        params.append('status', statusFilter);
+      }
+      if (searchQuery.trim()) {
+        params.append('search', searchQuery.trim());
+      }
+
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${API_BASE}/admin/payments/page-data?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch payments data');
+      }
+
+      const data: AdminPaymentsPageDto = await response.json();
+      setPageData(data);
+    } catch (error) {
+      console.error('Error fetching payments:', error);
+      toast.error('Failed to load payments data');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [currentPage, pageSize, sort, statusFilter, searchQuery, API_BASE]);
+
+  // Initial load and dependency changes
+  useEffect(() => {
+    fetchPayments();
+  }, [fetchPayments]);
+
+  // Helper functions
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'paid': return <CheckCircle className="w-4 h-4 text-green-600" />;
-      case 'pending': return <Clock className="w-4 h-4 text-yellow-600" />;
-      case 'failed': return <XCircle className="w-4 h-4 text-red-600" />;
+      case 'SUCCESS': return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case 'PENDING': return <Clock className="w-4 h-4 text-yellow-600" />;
+      case 'FAILED': return <XCircle className="w-4 h-4 text-red-600" />;
       default: return null;
     }
   };
 
   const getStatusBadge = (status: string) => {
     const variants = {
-      paid: 'bg-green-100 text-green-800 border-green-200',
-      pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      failed: 'bg-red-100 text-red-800 border-red-200'
+      SUCCESS: 'bg-green-100 text-green-800 border-green-200',
+      PENDING: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      FAILED: 'bg-red-100 text-red-800 border-red-200'
     };
     return variants[status as keyof typeof variants] || 'bg-gray-100 text-gray-800';
   };
 
-  const handleManualConfirm = (paymentId: string) => {
-    toast.success('Payment manually confirmed');
+  const getStatusDisplay = (status: string) => {
+    switch (status) {
+      case 'SUCCESS': return 'Paid';
+      case 'PENDING': return 'Pending';
+      case 'FAILED': return 'Failed';
+      default: return status;
+    }
   };
 
-  const handleExportCSV = () => {
-    const csvData = filteredPayments.map(payment => ({
-      Reference: payment.reference,
-      'Player Name': payment.playerName,
-      'Player Email': payment.playerEmail,
-      Amount: `${payment.amount} ${payment.currency}`,
-      Status: payment.status,
-      Method: payment.method,
-      'TAP Reference': payment.tapReference || '',
-      Court: payment.courtName,
-      'Booking Date': new Date(payment.bookingDate).toLocaleDateString(),
-      'Created At': new Date(payment.createdAt).toLocaleDateString()
-    }));
-    
-    toast.success('Payment data exported to CSV');
+  // Action handlers
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchPayments();
   };
 
-  const statsCards = [
+  const handleManualConfirm = async (paymentId: number) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const requestBody: PaymentIdRequest = { paymentId };
+
+      const response = await fetch(`${API_BASE}/admin/payments/mark-paid`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to confirm payment');
+      }
+
+      toast.success('Payment manually confirmed');
+      await fetchPayments(); // Refresh data
+    } catch (error) {
+      console.error('Error confirming payment:', error);
+      toast.error('Failed to confirm payment');
+    }
+  };
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value === 'all' ? '' : value);
+    setCurrentPage(0);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Early return for loading state
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Payment Management</h1>
+            <p className="text-gray-600 mt-1">Monitor and manage all court booking payments</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <div className="animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
+                  <div className="h-8 bg-gray-200 rounded w-16"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const statsCards = pageData ? [
     {
       title: 'Total Payments',
-      value: payments.length,
+      value: pageData.totalPayments,
       icon: CreditCard,
       color: 'text-blue-600'
     },
     {
       title: 'Paid',
-      value: payments.filter(p => p.status === 'paid').length,
+      value: pageData.paidCount,
       icon: CheckCircle,
       color: 'text-green-600'
     },
     {
       title: 'Pending',
-      value: payments.filter(p => p.status === 'pending').length,
+      value: pageData.pendingCount,
       icon: Clock,
       color: 'text-yellow-600'
     },
     {
       title: 'Failed',
-      value: payments.filter(p => p.status === 'failed').length,
+      value: pageData.failedCount,
       icon: XCircle,
       color: 'text-red-600'
     }
-  ];
+  ] : [];
 
   return (
     <div className="space-y-6">
@@ -161,10 +219,24 @@ const PaymentManagement = () => {
           <h1 className="text-3xl font-bold text-gray-900">Payment Management</h1>
           <p className="text-gray-600 mt-1">Monitor and manage all court booking payments</p>
         </div>
-        <Button onClick={handleExportCSV} className="flex items-center gap-2">
-          <Download className="w-4 h-4" />
-          Export CSV
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+          <a href={`${API_BASE}/admin/payments/export-csv`} download>
+            <Button className="flex items-center gap-2">
+              <Download className="w-4 h-4" />
+              Export CSV
+            </Button>
+          </a>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -202,31 +274,20 @@ const PaymentManagement = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
                 placeholder="Search by player name, email, or reference..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 className="pl-10"
               />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select value={statusFilter || 'all'} onValueChange={handleStatusFilterChange}>
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="paid">Paid</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="failed">Failed</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={methodFilter} onValueChange={setMethodFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filter by method" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Methods</SelectItem>
-                <SelectItem value="card">Card</SelectItem>
-                <SelectItem value="wallet">Wallet</SelectItem>
-                <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                <SelectItem value="SUCCESS">Paid</SelectItem>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="FAILED">Failed</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -247,47 +308,109 @@ const PaymentManagement = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredPayments.map((payment) => (
-                  <TableRow key={payment.id}>
-                    <TableCell className="font-medium">{payment.reference}</TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{payment.playerName}</p>
-                        <p className="text-sm text-gray-500">{payment.playerEmail}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-semibold">{payment.amount} {payment.currency}</TableCell>
-                    <TableCell>
-                      <Badge className={`flex items-center gap-1 ${getStatusBadge(payment.status)}`}>
-                        {getStatusIcon(payment.status)}
-                        {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="capitalize">{payment.method.replace('_', ' ')}</TableCell>
-                    <TableCell>{payment.courtName}</TableCell>
-                    <TableCell>{new Date(payment.createdAt).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {payment.status === 'pending' && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleManualConfirm(payment.id)}
-                          >
-                            <CheckCircle className="w-4 h-4 mr-1" />
-                            Confirm
-                          </Button>
-                        )}
-                        <Button size="sm" variant="ghost">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                      </div>
+                {pageData?.paymentsPage.content.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                      {searchQuery || statusFilter ? 'No payments found matching your filters' : 'No payments found'}
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  pageData?.paymentsPage.content.map((payment) => (
+                    <TableRow key={payment.paymentId}>
+                      <TableCell className="font-medium">{payment.referenceNumber}</TableCell>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{payment.playerName}</p>
+                          <p className="text-sm text-gray-500">{payment.playerEmail}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-semibold">{payment.amount} SAR</TableCell>
+                      <TableCell>
+                        <Badge className={`flex items-center gap-1 ${getStatusBadge(payment.status)}`}>
+                          {getStatusIcon(payment.status)}
+                          {getStatusDisplay(payment.status)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="capitalize">{payment.paymentMethod.replace('_', ' ')}</TableCell>
+                      <TableCell>{payment.courtName}</TableCell>
+                      <TableCell>{new Date(payment.paymentDate).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {payment.status === 'PENDING' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleManualConfirm(payment.paymentId)}
+                            >
+                              <CheckCircle className="w-4 h-4 mr-1" />
+                              Confirm
+                            </Button>
+                          )}
+                          <Button size="sm" variant="ghost">
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
+
+          {/* Pagination */}
+          {pageData && pageData.paymentsPage.totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4">
+              <div className="text-sm text-gray-600">
+                Showing {(currentPage * pageSize) + 1} to {Math.min((currentPage + 1) * pageSize, pageData.paymentsPage.totalElements)} of {pageData.paymentsPage.totalElements} payments
+              </div>
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (currentPage > 0) handlePageChange(currentPage - 1);
+                      }}
+                      className={currentPage === 0 ? 'pointer-events-none opacity-50' : ''}
+                    />
+                  </PaginationItem>
+                  
+                  {[...Array(Math.min(5, pageData.paymentsPage.totalPages))].map((_, i) => {
+                    const startPage = Math.max(0, Math.min(currentPage - 2, pageData.paymentsPage.totalPages - 5));
+                    const pageNum = startPage + i;
+                    
+                    return (
+                      <PaginationItem key={pageNum}>
+                        <PaginationLink
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handlePageChange(pageNum);
+                          }}
+                          isActive={pageNum === currentPage}
+                        >
+                          {pageNum + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
+
+                  <PaginationItem>
+                    <PaginationNext 
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (currentPage < pageData.paymentsPage.totalPages - 1) handlePageChange(currentPage + 1);
+                      }}
+                      className={currentPage >= pageData.paymentsPage.totalPages - 1 ? 'pointer-events-none opacity-50' : ''}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
