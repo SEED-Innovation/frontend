@@ -158,6 +158,42 @@ const PaymentManagement = () => {
     setCurrentPage(page);
   };
 
+  const handleExportCsv = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${API_BASE}/admin/payments/export-csv`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'text/csv'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to export CSV');
+      }
+
+      // Get the blob
+      const blob = await response.blob();
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `payments_export_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast.success('CSV export completed successfully');
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      toast.error('Failed to export CSV');
+    }
+  };
+
   // Early return for loading state
   if (loading) {
     return (
@@ -230,12 +266,13 @@ const PaymentManagement = () => {
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <a href={`${API_BASE}/admin/payments/export-csv`} download>
-            <Button className="flex items-center gap-2">
-              <Download className="w-4 h-4" />
-              Export CSV
-            </Button>
-          </a>
+          <Button 
+            className="flex items-center gap-2"
+            onClick={handleExportCsv}
+          >
+            <Download className="w-4 h-4" />
+            Export CSV
+          </Button>
         </div>
       </div>
 
