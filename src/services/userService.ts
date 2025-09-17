@@ -223,7 +223,7 @@ export class UserService {
     console.log('👥 UserService.getAllAdminNames called');
     
     try {
-      const response = await fetch(`${this.baseUrl}/admin/users/admins/list`, {
+      const response = await fetch(`${this.baseUrl}/admin/users/list-admins`, {
         method: 'GET',
         headers: this.getHeaders()
       });
