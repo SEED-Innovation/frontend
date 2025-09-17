@@ -1,6 +1,3 @@
-// TODO: CourtManagement relies on full in-memory list ("Select All" functionality). 
-// Needs UX redesign (e.g., "Select Page") before enabling pagination.
-// Currently kept on old getAllCourts() path while feature flag is false by default.
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -18,6 +15,9 @@ import { toast } from 'sonner';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { courtService, CreateCourtRequest, UpdateCourtRequest, SetCourtAvailabilityRequest, AdminCourtAvailabilityResponse } from '@/lib/api/services/courtService';
 import { Court, SportType } from '@/types/court';
+import { useCourtsPaged } from '@/lib/hooks/useCourtsPaged';
+import { USE_PAGINATED_COURTS } from '@/lib/config/flags';
+import { PaginationBar } from '@/components/common/PaginationBar';
 import { adminService } from '@/services/adminService';
 import { userService } from '@/services/userService';
 import { AdminUser } from '@/types/admin';
@@ -37,6 +37,15 @@ import { CurrencyDisplay } from '@/components/ui/currency-display';
 
 const CourtManagement = () => {
   const { user, hasPermission } = useAdminAuth();
+  
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const pageSize = 20;
+  
+  // Use paginated courts hook
+  const { data: pagedData, isLoading: pagedLoading, refetch: refetchPaged } = useCourtsPaged(page, pageSize);
+  
+  // Legacy state for backward compatibility
   const [courts, setCourts] = useState<Court[]>([]);
   const [admins, setAdmins] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -97,17 +106,25 @@ const CourtManagement = () => {
   const [managerSearchValue, setManagerSearchValue] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
-  // Fetch courts on component mount (no longer filter by sport type at API level)
+  // Get current courts data based on feature flag
+  const currentCourts = USE_PAGINATED_COURTS ? (pagedData?.courts || []) : courts;
+  const isCurrentlyLoading = USE_PAGINATED_COURTS ? pagedLoading : loading;
+  
+  // Fetch courts on component mount - only if not using paginated API
   useEffect(() => {
-    fetchCourts(); // Fetch all courts, filtering will happen locally
+    if (!USE_PAGINATED_COURTS) {
+      fetchCourts();
+    }
     // Always fetch admins for manager assignment functionality
     fetchAdmins();
-  }, []); // Remove selectedSportType dependency since filtering is now local
+  }, []);
 
   const fetchCourts = async () => {
+    if (USE_PAGINATED_COURTS) return; // Skip if using paginated API
+    
     try {
       setLoading(true);
-      const fetchedCourts = await courtService.getAllCourts(); // Remove sportType parameter
+      const fetchedCourts = await courtService.getAllCourts();
       console.log('Fetched courts:', fetchedCourts);
       setCourts(fetchedCourts);
     } catch (error) {
@@ -219,12 +236,17 @@ const CourtManagement = () => {
   };
 
   const handleCourtUpdated = (updatedCourt: Court) => {
-    // Update the court in the local state
-    setCourts(prevCourts => 
-      prevCourts.map(court => 
-        court.id === updatedCourt.id ? updatedCourt : court
-      )
-    );
+    if (USE_PAGINATED_COURTS) {
+      // Refetch paginated data
+      refetchPaged();
+    } else {
+      // Update the court in the local state
+      setCourts(prevCourts => 
+        prevCourts.map(court => 
+          court.id === updatedCourt.id ? updatedCourt : court
+        )
+      );
+    }
   };
 
   const handleUpdateCourt = async (courtData: UpdateCourtRequest, imageFile?: File): Promise<boolean> => {
@@ -292,7 +314,15 @@ const CourtManagement = () => {
   const handleDeleteCourt = async (courtId: string | number) => {
     try {
       await courtService.deleteCourt(courtId);
-      setCourts(courts.filter(court => court.id !== Number(courtId)));
+      
+      if (USE_PAGINATED_COURTS) {
+        // Refetch paginated data
+        await refetchPaged();
+      } else {
+        // Update local state
+        setCourts(courts.filter(court => court.id !== Number(courtId)));
+      }
+      
       toast.success('Court deleted successfully');
       setDeleteDialogOpen(false);
       setCourtToDelete(null);
@@ -353,7 +383,7 @@ const CourtManagement = () => {
   };
 
   // Advanced filtering logic
-  const filteredCourts = courts.filter((court) => {
+  const filteredCourts = currentCourts.filter((court) => {
     // Sport type filter
     if (selectedSportType !== 'ALL' && court.sportType !== selectedSportType) {
       return false;
@@ -399,10 +429,10 @@ const CourtManagement = () => {
   });
 
   // Get unique values for filter dropdowns
-  const uniqueTypes = [...new Set(courts.map(court => court.type))].filter(Boolean);
-  const uniqueLocations = [...new Set(courts.map(court => court.location))].filter(Boolean);
-  const uniqueManagers = [...new Set(courts.map(court => court.manager?.name).filter(Boolean))];
-  const maxPrice = Math.max(...courts.map(court => court.hourlyFee || 0), 300);
+  const uniqueTypes = [...new Set(currentCourts.map(court => court.type))].filter(Boolean);
+  const uniqueLocations = [...new Set(currentCourts.map(court => court.location))].filter(Boolean);
+  const uniqueManagers = [...new Set(currentCourts.map(court => court.manager?.name).filter(Boolean))];
+  const maxPrice = Math.max(...currentCourts.map(court => court.hourlyFee || 0), 300);
 
   // Clear all filters
   const clearFilters = () => {
@@ -654,8 +684,8 @@ const CourtManagement = () => {
             </div>
             <div className="text-sm text-muted-foreground">
               {selectedSportType === 'ALL' 
-                ? `Showing all ${courts.length} courts` 
-                : `Showing ${courts.filter(court => court.sportType === selectedSportType).length} ${selectedSportType.toLowerCase()} courts`
+                ? `Showing all ${USE_PAGINATED_COURTS ? (pagedData?.totalElements || 0) : currentCourts.length} courts` 
+                : `Showing ${currentCourts.filter(court => court.sportType === selectedSportType).length} ${selectedSportType.toLowerCase()} courts`
               }
             </div>
           </div>
@@ -1036,19 +1066,24 @@ const CourtManagement = () => {
                 {/* Results count */}
                 <div className="flex items-center justify-between pt-2 border-t">
                   <span className="text-sm text-muted-foreground">
-                    Showing {filteredCourts.length} of {courts.length} courts
+                    Showing {filteredCourts.length} of {USE_PAGINATED_COURTS ? (pagedData?.totalElements || 0) : currentCourts.length} courts
+                    {USE_PAGINATED_COURTS && (
+                      <span className="ml-2 text-xs opacity-75">
+                        (Page {page + 1} of {pagedData?.totalPages || 1})
+                      </span>
+                    )}
                   </span>
                 </div>
               </motion.div>
             )}
           </div>
 
-          {loading ? (
+          {isCurrentlyLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="w-8 h-8 animate-spin" />
               <span className="ml-2">Loading courts...</span>
             </div>
-          ) : courts.length === 0 ? (
+          ) : currentCourts.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-gray-500">
                 {user?.role === 'SUPER_ADMIN' 
@@ -1214,6 +1249,28 @@ const CourtManagement = () => {
                 </Card>
               ))}
             </div>
+            
+            {/* Pagination for paginated courts */}
+            {USE_PAGINATED_COURTS && pagedData && (
+              <PaginationBar
+                page={page}
+                setPage={setPage}
+                hasPrev={pagedData.hasPrevious}
+                hasNext={pagedData.hasNext}
+                totalPages={pagedData.totalPages}
+              />
+            )}
+          )}
+          
+          {/* Pagination for paginated courts */}
+          {USE_PAGINATED_COURTS && pagedData && (
+            <PaginationBar
+              page={page}
+              setPage={setPage}
+              hasPrev={pagedData.hasPrevious}
+              hasNext={pagedData.hasNext}
+              totalPages={pagedData.totalPages}
+            />
           )}
         </TabsContent>
 
@@ -1239,8 +1296,8 @@ const CourtManagement = () => {
                         aria-expanded={courtSearchOpen}
                         className="w-full justify-between"
                       >
-                        {availabilityData.courtId
-                          ? courts.find((court) => court.id === availabilityData.courtId)?.name
+                         {availabilityData.courtId
+                           ? currentCourts.find((court) => court.id === availabilityData.courtId)?.name
                           : "Select court..."}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
