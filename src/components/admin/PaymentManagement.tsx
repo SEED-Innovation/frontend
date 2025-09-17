@@ -160,27 +160,38 @@ const PaymentManagement = () => {
 
   const handleExportCsv = async () => {
     try {
+      console.log('Starting CSV export...');
       const token = localStorage.getItem('accessToken');
+      if (!token) {
+        toast.error('No authentication token found');
+        return;
+      }
+
+      console.log('Making authenticated request to:', `${API_BASE}/admin/payments/export-csv`);
       const response = await fetch(`${API_BASE}/admin/payments/export-csv`, {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'text/csv'
         }
       });
 
+      console.log('Response status:', response.status);
       if (!response.ok) {
-        throw new Error('Failed to export CSV');
+        throw new Error(`Failed to export CSV: ${response.status} ${response.statusText}`);
       }
 
       // Get the blob
       const blob = await response.blob();
+      console.log('Blob received, size:', blob.size);
       
       // Create download link
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = `payments_export_${new Date().toISOString().split('T')[0]}.csv`;
+      a.style.display = 'none';
       document.body.appendChild(a);
+      console.log('Triggering download...');
       a.click();
       
       // Cleanup
@@ -190,7 +201,7 @@ const PaymentManagement = () => {
       toast.success('CSV export completed successfully');
     } catch (error) {
       console.error('Error exporting CSV:', error);
-      toast.error('Failed to export CSV');
+      toast.error('Failed to export CSV: ' + (error as Error).message);
     }
   };
 
