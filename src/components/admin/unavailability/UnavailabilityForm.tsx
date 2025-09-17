@@ -31,7 +31,7 @@ export const UnavailabilityForm: React.FC<UnavailabilityFormProps> = ({ onSucces
   const [courtSearchValue, setCourtSearchValue] = useState('');
   
   const [formData, setFormData] = useState({
-    courtId: '',
+    courtId: 0,
     date: ''
   });
 
@@ -53,10 +53,11 @@ export const UnavailabilityForm: React.FC<UnavailabilityFormProps> = ({ onSucces
         const courtsData = await getCourtsLite();
         // Transform CourtLite to Court format for compatibility
         const transformedCourts: Court[] = courtsData.map(court => ({
-          id: court.id.toString(),
+          id: court.id,
           name: court.name,
           location: '', // Not available in CourtLite
-          type: '', // Not available in CourtLite
+          sportType: 'TENNIS' as const, // Default value since not available in CourtLite
+          type: null, // Not available in CourtLite
           hourlyFee: 0, // Not available in CourtLite
           hasSeedSystem: false, // Not available in CourtLite
           amenities: [] // Not available in CourtLite
@@ -94,7 +95,7 @@ export const UnavailabilityForm: React.FC<UnavailabilityFormProps> = ({ onSucces
       setSubmitting(true);
       
       const requestData: MarkUnavailableRequest = {
-        courtId: parseInt(formData.courtId),
+        courtId: formData.courtId,
         date: formData.date // Should be in YYYY-MM-DD format
       };
 
@@ -109,7 +110,7 @@ export const UnavailabilityForm: React.FC<UnavailabilityFormProps> = ({ onSucces
       
       // Reset form
       setFormData({
-        courtId: '',
+        courtId: 0,
         date: ''
       });
       

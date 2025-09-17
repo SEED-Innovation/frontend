@@ -63,7 +63,7 @@ const CourtManagement = () => {
   });
 
   const [availabilityData, setAvailabilityData] = useState({
-    courtId: '',
+    courtId: 0,
     dayOfWeek: '',
     startTime: '',
     endTime: ''
@@ -289,10 +289,10 @@ const CourtManagement = () => {
     }
   };
 
-  const handleDeleteCourt = async (courtId: string) => {
+  const handleDeleteCourt = async (courtId: string | number) => {
     try {
       await courtService.deleteCourt(courtId);
-      setCourts(courts.filter(court => court.id !== courtId));
+      setCourts(courts.filter(court => court.id !== Number(courtId)));
       toast.success('Court deleted successfully');
       setDeleteDialogOpen(false);
       setCourtToDelete(null);
@@ -315,7 +315,7 @@ const CourtManagement = () => {
 
     try {
       const requestData: SetCourtAvailabilityRequest = {
-        courtId: parseInt(availabilityData.courtId),
+        courtId: availabilityData.courtId,
         dayOfWeek: availabilityData.dayOfWeek.toUpperCase(),
         start: availabilityData.startTime,
         end: availabilityData.endTime
@@ -325,7 +325,7 @@ const CourtManagement = () => {
       
       toast.success('Court availability updated successfully');
       setAvailabilityData({
-        courtId: '',
+        courtId: 0,
         dayOfWeek: '',
         startTime: '',
         endTime: ''
