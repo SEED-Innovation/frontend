@@ -692,11 +692,11 @@ const CourtManagement = () => {
               </Button>
             </div>
             <div className="text-sm text-muted-foreground">
-              {USE_PAGINATED_COURTS && (
+              {USE_PAGINATED_COURTS /*&& (
                 <div className="mb-2 p-2 bg-blue-50 text-blue-700 rounded-md text-xs">
-                  📄 Using paginated API - courts loaded in pages of {pageSize}
+                  Courts loaded in pages of {pageSize}
                 </div>
-              )}
+              )*/}
               {selectedSportType === 'ALL' 
                 ? `Showing all ${USE_PAGINATED_COURTS ? (pagedData?.totalElements || 0) : currentCourts.length} courts` 
                 : `Showing ${currentCourts.filter(court => court.sportType === selectedSportType).length} ${selectedSportType.toLowerCase()} courts`
