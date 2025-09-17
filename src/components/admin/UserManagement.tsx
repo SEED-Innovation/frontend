@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Plus, UserPlus, Download, Eye, Ban, Crown, Users, UserX, Mail, Phone, Calendar, Building } from 'lucide-react';
+import { Search, Plus, UserPlus, Download, Eye, Ban, Crown, Users, UserX, Mail, Phone, Calendar, Building, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -633,69 +633,76 @@ const UserManagement = () => {
               ) : adminNames.length > 0 ? (
                  <div className="space-y-4">
                    {filteredManagers.map((manager) => (
-                     <div key={manager.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                       <div className="flex items-center space-x-4">
-                         <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-semibold">
-                           {manager.name.split(' ').map(n => n[0]).join('')}
-                         </div>
-                         <div>
-                           <h3 className="font-semibold text-gray-900">{manager.name}</h3>
-                           <div className="flex items-center space-x-4 text-sm text-gray-600">
-                             <div className="flex items-center space-x-1">
-                               <Mail className="w-3 h-3" />
-                               <span>{manager.email}</span>
-                             </div>
-                             <div className="flex items-center space-x-1">
-                               <Phone className="w-3 h-3" />
-                               <span>{manager.phone || 'No phone'}</span>
-                             </div>
-                           </div>
-                         </div>
-                       </div>
+                      <div key={manager.id} className="flex items-center gap-4 p-4 bg-card hover:bg-muted/30 transition-all duration-200 border rounded-lg">
+                        {/* Left Section - Courts Count and Info */}
+                        <div className="flex items-center gap-4 flex-1">
+                          {/* Courts Count with proper icon alignment */}
+                          <div className="flex items-center gap-3 min-w-[80px]">
+                            <div className="p-2 bg-primary/10 rounded-lg">
+                              <Building className="w-4 h-4 text-primary" />
+                            </div>
+                            <div className="text-center">
+                              <div className="text-lg font-bold text-foreground">{manager.managedCourtsCount}</div>
+                              <div className="text-xs text-muted-foreground font-medium">Courts</div>
+                            </div>
+                          </div>
 
-                       <div className="flex items-center space-x-4">
-                         <div className="text-center">
-                           <div className="text-sm font-medium text-gray-900 flex items-center gap-1">
-                             <Building className="w-4 h-4" />
-                             {manager.managedCourtsCount}
-                           </div>
-                           <div className="text-xs text-gray-600">Courts</div>
-                         </div>
-                         <div className="text-center">
-                           <div className="text-sm font-medium text-gray-900">
-                             {formatLastLogin(manager.lastLogin)}
-                           </div>
-                           <div className="text-xs text-gray-600">Last Login</div>
-                         </div>
-                         <Badge className={manager.role === 'SUPER_ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-orange-100 text-orange-800'}>
-                           <Crown className="w-3 h-3 mr-1" />
-                           {manager.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}
-                         </Badge>
-                         <Badge className={getStatusColor(manager.status)}>
-                           {manager.status}
-                         </Badge>
-                         
-                         <div className="flex items-center gap-2">
-                           <Button 
-                             variant="outline" 
-                             size="sm"
-                             onClick={() => handleViewUser(manager, 'manager')}
-                           >
-                             <Eye className="w-4 h-4 mr-1" />
-                             View
-                           </Button>
-                           <ActionMenu
-                             user={manager}
-                             userType="manager"
-                             onEnableDisable={handleEnableDisable}
-                             onChangeRole={handleChangeRole}
-                             onAssignCourts={handleAssignCourts}
-                             onEdit={handleEdit}
-                             onDelete={handleDelete}
-                           />
-                         </div>
-                       </div>
-                     </div>
+                          {/* Last Login with proper alignment */}
+                          <div className="flex items-center gap-3 min-w-[120px]">
+                            <div className="p-2 bg-muted/60 rounded-lg">
+                              <Clock className="w-4 h-4 text-muted-foreground" />
+                            </div>
+                            <div className="text-center">
+                              <div className="text-sm font-semibold text-foreground">
+                                {formatLastLogin(manager.lastLogin)}
+                              </div>
+                              <div className="text-xs text-muted-foreground font-medium">Last Login</div>
+                            </div>
+                          </div>
+
+                          {/* Role Badge */}
+                          <Badge 
+                            variant={manager.role === 'SUPER_ADMIN' ? 'default' : 'secondary'} 
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium min-w-fit"
+                          >
+                            <Crown className="w-3.5 h-3.5" />
+                            {manager.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}
+                          </Badge>
+
+                          {/* Status Badge */}
+                          <Badge 
+                            variant={manager.status === 'Active' ? 'default' : 'destructive'}
+                            className="px-3 py-1.5 text-xs font-medium min-w-fit flex items-center gap-1.5"
+                          >
+                            <div className={`w-2 h-2 rounded-full ${
+                              manager.status === 'Active' ? 'bg-green-500' : 'bg-red-500'
+                            }`} />
+                            {manager.status}
+                          </Badge>
+                        </div>
+
+                        {/* Actions Section - Right Aligned */}
+                        <div className="flex items-center gap-2 ml-auto">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleViewUser(manager, 'manager')}
+                            className="flex items-center gap-1.5 text-xs"
+                          >
+                            <Eye className="w-4 h-4" />
+                            View
+                          </Button>
+                          <ActionMenu
+                            user={manager}
+                            userType="manager"
+                            onEnableDisable={handleEnableDisable}
+                            onChangeRole={handleChangeRole}
+                            onAssignCourts={handleAssignCourts}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                          />
+                        </div>
+                      </div>
                    ))}
                  </div>
               ) : (
