@@ -1093,6 +1093,7 @@ const CourtManagement = () => {
               </p>
             </div>
           ) : (
+            <>
             <div className="grid gap-4 md:grid-cols-2">
               {filteredCourts.map((court) => (
                 <Card key={court.id} className="overflow-hidden">
@@ -1260,6 +1261,7 @@ const CourtManagement = () => {
                 totalPages={pagedData.totalPages}
               />
             )}
+            </>
           )}
         </TabsContent>
 
