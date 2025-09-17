@@ -87,29 +87,46 @@ const UserManagement = () => {
     }
   ];
 
-  // Mock manager data
+  // Mock manager data with enhanced fields
   const managers = [
     {
       id: 101,
-      name: 'Admin Manager',
-      email: 'admin@example.com',
-      phone: '+1234567900',
-      role: 'Admin',
+      name: 'Ahmed Al-Mansouri',
+      email: 'ahmed.admin@seed.com',
+      phone: '+966-50-123-4567',
+      role: 'ADMIN',
       status: 'Active',
       joinDate: '2023-12-01',
       managedCourtsCount: 5,
-      lastLogin: '2024-03-15T08:15:00Z'
+      assignedCourts: ['Court A', 'Court B', 'Court C', 'Court D', 'Court E'],
+      lastLogin: '2024-03-15T08:15:00Z',
+      avatar: null
     },
     {
       id: 102,
-      name: 'Super Administrator',
-      email: 'super@example.com',
-      phone: '+1234567901',
-      role: 'Super Admin',
+      name: 'Sarah Al-Zahra',
+      email: 'sarah.super@seed.com',
+      phone: '+966-55-987-6543',
+      role: 'SUPER_ADMIN',
       status: 'Active',
       joinDate: '2023-11-15',
       managedCourtsCount: 12,
-      lastLogin: '2024-03-15T09:30:00Z'
+      assignedCourts: ['All Courts'],
+      lastLogin: '2024-03-15T09:30:00Z',
+      avatar: null
+    },
+    {
+      id: 103,
+      name: 'Omar Hassan',
+      email: 'omar.admin@seed.com',
+      phone: null,
+      role: 'ADMIN',
+      status: 'Suspended',
+      joinDate: '2024-01-20',
+      managedCourtsCount: 0,
+      assignedCourts: [],
+      lastLogin: null,
+      avatar: null
     }
   ];
 
@@ -298,6 +315,16 @@ const UserManagement = () => {
 
   const handleAssignCourts = (user: any) => {
     toast.info('Court assignment functionality to be implemented');
+  };
+
+  const handleEdit = (user: any) => {
+    handleEditUser(user);
+  };
+
+  const handleDelete = (user: any) => {
+    if (confirm(`Are you sure you want to delete ${user.name}?`)) {
+      handleDeleteUser(user.email);
+    }
   };
 
   const handleViewUser = (user: any, userType: 'user' | 'manager') => {
@@ -564,23 +591,24 @@ const UserManagement = () => {
                       <Badge className={getStatusColor(user.status)}>
                         {user.status}
                       </Badge>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="mr-2"
-                        onClick={() => handleEditUser(user)}
-                      >
-                        <Eye className="w-4 h-4 mr-1" />
-                        View
-                      </Button>
-                      <Button 
-                        variant="destructive" 
-                        size="sm"
-                        onClick={() => handleDeleteUser(user.email)}
-                      >
-                        <Ban className="w-4 h-4 mr-1" />
-                        Delete
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleViewUser(user, 'user')}
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
+                          View
+                        </Button>
+                        <ActionMenu
+                          user={user}
+                          userType="user"
+                          onEnableDisable={handleEnableDisable}
+                          onChangeRole={handleChangeRole}
+                          onEdit={handleEdit}
+                          onDelete={handleDelete}
+                        />
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -603,25 +631,73 @@ const UserManagement = () => {
                   <div className="text-gray-600">Loading admin names...</div>
                 </div>
               ) : adminNames.length > 0 ? (
-                <div className="space-y-3">
-                  {adminNames.map((adminName, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                          {adminName.split(' ').map(n => n[0]).join('').substring(0, 2)}
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-900">{adminName}</h4>
-                          <p className="text-sm text-gray-600">Admin User</p>
-                        </div>
-                      </div>
-                      <Badge className="bg-orange-100 text-orange-800 flex items-center space-x-1">
-                        <Crown className="w-3 h-3" />
-                        <span>Admin</span>
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
+                 <div className="space-y-4">
+                   {filteredManagers.map((manager) => (
+                     <div key={manager.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                       <div className="flex items-center space-x-4">
+                         <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-semibold">
+                           {manager.name.split(' ').map(n => n[0]).join('')}
+                         </div>
+                         <div>
+                           <h3 className="font-semibold text-gray-900">{manager.name}</h3>
+                           <div className="flex items-center space-x-4 text-sm text-gray-600">
+                             <div className="flex items-center space-x-1">
+                               <Mail className="w-3 h-3" />
+                               <span>{manager.email}</span>
+                             </div>
+                             <div className="flex items-center space-x-1">
+                               <Phone className="w-3 h-3" />
+                               <span>{manager.phone || 'No phone'}</span>
+                             </div>
+                           </div>
+                         </div>
+                       </div>
+
+                       <div className="flex items-center space-x-4">
+                         <div className="text-center">
+                           <div className="text-sm font-medium text-gray-900 flex items-center gap-1">
+                             <Building className="w-4 h-4" />
+                             {manager.managedCourtsCount}
+                           </div>
+                           <div className="text-xs text-gray-600">Courts</div>
+                         </div>
+                         <div className="text-center">
+                           <div className="text-sm font-medium text-gray-900">
+                             {formatLastLogin(manager.lastLogin)}
+                           </div>
+                           <div className="text-xs text-gray-600">Last Login</div>
+                         </div>
+                         <Badge className={manager.role === 'SUPER_ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-orange-100 text-orange-800'}>
+                           <Crown className="w-3 h-3 mr-1" />
+                           {manager.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}
+                         </Badge>
+                         <Badge className={getStatusColor(manager.status)}>
+                           {manager.status}
+                         </Badge>
+                         
+                         <div className="flex items-center gap-2">
+                           <Button 
+                             variant="outline" 
+                             size="sm"
+                             onClick={() => handleViewUser(manager, 'manager')}
+                           >
+                             <Eye className="w-4 h-4 mr-1" />
+                             View
+                           </Button>
+                           <ActionMenu
+                             user={manager}
+                             userType="manager"
+                             onEnableDisable={handleEnableDisable}
+                             onChangeRole={handleChangeRole}
+                             onAssignCourts={handleAssignCourts}
+                             onEdit={handleEdit}
+                             onDelete={handleDelete}
+                           />
+                         </div>
+                       </div>
+                     </div>
+                   ))}
+                 </div>
               ) : (
                 <div className="text-center py-8">
                   <Crown className="w-12 h-12 text-gray-400 mx-auto mb-3" />

@@ -1,5 +1,5 @@
 import React from 'react';
-import { MoreVertical, UserCheck, UserX, Users, Trash2, Settings, Building } from 'lucide-react';
+import { MoreVertical, UserCheck, UserX, Users, Trash2, Settings, Building, Edit, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -15,6 +15,7 @@ interface ActionMenuProps {
   onEnableDisable: (user: any) => void;
   onChangeRole?: (user: any) => void;
   onAssignCourts?: (user: any) => void;
+  onEdit?: (user: any) => void;
   onDelete: (user: any) => void;
 }
 
@@ -24,6 +25,7 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
   onEnableDisable,
   onChangeRole,
   onAssignCourts,
+  onEdit,
   onDelete
 }) => {
   const isActive = user.status === 'Active';
@@ -57,10 +59,22 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          {onEdit && (
+            <DropdownMenuItem onClick={() => onEdit(user)}>
+              <Edit className="w-4 h-4 mr-2" />
+              Edit {userType === 'user' ? 'User' : 'Admin'}
+            </DropdownMenuItem>
+          )}
           {userType === 'user' && onChangeRole && (
             <DropdownMenuItem onClick={() => onChangeRole(user)}>
               <Users className="w-4 h-4 mr-2" />
               Change Plan
+            </DropdownMenuItem>
+          )}
+          {userType === 'manager' && onChangeRole && (
+            <DropdownMenuItem onClick={() => onChangeRole(user)}>
+              <Shield className="w-4 h-4 mr-2" />
+              Change Role
             </DropdownMenuItem>
           )}
           {userType === 'manager' && onAssignCourts && (
