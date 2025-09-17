@@ -196,7 +196,7 @@ const Landing = () => {
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
               />
-              <span className="text-2xl font-bold hidden sm:block">SEED INNOVATION</span>
+              <span className="text-2xl font-bold hidden sm:block">INNOVATION</span>
             </Link>
             
             {/* Desktop Navigation */}
@@ -860,7 +860,7 @@ const Landing = () => {
                   alt="SEED Logo" 
                   className="h-10 sm:h-12 w-auto"
                 />
-                <span className="text-xl sm:text-2xl font-bold">SEED INNOVATION</span>
+                <span className="text-xl sm:text-2xl font-bold">INNOVATION</span>
               </Link>
               <p className="text-gray-400 text-base sm:text-lg mb-4 sm:mb-6 max-w-md">
                 AI-powered tennis analytics platform helping players and coaches achieve excellence through data-driven insights.
