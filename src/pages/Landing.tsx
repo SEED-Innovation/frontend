@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowDown, Calendar, Star, Eye, Trophy, Play, Zap, Target, Users, Menu, X, CheckCircle, Clock, Video, BarChart3, Award, MessageSquare } from 'lucide-react';
+import { ArrowDown, Calendar, Star, Eye, Trophy, Play, Zap, Target, Users, Menu, X, CheckCircle, Clock, Video, BarChart3, Award, MessageSquare, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import StickerPeel from '../components/ui/StickerPeel'
+import AppStoreButton from '../components/ui/AppStoreButton';
 import logo from '/lovable-uploads/d6e16ac6-604a-4a7a-9497-3476e49278a1.png'
 
 const Landing = () => {
@@ -200,13 +201,29 @@ const Landing = () => {
             </Link>
             
             {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center space-x-8">
-              {/* <motion.div whileHover={{ y: -2 }}>
-                <span className="text-white/60 text-sm">Admin Dashboard for</span>
-              </motion.div>
-              <motion.div whileHover={{ y: -2 }}>
-                <span className="text-white/60 text-sm">Tennis Court Management</span>
-              </motion.div> */}
+            <div className="hidden lg:flex items-center space-x-6">
+              {/* App Download Buttons */}
+              <div className="flex items-center space-x-3">
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <AppStoreButton 
+                    variant="playstore"
+                    href="https://play.google.com/store/apps/details?id=com.devarch.tennis2&utm_source=emea_Med"
+                    size="sm"
+                    className="bg-white/10 backdrop-blur-md border border-white/30 hover:bg-white/20"
+                  />
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <AppStoreButton 
+                    variant="appstore"
+                    disabled={true}
+                    size="sm"
+                    className="bg-white/10 backdrop-blur-md border border-white/30"
+                  />
+                </motion.div>
+              </div>
+              
+              <div className="h-6 border-l border-white/30"></div>
+              
               <Link to="/admin-login">
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Button 
@@ -242,6 +259,25 @@ const Landing = () => {
           {isMenuOpen && (
             <div className="lg:hidden absolute top-20 left-4 right-4 bg-black/90 backdrop-blur-xl border border-white/20 rounded-2xl p-6 animate-fade-in z-50">
               <div className="space-y-4">
+                {/* Mobile App Download Buttons */}
+                <div className="pb-4 border-b border-white/20">
+                  <p className="text-white/80 text-sm mb-3 font-medium">Download Mobile App</p>
+                  <div className="flex space-x-3">
+                    <AppStoreButton 
+                      variant="playstore"
+                      href="https://play.google.com/store/apps/details?id=com.devarch.tennis2&utm_source=emea_Med"
+                      size="sm"
+                      className="flex-1"
+                    />
+                    <AppStoreButton 
+                      variant="appstore"
+                      disabled={true}
+                      size="sm"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+                
                 <Link to="/courts" className="block text-white text-lg font-medium hover:text-tennis-green-400 transition-colors" onClick={() => setIsMenuOpen(false)}>
                   Courts
                 </Link>
@@ -663,6 +699,129 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Mobile App Download Section */}
+      <section className="py-16 sm:py-24 lg:py-32 bg-gradient-to-br from-gray-50 via-white to-gray-100 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-tennis-purple-50/30 to-tennis-green-50/30" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12 sm:mb-16">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+            >
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-tennis-gradient rounded-full mb-6">
+                <Smartphone className="w-8 h-8 text-white" />
+              </div>
+              <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-gray-900 mb-6">
+                Get the{' '}
+                <span className="bg-gradient-to-r from-tennis-purple-600 to-tennis-green-500 bg-clip-text text-transparent">
+                  Mobile App
+                </span>
+              </h2>
+              <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                Experience SEED INNOVATION on the go. Track your performance, book courts, 
+                and access AI insights directly from your mobile device.
+              </p>
+            </motion.div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+            {/* Mobile App Features */}
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              viewport={{ once: true }}
+              className="space-y-8"
+            >
+              <div className="space-y-6">
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0 w-12 h-12 bg-tennis-green-100 rounded-xl flex items-center justify-center">
+                    <Play className="w-6 h-6 text-tennis-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">Real-time Analytics</h3>
+                    <p className="text-gray-600">Access live match insights and performance metrics instantly on your phone.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0 w-12 h-12 bg-tennis-purple-100 rounded-xl flex items-center justify-center">
+                    <Calendar className="w-6 h-6 text-tennis-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">Quick Booking</h3>
+                    <p className="text-gray-600">Book courts, manage sessions, and check availability with just a few taps.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0 w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
+                    <Video className="w-6 h-6 text-yellow-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">Match Recordings</h3>
+                    <p className="text-gray-600">Review your games, share highlights, and track your progress over time.</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Download Buttons */}
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              viewport={{ once: true }}
+              className="text-center lg:text-left"
+            >
+              <div className="mb-8">
+                <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
+                  Download Now
+                </h3>
+                <p className="text-gray-600 text-lg">
+                  Available on your favorite platform. Start your tennis revolution today!
+                </p>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <AppStoreButton 
+                    variant="playstore"
+                    href="https://play.google.com/store/apps/details?id=com.devarch.tennis2&utm_source=emea_Med"
+                    size="lg"
+                    className="w-full sm:w-auto"
+                  />
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <AppStoreButton 
+                    variant="appstore"
+                    disabled={true}
+                    size="lg"
+                    className="w-full sm:w-auto"
+                  />
+                </motion.div>
+              </div>
+
+              <div className="mt-6 text-center lg:text-left">
+                <p className="text-sm text-gray-500">
+                  <span className="inline-flex items-center">
+                    <CheckCircle className="w-4 h-4 text-tennis-green-500 mr-1" />
+                    Free download
+                  </span>
+                  <span className="mx-3">•</span>
+                  <span className="inline-flex items-center">
+                    <CheckCircle className="w-4 h-4 text-tennis-green-500 mr-1" />
+                    No credit card required
+                  </span>
+                </p>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-16 sm:py-24 lg:py-32 relative overflow-hidden">
         <div className="absolute inset-0 tennis-gradient">
@@ -865,6 +1024,26 @@ const Landing = () => {
               <p className="text-gray-400 text-base sm:text-lg mb-4 sm:mb-6 max-w-md">
                 AI-powered tennis analytics platform helping players and coaches achieve excellence through data-driven insights.
               </p>
+              
+              {/* Mobile App Download */}
+              <div className="mb-6">
+                <h4 className="text-white font-semibold mb-3">Download Mobile App</h4>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <AppStoreButton 
+                    variant="playstore"
+                    href="https://play.google.com/store/apps/details?id=com.devarch.tennis2&utm_source=emea_Med"
+                    size="sm"
+                    className="bg-gray-800 hover:bg-gray-700 border-gray-600 hover:border-gray-500"
+                  />
+                  <AppStoreButton 
+                    variant="appstore"
+                    disabled={true}
+                    size="sm"
+                    className="bg-gray-800 border-gray-600"
+                  />
+                </div>
+              </div>
+              
               <div className="flex space-x-4">
                 <button 
                   onClick={() => handleSocialAuth('Twitter')}
