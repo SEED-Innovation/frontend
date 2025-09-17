@@ -1,39 +1,5 @@
 
-import { AdminCourtPageResponse } from '@/types/court';
-
-export type SportType = 'TENNIS' | 'PADEL';
-
-export interface Court {
-    id: string;
-    name: string;
-    location: string;
-    type: string;
-    sportType?: SportType;
-    hourlyFee: number;
-    hasSeedSystem: boolean;
-    imageUrl?: string;
-    amenities: string[];
-    techFeatures?: string[];
-    description?: string;
-    openingTimes?: {
-        weekdays: string;
-        weekends: string;
-    };
-    rating?: number;
-    totalRatings?: number;
-    latitude?: number;
-    longitude?: number;
-    status?: 'AVAILABLE' | 'UNAVAILABLE';
-    managerId?: number;
-    manager?: {
-        name: string;
-        email: string;
-        profilePictureUrl?: string;
-    };
-    // Discount fields
-    discountAmount?: number;
-    isPercentage?: boolean;
-}
+import { AdminCourtPageResponse, Court, SportType, CourtType } from '@/types/court';
 
 export interface CreateCourtRequest {
     name: string;
@@ -168,8 +134,8 @@ class CourtService {
     /**
      * Get a specific court by ID
      */
-    async getCourtById(courtId: string): Promise<Court> {
-        const response = await fetch(`${this.baseUrl}/${courtId}`, {
+    async getCourtById(courtId: string | number): Promise<Court> {
+        const response = await fetch(`${this.baseUrl}/${String(courtId)}`, {
             method: 'GET',
             headers: this.getAuthHeaders()
         });
@@ -253,8 +219,8 @@ class CourtService {
     /**
      * Update court details (JSON + multipart support)
      */
-    async updateCourt(courtId: string, data: UpdateCourtRequest, file?: File): Promise<Court> {
-        const url = `${this.baseUrl}/${courtId}`;
+    async updateCourt(courtId: string | number, data: UpdateCourtRequest, file?: File): Promise<Court> {
+        const url = `${this.baseUrl}/${String(courtId)}`;
         const token = localStorage.getItem('accessToken');
 
         if (file) {
@@ -325,8 +291,8 @@ class CourtService {
     /**
      * Delete a court (SUPER_ADMIN only)
      */
-    async deleteCourt(courtId: string): Promise<void> {
-        const response = await fetch(`${this.baseUrl}/${courtId}`, {
+    async deleteCourt(courtId: string | number): Promise<void> {
+        const response = await fetch(`${this.baseUrl}/${String(courtId)}`, {
             method: 'DELETE',
             headers: this.getAuthHeaders()
         });
@@ -339,8 +305,8 @@ class CourtService {
     /**
      * Update court fee
      */
-    async updateCourtFee(courtId: string, newHourlyFee: number): Promise<Court> {
-        const response = await fetch(`${this.baseUrl}/${courtId}/fee?newHourlyFee=${newHourlyFee}`, {
+    async updateCourtFee(courtId: string | number, newHourlyFee: number): Promise<Court> {
+        const response = await fetch(`${this.baseUrl}/${String(courtId)}/fee?newHourlyFee=${newHourlyFee}`, {
             method: 'PUT',
             headers: this.getAuthHeaders()
         });
@@ -355,8 +321,8 @@ class CourtService {
     /**
      * Apply discount to court
      */
-    async applyDiscount(courtId: string, discountAmount: number, isPercentage: boolean): Promise<Court> {
-        const response = await fetch(`${this.baseUrl}/${courtId}/discount?discountAmount=${discountAmount}&isPercentage=${isPercentage}`, {
+    async applyDiscount(courtId: string | number, discountAmount: number, isPercentage: boolean): Promise<Court> {
+        const response = await fetch(`${this.baseUrl}/${String(courtId)}/discount?discountAmount=${discountAmount}&isPercentage=${isPercentage}`, {
             method: 'PUT',
             headers: this.getAuthHeaders()
         });
@@ -390,8 +356,8 @@ class CourtService {
     /**
      * Remove discount from court
      */
-    async removeDiscount(courtId: string): Promise<Court> {
-        const response = await fetch(`${this.baseUrl}/${courtId}/discount`, {
+    async removeDiscount(courtId: string | number): Promise<Court> {
+        const response = await fetch(`${this.baseUrl}/${String(courtId)}/discount`, {
             method: 'DELETE',
             headers: this.getAuthHeaders()
         });
@@ -438,8 +404,8 @@ class CourtService {
     /**
      * Get court status
      */
-    async getCourtStatus(courtId: string): Promise<'AVAILABLE' | 'UNAVAILABLE'> {
-        const response = await fetch(`${this.baseUrl}/${courtId}/status`, {
+    async getCourtStatus(courtId: string | number): Promise<'AVAILABLE' | 'UNAVAILABLE'> {
+        const response = await fetch(`${this.baseUrl}/${String(courtId)}/status`, {
             method: 'GET',
             headers: this.getAuthHeaders()
         });
@@ -454,8 +420,8 @@ class CourtService {
     /**
      * Update court status
      */
-    async updateCourtStatus(courtId: string, status: 'AVAILABLE' | 'UNAVAILABLE', reason?: string): Promise<Court> {
-        const url = new URL(`${this.baseUrl}/${courtId}/status`);
+    async updateCourtStatus(courtId: string | number, status: 'AVAILABLE' | 'UNAVAILABLE', reason?: string): Promise<Court> {
+        const url = new URL(`${this.baseUrl}/${String(courtId)}/status`);
         url.searchParams.append('status', status);
         if (reason) {
             url.searchParams.append('reason', reason);

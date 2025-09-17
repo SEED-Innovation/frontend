@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { Court, courtService } from '@/lib/api/services/courtService';
+import { courtService } from '@/lib/api/services/courtService';
+import { Court } from '@/types/court';
 import { CurrencyDisplay } from '@/components/ui/currency-display';
 import { Badge } from '@/components/ui/badge';
 import { Percent, DollarSign, Loader2 } from 'lucide-react';
@@ -80,7 +81,7 @@ export const DiscountModal: React.FC<DiscountModalProps> = ({
 
     setLoading(true);
     try {
-      const updatedCourt = await courtService.applyDiscount(court.id, discountAmount, isPercentage);
+      const updatedCourt = await courtService.applyDiscount(String(court.id), discountAmount, isPercentage);
       onCourtUpdated(updatedCourt);
       toast.success(`Discount applied successfully`);
       onClose();

@@ -182,7 +182,7 @@ const loadCourts = async () => {
         
         // Convert Court[] to CourtResponse[]
         const convertedCourts: CourtResponse[] = response.map((court) => ({
-            id: parseInt(court.id), // Convert string to number
+            id: court.id, // Already number
             name: court.name,
             location: court.location,
             type: court.type,

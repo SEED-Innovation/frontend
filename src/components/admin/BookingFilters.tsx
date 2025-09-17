@@ -35,7 +35,7 @@ import { AdminBookingFilterRequest, BookingStatus, MatchType, CourtResponse } fr
 import { formatDateOnly } from '@/utils';
 import { courtService } from '@/services';
 import { adaptCourts } from '@/utils/courtAdapter';
-import { Court as ExistingCourt } from '@/lib/api/services/courtService';
+import { Court as ExistingCourt } from '@/types/court';
 import { toast } from 'sonner';
 
 interface BookingFiltersProps {

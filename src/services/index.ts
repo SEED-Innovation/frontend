@@ -17,4 +17,4 @@ export type {
 } from '@/types/booking';
 
 // Re-export Court type
-export type { Court as ExistingCourt } from '../lib/api/services/courtService';
+export type { Court as ExistingCourt } from '@/types/court';

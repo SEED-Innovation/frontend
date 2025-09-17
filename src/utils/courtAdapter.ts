@@ -1,5 +1,5 @@
 import { CourtResponse } from '@/types/court';
-import { Court as ExistingCourt } from '@/lib/api/services/courtService';
+import { Court as ExistingCourt } from '@/types/court';
 
 /**
  * Converts existing Court objects to CourtResponse format
