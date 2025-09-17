@@ -110,6 +110,15 @@ const CourtManagement = () => {
   const currentCourts = USE_PAGINATED_COURTS ? (pagedData?.courts || []) : courts;
   const isCurrentlyLoading = USE_PAGINATED_COURTS ? pagedLoading : loading;
   
+  // Debug logging
+  console.log('DEBUG CourtManagement:', {
+    USE_PAGINATED_COURTS,
+    pagedData,
+    currentCourts: currentCourts.length,
+    page,
+    pageSize
+  });
+  
   // Fetch courts on component mount - only if not using paginated API
   useEffect(() => {
     if (!USE_PAGINATED_COURTS) {
@@ -683,6 +692,11 @@ const CourtManagement = () => {
               </Button>
             </div>
             <div className="text-sm text-muted-foreground">
+              {USE_PAGINATED_COURTS && (
+                <div className="mb-2 p-2 bg-blue-50 text-blue-700 rounded-md text-xs">
+                  📄 Using paginated API - courts loaded in pages of {pageSize}
+                </div>
+              )}
               {selectedSportType === 'ALL' 
                 ? `Showing all ${USE_PAGINATED_COURTS ? (pagedData?.totalElements || 0) : currentCourts.length} courts` 
                 : `Showing ${currentCourts.filter(court => court.sportType === selectedSportType).length} ${selectedSportType.toLowerCase()} courts`
@@ -1253,13 +1267,18 @@ const CourtManagement = () => {
             
             {/* Pagination for paginated courts */}
             {USE_PAGINATED_COURTS && pagedData && (
-              <PaginationBar
-                page={page}
-                setPage={setPage}
-                hasPrev={pagedData.hasPrevious}
-                hasNext={pagedData.hasNext}
-                totalPages={pagedData.totalPages}
-              />
+              <div className="mt-8 border-t pt-6">
+                <div className="text-sm text-muted-foreground mb-4 text-center">
+                  Showing page {page + 1} of {pagedData.totalPages} • {pagedData.totalElements} total courts
+                </div>
+                <PaginationBar
+                  page={page}
+                  setPage={setPage}
+                  hasPrev={pagedData.hasPrevious}
+                  hasNext={pagedData.hasNext}
+                  totalPages={pagedData.totalPages}
+                />
+              </div>
             )}
             </>
           )}
