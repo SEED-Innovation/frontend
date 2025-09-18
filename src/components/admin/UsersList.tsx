@@ -35,7 +35,11 @@ import { useQueryParam } from '@/hooks/useQueryParam';
 import { useUsersPaged, useToggleUserEnabled } from '@/lib/hooks/useUsersPaged';
 import type { UserListItem } from '@/types/user';
 
-export default function UsersList() {
+interface UsersListProps {
+  onViewUser?: (user: UserListItem) => void;
+}
+
+export default function UsersList({ onViewUser }: UsersListProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -125,7 +129,11 @@ export default function UsersList() {
   };
 
   const handleViewUser = (user: UserListItem) => {
-    navigate(`/admin/users/${user.id}`);
+    if (onViewUser) {
+      onViewUser(user);
+    } else {
+      navigate(`/admin/users/${user.id}`);
+    }
   };
 
   const handlePageChange = (newPage: number) => {

@@ -44,7 +44,9 @@ const UserManagement = () => {
   const [roleFilter, setRoleFilter] = useState('All');
   const [showDetailDrawer, setShowDetailDrawer] = useState(false);
   const [detailUser, setDetailUser] = useState<any>(null);
+  const [detailUserType, setDetailUserType] = useState<'user' | 'manager'>('user');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoadingUserDetail, setIsLoadingUserDetail] = useState(false);
   const [newUser, setNewUser] = useState({
     fullName: '',
     email: '',
@@ -285,9 +287,28 @@ const UserManagement = () => {
     }
   };
 
-  const handleViewUser = (user: any, userType: 'user' | 'manager') => {
-    setDetailUser({ ...user, userType });
+  const handleViewUser = async (user: any, userType: 'user' | 'manager') => {
+    setDetailUserType(userType);
     setShowDetailDrawer(true);
+    setIsLoadingUserDetail(true);
+    
+    try {
+      if (userType === 'user') {
+        // Fetch full user details from the endpoint
+        const fullUserData = await userService.getUserByIdentifier({ id: user.id });
+        setDetailUser(fullUserData);
+      } else {
+        // For managers, use the existing mock data
+        setDetailUser(user);
+      }
+    } catch (error) {
+      console.error('Failed to fetch user details:', error);
+      toast.error('Failed to fetch user details');
+      // Fallback to basic user data
+      setDetailUser(user);
+    } finally {
+      setIsLoadingUserDetail(false);
+    }
   };
 
   const formatLastLogin = (lastLogin: string | null) => {
@@ -542,7 +563,7 @@ const UserManagement = () => {
         </TabsList>
 
         <TabsContent value="users" className="space-y-4">
-          <UsersList />
+          <UsersList onViewUser={(user) => handleViewUser(user, 'user')} />
         </TabsContent>
 
         <TabsContent value="managers" className="space-y-4">
@@ -660,9 +681,13 @@ const UserManagement = () => {
       {/* Detail Drawer */}
       <DetailDrawer
         isOpen={showDetailDrawer}
-        onClose={() => setShowDetailDrawer(false)}
+        onClose={() => {
+          setShowDetailDrawer(false);
+          setDetailUser(null);
+        }}
         user={detailUser}
-        userType="manager"
+        userType={detailUserType}
+        isLoading={isLoadingUserDetail}
       />
     </motion.div>
   );

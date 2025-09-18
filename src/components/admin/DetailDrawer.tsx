@@ -16,13 +16,15 @@ interface DetailDrawerProps {
   userType: 'user' | 'manager';
   isOpen: boolean;
   onClose: () => void;
+  isLoading?: boolean;
 }
 
 export const DetailDrawer: React.FC<DetailDrawerProps> = ({
   user,
   userType,
   isOpen,
-  onClose
+  onClose,
+  isLoading = false
 }) => {
   // Handle Escape key
   useEffect(() => {
@@ -111,6 +113,14 @@ export const DetailDrawer: React.FC<DetailDrawerProps> = ({
         </SheetHeader>
 
         <div className="mt-6 space-y-6">
+          {isLoading ? (
+            <div className="space-y-4">
+              <div className="animate-pulse bg-muted/30 rounded-lg p-4 h-32"></div>
+              <div className="animate-pulse bg-muted/30 rounded-lg p-4 h-24"></div>
+              <div className="animate-pulse bg-muted/30 rounded-lg p-4 h-40"></div>
+            </div>
+          ) : (
+            <>
           {/* Enhanced Profile Section */}
           <div className="bg-muted/30 rounded-lg p-4">
             <div className="flex items-start gap-4">
@@ -313,6 +323,8 @@ export const DetailDrawer: React.FC<DetailDrawerProps> = ({
               </div>
             </>
           )}
+          </>
+        )}
         </div>
       </SheetContent>
     </Sheet>
