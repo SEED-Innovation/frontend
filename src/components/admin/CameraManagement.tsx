@@ -117,9 +117,17 @@ export default function CameraManagement() {
   const [selectedCamera, setSelectedCamera] = useState<CameraType | null>(null);
   const [isStreaming, setIsStreaming] = useState<Record<number, boolean>>({});
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isAssociateDialogOpen, setIsAssociateDialogOpen] = useState(false);
   const [editingCamera, setEditingCamera] = useState<Partial<CameraType>>({});
+  const [newCamera, setNewCamera] = useState<Partial<CameraType>>({
+    name: '',
+    ipAddress: '',
+    status: 'OFFLINE',
+    port: 8080,
+    description: ''
+  });
   const [associatingCamera, setAssociatingCamera] = useState<CameraType | null>(null);
   const [selectedCourtId, setSelectedCourtId] = useState<string>('');
   const { toast } = useToast();
@@ -251,6 +259,44 @@ export default function CameraManagement() {
     setEditingCamera({});
   };
 
+  const handleAddCamera = () => {
+    if (!newCamera.name || !newCamera.ipAddress || !newCamera.port) {
+      toast({
+        title: "Missing required fields",
+        description: "Please fill in all required fields (Name, IP Address, Port)",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const camera: CameraType = {
+      id: Math.max(...cameras.map(c => c.id)) + 1,
+      name: newCamera.name!,
+      ipAddress: newCamera.ipAddress!,
+      status: newCamera.status as CameraStatus || 'OFFLINE',
+      port: newCamera.port!,
+      description: newCamera.description,
+      lastConnectionTestTime: undefined,
+      lastConnectionSuccess: undefined
+    };
+
+    setCameras(prev => [...prev, camera]);
+    
+    toast({
+      title: "Camera added",
+      description: `${camera.name} has been added successfully`,
+    });
+
+    setIsAddDialogOpen(false);
+    setNewCamera({
+      name: '',
+      ipAddress: '',
+      status: 'OFFLINE',
+      port: 8080,
+      description: ''
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -261,7 +307,7 @@ export default function CameraManagement() {
             Monitor and manage security cameras across all courts
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setIsAddDialogOpen(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Add Camera
         </Button>
@@ -495,6 +541,85 @@ export default function CameraManagement() {
               </Button>
               <Button onClick={handleAssociateCamera}>
                 Associate
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Camera Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add New Camera</DialogTitle>
+            <DialogDescription>
+              Add a new security camera to the system
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="new-name">Name *</Label>
+              <Input
+                id="new-name"
+                placeholder="e.g., Court 1 Main Camera"
+                value={newCamera.name || ''}
+                onChange={(e) => setNewCamera(prev => ({ ...prev, name: e.target.value }))}
+              />
+            </div>
+            <div>
+              <Label htmlFor="new-ip">IP Address *</Label>
+              <Input
+                id="new-ip"
+                placeholder="e.g., 192.168.1.100"
+                value={newCamera.ipAddress || ''}
+                onChange={(e) => setNewCamera(prev => ({ ...prev, ipAddress: e.target.value }))}
+              />
+            </div>
+            <div>
+              <Label htmlFor="new-port">Port *</Label>
+              <Input
+                id="new-port"
+                type="number"
+                placeholder="8080"
+                value={newCamera.port || ''}
+                onChange={(e) => setNewCamera(prev => ({ ...prev, port: parseInt(e.target.value) || 8080 }))}
+              />
+            </div>
+            <div>
+              <Label htmlFor="new-status">Initial Status</Label>
+              <Select 
+                value={newCamera.status || 'OFFLINE'} 
+                onValueChange={(value: CameraStatus) => setNewCamera(prev => ({ ...prev, status: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ACTIVE">Active</SelectItem>
+                  <SelectItem value="OFFLINE">Offline</SelectItem>
+                  <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
+                  <SelectItem value="ERROR">Error</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="new-description">Description</Label>
+              <Textarea
+                id="new-description"
+                placeholder="Camera description (optional)"
+                value={newCamera.description || ''}
+                onChange={(e) => setNewCamera(prev => ({ ...prev, description: e.target.value }))}
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsAddDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleAddCamera}>
+                Add Camera
               </Button>
             </div>
           </div>
