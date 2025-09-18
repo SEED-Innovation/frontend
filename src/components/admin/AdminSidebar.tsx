@@ -10,7 +10,8 @@ import {
   Settings,
   Trophy,
   Clock,
-  MapPin
+  MapPin,
+  Camera
 } from 'lucide-react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { cn } from '@/lib/utils';
@@ -49,6 +50,12 @@ const sidebarItems: SidebarItem[] = [
     title: 'Sessions',
     href: '/admin/sessions',
     icon: Clock,
+    superAdminOnly: true,
+  },
+  {
+    title: 'Cameras',
+    href: '/admin/cameras',
+    icon: Camera,
     superAdminOnly: true,
   },
   {
