@@ -1,4 +1,4 @@
-export type CameraStatus = 'ACTIVE' | 'OFFLINE' | 'MAINTENANCE' | 'ERROR';
+export type CameraStatus = 'ACTIVE' | 'OFFLINE' | 'MAINTENANCE' | 'ERROR' | 'TESTING_CONNECTION';
 
 export interface Camera {
   id: number;
@@ -9,10 +9,8 @@ export interface Camera {
   description?: string;
   lastConnectionTestTime?: string;
   lastConnectionSuccess?: boolean;
-  courtCamera?: {
-    id: number;
-    name: string;
-  };
+  associatedCourtId?: number;
+  associatedCourtName?: string;
 }
 
 export interface CameraConnectionTest {

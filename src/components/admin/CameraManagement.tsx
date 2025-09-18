@@ -17,7 +17,8 @@ import {
   AlertTriangle,
   CheckCircle,
   XCircle,
-  Activity
+  Activity,
+  Loader2
 } from 'lucide-react';
 import {
   Card,
@@ -40,7 +41,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -55,82 +55,97 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { useWebSocket } from '@/hooks/useWebSocket';
 import VideoPlayer from '@/components/VideoPlayer';
+import { 
+  cameraService, 
+  type CameraSummary, 
+  type CreateCameraRequest, 
+  type UpdateCameraRequest,
+  type Court
+} from '@/services/cameraService';
 import type { Camera as CameraType, CameraStatus } from '@/types/camera';
 
-// Mock data
-const mockCameras: CameraType[] = [
-  {
-    id: 1,
-    name: 'Court 1 Main Camera',
-    ipAddress: '192.168.1.101',
-    status: 'ACTIVE',
-    port: 8080,
-    description: 'Main camera for court 1 covering full court view',
-    lastConnectionTestTime: '2024-01-15T10:30:00',
-    lastConnectionSuccess: true,
-    courtCamera: { id: 1, name: 'Court 1' }
-  },
-  {
-    id: 2,
-    name: 'Court 2 Main Camera',
-    ipAddress: '192.168.1.102',
-    status: 'OFFLINE',
-    port: 8080,
-    description: 'Main camera for court 2',
-    lastConnectionTestTime: '2024-01-15T09:15:00',
-    lastConnectionSuccess: false,
-  },
-  {
-    id: 3,
-    name: 'Entrance Security Camera',
-    ipAddress: '192.168.1.103',
-    status: 'ACTIVE',
-    port: 8081,
-    description: 'Security camera at main entrance',
-    lastConnectionTestTime: '2024-01-15T10:45:00',
-    lastConnectionSuccess: true,
-  },
-  {
-    id: 4,
-    name: 'Court 3 Camera',
-    ipAddress: '192.168.1.104',
-    status: 'MAINTENANCE',
-    port: 8080,
-    description: 'Under maintenance for lens cleaning',
-    lastConnectionTestTime: '2024-01-14T16:20:00',
-    lastConnectionSuccess: true,
-    courtCamera: { id: 3, name: 'Court 3' }
-  }
-];
-
-const mockCourts = [
-  { id: 1, name: 'Court 1' },
-  { id: 2, name: 'Court 2' },
-  { id: 3, name: 'Court 3' },
-  { id: 4, name: 'Court 4' },
-  { id: 5, name: 'Court 5' }
-];
-
 export default function CameraManagement() {
-  const [cameras, setCameras] = useState<CameraType[]>(mockCameras);
+  const [cameras, setCameras] = useState<CameraType[]>([]);
+  const [summary, setSummary] = useState<CameraSummary>({
+    totalCameras: 0,
+    activeCameras: 0,
+    offlineCameras: 0,
+    associatedCourts: 0
+  });
+  const [courts, setCourts] = useState<Court[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCamera, setSelectedCamera] = useState<CameraType | null>(null);
-  const [isStreaming, setIsStreaming] = useState<Record<number, boolean>>({});
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isAssociateDialogOpen, setIsAssociateDialogOpen] = useState(false);
   const [editingCamera, setEditingCamera] = useState<Partial<CameraType>>({});
-  const [newCamera, setNewCamera] = useState<Partial<CameraType>>({
+  const [newCamera, setNewCamera] = useState<Partial<CreateCameraRequest>>({
     name: '',
     ipAddress: '',
-    status: 'OFFLINE',
+    initialStatus: 'OFFLINE',
     port: 8080,
     description: ''
   });
   const [associatingCamera, setAssociatingCamera] = useState<CameraType | null>(null);
   const [selectedCourtId, setSelectedCourtId] = useState<string>('');
   const { toast } = useToast();
+
+  // WebSocket connection for real-time updates
+  useWebSocket({
+    onCameraStatusUpdate: (updatedCamera: CameraType) => {
+      setCameras(prev => prev.map(c => 
+        c.id === updatedCamera.id ? updatedCamera : c
+      ));
+      
+      // Show toast for status changes
+      toast({
+        title: "Camera status updated",
+        description: `${updatedCamera.name} is now ${updatedCamera.status.toLowerCase()}`,
+      });
+    }
+  });
+
+  // Load initial data
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [camerasData, summaryData] = await Promise.all([
+        cameraService.getAllCameras(),
+        cameraService.getSummary()
+      ]);
+      
+      setCameras(camerasData);
+      setSummary(summaryData);
+    } catch (error) {
+      toast({
+        title: "Error loading data",
+        description: "Failed to load camera data",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadUnassociatedCourts = async () => {
+    try {
+      const courtsData = await cameraService.getUnassociatedCourts();
+      setCourts(courtsData);
+    } catch (error) {
+      toast({
+        title: "Error loading courts",
+        description: "Failed to load available courts",
+        variant: "destructive"
+      });
+    }
+  };
 
   const getStatusIcon = (status: CameraStatus) => {
     switch (status) {
@@ -142,6 +157,8 @@ export default function CameraManagement() {
         return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
       case 'ERROR':
         return <XCircle className="h-4 w-4 text-red-500" />;
+      case 'TESTING_CONNECTION':
+        return <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />;
       default:
         return <Activity className="h-4 w-4 text-gray-500" />;
     }
@@ -152,87 +169,101 @@ export default function CameraManagement() {
       ACTIVE: 'default',
       OFFLINE: 'destructive',
       MAINTENANCE: 'secondary',
-      ERROR: 'destructive'
+      ERROR: 'destructive',
+      TESTING_CONNECTION: 'outline'
     } as const;
 
     return (
       <Badge variant={variants[status] || 'secondary'}>
-        {status}
+        {status.replace('_', ' ')}
       </Badge>
     );
   };
 
   const handleTestConnection = async (camera: CameraType) => {
-    toast({
-      title: "Testing connection...",
-      description: `Pinging ${camera.ipAddress}:${camera.port}`,
-    });
-
-    // Simulate connection test
-    setTimeout(() => {
-      const success = Math.random() > 0.3; // 70% success rate for demo
-      
+    try {
+      // Optimistically update status
       setCameras(prev => prev.map(c => 
-        c.id === camera.id 
-          ? {
-              ...c,
-              lastConnectionTestTime: new Date().toISOString(),
-              lastConnectionSuccess: success,
-              status: success ? 'ACTIVE' : 'OFFLINE'
-            }
-          : c
+        c.id === camera.id ? { ...c, status: 'TESTING_CONNECTION' } : c
+      ));
+
+      await cameraService.testConnection(camera.id);
+      
+      toast({
+        title: "Connection test started",
+        description: `Testing ${camera.name}...`,
+      });
+    } catch (error) {
+      toast({
+        title: "Test failed",
+        description: "Failed to start connection test",
+        variant: "destructive"
+      });
+      
+      // Revert status on error
+      setCameras(prev => prev.map(c => 
+        c.id === camera.id ? { ...c, status: 'OFFLINE' } : c
+      ));
+    }
+  };
+
+  const handleAssociateCamera = async () => {
+    if (!associatingCamera || !selectedCourtId) return;
+
+    try {
+      const updatedCamera = await cameraService.associateCamera(
+        associatingCamera.id,
+        { courtId: parseInt(selectedCourtId) }
+      );
+
+      setCameras(prev => prev.map(c => 
+        c.id === associatingCamera.id ? updatedCamera : c
       ));
 
       toast({
-        title: success ? "Connection successful" : "Connection failed",
-        description: success 
-          ? `Camera ${camera.name} is responding`
-          : `Failed to reach ${camera.ipAddress}:${camera.port}`,
-        variant: success ? "default" : "destructive"
+        title: "Camera associated",
+        description: `${associatingCamera.name} has been associated with the court`,
       });
-    }, 2000);
+
+      setIsAssociateDialogOpen(false);
+      setAssociatingCamera(null);
+      setSelectedCourtId('');
+      
+      // Refresh summary
+      const summaryData = await cameraService.getSummary();
+      setSummary(summaryData);
+    } catch (error) {
+      toast({
+        title: "Association failed",
+        description: "Failed to associate camera with court",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleAssociateCamera = () => {
-    if (!associatingCamera || !selectedCourtId) return;
+  const handleDisassociateCamera = async (camera: CameraType) => {
+    try {
+      const updatedCamera = await cameraService.disassociateCamera(camera.id);
+      
+      setCameras(prev => prev.map(c => 
+        c.id === camera.id ? updatedCamera : c
+      ));
 
-    const courtId = parseInt(selectedCourtId);
-    const court = mockCourts.find(c => c.id === courtId);
-    
-    setCameras(prev => prev.map(c => 
-      c.id === associatingCamera.id 
-        ? { ...c, courtCamera: court ? { id: court.id, name: court.name } : undefined }
-        : c
-    ));
+      toast({
+        title: "Camera disassociated",
+        description: `${camera.name} has been removed from ${camera.associatedCourtName}`,
+      });
 
-    toast({
-      title: "Camera associated",
-      description: `${associatingCamera.name} has been associated with ${court?.name}`,
-    });
-
-    setIsAssociateDialogOpen(false);
-    setAssociatingCamera(null);
-    setSelectedCourtId('');
-  };
-
-  const handleDisassociateCamera = (camera: CameraType) => {
-    setCameras(prev => prev.map(c => 
-      c.id === camera.id 
-        ? { ...c, courtCamera: undefined }
-        : c
-    ));
-
-    toast({
-      title: "Camera disassociated",
-      description: `${camera.name} has been removed from ${camera.courtCamera?.name}`,
-    });
-  };
-
-  const toggleStreaming = (cameraId: number) => {
-    setIsStreaming(prev => ({
-      ...prev,
-      [cameraId]: !prev[cameraId]
-    }));
+      // Refresh summary
+      const summaryData = await cameraService.getSummary();
+      setSummary(summaryData);
+    } catch (error) {
+      toast({
+        title: "Disassociation failed",
+        description: "Failed to disassociate camera",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleViewCamera = (camera: CameraType) => {
@@ -241,25 +272,57 @@ export default function CameraManagement() {
   };
 
   const handleEditCamera = (camera: CameraType) => {
-    setEditingCamera(camera);
+    setEditingCamera({
+      id: camera.id,
+      name: camera.name,
+      ipAddress: camera.ipAddress,
+      port: camera.port,
+      description: camera.description
+    });
     setIsEditDialogOpen(true);
   };
 
-  const handleSaveCamera = () => {
-    if (editingCamera.id) {
+  const handleSaveCamera = async () => {
+    if (!editingCamera.id || !editingCamera.name || !editingCamera.ipAddress || !editingCamera.port) {
+      toast({
+        title: "Missing required fields",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const updateRequest: UpdateCameraRequest = {
+        name: editingCamera.name,
+        ipAddress: editingCamera.ipAddress,
+        port: editingCamera.port,
+        description: editingCamera.description
+      };
+
+      const updatedCamera = await cameraService.updateCamera(editingCamera.id, updateRequest);
+      
       setCameras(prev => prev.map(c => 
-        c.id === editingCamera.id ? { ...c, ...editingCamera } as CameraType : c
+        c.id === editingCamera.id ? updatedCamera : c
       ));
+      
       toast({
         title: "Camera updated",
         description: `${editingCamera.name} has been updated successfully`,
       });
+
+      setIsEditDialogOpen(false);
+      setEditingCamera({});
+    } catch (error) {
+      toast({
+        title: "Update failed",
+        description: "Failed to update camera",
+        variant: "destructive"
+      });
     }
-    setIsEditDialogOpen(false);
-    setEditingCamera({});
   };
 
-  const handleAddCamera = () => {
+  const handleAddCamera = async () => {
     if (!newCamera.name || !newCamera.ipAddress || !newCamera.port) {
       toast({
         title: "Missing required fields",
@@ -269,33 +332,77 @@ export default function CameraManagement() {
       return;
     }
 
-    const camera: CameraType = {
-      id: Math.max(...cameras.map(c => c.id)) + 1,
-      name: newCamera.name!,
-      ipAddress: newCamera.ipAddress!,
-      status: newCamera.status as CameraStatus || 'OFFLINE',
-      port: newCamera.port!,
-      description: newCamera.description,
-      lastConnectionTestTime: undefined,
-      lastConnectionSuccess: undefined
-    };
+    try {
+      const createRequest: CreateCameraRequest = {
+        name: newCamera.name,
+        ipAddress: newCamera.ipAddress,
+        port: newCamera.port,
+        initialStatus: newCamera.initialStatus || 'OFFLINE',
+        description: newCamera.description
+      };
 
-    setCameras(prev => [...prev, camera]);
-    
-    toast({
-      title: "Camera added",
-      description: `${camera.name} has been added successfully`,
-    });
+      const createdCamera = await cameraService.createCamera(createRequest);
+      
+      setCameras(prev => [...prev, createdCamera]);
+      
+      toast({
+        title: "Camera added",
+        description: `${createdCamera.name} has been added successfully`,
+      });
 
-    setIsAddDialogOpen(false);
-    setNewCamera({
-      name: '',
-      ipAddress: '',
-      status: 'OFFLINE',
-      port: 8080,
-      description: ''
-    });
+      setIsAddDialogOpen(false);
+      setNewCamera({
+        name: '',
+        ipAddress: '',
+        initialStatus: 'OFFLINE',
+        port: 8080,
+        description: ''
+      });
+
+      // Refresh summary
+      const summaryData = await cameraService.getSummary();
+      setSummary(summaryData);
+    } catch (error) {
+      toast({
+        title: "Creation failed",
+        description: "Failed to create camera",
+        variant: "destructive"
+      });
+    }
   };
+
+  const handleDeleteCamera = async (camera: CameraType) => {
+    if (!confirm(`Are you sure you want to delete ${camera.name}?`)) return;
+
+    try {
+      await cameraService.deleteCamera(camera.id);
+      
+      setCameras(prev => prev.filter(c => c.id !== camera.id));
+      
+      toast({
+        title: "Camera deleted",
+        description: `${camera.name} has been deleted successfully`,
+      });
+
+      // Refresh summary
+      const summaryData = await cameraService.getSummary();
+      setSummary(summaryData);
+    } catch (error) {
+      toast({
+        title: "Deletion failed",
+        description: "Failed to delete camera",
+        variant: "destructive"
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -321,7 +428,7 @@ export default function CameraManagement() {
             <Camera className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{cameras.length}</div>
+            <div className="text-2xl font-bold">{summary.totalCameras}</div>
           </CardContent>
         </Card>
 
@@ -331,9 +438,7 @@ export default function CameraManagement() {
             <CheckCircle className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {cameras.filter(c => c.status === 'ACTIVE').length}
-            </div>
+            <div className="text-2xl font-bold">{summary.activeCameras}</div>
           </CardContent>
         </Card>
 
@@ -343,9 +448,7 @@ export default function CameraManagement() {
             <XCircle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {cameras.filter(c => c.status === 'OFFLINE').length}
-            </div>
+            <div className="text-2xl font-bold">{summary.offlineCameras}</div>
           </CardContent>
         </Card>
 
@@ -355,9 +458,7 @@ export default function CameraManagement() {
             <Link className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {cameras.filter(c => c.courtCamera).length}
-            </div>
+            <div className="text-2xl font-bold">{summary.associatedCourts}</div>
           </CardContent>
         </Card>
       </div>
@@ -400,9 +501,9 @@ export default function CameraManagement() {
                     {getStatusBadge(camera.status)}
                   </TableCell>
                   <TableCell>
-                    {camera.courtCamera ? (
+                    {camera.associatedCourtName ? (
                       <div className="flex items-center space-x-2">
-                        <span>{camera.courtCamera.name}</span>
+                        <span>{camera.associatedCourtName}</span>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -417,6 +518,7 @@ export default function CameraManagement() {
                         size="sm"
                         onClick={() => {
                           setAssociatingCamera(camera);
+                          loadUnassociatedCourts();
                           setIsAssociateDialogOpen(true);
                         }}
                       >
@@ -443,6 +545,7 @@ export default function CameraManagement() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleTestConnection(camera)}
+                        disabled={camera.status === 'TESTING_CONNECTION'}
                       >
                         <Wifi className="w-3 h-3" />
                       </Button>
@@ -459,6 +562,13 @@ export default function CameraManagement() {
                         onClick={() => handleEditCamera(camera)}
                       >
                         <Edit className="w-3 h-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteCamera(camera)}
+                      >
+                        <Trash2 className="w-3 h-3" />
                       </Button>
                     </div>
                   </TableCell>
@@ -517,14 +627,14 @@ export default function CameraManagement() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="court-select">Court</Label>
+            <div className="space-y-2">
+              <Label htmlFor="court-select">Available Courts</Label>
               <Select value={selectedCourtId} onValueChange={setSelectedCourtId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a court" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockCourts.map((court) => (
+                  {courts.map((court) => (
                     <SelectItem key={court.id} value={court.id.toString()}>
                       {court.name}
                     </SelectItem>
@@ -533,13 +643,10 @@ export default function CameraManagement() {
               </Select>
             </div>
             <div className="flex justify-end space-x-2">
-              <Button
-                variant="outline"
-                onClick={() => setIsAssociateDialogOpen(false)}
-              >
+              <Button variant="outline" onClick={() => setIsAssociateDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleAssociateCamera}>
+              <Button onClick={handleAssociateCamera} disabled={!selectedCourtId}>
                 Associate
               </Button>
             </div>
@@ -549,73 +656,70 @@ export default function CameraManagement() {
 
       {/* Add Camera Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Add New Camera</DialogTitle>
             <DialogDescription>
-              Add a new security camera to the system
+              Configure a new security camera
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="new-name">Name *</Label>
+            <div className="space-y-2">
+              <Label htmlFor="name">Camera Name *</Label>
               <Input
-                id="new-name"
-                placeholder="e.g., Court 1 Main Camera"
+                id="name"
                 value={newCamera.name || ''}
-                onChange={(e) => setNewCamera(prev => ({ ...prev, name: e.target.value }))}
+                onChange={(e) => setNewCamera({ ...newCamera, name: e.target.value })}
+                placeholder="e.g., Court 1 Main Camera"
               />
             </div>
-            <div>
-              <Label htmlFor="new-ip">IP Address *</Label>
+            <div className="space-y-2">
+              <Label htmlFor="ip">IP Address *</Label>
               <Input
-                id="new-ip"
-                placeholder="e.g., 192.168.1.100"
+                id="ip"
                 value={newCamera.ipAddress || ''}
-                onChange={(e) => setNewCamera(prev => ({ ...prev, ipAddress: e.target.value }))}
+                onChange={(e) => setNewCamera({ ...newCamera, ipAddress: e.target.value })}
+                placeholder="e.g., 192.168.1.101"
               />
             </div>
-            <div>
-              <Label htmlFor="new-port">Port *</Label>
+            <div className="space-y-2">
+              <Label htmlFor="port">Port *</Label>
               <Input
-                id="new-port"
+                id="port"
                 type="number"
+                value={newCamera.port || 8080}
+                onChange={(e) => setNewCamera({ ...newCamera, port: parseInt(e.target.value) })}
                 placeholder="8080"
-                value={newCamera.port || ''}
-                onChange={(e) => setNewCamera(prev => ({ ...prev, port: parseInt(e.target.value) || 8080 }))}
               />
             </div>
-            <div>
-              <Label htmlFor="new-status">Initial Status</Label>
+            <div className="space-y-2">
+              <Label htmlFor="status">Initial Status</Label>
               <Select 
-                value={newCamera.status || 'OFFLINE'} 
-                onValueChange={(value: CameraStatus) => setNewCamera(prev => ({ ...prev, status: value }))}
+                value={newCamera.initialStatus || 'OFFLINE'} 
+                onValueChange={(value) => setNewCamera({ ...newCamera, initialStatus: value as CameraStatus })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ACTIVE">Active</SelectItem>
                   <SelectItem value="OFFLINE">Offline</SelectItem>
                   <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
-                  <SelectItem value="ERROR">Error</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label htmlFor="new-description">Description</Label>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
               <Textarea
-                id="new-description"
-                placeholder="Camera description (optional)"
+                id="description"
                 value={newCamera.description || ''}
-                onChange={(e) => setNewCamera(prev => ({ ...prev, description: e.target.value }))}
+                onChange={(e) => setNewCamera({ ...newCamera, description: e.target.value })}
+                placeholder="Optional description"
+                rows={3}
               />
             </div>
             <div className="flex justify-end space-x-2">
-              <Button
-                variant="outline"
-                onClick={() => setIsAddDialogOpen(false)}
-              >
+              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                 Cancel
               </Button>
               <Button onClick={handleAddCamera}>
@@ -632,48 +736,50 @@ export default function CameraManagement() {
           <DialogHeader>
             <DialogTitle>Edit Camera</DialogTitle>
             <DialogDescription>
-              Update camera configuration and settings
+              Update camera configuration
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="name">Name</Label>
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Camera Name *</Label>
               <Input
-                id="name"
+                id="edit-name"
                 value={editingCamera.name || ''}
-                onChange={(e) => setEditingCamera(prev => ({ ...prev, name: e.target.value }))}
+                onChange={(e) => setEditingCamera({ ...editingCamera, name: e.target.value })}
+                placeholder="e.g., Court 1 Main Camera"
               />
             </div>
-            <div>
-              <Label htmlFor="ip">IP Address</Label>
+            <div className="space-y-2">
+              <Label htmlFor="edit-ip">IP Address *</Label>
               <Input
-                id="ip"
+                id="edit-ip"
                 value={editingCamera.ipAddress || ''}
-                onChange={(e) => setEditingCamera(prev => ({ ...prev, ipAddress: e.target.value }))}
+                onChange={(e) => setEditingCamera({ ...editingCamera, ipAddress: e.target.value })}
+                placeholder="e.g., 192.168.1.101"
               />
             </div>
-            <div>
-              <Label htmlFor="port">Port</Label>
+            <div className="space-y-2">
+              <Label htmlFor="edit-port">Port *</Label>
               <Input
-                id="port"
+                id="edit-port"
                 type="number"
-                value={editingCamera.port || ''}
-                onChange={(e) => setEditingCamera(prev => ({ ...prev, port: parseInt(e.target.value) }))}
+                value={editingCamera.port || 8080}
+                onChange={(e) => setEditingCamera({ ...editingCamera, port: parseInt(e.target.value) })}
+                placeholder="8080"
               />
             </div>
-            <div>
-              <Label htmlFor="description">Description</Label>
+            <div className="space-y-2">
+              <Label htmlFor="edit-description">Description</Label>
               <Textarea
-                id="description"
+                id="edit-description"
                 value={editingCamera.description || ''}
-                onChange={(e) => setEditingCamera(prev => ({ ...prev, description: e.target.value }))}
+                onChange={(e) => setEditingCamera({ ...editingCamera, description: e.target.value })}
+                placeholder="Optional description"
+                rows={3}
               />
             </div>
             <div className="flex justify-end space-x-2">
-              <Button
-                variant="outline"
-                onClick={() => setIsEditDialogOpen(false)}
-              >
+              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                 Cancel
               </Button>
               <Button onClick={handleSaveCamera}>
