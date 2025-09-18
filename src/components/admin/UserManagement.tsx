@@ -544,7 +544,7 @@ const UserManagement = () => {
             </CardContent>
           </Card>
 
-          {/* Users List */}
+          {/* Users Table */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -552,66 +552,103 @@ const UserManagement = () => {
                 All Users ({filteredUsers.length})
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {filteredUsers.map((user) => (
-                  <div key={user.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
-                        {user.name.split(' ').map(n => n[0]).join('')}
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900">{user.name}</h3>
-                        <div className="flex items-center space-x-4 text-sm text-gray-600">
-                          <div className="flex items-center space-x-1">
-                            <Mail className="w-3 h-3" />
-                            <span>{user.email}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <Phone className="w-3 h-3" />
-                            <span>{user.phone}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-4">
-                      <div className="text-center">
-                        <div className="text-sm font-medium text-gray-900">{user.totalSessions}</div>
-                        <div className="text-xs text-gray-600">Total Sessions</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-sm font-medium text-gray-900">#{user.rank}</div>
-                        <div className="text-xs text-gray-600">Rank</div>
-                      </div>
-                      <Badge className={`${getPlanColor(user.plan)} flex items-center space-x-1`}>
-                        {getPlanIcon(user.plan)}
-                        <span>{user.plan}</span>
-                      </Badge>
-                      <Badge className={getStatusColor(user.status)}>
-                        {user.status}
-                      </Badge>
-                      <div className="flex items-center gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleViewUser(user, 'user')}
-                        >
-                          <Eye className="w-4 h-4 mr-1" />
-                          View
-                        </Button>
-                        <ActionMenu
-                          user={user}
-                          userType="user"
-                          onEnableDisable={handleEnableDisable}
-                          onChangeRole={handleChangeRole}
-                          onEdit={handleEdit}
-                          onDelete={handleDelete}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
+            <CardContent className="p-0">
+              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50/50 border-b border-gray-200">
+                      <tr>
+                        <th className="text-left px-6 py-4 text-sm font-medium text-gray-600">Name</th>
+                        <th className="text-left px-6 py-4 text-sm font-medium text-gray-600">Contact</th>
+                        <th className="text-left px-6 py-4 text-sm font-medium text-gray-600">Plan</th>
+                        <th className="text-left px-6 py-4 text-sm font-medium text-gray-600">Status</th>
+                        <th className="text-left px-6 py-4 text-sm font-medium text-gray-600">Stats</th>
+                        <th className="text-left px-6 py-4 text-sm font-medium text-gray-600">Last Login</th>
+                        <th className="text-left px-6 py-4 text-sm font-medium text-gray-600">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {filteredUsers.map((user) => (
+                        <tr key={user.id} className="hover:bg-gray-50/50 transition-colors duration-200">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                                {user.name.split(' ').map(n => n[0]).join('')}
+                              </div>
+                              <div>
+                                <div className="font-medium text-gray-900">{user.name}</div>
+                                <div className="text-sm text-gray-500">ID: {user.id}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="space-y-1">
+                              <div className="flex items-center space-x-2 text-sm">
+                                <Mail className="w-3 h-3 text-gray-400" />
+                                <span className="text-gray-900">{user.email}</span>
+                              </div>
+                              <div className="flex items-center space-x-2 text-sm">
+                                <Phone className="w-3 h-3 text-gray-400" />
+                                <span className="text-gray-600">{user.phone}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <Badge className={`${getPlanColor(user.plan)} flex items-center space-x-1 w-fit`}>
+                              {getPlanIcon(user.plan)}
+                              <span>{user.plan}</span>
+                            </Badge>
+                          </td>
+                          <td className="px-6 py-4">
+                            <Badge className={`${getStatusColor(user.status)} w-fit`}>
+                              {user.status}
+                            </Badge>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="space-y-1">
+                              <div className="text-sm">
+                                <span className="font-medium text-gray-900">{user.totalSessions}</span>
+                                <span className="text-gray-500 ml-1">sessions</span>
+                              </div>
+                              <div className="text-sm">
+                                <span className="text-gray-500">Rank </span>
+                                <span className="font-medium text-gray-900">#{user.rank}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center space-x-2">
+                              <Clock className="w-3 h-3 text-gray-400" />
+                              <span className="text-sm text-gray-600">
+                                {formatLastLogin(user.lastLogin)}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleViewUser(user, 'user')}
+                              >
+                                <Eye className="w-4 h-4 mr-1" />
+                                View
+                              </Button>
+                              <ActionMenu
+                                user={user}
+                                userType="user"
+                                onEnableDisable={handleEnableDisable}
+                                onChangeRole={handleChangeRole}
+                                onEdit={handleEdit}
+                                onDelete={handleDelete}
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -622,89 +659,118 @@ const UserManagement = () => {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Crown className="w-5 h-5 mr-2" />
-                Admin Managers ({adminNames.length})
+                Admin Managers ({filteredManagers.length})
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               {isLoadingAdmins ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="text-gray-600">Loading admin names...</div>
                 </div>
-              ) : adminNames.length > 0 ? (
-                 <div className="space-y-4">
-                   {filteredManagers.map((manager) => (
-                      <div key={manager.id} className="flex items-center gap-4 p-4 bg-card hover:bg-muted/30 transition-all duration-200 border rounded-lg">
-                        {/* Left Section - Courts Count and Info */}
-                        <div className="flex items-center gap-4 flex-1">
-                          {/* Courts Count with proper icon alignment */}
-                          <div className="flex items-center gap-3 min-w-[80px]">
-                            <div className="p-2 bg-primary/10 rounded-lg">
-                              <Building className="w-4 h-4 text-primary" />
-                            </div>
-                            <div className="text-center">
-                              <div className="text-lg font-bold text-foreground">{manager.managedCourtsCount}</div>
-                              <div className="text-xs text-muted-foreground font-medium">Courts</div>
-                            </div>
-                          </div>
-
-                          {/* Last Login with proper alignment */}
-                          <div className="flex items-center gap-3 min-w-[120px]">
-                            <div className="p-2 bg-muted/60 rounded-lg">
-                              <Clock className="w-4 h-4 text-muted-foreground" />
-                            </div>
-                            <div className="text-center">
-                              <div className="text-sm font-semibold text-foreground">
-                                {formatLastLogin(manager.lastLogin)}
+              ) : filteredManagers.length > 0 ? (
+                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50/50 border-b border-gray-200">
+                        <tr>
+                          <th className="text-left px-6 py-4 text-sm font-medium text-gray-600">Name</th>
+                          <th className="text-left px-6 py-4 text-sm font-medium text-gray-600">Contact</th>
+                          <th className="text-left px-6 py-4 text-sm font-medium text-gray-600">Role</th>
+                          <th className="text-left px-6 py-4 text-sm font-medium text-gray-600">Status</th>
+                          <th className="text-left px-6 py-4 text-sm font-medium text-gray-600">Managed Courts</th>
+                          <th className="text-left px-6 py-4 text-sm font-medium text-gray-600">Last Login</th>
+                          <th className="text-left px-6 py-4 text-sm font-medium text-gray-600">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {filteredManagers.map((manager) => (
+                          <tr key={manager.id} className="hover:bg-gray-50/50 transition-colors duration-200">
+                            <td className="px-6 py-4">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                                  <Crown className="w-4 h-4 text-gray-600" />
+                                </div>
+                                <div>
+                                  <div className="font-medium text-gray-900">{manager.name}</div>
+                                  <div className="text-sm text-gray-500">ID: {manager.id}</div>
+                                </div>
                               </div>
-                              <div className="text-xs text-muted-foreground font-medium">Last Login</div>
-                            </div>
-                          </div>
-
-                          {/* Role Badge */}
-                          <Badge 
-                            variant={manager.role === 'SUPER_ADMIN' ? 'default' : 'secondary'} 
-                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium min-w-fit"
-                          >
-                            <Crown className="w-3.5 h-3.5" />
-                            {manager.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}
-                          </Badge>
-
-                          {/* Status Badge */}
-                          <Badge 
-                            variant={manager.status === 'Active' ? 'default' : 'destructive'}
-                            className="px-3 py-1.5 text-xs font-medium min-w-fit flex items-center gap-1.5"
-                          >
-                            <div className={`w-2 h-2 rounded-full ${
-                              manager.status === 'Active' ? 'bg-green-500' : 'bg-red-500'
-                            }`} />
-                            {manager.status}
-                          </Badge>
-                        </div>
-
-                        {/* Actions Section - Right Aligned */}
-                        <div className="flex items-center gap-2 ml-auto">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleViewUser(manager, 'manager')}
-                            className="flex items-center gap-1.5 text-xs"
-                          >
-                            <Eye className="w-4 h-4" />
-                            View
-                          </Button>
-                          <ActionMenu
-                            user={manager}
-                            userType="manager"
-                            onEnableDisable={handleEnableDisable}
-                            onChangeRole={handleChangeRole}
-                            onAssignCourts={handleAssignCourts}
-                            onEdit={handleEdit}
-                            onDelete={handleDelete}
-                          />
-                        </div>
-                      </div>
-                   ))}
-                 </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="space-y-1">
+                                <div className="flex items-center space-x-2 text-sm">
+                                  <Mail className="w-3 h-3 text-gray-400" />
+                                  <span className="text-gray-900">{manager.email}</span>
+                                </div>
+                                {manager.phone && (
+                                  <div className="flex items-center space-x-2 text-sm">
+                                    <Phone className="w-3 h-3 text-gray-400" />
+                                    <span className="text-gray-600">{manager.phone}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <Badge className={`${manager.role === 'SUPER_ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'} w-fit flex items-center space-x-1`}>
+                                <Crown className="w-3 h-3" />
+                                <span>{manager.role.replace('_', ' ')}</span>
+                              </Badge>
+                            </td>
+                            <td className="px-6 py-4">
+                              <Badge className={`${getStatusColor(manager.status)} w-fit`}>
+                                {manager.status}
+                              </Badge>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="space-y-1">
+                                <div className="text-sm">
+                                  <span className="font-medium text-gray-900">{manager.managedCourtsCount}</span>
+                                  <span className="text-gray-500 ml-1">courts</span>
+                                </div>
+                                {manager.assignedCourts.length > 0 && (
+                                  <div className="text-xs text-gray-500">
+                                    {manager.assignedCourts.slice(0, 2).join(', ')}
+                                    {manager.assignedCourts.length > 2 && '...'}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center space-x-2">
+                                <Clock className="w-3 h-3 text-gray-400" />
+                                <span className="text-sm text-gray-600">
+                                  {formatLastLogin(manager.lastLogin)}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-2">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleViewUser(manager, 'manager')}
+                                  className="flex items-center gap-1.5 text-xs"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                  View
+                                </Button>
+                                <ActionMenu
+                                  user={manager}
+                                  userType="manager"
+                                  onEnableDisable={handleEnableDisable}
+                                  onChangeRole={handleChangeRole}
+                                  onAssignCourts={handleAssignCourts}
+                                  onEdit={handleEdit}
+                                  onDelete={handleDelete}
+                                />
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               ) : (
                 <div className="text-center py-8">
                   <Crown className="w-12 h-12 text-gray-400 mx-auto mb-3" />
