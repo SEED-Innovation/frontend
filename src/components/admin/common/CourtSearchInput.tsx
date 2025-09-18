@@ -27,24 +27,61 @@ export const CourtSearchInput: React.FC<CourtSearchInputProps> = ({
   const [loading, setLoading] = useState(false);
 
   const searchCourts = useCallback(async (searchQuery: string) => {
+    // If no query, try to load initial courts
     if (!searchQuery.trim()) {
-      setCourts([]);
-      return;
+      // Load some initial courts for suggestions
+      try {
+        const allCourts = await courtService.getAllCourts();
+        setCourts(allCourts.slice(0, 10)); // Show first 10 courts
+        return;
+      } catch (error) {
+        console.error('Failed to load initial courts:', error);
+        setCourts([]);
+        return;
+      }
     }
 
     setLoading(true);
     try {
+      console.log('Searching courts with query:', searchQuery);
       const results = await courtService.searchCourts(searchQuery);
+      console.log('Court search results:', results);
       setCourts(results);
     } catch (error) {
       console.error('Failed to search courts:', error);
-      setCourts([]);
+      
+      // Fallback: try to get all courts if search fails
+      try {
+        console.log('Fallback: trying to get all courts...');
+        const allCourts = await courtService.getAllCourts();
+        const filtered = allCourts.filter(court => 
+          court.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        setCourts(filtered);
+        console.log('Fallback court results:', filtered);
+      } catch (fallbackError) {
+        console.error('Fallback failed:', fallbackError);
+        setCourts([]);
+      }
     } finally {
       setLoading(false);
     }
   }, []);
 
+  // Load initial courts when component opens
   useEffect(() => {
+    if (open && !query) {
+      // Load a few courts as suggestions when opened
+      searchCourts('').catch(() => {
+        // If search fails, try to get all courts
+        courtService.getAllCourts().then(setCourts).catch(console.error);
+      });
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!query.trim()) return;
+    
     const timer = setTimeout(() => {
       searchCourts(query);
     }, 300);

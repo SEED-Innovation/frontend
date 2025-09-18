@@ -55,7 +55,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { useWebSocket } from '@/hooks/useWebSocket';
+// import { useWebSocket } from '@/hooks/useWebSocket'; // Disabled until WebSocket server is available
 import VideoPlayer from '@/components/VideoPlayer';
 import { 
   cameraService, 
@@ -96,20 +96,20 @@ export default function CameraManagement() {
   const [selectedCourt, setSelectedCourt] = useState<CourtType | null>(null);
   const { toast } = useToast();
 
-  // WebSocket connection for real-time updates
-  useWebSocket({
-    onCameraStatusUpdate: (updatedCamera: CameraType) => {
-      setCameras(prev => prev.map(c => 
-        c.id === updatedCamera.id ? updatedCamera : c
-      ));
+  // WebSocket connection for real-time updates - Disabled until server is available
+  // useWebSocket({
+  //   onCameraStatusUpdate: (updatedCamera: CameraType) => {
+  //     setCameras(prev => prev.map(c => 
+  //       c.id === updatedCamera.id ? updatedCamera : c
+  //     ));
       
-      // Show toast for status changes
-      toast({
-        title: "Camera status updated",
-        description: `${updatedCamera.name} is now ${updatedCamera.status.toLowerCase()}`,
-      });
-    }
-  });
+  //     // Show toast for status changes
+  //     toast({
+  //       title: "Camera status updated",
+  //       description: `${updatedCamera.name} is now ${updatedCamera.status.toLowerCase()}`,
+  //     });
+  //   }
+  // });
 
   // Load initial data
   useEffect(() => {
