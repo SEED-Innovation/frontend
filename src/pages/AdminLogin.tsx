@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, ArrowLeft, Mail, Lock, Shield, Sparkles } from 'lucide-react';
+import { ArrowLeft, Mail, Lock, Shield, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PasswordInput } from '@/components/ui/password-input';
 import { toast } from 'sonner';
 import SeedLogo from '@/components/ui/seed-logo';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 const AdminLogin = () => {
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -213,32 +213,14 @@ const AdminLogin = () => {
               <Label htmlFor="password" className="text-sm font-medium text-slate-200">
                 Password
               </Label>
-              <div className="relative h-12">
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
-                  className="absolute inset-0 w-full h-full px-4 pr-12 bg-slate-800 border border-slate-700 rounded-md text-white placeholder:text-slate-500 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 focus:outline-none transition-all duration-300"
-                  required
-                  disabled={isLoading}
-                />
-                <button
-                  type="button"
-                  className="absolute right-3 top-0  h-full w-12 flex items-center justify-center text-slate-500 hover:text-purple-400 transition-colors duration-200 z-20 pointer-events-auto"
-                  style={{
-                    right: '-400px',
-                    top: '0px',
-                    position: 'absolute'
-                  }}
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={isLoading}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
+              <PasswordInput
+                id="password"
+                placeholder="Enter your password"
+                value={formData.password}
+                onChange={(e) => setFormData({...formData, password: e.target.value})}
+                required
+                disabled={isLoading}
+              />
             </div>
 
             {/* Forgot Password */}
