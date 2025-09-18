@@ -65,6 +65,8 @@ import {
   type Court
 } from '@/services/cameraService';
 import type { Camera as CameraType, CameraStatus } from '@/types/camera';
+import { CourtSearchInput } from '@/components/admin/common/CourtSearchInput';
+import { Court as CourtType } from '@/types/court';
 
 export default function CameraManagement() {
   const [cameras, setCameras] = useState<CameraType[]>([]);
@@ -91,6 +93,7 @@ export default function CameraManagement() {
   });
   const [associatingCamera, setAssociatingCamera] = useState<CameraType | null>(null);
   const [selectedCourtId, setSelectedCourtId] = useState<string>('');
+  const [selectedCourt, setSelectedCourt] = useState<CourtType | null>(null);
   const { toast } = useToast();
 
   // WebSocket connection for real-time updates
@@ -228,6 +231,7 @@ export default function CameraManagement() {
       setIsAssociateDialogOpen(false);
       setAssociatingCamera(null);
       setSelectedCourtId('');
+      setSelectedCourt(null);
       
       // Refresh summary
       const summaryData = await cameraService.getSummary();
@@ -629,21 +633,21 @@ export default function CameraManagement() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="court-select">Available Courts</Label>
-              <Select value={selectedCourtId} onValueChange={setSelectedCourtId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a court" />
-                </SelectTrigger>
-                <SelectContent>
-                  {courts.map((court) => (
-                    <SelectItem key={court.id} value={court.id.toString()}>
-                      {court.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <CourtSearchInput
+                placeholder="Search for a court..."
+                value={selectedCourt}
+                onSelect={(court) => {
+                  setSelectedCourt(court);
+                  setSelectedCourtId(court.id.toString());
+                }}
+              />
             </div>
             <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setIsAssociateDialogOpen(false)}>
+              <Button variant="outline" onClick={() => {
+                setIsAssociateDialogOpen(false);
+                setSelectedCourt(null);
+                setSelectedCourtId('');
+              }}>
                 Cancel
               </Button>
               <Button onClick={handleAssociateCamera} disabled={!selectedCourtId}>

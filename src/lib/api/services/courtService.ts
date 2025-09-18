@@ -402,6 +402,25 @@ class CourtService {
     }
 
     /**
+     * Search courts by name
+     */
+    async searchCourts(query: string): Promise<Court[]> {
+        const url = new URL(`${this.baseUrl}/search`);
+        url.searchParams.set('q', query);
+        
+        const response = await fetch(url.toString(), {
+            method: 'GET',
+            headers: this.getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to search courts: ${response.statusText}`);
+        }
+
+        return response.json();
+    }
+
+    /**
      * Get court status
      */
     async getCourtStatus(courtId: string | number): Promise<'AVAILABLE' | 'UNAVAILABLE'> {
