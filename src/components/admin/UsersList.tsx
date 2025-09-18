@@ -47,7 +47,7 @@ export default function UsersList() {
   const toggle = useToggleUserEnabled(page, size);
 
   const rows = useMemo(() => {
-    const list = data?.users ?? [];
+    const list = (data as any)?.users ?? [];
     if (!q.trim()) return list;
     const s = q.toLowerCase();
     return list.filter(u =>
@@ -160,7 +160,7 @@ export default function UsersList() {
         <div>
           <h2 className="text-2xl font-bold">User Management</h2>
           <p className="text-muted-foreground">
-            All Users ({data?.totalElements ?? 0})
+            All Users ({(data as any)?.totalElements ?? 0})
           </p>
         </div>
       </div>
@@ -317,7 +317,7 @@ export default function UsersList() {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleToggleEnabled(user)}
-                          disabled={toggle.isLoading}
+                          disabled={toggle.isPending}
                         >
                           {user.status === 'Active' ? (
                             <Ban className="h-4 w-4 text-red-500" />
@@ -337,14 +337,14 @@ export default function UsersList() {
           {data && data.totalPages > 1 && (
             <div className="flex items-center justify-between pt-4">
               <div className="text-sm text-muted-foreground">
-                Page {page + 1} of {data.totalPages}
+                Page {page + 1} of {(data as any)?.totalPages || 1}
               </div>
               <div className="flex space-x-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handlePageChange(page - 1)}
-                  disabled={!data.hasPrevious || isFetching}
+                  disabled={!(data as any)?.hasPrevious || isFetching}
                 >
                   <ChevronLeft className="h-4 w-4" />
                   Previous
@@ -353,7 +353,7 @@ export default function UsersList() {
                   variant="outline"
                   size="sm"
                   onClick={() => handlePageChange(page + 1)}
-                  disabled={!data.hasNext || isFetching}
+                  disabled={!(data as any)?.hasNext || isFetching}
                 >
                   Next
                   <ChevronRight className="h-4 w-4" />

@@ -5,7 +5,6 @@ export function useUsersPaged(page: number, size: number) {
   return useQuery({
     queryKey: ['users', 'paged', page, size],
     queryFn: () => getUsersPaged(page, size),
-    keepPreviousData: true,
     staleTime: 30_000,
   });
 }
