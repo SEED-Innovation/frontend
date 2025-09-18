@@ -59,7 +59,7 @@ export const DetailDrawer: React.FC<DetailDrawerProps> = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Active': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-      case 'Suspended': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
+      case 'Disabled': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
     }
   };
@@ -95,7 +95,7 @@ export const DetailDrawer: React.FC<DetailDrawerProps> = ({
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-[400px] sm:w-[540px] overflow-y-auto">
+      <SheetContent side="right" className="w-[520px] sm:w-[720px] max-w-[90vw] lg:max-w-[900px] overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             {userType === 'manager' ? (

@@ -279,6 +279,7 @@ export interface UserListItem {
   name: string;
   email: string | null;
   phone: string | null;
+  profilePictureUrl?: string | null; // optional profile picture URL
   plan: string | null;           // "Premium" | "Basic" | "Free" | etc.
   status: string;                // "Active" | "Disabled" (treat "Disabled" as "Suspended" badge)
   joinDate: string | null;       // "yyyy-MM-dd"

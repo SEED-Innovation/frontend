@@ -96,7 +96,7 @@ const UserManagement = () => {
       email: 'omar.admin@seed.com',
       phone: null,
       role: 'ADMIN',
-      status: 'Suspended',
+      status: 'Disabled',
       joinDate: '2024-01-20',
       managedCourtsCount: 0,
       assignedCourts: [],
@@ -124,7 +124,7 @@ const UserManagement = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Active': return 'bg-green-100 text-green-800';
-      case 'Suspended': return 'bg-red-100 text-red-800';
+      case 'Disabled': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -265,7 +265,7 @@ const UserManagement = () => {
   };
 
   const handleEnableDisable = (user: any) => {
-    const newStatus = user.status === 'Active' ? 'Suspended' : 'Active';
+    const newStatus = user.status === 'Active' ? 'Disabled' : 'Active';
     toast.success(`User ${newStatus.toLowerCase()} successfully`);
   };
 
@@ -498,7 +498,7 @@ const UserManagement = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Active">Active</SelectItem>
-                      <SelectItem value="Suspended">Suspended</SelectItem>
+                      <SelectItem value="Disabled">Disabled</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -537,7 +537,7 @@ const UserManagement = () => {
                 <SelectContent>
                   <SelectItem value="All">All Status</SelectItem>
                   <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Suspended">Suspended</SelectItem>
+                  <SelectItem value="Disabled">Disabled</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={roleFilter} onValueChange={setRoleFilter}>

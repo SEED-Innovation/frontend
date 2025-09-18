@@ -18,7 +18,7 @@ export const FilterChips: React.FC<FilterChipsProps> = ({
   onStatusChange,
   onRoleChange
 }) => {
-  const statusOptions = ['All', 'Active', 'Suspended'];
+  const statusOptions = ['All', 'Active', 'Disabled'];
   const roleOptions = userType === 'user' 
     ? ['All', 'Player'] 
     : ['All', 'Admin', 'Super Admin'];

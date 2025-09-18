@@ -88,7 +88,7 @@ export default function UsersList({ onViewUser }: UsersListProps) {
       return <Badge className="bg-green-100 text-green-800">Active</Badge>;
     }
     if (status === 'Disabled') {
-      return <Badge variant="destructive">Suspended</Badge>;
+      return <Badge variant="destructive">Disabled</Badge>;
     }
     return <Badge variant="secondary">{status}</Badge>;
   };
@@ -104,6 +104,20 @@ export default function UsersList({ onViewUser }: UsersListProps) {
 
   const formatLastLogin = (lastLogin: string | null) => {
     if (!lastLogin) return 'Never';
+    const d = new Date(lastLogin);
+    const now = new Date();
+
+    // Normalize to local dates (midnight) to calculate day difference
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfGiven = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+    const diffMs = startOfToday.getTime() - startOfGiven.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+
     return formatDate(lastLogin);
   };
 
@@ -255,9 +269,14 @@ export default function UsersList({ onViewUser }: UsersListProps) {
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         <Avatar>
-                          <AvatarFallback className="bg-primary text-primary-foreground">
-                            {getInitials(user.name)}
-                          </AvatarFallback>
+                          {user.profilePictureUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={user.profilePictureUrl} alt={`${user.name} avatar`} />
+                          ) : (
+                            <AvatarFallback className="bg-primary text-primary-foreground">
+                              {getInitials(user.name)}
+                            </AvatarFallback>
+                          )}
                         </Avatar>
                         <div>
                           <div className="font-medium">{user.name}</div>
