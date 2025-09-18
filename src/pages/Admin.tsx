@@ -53,6 +53,8 @@ const Admin = () => {
         <div className="p-6">
           <Routes>
             <Route path="/" element={<AdminDashboard />} />
+            <Route path="/users" element={<UserManagement />} />
+            <Route path="/users/:id" element={<div>User Profile - ID: {window.location.pathname.split('/').pop()}</div>} />
             <Route path="/players" element={<UserManagement />} />
             <Route path="/courts" element={<CourtManagement />} />
             {/* <Route path="/bookings" element={<BookingManagement />} /> */}

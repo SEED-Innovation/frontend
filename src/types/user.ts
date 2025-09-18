@@ -274,6 +274,33 @@ export const SAUDI_CONSTANTS = {
 // 🎯 ERROR TYPES
 // ================================
 
+export interface UserListItem {
+  id: number;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  plan: string | null;           // "Premium" | "Basic" | "Free" | etc.
+  status: string;                // "Active" | "Disabled" (treat "Disabled" as "Suspended" badge)
+  joinDate: string | null;       // "yyyy-MM-dd"
+  totalSessions: number | null;
+  rank: number | null;
+  lastLogin: string | null;      // ISO string or null
+}
+
+export interface AdminUserPageResponse {
+  users: UserListItem[];
+  totalElements: number;
+  totalPages: number;
+  currentPage: number;  // 0-based
+  pageSize: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
+// ================================
+// 🎯 ERROR TYPES
+// ================================
+
 export interface UserError {
   code: string;
   message: string;
