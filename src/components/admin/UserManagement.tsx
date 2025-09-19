@@ -647,7 +647,18 @@ const UserManagement = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm">{formatLastLogin(manager.lastLogin)}</span>
+                        {(() => {
+                          if (!manager.lastLogin) return <Badge variant="outline" className="border-amber-200 text-amber-700">Never</Badge>;
+                          const d = new Date(manager.lastLogin);
+                          const now = new Date();
+                          const diffMs = now.getTime() - d.getTime();
+                          const diffHours = diffMs / (1000 * 60 * 60);
+                          const diffDays = diffMs / (1000 * 60 * 60 * 24);
+                          const formatted = formatLastLogin(manager.lastLogin);
+                          if (diffHours <= 24) return <Badge className="bg-amber-200 text-amber-900">{formatted}</Badge>;
+                          if (diffDays <= 7) return <Badge className="bg-amber-100 text-amber-800">{formatted}</Badge>;
+                          return <Badge className="bg-amber-50 text-amber-700">{formatted}</Badge>;
+                        })()}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-1">

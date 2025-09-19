@@ -55,14 +55,24 @@ export default function UsersList({ onViewUser }: UsersListProps) {
     if (!q.trim()) return list;
     const s = q.toLowerCase();
     return list.filter(u =>
-      (u.name ?? '').toLowerCase().includes(s) ||
+      ((u.username ?? u.name ?? '') as string).toLowerCase().includes(s) ||
       (u.email ?? '').toLowerCase().includes(s) ||
       (u.phone ?? '').toLowerCase().includes(s)
     );
   }, [data, q]);
 
+  // Reverted to original simple initials function — we now expect a display string (username/name)
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
+  // Prefer username, then name, then email local-part
+  const getDisplayName = (user: any) => {
+    if (!user) return '';
+    if (user.username) return String(user.username);
+    if (user.name) return String(user.name);
+    if (user.email && typeof user.email === 'string') return user.email.split('@')[0];
+    return '';
   };
 
   const getPlanBadge = (plan: string | null) => {
@@ -93,6 +103,21 @@ export default function UsersList({ onViewUser }: UsersListProps) {
     return <Badge variant="secondary">{status}</Badge>;
   };
 
+  // Render Last Login as a Badge with similar styling to Status
+  const getLastLoginBadge = (lastLogin: string | null) => {
+    const rec = getLastLoginRecency(lastLogin);
+    // Never should be an amber-outline
+    if (!lastLogin) return <Badge variant="outline" className="border-amber-200 text-amber-700">Never</Badge>;
+    // Progressive amber: recent = stronger amber
+    if (rec === 'recent') {
+      return <Badge className="bg-amber-200 text-amber-900">{formatLastLogin(lastLogin)}</Badge>;
+    }
+    if (rec === 'week') {
+      return <Badge className="bg-amber-100 text-amber-800">{formatLastLogin(lastLogin)}</Badge>;
+    }
+    return <Badge className="bg-amber-50 text-amber-700">{formatLastLogin(lastLogin)}</Badge>;
+  };
+
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return '—';
     return new Date(dateStr).toLocaleDateString('en-US', {
@@ -121,17 +146,30 @@ export default function UsersList({ onViewUser }: UsersListProps) {
     return formatDate(lastLogin);
   };
 
+  // Recency: 'recent' = <=24h, 'week' = <=7d, 'older' = >7d
+  const getLastLoginRecency = (lastLogin: string | null) => {
+    if (!lastLogin) return 'older';
+    const d = new Date(lastLogin);
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+    if (diffHours <= 24) return 'recent';
+    if (diffDays <= 7) return 'week';
+    return 'older';
+  };
+
   const handleToggleEnabled = async (user: UserListItem) => {
     const isCurrentlyActive = user.status === 'Active';
     const action = isCurrentlyActive ? 'disable' : 'enable';
     
-    if (!confirm(`Are you sure you want to ${action} ${user.name}?`)) return;
+  if (!confirm(`Are you sure you want to ${action} ${getDisplayName(user)}?`)) return;
     
     try {
       await toggle.mutateAsync({ id: user.id, enabled: !isCurrentlyActive });
       toast({
         title: "User updated",
-        description: `${user.name} has been ${isCurrentlyActive ? 'disabled' : 'enabled'}.`,
+        description: `${getDisplayName(user)} has been ${isCurrentlyActive ? 'disabled' : 'enabled'}.`,
       });
     } catch (error) {
       toast({
@@ -264,22 +302,25 @@ export default function UsersList({ onViewUser }: UsersListProps) {
                   </TableCell>
                 </TableRow>
               ) : (
-                rows.map((user) => (
-                  <TableRow key={user.id}>
+                rows.map((user) => {
+                  const rec = getLastLoginRecency(user.lastLogin);
+                  const colorClass = rec === 'recent' ? 'text-green-600' : rec === 'week' ? 'text-amber-600' : 'text-gray-500';
+                  return (
+                    <TableRow key={user.id}>
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         <Avatar>
                           {user.profilePictureUrl ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={user.profilePictureUrl} alt={`${user.name} avatar`} />
+                            <img src={user.profilePictureUrl} alt={`${getDisplayName(user)} avatar`} />
                           ) : (
                             <AvatarFallback className="bg-primary text-primary-foreground">
-                              {getInitials(user.name)}
+                              {getInitials(getDisplayName(user) || ' ')}
                             </AvatarFallback>
                           )}
                         </Avatar>
                         <div>
-                          <div className="font-medium">{user.name}</div>
+                          <div className="font-medium">{getDisplayName(user)}</div>
                           <div className="text-sm text-muted-foreground">ID: {user.id}</div>
                         </div>
                       </div>
@@ -329,7 +370,7 @@ export default function UsersList({ onViewUser }: UsersListProps) {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className="text-sm">{formatLastLogin(user.lastLogin)}</span>
+                      {getLastLoginBadge(user.lastLogin)}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-1">
@@ -355,7 +396,8 @@ export default function UsersList({ onViewUser }: UsersListProps) {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))
+                  );
+                })
               )}
             </TableBody>
           </Table>
