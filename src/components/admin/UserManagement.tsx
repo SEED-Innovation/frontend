@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import UsersList from './UsersList';
 
-// Keep the existing managers mock data and functionality
 import { useState, useEffect } from 'react';
 import { Search, Plus, UserPlus, Download, Eye, Ban, Crown, Users, UserX, Mail, Phone, Calendar, Building, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -62,48 +61,25 @@ const UserManagement = () => {
     status: 'Active'
   });
 
-  // Mock manager data with enhanced fields
-  const managers = [
-    {
-      id: 101,
-      name: 'Ahmed Al-Mansouri',
-      email: 'ahmed.admin@seed.com',
-      phone: '+966-50-123-4567',
-      role: 'ADMIN',
-      status: 'Active',
-      joinDate: '2023-12-01',
-      managedCourtsCount: 5,
-      assignedCourts: ['Court A', 'Court B', 'Court C', 'Court D', 'Court E'],
-      lastLogin: '2024-03-15T08:15:00Z',
-      avatar: null
-    },
-    {
-      id: 102,
-      name: 'Sarah Al-Zahra',
-      email: 'sarah.super@seed.com',
-      phone: '+966-55-987-6543',
-      role: 'SUPER_ADMIN',
-      status: 'Active',
-      joinDate: '2023-11-15',
-      managedCourtsCount: 12,
-      assignedCourts: ['All Courts'],
-      lastLogin: '2024-03-15T09:30:00Z',
-      avatar: null
-    },
-    {
-      id: 103,
-      name: 'Omar Hassan',
-      email: 'omar.admin@seed.com',
-      phone: null,
-      role: 'ADMIN',
-      status: 'Suspended',
-      joinDate: '2024-01-20',
-      managedCourtsCount: 0,
-      assignedCourts: [],
-      lastLogin: null,
-      avatar: null
-    }
-  ];
+  // Manager data state and backend integration
+  const [managersPage, setManagersPage] = useState(0);
+  const [managersData, setManagersData] = useState<any>(null);
+  const [managersLoading, setManagersLoading] = useState(true);
+  const [managersError, setManagersError] = useState<string | null>(null);
+
+  // Load managers from backend
+  async function loadAdmins(page = 0, size = 10) {
+    const apiUrl = import.meta.env.VITE_API_URL || "";
+    const res = await fetch(`${apiUrl}/admin/users/admins-paged?page=${page}&size=${size}`, {
+      credentials: "include",
+      headers: { 
+        "Accept": "application/json",
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+      }
+    });
+    if (!res.ok) throw new Error(`Failed to load managers (${res.status})`);
+    return res.json();
+  }
 
   const getPlanIcon = (plan: string) => {
     switch (plan) {
@@ -131,9 +107,10 @@ const UserManagement = () => {
 
   // Enhanced filtering function for managers only
   const getFilteredManagers = () => {
-    return managers.filter(item => {
-      const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           item.email.toLowerCase().includes(searchTerm.toLowerCase());
+    if (!managersData?.users) return [];
+    return managersData.users.filter((item: any) => {
+      const matchesSearch = item.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           item.email?.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesStatus = statusFilter === 'All' || item.status === statusFilter;
       const matchesRole = roleFilter === 'All' || item.role === roleFilter;
@@ -144,10 +121,30 @@ const UserManagement = () => {
 
   const filteredManagers = getFilteredManagers();
 
-  // Fetch admin names when component mounts
+  // Fetch admin names and managers when component mounts
   useEffect(() => {
     fetchAdminNames();
   }, []);
+
+  // Load managers from backend
+  useEffect(() => {
+    let alive = true;
+    setManagersLoading(true);
+    loadAdmins(managersPage, 10)
+      .then(d => { 
+        if (alive) { 
+          setManagersData(d); 
+          setManagersError(null); 
+        } 
+      })
+      .catch(e => { 
+        if (alive) setManagersError(e.message || "Failed to load managers"); 
+      })
+      .finally(() => { 
+        if (alive) setManagersLoading(false); 
+      });
+    return () => { alive = false; };
+  }, [managersPage]);
 
   const fetchAdminNames = async () => {
     setIsLoadingAdmins(true);
@@ -567,10 +564,23 @@ const UserManagement = () => {
         </TabsContent>
 
         <TabsContent value="managers" className="space-y-4">
+          {managersError && (
+            <div className="text-red-600 p-4 bg-red-50 rounded-md">
+              Error: {managersError}
+            </div>
+          )}
+          
           {/* Managers Table */}
           <Card>
             <CardHeader>
-              <CardTitle>Managers ({filteredManagers.length})</CardTitle>
+              <CardTitle>
+                Managers ({managersLoading ? '...' : filteredManagers.length})
+                {managersData && (
+                  <span className="text-sm font-normal text-muted-foreground ml-2">
+                    Page {managersData.currentPage + 1} of {managersData.totalPages}
+                  </span>
+                )}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
@@ -578,7 +588,6 @@ const UserManagement = () => {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Contact</TableHead>
-                    <TableHead>Role</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Courts</TableHead>
                     <TableHead>Last Login</TableHead>
@@ -586,93 +595,131 @@ const UserManagement = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredManagers.map((manager) => (
-                    <TableRow key={manager.id}>
-                      <TableCell>
-                        <div className="flex items-center space-x-3">
-                          <Avatar>
-                            <AvatarFallback className="bg-primary text-primary-foreground">
-                              {getInitials(manager.name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="font-medium">{manager.name}</div>
-                            <div className="text-sm text-muted-foreground">ID: {manager.id}</div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="flex items-center space-x-1">
-                            <Mail className="h-3 w-3 text-muted-foreground" />
-                            <a href={`mailto:${manager.email}`} className="text-sm text-blue-600 hover:underline">
-                              {manager.email}
-                            </a>
-                          </div>
-                          {manager.phone ? (
-                            <div className="flex items-center space-x-1">
-                              <Phone className="h-3 w-3 text-muted-foreground" />
-                              <a href={`tel:${manager.phone}`} className="text-sm text-blue-600 hover:underline">
-                                {manager.phone}
-                              </a>
-                            </div>
-                          ) : (
-                            <span className="text-sm text-muted-foreground">No phone</span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getRoleColor(manager.role)}>
-                          <div className="flex items-center space-x-1">
-                            {getRoleIcon(manager.role)}
-                            <span>{manager.role.replace('_', ' ')}</span>
-                          </div>
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getStatusColor(manager.status)}>
-                          {manager.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="text-sm font-medium">{manager.managedCourtsCount} courts</div>
-                          <div className="text-sm text-muted-foreground">
-                            {manager.assignedCourts.length > 0 
-                              ? manager.assignedCourts.slice(0, 2).join(', ') + 
-                                (manager.assignedCourts.length > 2 ? '...' : '')
-                              : 'No courts assigned'
-                            }
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm">{formatLastLogin(manager.lastLogin)}</span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewUser(manager, 'manager')}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <ActionMenu 
-                            user={manager}
-                            userType="manager"
-                            onEnableDisable={handleEnableDisable}
-                            onChangeRole={handleChangeRole}
-                            onAssignCourts={handleAssignCourts}
-                            onEdit={handleEdit}
-                            onDelete={handleDelete}
-                          />
-                        </div>
+                  {managersLoading ? (
+                    Array.from({ length: 3 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                        <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                        <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                        <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                        <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                        <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                      </TableRow>
+                    ))
+                  ) : filteredManagers.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                        No managers found
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    filteredManagers.map((manager: any) => (
+                      <TableRow key={manager.id}>
+                        <TableCell>
+                          <div className="flex items-center space-x-3">
+                            <Avatar>
+                              <AvatarFallback className="bg-primary text-primary-foreground">
+                                {getInitials(manager.fullName || manager.username || 'U')}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="font-medium">{manager.fullName || manager.username}</div>
+                              <div className="text-sm text-muted-foreground">ID: {manager.id}</div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="flex items-center space-x-1">
+                              <Mail className="h-3 w-3 text-muted-foreground" />
+                              <a href={`mailto:${manager.email}`} className="text-sm text-blue-600 hover:underline">
+                                {manager.email}
+                              </a>
+                            </div>
+                            {manager.phone ? (
+                              <div className="flex items-center space-x-1">
+                                <Phone className="h-3 w-3 text-muted-foreground" />
+                                <a href={`tel:${manager.phone}`} className="text-sm text-blue-600 hover:underline">
+                                  {manager.phone}
+                                </a>
+                              </div>
+                            ) : (
+                              <span className="text-sm text-muted-foreground">No phone</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(manager.status)}>
+                            {manager.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="font-medium">
+                              {manager.courtsCount} {manager.courtsCount === 1 ? "court" : "courts"}
+                            </span>
+                            <span className="text-sm text-gray-500 truncate">
+                              {manager.courtsPreview?.join(", ")}{manager.courtsHasMore ? "..." : ""}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm">
+                            {manager.lastLogin ? new Date(manager.lastLogin).toLocaleDateString() : "Never"}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewUser(manager, 'manager')}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <ActionMenu 
+                              user={manager}
+                              userType="manager"
+                              onEnableDisable={handleEnableDisable}
+                              onChangeRole={handleChangeRole}
+                              onAssignCourts={handleAssignCourts}
+                              onEdit={handleEdit}
+                              onDelete={handleDelete}
+                            />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
+              
+              {/* Pagination */}
+              {managersData && managersData.totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 py-4">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    disabled={!managersData.hasPrevious} 
+                    onClick={() => setManagersPage(p => p - 1)}
+                  >
+                    Previous
+                  </Button>
+                  
+                  <span className="px-4 py-2 text-sm text-muted-foreground">
+                    Page {managersData.currentPage + 1} of {managersData.totalPages}
+                  </span>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    disabled={!managersData.hasNext} 
+                    onClick={() => setManagersPage(p => p + 1)}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
