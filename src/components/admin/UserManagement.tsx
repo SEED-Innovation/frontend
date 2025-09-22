@@ -578,7 +578,6 @@ const UserManagement = () => {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Contact</TableHead>
-                    <TableHead>Role</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Courts</TableHead>
                     <TableHead>Last Login</TableHead>
@@ -620,14 +619,6 @@ const UserManagement = () => {
                             <span className="text-sm text-muted-foreground">No phone</span>
                           )}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getRoleColor(manager.role)}>
-                          <div className="flex items-center space-x-1">
-                            {getRoleIcon(manager.role)}
-                            <span>{manager.role.replace('_', ' ')}</span>
-                          </div>
-                        </Badge>
                       </TableCell>
                       <TableCell>
                         <Badge className={getStatusColor(manager.status)}>
