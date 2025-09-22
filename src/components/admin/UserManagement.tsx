@@ -69,16 +69,29 @@ const UserManagement = () => {
 
   // Load managers from backend
   async function loadAdmins(page = 0, size = 10) {
-    const apiUrl = import.meta.env.VITE_API_URL || "";
-    const res = await fetch(`${apiUrl}/admin/users/admins-paged?page=${page}&size=${size}`, {
-      credentials: "include",
-      headers: { 
-        "Accept": "application/json",
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || "";
+      const res = await fetch(`${apiUrl}/admin/users/admins-paged?page=${page}&size=${size}`, {
+        credentials: "include",
+        headers: { 
+          "Accept": "application/json",
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      });
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Backend error:', res.status, errorText);
+        throw new Error(`Failed to load managers (${res.status}): ${errorText}`);
       }
-    });
-    if (!res.ok) throw new Error(`Failed to load managers (${res.status})`);
-    return res.json();
+      
+      const data = await res.json();
+      console.log('Managers data loaded:', data);
+      return data;
+    } catch (error) {
+      console.error('Error loading managers:', error);
+      throw error;
+    }
   }
 
   const getPlanIcon = (plan: string) => {
@@ -107,10 +120,12 @@ const UserManagement = () => {
 
   // Enhanced filtering function for managers only
   const getFilteredManagers = () => {
-    if (!managersData?.users) return [];
+    if (!managersData?.users || !Array.isArray(managersData.users)) return [];
     return managersData.users.filter((item: any) => {
-      const matchesSearch = item.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           item.email?.toLowerCase().includes(searchTerm.toLowerCase());
+      const name = item.fullName || item.username || '';
+      const email = item.email || '';
+      const matchesSearch = name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           email.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesStatus = statusFilter === 'All' || item.status === statusFilter;
       const matchesRole = roleFilter === 'All' || item.role === roleFilter;
@@ -320,7 +335,8 @@ const UserManagement = () => {
     return date.toLocaleDateString();
   };
 
-  const getInitials = (name: string) => {
+  const getInitials = (name: string | null | undefined) => {
+    if (!name || typeof name !== 'string') return 'U';
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
@@ -619,23 +635,25 @@ const UserManagement = () => {
                           <div className="flex items-center space-x-3">
                             <Avatar>
                               <AvatarFallback className="bg-primary text-primary-foreground">
-                                {getInitials(manager.fullName || manager.username || 'U')}
+                                {getInitials(manager.fullName || manager.username)}
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <div className="font-medium">{manager.fullName || manager.username}</div>
+                              <div className="font-medium">{manager.fullName || manager.username || 'Unknown'}</div>
                               <div className="text-sm text-muted-foreground">ID: {manager.id}</div>
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="space-y-1">
-                            <div className="flex items-center space-x-1">
-                              <Mail className="h-3 w-3 text-muted-foreground" />
-                              <a href={`mailto:${manager.email}`} className="text-sm text-blue-600 hover:underline">
-                                {manager.email}
-                              </a>
-                            </div>
+                            {manager.email && (
+                              <div className="flex items-center space-x-1">
+                                <Mail className="h-3 w-3 text-muted-foreground" />
+                                <a href={`mailto:${manager.email}`} className="text-sm text-blue-600 hover:underline">
+                                  {manager.email}
+                                </a>
+                              </div>
+                            )}
                             {manager.phone ? (
                               <div className="flex items-center space-x-1">
                                 <Phone className="h-3 w-3 text-muted-foreground" />
@@ -643,23 +661,25 @@ const UserManagement = () => {
                                   {manager.phone}
                                 </a>
                               </div>
-                            ) : (
-                              <span className="text-sm text-muted-foreground">No phone</span>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(manager.status)}>
-                            {manager.status}
+                          ) : !manager.email ? (
+                            <span className="text-sm text-muted-foreground">No email</span>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">No phone</span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getStatusColor(manager.status || 'Unknown')}>
+                          {manager.status || 'Unknown'}
                           </Badge>
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col">
                             <span className="font-medium">
-                              {manager.courtsCount} {manager.courtsCount === 1 ? "court" : "courts"}
+                              {manager.courtsCount || 0} {(manager.courtsCount || 0) === 1 ? "court" : "courts"}
                             </span>
                             <span className="text-sm text-gray-500 truncate">
-                              {manager.courtsPreview?.join(", ")}{manager.courtsHasMore ? "..." : ""}
+                              {manager.courtsPreview?.join(", ") || 'No courts'}{manager.courtsHasMore ? "..." : ""}
                             </span>
                           </div>
                         </TableCell>
