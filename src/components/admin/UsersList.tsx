@@ -55,7 +55,8 @@ export default function UsersList({ onViewUser }: UsersListProps) {
     if (!q.trim()) return list;
     const s = q.toLowerCase();
     return list.filter(u =>
-      (u.name ?? '').toLowerCase().includes(s) ||
+      (u.fullName ?? '').toLowerCase().includes(s) ||
+      (u.username ?? '').toLowerCase().includes(s) ||
       (u.email ?? '').toLowerCase().includes(s) ||
       (u.phone ?? '').toLowerCase().includes(s)
     );
@@ -108,17 +109,17 @@ export default function UsersList({ onViewUser }: UsersListProps) {
     return formatDate(lastLogin);
   };
 
-  const handleToggleEnabled = async (user: UserListItem) => {
+  const handleToggleEnabled = async (user: any) => {
     const isCurrentlyActive = user.status === 'Active';
     const action = isCurrentlyActive ? 'disable' : 'enable';
     
-    if (!confirm(`Are you sure you want to ${action} ${user.name}?`)) return;
+    if (!confirm(`Are you sure you want to ${action} ${user.fullName || user.username}?`)) return;
     
     try {
       await toggle.mutateAsync({ id: user.id, enabled: !isCurrentlyActive });
       toast({
         title: "User updated",
-        description: `${user.name} has been ${isCurrentlyActive ? 'disabled' : 'enabled'}.`,
+        description: `${user.fullName || user.username} has been ${isCurrentlyActive ? 'disabled' : 'enabled'}.`,
       });
     } catch (error) {
       toast({
@@ -256,13 +257,21 @@ export default function UsersList({ onViewUser }: UsersListProps) {
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         <Avatar>
-                          <AvatarFallback className="bg-primary text-primary-foreground">
-                            {getInitials(user.name)}
-                          </AvatarFallback>
+                          {user.profilePictureUrl ? (
+                            <img 
+                              src={user.profilePictureUrl} 
+                              alt={user.fullName || 'User'} 
+                              className="h-10 w-10 rounded-full object-cover"
+                            />
+                          ) : (
+                            <AvatarFallback className="bg-primary text-primary-foreground">
+                              {getInitials(user.fullName)}
+                            </AvatarFallback>
+                          )}
                         </Avatar>
                         <div>
-                          <div className="font-medium">{user.name}</div>
-                          <div className="text-sm text-muted-foreground">ID: {user.id}</div>
+                          <div className="font-medium">{user.fullName}</div>
+                          <div className="text-sm text-muted-foreground">@{user.username} • ID: {user.id}</div>
                         </div>
                       </div>
                     </TableCell>

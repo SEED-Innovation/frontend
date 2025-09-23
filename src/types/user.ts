@@ -276,7 +276,8 @@ export const SAUDI_CONSTANTS = {
 
 export interface UserListItem {
   id: number;
-  name: string;
+  username: string;
+  fullName: string;
   email: string | null;
   phone: string | null;
   plan: string | null;           // "Premium" | "Basic" | "Free" | etc.
@@ -285,6 +286,7 @@ export interface UserListItem {
   totalSessions: number | null;
   rank: number | null;
   lastLogin: string | null;      // ISO string or null
+  profilePictureUrl?: string | null;
 }
 
 export interface AdminUserPageResponse {
