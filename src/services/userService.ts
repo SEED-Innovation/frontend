@@ -78,6 +78,35 @@ export class UserService {
   }
 
   /**
+   * GET /admin/users/{id} - Get detailed user information by ID
+   * This is optimized for the detail view and includes all user fields
+   */
+  async getUserDetails(userId: number): Promise<UserResponse> {
+    console.log('🔍 UserService.getUserDetails called for ID:', userId);
+    
+    try {
+      const response = await fetch(`${this.baseUrl}/admin/users/${userId}`, {
+        method: 'GET',
+        headers: this.getHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to get user details: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ User details loaded:', data);
+      return data;
+      
+    } catch (error) {
+      console.error('❌ Failed to get user details:', error);
+      // Fallback to getUserByIdentifier if the specific endpoint doesn't exist yet
+      console.log('⚠️ Falling back to getUserByIdentifier...');
+      return this.getUserByIdentifier({ id: userId });
+    }
+  }
+
+  /**
    * POST /admin/users/get - Get user by flexible identifier
    */
   async getUserByIdentifier(request: GetUserByIdentifierRequest): Promise<UserResponse> {
@@ -238,6 +267,38 @@ export class UserService {
       
     } catch (error) {
       console.error('❌ Failed to get admin names:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * GET /admin/users/paged - Get paginated users and admins
+   */
+  async getUsersPaged(page: number = 1, size: number = 10, type?: 'user' | 'admin'): Promise<any> {
+    console.log(`👥 UserService.getUsersPaged called - page: ${page}, size: ${size}, type: ${type}`);
+    
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        size: size.toString(),
+        ...(type && { type })
+      });
+
+      const response = await fetch(`${this.baseUrl}/admin/users/paged?${params}`, {
+        method: 'GET',
+        headers: this.getHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch paged users: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ Paged users from DB:', data);
+      return data;
+      
+    } catch (error) {
+      console.error('❌ Failed to load paged users:', error);
       throw error;
     }
   }

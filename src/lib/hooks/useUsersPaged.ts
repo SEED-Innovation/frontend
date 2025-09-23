@@ -1,11 +1,22 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getUsersPaged, updateUserEnabled } from '@/lib/api/services/userService';
+import { userService } from '@/services/userService';
 
 export function useUsersPaged(page: number, size: number) {
   return useQuery({
     queryKey: ['users', 'paged', page, size],
     queryFn: () => getUsersPaged(page, size),
     staleTime: 30_000,
+  });
+}
+
+export function useUserDetails(userId: number | null, enabled: boolean = true) {
+  return useQuery({
+    queryKey: ['user', 'details', userId],
+    queryFn: () => userId ? userService.getUserDetails(userId) : null,
+    enabled: enabled && userId !== null,
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
+    retry: 2,
   });
 }
 

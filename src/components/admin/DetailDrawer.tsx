@@ -126,9 +126,9 @@ export const DetailDrawer: React.FC<DetailDrawerProps> = ({
             <div className="flex items-start gap-4">
               <div className="relative">
                 <Avatar className="w-20 h-20 ring-2 ring-background shadow-lg">
-                  <AvatarImage src={user.avatar} />
+                  <AvatarImage src={user.profilePictureUrl} />
                   <AvatarFallback className="text-xl bg-gradient-to-br from-primary/20 to-primary/10">
-                    {user.name?.split(' ').map((n: string) => n[0]).join('') || '?'}
+                    {user.fullName?.split(' ').map((n: string) => n[0]).join('') || user.name?.split(' ').map((n: string) => n[0]).join('') || '?'}
                   </AvatarFallback>
                 </Avatar>
                 <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${getStatusColor(user.status)}`}>
@@ -136,7 +136,7 @@ export const DetailDrawer: React.FC<DetailDrawerProps> = ({
                 </div>
               </div>
               <div className="flex-1 space-y-2">
-                <h3 className="text-xl font-semibold">{displayValue(user.name, 'No Name')}</h3>
+                <h3 className="text-xl font-semibold">{displayValue(user.fullName || user.name, 'No Name')}</h3>
                 
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
@@ -188,11 +188,10 @@ export const DetailDrawer: React.FC<DetailDrawerProps> = ({
               </div>
             ) : (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">Role</label>
-                <Badge className={`${getRoleColor(user.role)} w-fit`}>
-                  {getRoleIcon(user.role)}
-                  <span className="ml-1">{displayValue(user.role, 'No Role')}</span>
-                </Badge>
+                <label className="text-sm font-medium text-muted-foreground">Courts Managed</label>
+                <div className="text-lg font-bold text-primary">
+                  {displayValue(user.courtsCount || user.managedCourtsCount || user.assignedCourts?.length, '0')} Courts
+                </div>
               </div>
             )}
           </div>
@@ -219,10 +218,23 @@ export const DetailDrawer: React.FC<DetailDrawerProps> = ({
                     title={user.lastLogin ? formatLastLogin(user.lastLogin) : 'Never logged in'}
                   >
                     {user.lastLogin ? (
-                      // Mock time ago calculation
+                      // Calculate days ago from lastLogin
                       (() => {
-                        const days = Math.floor(Math.random() * 30);
-                        return days === 0 ? 'Today' : `${days} day${days > 1 ? 's' : ''} ago`;
+                        const lastLoginDate = new Date(user.lastLogin);
+                        const now = new Date();
+                        const diffTime = Math.abs(now.getTime() - lastLoginDate.getTime());
+                        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                        const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+                        
+                        if (diffDays === 0 && diffHours < 24) {
+                          return diffHours === 0 ? 'Just now' : `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+                        } else if (diffDays === 0) {
+                          return 'Today';
+                        } else if (diffDays === 1) {
+                          return 'Yesterday';
+                        } else {
+                          return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+                        }
                       })()
                     ) : displayValue(null, 'Never')}
                   </span>
@@ -245,7 +257,7 @@ export const DetailDrawer: React.FC<DetailDrawerProps> = ({
                           <span className="text-sm font-medium">Total Sessions</span>
                         </div>
                         <span className="text-lg font-bold text-green-700 dark:text-green-300">
-                          {displayValue(user.totalSessions, '0')}
+                          {displayValue(user.totalSessions ?? 0, '0')}
                         </span>
                       </div>
                     </div>
@@ -272,13 +284,13 @@ export const DetailDrawer: React.FC<DetailDrawerProps> = ({
                         <span className="text-sm font-medium">Courts Managed</span>
                       </div>
                       <span className="text-lg font-bold text-purple-700 dark:text-purple-300">
-                        {displayValue(user.managedCourtsCount || user.assignedCourts?.length, '0')}
+                        {displayValue(user.courtsCount || user.managedCourtsCount || user.assignedCourts?.length, '0')}
                       </span>
                     </div>
-                    {user.assignedCourts && user.assignedCourts.length > 0 && (
+                    {((user.courtsPreview && user.courtsPreview.length > 0) || (user.assignedCourts && user.assignedCourts.length > 0)) && (
                       <div className="mt-2 pt-2 border-t border-purple-200/50 dark:border-purple-800/30">
                         <p className="text-xs text-purple-600/70 dark:text-purple-400/70">
-                          Assigned to {user.assignedCourts.length} court{user.assignedCourts.length !== 1 ? 's' : ''}
+                          Assigned to {user.courtsCount || user.managedCourtsCount || user.assignedCourts?.length || 0} court{(user.courtsCount || user.managedCourtsCount || user.assignedCourts?.length || 0) !== 1 ? 's' : ''}
                         </p>
                       </div>
                     )}
@@ -307,16 +319,21 @@ export const DetailDrawer: React.FC<DetailDrawerProps> = ({
                   </div>
                   
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Permissions Level</span>
-                    <span className="text-sm">
-                      {user.role === 'SUPER_ADMIN' ? 'Full Access' : 'Limited Access'}
+                    <span className="text-sm font-medium">Username</span>
+                    <span className="text-sm font-mono">
+                      @{displayValue(user.username, 'N/A')}
                     </span>
                   </div>
                   
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Account Type</span>
-                    <span className="text-sm font-semibold">
-                      {user.role === 'SUPER_ADMIN' ? 'Super Administrator' : 'Administrator'}
+                    <span className="text-sm font-medium">Assigned Courts</span>
+                    <span className="text-sm">
+                      {(user.courtsPreview && user.courtsPreview.length > 0) 
+                        ? user.courtsPreview.slice(0, 2).join(', ') + (user.courtsPreview.length > 2 ? '...' : '')
+                        : (user.assignedCourts && user.assignedCourts.length > 0)
+                          ? user.assignedCourts.slice(0, 2).join(', ') + (user.assignedCourts.length > 2 ? '...' : '')
+                          : 'No courts assigned'
+                      }
                     </span>
                   </div>
                 </div>

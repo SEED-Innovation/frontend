@@ -302,21 +302,22 @@ const UserManagement = () => {
   const handleViewUser = async (user: any, userType: 'user' | 'manager') => {
     setDetailUserType(userType);
     setShowDetailDrawer(true);
+    setDetailUser(null); // Clear previous data
     setIsLoadingUserDetail(true);
     
     try {
       if (userType === 'user') {
-        // Fetch full user details from the endpoint
-        const fullUserData = await userService.getUserByIdentifier({ id: user.id });
+        // Use the optimized approach: fetch detailed user data on-demand
+        const fullUserData = await userService.getUserDetails(user.id);
         setDetailUser(fullUserData);
       } else {
-        // For managers, use the existing mock data
+        // For managers, use the existing mock data (until backend implements admin details endpoint)
         setDetailUser(user);
       }
     } catch (error) {
       console.error('Failed to fetch user details:', error);
       toast.error('Failed to fetch user details');
-      // Fallback to basic user data
+      // Fallback to basic user data from the list
       setDetailUser(user);
     } finally {
       setIsLoadingUserDetail(false);
