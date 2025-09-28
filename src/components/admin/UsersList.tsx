@@ -81,10 +81,29 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
       return matchesSearch && matchesStatus;
     });
   }, [data, searchTerm, statusFilter]);
+    if (!q.trim()) return list;
+    const s = q.toLowerCase();
+    return list.filter(u =>
+      ((u.username ?? u.name ?? '') as string).toLowerCase().includes(s) ||
+      (u.email ?? '').toLowerCase().includes(s) ||
+      (u.phone ?? '').toLowerCase().includes(s)
+    );
+  }, [data, q]);
 
   const getInitials = (name: string | null) => {
     if (!name) return "?";
+  // Reverted to original simple initials function — we now expect a display string (username/name)
+  const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
+  // Prefer username, then name, then email local-part
+  const getDisplayName = (user: any) => {
+    if (!user) return '';
+    if (user.username) return String(user.username);
+    if (user.name) return String(user.name);
+    if (user.email && typeof user.email === 'string') return user.email.split('@')[0];
+    return '';
   };
 
   const getPlanBadge = (plan: string | null) => {
@@ -110,9 +129,24 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
       return <Badge className="bg-green-100 text-green-800">Active</Badge>;
     }
     if (status === 'Disabled') {
-      return <Badge variant="destructive">Suspended</Badge>;
+      return <Badge variant="destructive">Disabled</Badge>;
     }
     return <Badge variant="secondary">{status}</Badge>;
+  };
+
+  // Render Last Login as a Badge with similar styling to Status
+  const getLastLoginBadge = (lastLogin: string | null) => {
+    const rec = getLastLoginRecency(lastLogin);
+    // Never should be an amber-outline
+    if (!lastLogin) return <Badge variant="outline" className="border-amber-200 text-amber-700">Never</Badge>;
+    // Progressive amber: recent = stronger amber
+    if (rec === 'recent') {
+      return <Badge className="bg-amber-200 text-amber-900">{formatLastLogin(lastLogin)}</Badge>;
+    }
+    if (rec === 'week') {
+      return <Badge className="bg-amber-100 text-amber-800">{formatLastLogin(lastLogin)}</Badge>;
+    }
+    return <Badge className="bg-amber-50 text-amber-700">{formatLastLogin(lastLogin)}</Badge>;
   };
 
   const formatDate = (dateStr: string | null) => {
@@ -126,7 +160,34 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
 
   const formatLastLogin = (lastLogin: string | null) => {
     if (!lastLogin) return 'Never';
+    const d = new Date(lastLogin);
+    const now = new Date();
+
+    // Normalize to local dates (midnight) to calculate day difference
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfGiven = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+    const diffMs = startOfToday.getTime() - startOfGiven.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+
     return formatDate(lastLogin);
+  };
+
+  // Recency: 'recent' = <=24h, 'week' = <=7d, 'older' = >7d
+  const getLastLoginRecency = (lastLogin: string | null) => {
+    if (!lastLogin) return 'older';
+    const d = new Date(lastLogin);
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+    if (diffHours <= 24) return 'recent';
+    if (diffDays <= 7) return 'week';
+    return 'older';
   };
 
   const handleToggleEnabled = async (user: any) => {
@@ -134,12 +195,14 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
     const action = isCurrentlyActive ? 'disable' : 'enable';
     
     if (!confirm(`Are you sure you want to ${action} ${user.fullName || user.username}?`)) return;
+  if (!confirm(`Are you sure you want to ${action} ${getDisplayName(user)}?`)) return;
     
     try {
       await toggle.mutateAsync({ id: user.id, enabled: !isCurrentlyActive });
       toast({
         title: "User updated",
         description: `${user.fullName || user.username} has been ${isCurrentlyActive ? 'disabled' : 'enabled'}.`,
+        description: `${getDisplayName(user)} has been ${isCurrentlyActive ? 'disabled' : 'enabled'}.`,
       });
     } catch (error) {
       toast({
@@ -257,8 +320,11 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
                   </TableCell>
                 </TableRow>
               ) : (
-                rows.map((user) => (
-                  <TableRow key={user.id}>
+                rows.map((user) => {
+                  const rec = getLastLoginRecency(user.lastLogin);
+                  const colorClass = rec === 'recent' ? 'text-green-600' : rec === 'week' ? 'text-amber-600' : 'text-gray-500';
+                  return (
+                    <TableRow key={user.id}>
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         <Avatar>
@@ -273,10 +339,20 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
                               {getInitials(user.fullName)}
                             </AvatarFallback>
                           )}
+                          {user.profilePictureUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={user.profilePictureUrl} alt={`${getDisplayName(user)} avatar`} />
+                          ) : (
+                            <AvatarFallback className="bg-primary text-primary-foreground">
+                              {getInitials(getDisplayName(user) || ' ')}
+                            </AvatarFallback>
+                          )}
                         </Avatar>
                         <div>
                           <div className="font-medium">{user.fullName}</div>
                           <div className="text-sm text-muted-foreground">@{user.username} • ID: {user.id}</div>
+                          <div className="font-medium">{getDisplayName(user)}</div>
+                          <div className="text-sm text-muted-foreground">ID: {user.id}</div>
                         </div>
                       </div>
                     </TableCell>
@@ -325,7 +401,7 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className="text-sm">{formatLastLogin(user.lastLogin)}</span>
+                      {getLastLoginBadge(user.lastLogin)}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-1">
@@ -351,7 +427,8 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
                       </div>
                     </TableCell>
                   </TableRow>
-                ))
+                  );
+                })
               )}
             </TableBody>
           </Table>

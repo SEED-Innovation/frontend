@@ -40,6 +40,31 @@ export const DetailDrawer: React.FC<DetailDrawerProps> = ({
 
   if (!user) return null;
 
+  // Normalize user payload to support different backend shapes
+  const extractNameFromEmail = (email: any) => {
+    if (!email || typeof email !== 'string') return '';
+    return email.split('@')[0];
+  };
+
+  const normalized = {
+    id: user.id ?? user.userId ?? null,
+    name: (
+      user.name ?? user.fullName ?? user.full_name ?? user.username ?? user.userName ?? user.displayName ?? user.display_name
+    ) || extractNameFromEmail(user.email) || '',
+    email: user.email ?? null,
+    phone: user.phone ?? user.telephone ?? user.phone_number ?? null,
+    avatar: user.avatar ?? user.profilePictureUrl ?? user.profile_picture_url ?? user.avatarUrl ?? null,
+    joinDate: user.joinDate ?? user.join_date ?? user.createdAt ?? null,
+    plan: user.plan ?? null,
+    status: user.status ?? (user.enabled === false ? 'Disabled' : user.enabled === true ? 'Active' : null) ?? null,
+    role: user.role ?? null,
+    totalSessions: user.totalSessions ?? user.total_sessions ?? 0,
+    rank: user.rank ?? null,
+    lastLogin: user.lastLogin ?? user.last_login ?? null,
+    managedCourtsCount: user.managedCourtsCount ?? user.managed_courts_count ?? null,
+    assignedCourts: user.assignedCourts ?? user.assigned_courts ?? []
+  } as any;
+
   const getPlanIcon = (plan: string) => {
     switch (plan) {
       case 'Premium': return <Crown className="w-4 h-4" />;
@@ -59,7 +84,7 @@ export const DetailDrawer: React.FC<DetailDrawerProps> = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Active': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-      case 'Suspended': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
+      case 'Disabled': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
     }
   };
@@ -93,9 +118,35 @@ export const DetailDrawer: React.FC<DetailDrawerProps> = ({
     return date.toLocaleDateString() + ' at ' + date.toLocaleTimeString();
   };
 
+  // Recency helper to align with UsersList: 'recent' = <=24h, 'week' = <=7d, 'older' = >7d
+  const getLastLoginRecency = (lastLogin: string | null) => {
+    if (!lastLogin) return 'older';
+    const d = new Date(lastLogin);
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+    if (diffHours <= 24) return 'recent';
+    if (diffDays <= 7) return 'week';
+    return 'older';
+  };
+
+  const getLastLoginBadge = (lastLogin: string | null) => {
+    const rec = getLastLoginRecency(lastLogin);
+    // Never should not be gray — show an amber outline
+    if (!lastLogin) return <Badge variant="outline" className="border-amber-200 text-amber-700">Never</Badge>;
+    // Stronger amber for more recent activity
+    if (rec === 'recent') return <Badge className="bg-amber-200 text-amber-900" title={formatLastLogin(lastLogin)}>{formatLastLogin(lastLogin)}</Badge>;
+    if (rec === 'week') return <Badge className="bg-amber-100 text-amber-800" title={formatLastLogin(lastLogin)}>{formatLastLogin(lastLogin)}</Badge>;
+    // older but still use subtle amber instead of gray
+    return <Badge className="bg-amber-50 text-amber-700" title={formatLastLogin(lastLogin)}>{formatLastLogin(lastLogin)}</Badge>;
+  };
+
+  const drawerLastLoginRecency = getLastLoginRecency(normalized.lastLogin);
+
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-[400px] sm:w-[540px] overflow-y-auto">
+      <SheetContent side="right" className="w-[520px] sm:w-[720px] max-w-[90vw] lg:max-w-[900px] overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             {userType === 'manager' ? (
@@ -123,37 +174,37 @@ export const DetailDrawer: React.FC<DetailDrawerProps> = ({
             <>
           {/* Enhanced Profile Section */}
           <div className="bg-muted/30 rounded-lg p-4">
-            <div className="flex items-start gap-4">
+                <div className="flex items-start gap-4">
               <div className="relative">
                 <Avatar className="w-20 h-20 ring-2 ring-background shadow-lg">
-                  <AvatarImage src={user.profilePictureUrl} />
+                  <AvatarImage src={normalized.avatar} />
                   <AvatarFallback className="text-xl bg-gradient-to-br from-primary/20 to-primary/10">
-                    {user.fullName?.split(' ').map((n: string) => n[0]).join('') || user.name?.split(' ').map((n: string) => n[0]).join('') || '?'}
+                    {normalized.name?.split(' ').map((n: string) => n[0]).join('') || '?'}
                   </AvatarFallback>
                 </Avatar>
-                <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${getStatusColor(user.status)}`}>
-                  {user.status === 'Active' ? '✓' : '!'}
+                <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${getStatusColor(normalized.status)}`}>
+                  {normalized.status === 'Active' ? '✓' : '!'}
                 </div>
               </div>
               <div className="flex-1 space-y-2">
-                <h3 className="text-xl font-semibold">{displayValue(user.fullName || user.name, 'No Name')}</h3>
+                <h3 className="text-xl font-semibold">{displayValue(normalized.name, 'No Name')}</h3>
                 
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <Mail className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                    <span className="text-sm break-all">{displayValue(user.email, 'No Email')}</span>
+                    <span className="text-sm break-all">{displayValue(normalized.email, 'No Email')}</span>
                   </div>
                   
                   <div className="flex items-center gap-2">
                     <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                    <span className="text-sm">{displayValue(user.phone, 'No Phone')}</span>
+                    <span className="text-sm">{displayValue(normalized.phone, 'No Phone')}</span>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <CalendarIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                     <span className="text-sm">
                       Joined {displayValue(
-                        user.joinDate ? new Date(user.joinDate).toLocaleDateString('en-US', {
+                        normalized.joinDate ? new Date(normalized.joinDate).toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'long',
                           day: 'numeric'
@@ -171,19 +222,19 @@ export const DetailDrawer: React.FC<DetailDrawerProps> = ({
 
           {/* Status & Role/Plan Grid */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
+                <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">Status</label>
-              <Badge className={`${getStatusColor(user.status)} w-fit`}>
-                {displayValue(user.status, 'Unknown')}
+              <Badge className={`${getStatusColor(normalized.status)} w-fit`}>
+                {displayValue(normalized.status, 'Unknown')}
               </Badge>
             </div>
             
             {userType === 'user' ? (
-              <div className="space-y-2">
+                <div className="space-y-2">
                 <label className="text-sm font-medium text-muted-foreground">Plan</label>
-                <Badge className={`${getPlanColor(user.plan)} w-fit`}>
-                  {getPlanIcon(user.plan)}
-                  <span className="ml-1">{displayValue(user.plan, 'No Plan')}</span>
+                <Badge className={`${getPlanColor(normalized.plan)} w-fit`}>
+                  {getPlanIcon(normalized.plan)}
+                  <span className="ml-1">{displayValue(normalized.plan, 'No Plan')}</span>
                 </Badge>
               </div>
             ) : (
@@ -208,40 +259,16 @@ export const DetailDrawer: React.FC<DetailDrawerProps> = ({
             <div className="grid gap-4">
               {/* Last Login Card */}
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-lg p-4 border border-blue-200/50 dark:border-blue-800/30">
-                <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     <span className="text-sm font-medium">Last Login</span>
                   </div>
-                  <span 
-                    className="text-sm font-semibold text-blue-700 dark:text-blue-300"
-                    title={user.lastLogin ? formatLastLogin(user.lastLogin) : 'Never logged in'}
-                  >
-                    {user.lastLogin ? (
-                      // Calculate days ago from lastLogin
-                      (() => {
-                        const lastLoginDate = new Date(user.lastLogin);
-                        const now = new Date();
-                        const diffTime = Math.abs(now.getTime() - lastLoginDate.getTime());
-                        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                        const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
-                        
-                        if (diffDays === 0 && diffHours < 24) {
-                          return diffHours === 0 ? 'Just now' : `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-                        } else if (diffDays === 0) {
-                          return 'Today';
-                        } else if (diffDays === 1) {
-                          return 'Yesterday';
-                        } else {
-                          return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-                        }
-                      })()
-                    ) : displayValue(null, 'Never')}
-                  </span>
+                  {getLastLoginBadge(normalized.lastLogin)}
                 </div>
-                {user.lastLogin && (
+                {normalized.lastLogin && (
                   <p className="text-xs text-blue-600/70 dark:text-blue-400/70 mt-1">
-                    {formatLastLogin(user.lastLogin)}
+                    {formatLastLogin(normalized.lastLogin)}
                   </p>
                 )}
               </div>
@@ -257,7 +284,7 @@ export const DetailDrawer: React.FC<DetailDrawerProps> = ({
                           <span className="text-sm font-medium">Total Sessions</span>
                         </div>
                         <span className="text-lg font-bold text-green-700 dark:text-green-300">
-                          {displayValue(user.totalSessions ?? 0, '0')}
+                          {displayValue(normalized.totalSessions, '0')}
                         </span>
                       </div>
                     </div>
@@ -270,7 +297,7 @@ export const DetailDrawer: React.FC<DetailDrawerProps> = ({
                             <span className="text-sm font-medium">Global Rank</span>
                           </div>
                           <span className="text-lg font-bold text-yellow-700 dark:text-yellow-300">
-                            #{displayValue(user.rank, 'Unranked')}
+                            #{displayValue(normalized.rank, 'Unranked')}
                           </span>
                         </div>
                       </div>
@@ -284,13 +311,13 @@ export const DetailDrawer: React.FC<DetailDrawerProps> = ({
                         <span className="text-sm font-medium">Courts Managed</span>
                       </div>
                       <span className="text-lg font-bold text-purple-700 dark:text-purple-300">
-                        {displayValue(user.courtsCount || user.managedCourtsCount || user.assignedCourts?.length, '0')}
+                        {displayValue(normalized.managedCourtsCount || normalized.assignedCourts?.length, '0')}
                       </span>
                     </div>
                     {((user.courtsPreview && user.courtsPreview.length > 0) || (user.assignedCourts && user.assignedCourts.length > 0)) && (
                       <div className="mt-2 pt-2 border-t border-purple-200/50 dark:border-purple-800/30">
                         <p className="text-xs text-purple-600/70 dark:text-purple-400/70">
-                          Assigned to {user.courtsCount || user.managedCourtsCount || user.assignedCourts?.length || 0} court{(user.courtsCount || user.managedCourtsCount || user.assignedCourts?.length || 0) !== 1 ? 's' : ''}
+                          Assigned to {normalized.assignedCourts.length} court{normalized.assignedCourts.length !== 1 ? 's' : ''}
                         </p>
                       </div>
                     )}
@@ -314,26 +341,21 @@ export const DetailDrawer: React.FC<DetailDrawerProps> = ({
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium">User ID</span>
                     <code className="text-xs bg-muted px-2 py-1 rounded font-mono">
-                      {displayValue(user.id, 'N/A')}
+                      {displayValue(normalized.id, 'N/A')}
                     </code>
                   </div>
                   
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Username</span>
-                    <span className="text-sm font-mono">
-                      @{displayValue(user.username, 'N/A')}
+                    <span className="text-sm font-medium">Permissions Level</span>
+                    <span className="text-sm">
+                      {normalized.role === 'SUPER_ADMIN' ? 'Full Access' : 'Limited Access'}
                     </span>
                   </div>
                   
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Assigned Courts</span>
-                    <span className="text-sm">
-                      {(user.courtsPreview && user.courtsPreview.length > 0) 
-                        ? user.courtsPreview.slice(0, 2).join(', ') + (user.courtsPreview.length > 2 ? '...' : '')
-                        : (user.assignedCourts && user.assignedCourts.length > 0)
-                          ? user.assignedCourts.slice(0, 2).join(', ') + (user.assignedCourts.length > 2 ? '...' : '')
-                          : 'No courts assigned'
-                      }
+                    <span className="text-sm font-medium">Account Type</span>
+                    <span className="text-sm font-semibold">
+                      {normalized.role === 'SUPER_ADMIN' ? 'Super Administrator' : 'Administrator'}
                     </span>
                   </div>
                 </div>
