@@ -40,7 +40,6 @@ const UserManagement = () => {
   
   // New state for enhanced functionality
   const [statusFilter, setStatusFilter] = useState('All');
-  const [roleFilter, setRoleFilter] = useState('All');
   const [showDetailDrawer, setShowDetailDrawer] = useState(false);
   const [detailUser, setDetailUser] = useState<any>(null);
   const [detailUserType, setDetailUserType] = useState<'user' | 'manager'>('user');
@@ -124,13 +123,14 @@ const UserManagement = () => {
     return managersData.users.filter((item: any) => {
       const name = item.fullName || item.username || '';
       const email = item.email || '';
+      const phone = item.phone || '';
       const matchesSearch = name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           email.toLowerCase().includes(searchTerm.toLowerCase());
+                           email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           phone.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesStatus = statusFilter === 'All' || item.status === statusFilter;
-      const matchesRole = roleFilter === 'All' || item.role === roleFilter;
       
-      return matchesSearch && matchesStatus && matchesRole;
+      return matchesSearch && matchesStatus;
     });
   };
 
@@ -558,16 +558,7 @@ const UserManagement = () => {
                   <SelectItem value="All">All Status</SelectItem>
                   <SelectItem value="Active">Active</SelectItem>
                   <SelectItem value="Suspended">Suspended</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={roleFilter} onValueChange={setRoleFilter}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="All">All Roles</SelectItem>
-                  <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
-                  <SelectItem value="ADMIN">Admin</SelectItem>
+                  <SelectItem value="Disabled">Disabled</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -583,7 +574,11 @@ const UserManagement = () => {
         </TabsList>
 
         <TabsContent value="users" className="space-y-4">
-          <UsersList onViewUser={(user) => handleViewUser(user, 'user')} />
+          <UsersList 
+            onViewUser={(user) => handleViewUser(user, 'user')} 
+            searchTerm={searchTerm}
+            statusFilter={statusFilter}
+          />
         </TabsContent>
 
         <TabsContent value="managers" className="space-y-4">

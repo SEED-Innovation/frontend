@@ -37,30 +37,50 @@ import type { UserListItem } from '@/types/user';
 
 interface UsersListProps {
   onViewUser?: (user: UserListItem) => void;
+  searchTerm?: string;
+  statusFilter?: string;
 }
 
-export default function UsersList({ onViewUser }: UsersListProps) {
+export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 'All' }: UsersListProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   
   const [page, setPage] = useQueryParam('page', 0);
   const [size, setSize] = useQueryParam('size', 50);
-  const [q, setQ] = useState('');
 
   const { data, isFetching, error } = useUsersPaged(page, size);
   const toggle = useToggleUserEnabled(page, size);
 
   const rows = useMemo(() => {
     const list = (data as any)?.users ?? [];
-    if (!q.trim()) return list;
-    const s = q.toLowerCase();
-    return list.filter(u =>
-      (u.fullName ?? '').toLowerCase().includes(s) ||
-      (u.username ?? '').toLowerCase().includes(s) ||
-      (u.email ?? '').toLowerCase().includes(s) ||
-      (u.phone ?? '').toLowerCase().includes(s)
-    );
-  }, [data, q]);
+    
+    return list.filter((u: any) => {
+      // Search filter (name, username, email, phone)
+      const searchQuery = searchTerm.toLowerCase().trim();
+      const matchesSearch = !searchQuery || 
+        (u.fullName ?? '').toLowerCase().includes(searchQuery) ||
+        (u.username ?? '').toLowerCase().includes(searchQuery) ||
+        (u.email ?? '').toLowerCase().includes(searchQuery) ||
+        (u.phone ?? '').toLowerCase().includes(searchQuery);
+      
+      // Status filter - handle different possible status values
+      let matchesStatus = true;
+      if (statusFilter !== 'All') {
+        const userStatus = u.status;
+        if (statusFilter === 'Active') {
+          matchesStatus = userStatus === 'Active';
+        } else if (statusFilter === 'Suspended') {
+          matchesStatus = userStatus === 'Suspended' || userStatus === 'suspended';
+        } else if (statusFilter === 'Disabled') {
+          matchesStatus = userStatus === 'Disabled' || userStatus === 'disabled';
+        } else {
+          matchesStatus = userStatus === statusFilter;
+        }
+      }
+      
+      return matchesSearch && matchesStatus;
+    });
+  }, [data, searchTerm, statusFilter]);
 
   const getInitials = (name: string | null) => {
     if (!name) return "?";
@@ -175,21 +195,6 @@ export default function UsersList({ onViewUser }: UsersListProps) {
         </div>
       </div>
 
-      {/* Search */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by name, email, or phone..."
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Users Table */}
       <Card>
         <CardHeader>
@@ -248,7 +253,7 @@ export default function UsersList({ onViewUser }: UsersListProps) {
               ) : rows.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8">
-                    {q ? `No users found matching "${q}"` : "No users on this page"}
+                    {searchTerm ? `No users found matching "${searchTerm}"` : "No users on this page"}
                   </TableCell>
                 </TableRow>
               ) : (
