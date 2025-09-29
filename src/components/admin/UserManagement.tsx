@@ -578,6 +578,7 @@ const UserManagement = () => {
             onViewUser={(user) => handleViewUser(user, 'user')} 
             searchTerm={searchTerm}
             statusFilter={statusFilter}
+            isManagersTab={false}
           />
         </TabsContent>
 

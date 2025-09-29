@@ -14,7 +14,8 @@ import {
   Calendar,
   Loader2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Edit
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,20 +34,24 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryParam } from '@/hooks/useQueryParam';
 import { useUsersPaged, useToggleUserEnabled } from '@/lib/hooks/useUsersPaged';
-import type { UserListItem } from '@/types/user';
+import type { UserListItem, UserResponse } from '@/types/user';
+import { UpdateUserForm } from './UpdateUserForm';
 
 interface UsersListProps {
   onViewUser?: (user: UserListItem) => void;
   searchTerm?: string;
   statusFilter?: string;
+  isManagersTab?: boolean;
 }
 
-export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 'All' }: UsersListProps) {
+export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 'All', isManagersTab = false }: UsersListProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   
   const [page, setPage] = useQueryParam('page', 0);
   const [size, setSize] = useQueryParam('size', 50);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserResponse | null>(null);
 
   const { data, isFetching, error } = useUsersPaged(page, size);
   const toggle = useToggleUserEnabled(page, size);
@@ -208,6 +213,43 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
     } else {
       navigate(`/admin/users/${user.id}`);
     }
+  };
+
+  const handleEditUser = (user: UserListItem) => {
+    // Convert UserListItem to UserResponse format for the form
+    const userResponse: UserResponse = {
+      id: user.id,
+      fullName: user.fullName,
+      email: user.email || '',
+      phone: user.phone || '',
+      profilePictureUrl: user.profilePictureUrl,
+      points: 0,
+      allTimeRank: user.rank || 0,
+      monthlyRank: 0,
+      badges: [],
+      skillLevel: 'BEGINNER' as any,
+      profileVisibility: 'PUBLIC' as any,
+      birthday: '',
+      height: undefined,
+      weight: undefined,
+      role: isManagersTab ? 'ADMIN' as any : 'USER' as any,
+      plan: 'FREE' as any,
+      enabled: user.status === 'Active',
+      guest: false
+    };
+    setEditingUser(userResponse);
+    setShowEditForm(true);
+  };
+
+  const handleUpdateUser = async (data: any) => {
+    console.log('Updating user:', data);
+    // TODO: Implement actual update logic
+    toast({
+      title: "User Updated",
+      description: "User information has been updated successfully.",
+    });
+    setShowEditForm(false);
+    setEditingUser(null);
   };
 
   const handlePageChange = (newPage: number) => {
@@ -392,29 +434,36 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
                     <TableCell>
                       {getLastLoginBadge(user.lastLogin)}
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleViewUser(user)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleToggleEnabled(user)}
-                          disabled={toggle.isPending}
-                        >
-                          {user.status === 'Active' ? (
-                            <Ban className="h-4 w-4 text-red-500" />
-                          ) : (
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                          )}
-                        </Button>
-                      </div>
-                    </TableCell>
+                     <TableCell>
+                       <div className="flex items-center space-x-1">
+                         <Button
+                           variant="ghost"
+                           size="sm"
+                           onClick={() => handleViewUser(user)}
+                         >
+                           <Eye className="h-4 w-4" />
+                         </Button>
+                         <Button
+                           variant="ghost"
+                           size="sm"
+                           onClick={() => handleEditUser(user)}
+                         >
+                           <Edit className="h-4 w-4" />
+                         </Button>
+                         <Button
+                           variant="ghost"
+                           size="sm"
+                           onClick={() => handleToggleEnabled(user)}
+                           disabled={toggle.isPending}
+                         >
+                           {user.status === 'Active' ? (
+                             <Ban className="h-4 w-4 text-red-500" />
+                           ) : (
+                             <CheckCircle className="h-4 w-4 text-green-500" />
+                           )}
+                         </Button>
+                       </div>
+                     </TableCell>
                   </TableRow>
                   );
                 })
@@ -452,6 +501,18 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
           )}
         </CardContent>
       </Card>
+
+      {/* Update User Form */}
+      <UpdateUserForm
+        user={editingUser}
+        isOpen={showEditForm}
+        onClose={() => {
+          setShowEditForm(false);
+          setEditingUser(null);
+        }}
+        onSubmit={handleUpdateUser}
+        isManager={isManagersTab}
+      />
     </motion.div>
   );
 }

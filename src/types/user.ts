@@ -3,6 +3,7 @@
 // ================================
 export enum UserRole {
   ADMIN = 'ADMIN',
+  SUPER_ADMIN = 'SUPER_ADMIN',
   USER = 'USER',
   GUEST = 'GUEST'
 }
@@ -287,7 +288,6 @@ export interface UserListItem {
   totalSessions: number | null;
   rank: number | null;
   lastLogin: string | null;      // ISO string or null
-  profilePictureUrl?: string | null;
 }
 
 export interface AdminUserPageResponse {
