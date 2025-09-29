@@ -206,9 +206,80 @@ export function UpdateUserForm({ user, isOpen, onClose, onSubmit, isManager = fa
                     name="profilePictureUrl"
                     render={({ field }) => (
                       <FormItem className="md:col-span-2">
-                        <FormLabel>Profile Picture URL</FormLabel>
+                        <FormLabel className="flex items-center gap-2">
+                          <User className="h-4 w-4" />
+                          Profile Picture
+                        </FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="https://example.com/profile.jpg" />
+                          <div className="space-y-4">
+                            {/* File Upload Area */}
+                            <div 
+                              className="relative border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 hover:border-primary/50 transition-colors cursor-pointer bg-muted/10"
+                              onDragOver={(e) => e.preventDefault()}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                // Static for now - will handle file upload later
+                                console.log('File dropped:', e.dataTransfer.files[0]);
+                              }}
+                            >
+                              <div className="flex flex-col items-center justify-center space-y-3 text-center">
+                                <div className="p-3 rounded-full bg-primary/10">
+                                  <User className="h-8 w-8 text-primary" />
+                                </div>
+                                <div className="space-y-1">
+                                  <p className="text-sm font-medium">Drop your profile picture here</p>
+                                  <p className="text-xs text-muted-foreground">or click to browse files</p>
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                  <span>Supports: JPG, PNG, WEBP</span>
+                                  <span>•</span>
+                                  <span>Max size: 5MB</span>
+                                </div>
+                              </div>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                onChange={(e) => {
+                                  // Static for now - will handle file upload later
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    console.log('File selected:', file.name);
+                                    // TODO: Handle file upload and set field.onChange with the uploaded URL
+                                  }
+                                }}
+                              />
+                            </div>
+                            
+                            {/* Current Profile Picture Preview */}
+                            {(field.value || user?.profilePictureUrl) && (
+                              <div className="flex items-center gap-3 p-3 bg-muted/5 rounded-lg border">
+                                <Avatar className="h-12 w-12">
+                                  <AvatarImage src={field.value || user?.profilePictureUrl} />
+                                  <AvatarFallback className="bg-primary/10 text-primary">
+                                    {getInitials(user?.fullName)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium">Current Profile Picture</p>
+                                  <p className="text-xs text-muted-foreground truncate">
+                                    {field.value || user?.profilePictureUrl || 'No image set'}
+                                  </p>
+                                </div>
+                                {field.value && (
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => field.onChange('')}
+                                    className="text-destructive hover:text-destructive"
+                                  >
+                                    Remove
+                                  </Button>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
