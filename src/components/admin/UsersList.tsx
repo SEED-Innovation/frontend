@@ -81,25 +81,16 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
       return matchesSearch && matchesStatus;
     });
   }, [data, searchTerm, statusFilter]);
-    if (!q.trim()) return list;
-    const s = q.toLowerCase();
-    return list.filter(u =>
-      ((u.username ?? u.name ?? '') as string).toLowerCase().includes(s) ||
-      (u.email ?? '').toLowerCase().includes(s) ||
-      (u.phone ?? '').toLowerCase().includes(s)
-    );
-  }, [data, q]);
 
   const getInitials = (name: string | null) => {
     if (!name) return "?";
-  // Reverted to original simple initials function — we now expect a display string (username/name)
-  const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
-  // Prefer username, then name, then email local-part
+  // Prefer fullName, then username, then name, then email local-part
   const getDisplayName = (user: any) => {
     if (!user) return '';
+    if (user.fullName) return String(user.fullName);
     if (user.username) return String(user.username);
     if (user.name) return String(user.name);
     if (user.email && typeof user.email === 'string') return user.email.split('@')[0];
@@ -194,14 +185,12 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
     const isCurrentlyActive = user.status === 'Active';
     const action = isCurrentlyActive ? 'disable' : 'enable';
     
-    if (!confirm(`Are you sure you want to ${action} ${user.fullName || user.username}?`)) return;
-  if (!confirm(`Are you sure you want to ${action} ${getDisplayName(user)}?`)) return;
+    if (!confirm(`Are you sure you want to ${action} ${getDisplayName(user)}?`)) return;
     
     try {
       await toggle.mutateAsync({ id: user.id, enabled: !isCurrentlyActive });
       toast({
         title: "User updated",
-        description: `${user.fullName || user.username} has been ${isCurrentlyActive ? 'disabled' : 'enabled'}.`,
         description: `${getDisplayName(user)} has been ${isCurrentlyActive ? 'disabled' : 'enabled'}.`,
       });
     } catch (error) {
