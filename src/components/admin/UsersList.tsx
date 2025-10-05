@@ -89,7 +89,11 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
 
   const getInitials = (name: string | null) => {
     if (!name) return "?";
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    const names = name.trim().split(' ');
+    if (names.length === 1) {
+      return names[0].charAt(0).toUpperCase();
+    }
+    return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
   };
 
   // Prefer fullName, then username, then name, then email local-part
@@ -370,20 +374,10 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
                               {getInitials(user.fullName)}
                             </AvatarFallback>
                           )}
-                          {user.profilePictureUrl ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={user.profilePictureUrl} alt={`${getDisplayName(user)} avatar`} />
-                          ) : (
-                            <AvatarFallback className="bg-primary text-primary-foreground">
-                              {getInitials(getDisplayName(user) || ' ')}
-                            </AvatarFallback>
-                          )}
                         </Avatar>
                         <div>
                           <div className="font-medium">{user.fullName}</div>
                           <div className="text-sm text-muted-foreground">@{user.username} • ID: {user.id}</div>
-                          <div className="font-medium">{getDisplayName(user)}</div>
-                          <div className="text-sm text-muted-foreground">ID: {user.id}</div>
                         </div>
                       </div>
                     </TableCell>
