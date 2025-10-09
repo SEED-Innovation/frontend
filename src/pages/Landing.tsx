@@ -1029,21 +1029,26 @@ const Landing = () => {
               </div>
               
               <div className="flex space-x-4">
-                <button 
-                  onClick={() => handleSocialAuth('Twitter')}
+                <a
+                  href="https://x.com/seed_innov"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-tennis-purple-600 transition-colors cursor-pointer"
                 >
                   <span className="text-xs sm:text-sm">𝕏</span>
-                </button>
-                <button 
-                  onClick={() => handleSocialAuth('LinkedIn')}
+                </a>
+                <a
+                  href="https://www.linkedin.com/company/seed-innovation-1/posts/?feedView=all"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-tennis-purple-600 transition-colors cursor-pointer"
                 >
                   <span className="text-xs sm:text-sm">in</span>
-                </button>
+                </a>
               </div>
-            </div>
-            <div>
+              </div>
+              <div>
+
               <h4 className="text-base sm:text-lg font-bold mb-3 sm:mb-4">Product</h4>
               <ul className="space-y-2 text-gray-400 text-sm sm:text-base">
                 <li><Link to="/courts" className="hover:text-white transition-colors">Book Courts</Link></li>

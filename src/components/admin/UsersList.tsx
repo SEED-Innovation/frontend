@@ -15,7 +15,8 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
-  Edit
+  Edit,
+  RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,8 +53,9 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
   const [size, setSize] = useQueryParam('size', 50);
   const [showEditForm, setShowEditForm] = useState(false);
   const [editingUser, setEditingUser] = useState<UserResponse | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const { data, isFetching, error } = useUsersPaged(page, size);
+  const { data, isFetching, error, refetch } = useUsersPaged(page, size);
   const toggle = useToggleUserEnabled(page, size);
 
   const rows = useMemo(() => {
@@ -262,6 +264,25 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
     }
   };
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refetch();
+      toast({
+        title: "Data refreshed",
+        description: "User data has been refreshed successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to refresh data. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   if (error) {
     return (
       <div className="p-6">
@@ -291,6 +312,15 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
             All Users ({(data as any)?.totalElements ?? 0})
           </p>
         </div>
+        <Button
+          variant="outline"
+          onClick={handleRefresh}
+          disabled={isRefreshing || isFetching}
+          className="flex items-center gap-2"
+        >
+          <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
       </div>
 
       {/* Users Table */}
