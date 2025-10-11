@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowDown, Calendar, Star, Eye, Trophy, Play, Zap, Target, Users, Menu, X, CheckCircle, Clock, Video, BarChart3, Award, MessageSquare, Smartphone } from 'lucide-react';
+import { ArrowDown, Calendar, Star, Eye, Trophy, Zap, Target, Users, Menu, X, CheckCircle, Clock, Video, BarChart3, Award, MessageSquare, Smartphone, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
@@ -350,7 +350,6 @@ const Landing = () => {
                 size="lg" 
                 className="w-full sm:w-auto bg-tennis-green-500 hover:bg-tennis-green-400 text-white font-bold px-8 sm:px-12 py-4 sm:py-6 text-lg sm:text-xl rounded-2xl shadow-2xl hover:scale-110 hover:shadow-tennis-green-500/50 transition-all duration-300 transform border-2 border-tennis-green-400 glow-button"
               >
-                <Play className="w-5 h-5 sm:w-6 sm:h-6 mr-3" />
                 Start Free Trial
               </Button>
               <Button 
@@ -560,7 +559,6 @@ const Landing = () => {
             size="lg" 
             className="bg-white text-tennis-purple-700 hover:bg-gray-100 font-bold px-8 sm:px-16 py-4 sm:py-6 text-lg sm:text-2xl rounded-2xl shadow-2xl hover:scale-110 transition-all duration-300 transform hover:shadow-white/50"
           >
-            <Play className="w-6 h-6 sm:w-8 sm:h-8 mr-4" />
             Experience the Technology
           </Button>
         </div>
@@ -722,7 +720,7 @@ const Landing = () => {
               <div className="space-y-6">
                 <div className="flex items-start space-x-4">
                   <div className="flex-shrink-0 w-12 h-12 bg-tennis-green-100 rounded-xl flex items-center justify-center">
-                    <Play className="w-6 h-6 text-tennis-green-600" />
+                    <Activity className="w-6 h-6 text-tennis-green-600" />
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">Real-time Analytics</h3>
@@ -824,7 +822,6 @@ const Landing = () => {
               size="lg" 
               className="w-full sm:w-auto bg-white text-tennis-purple-700 hover:bg-gray-100 font-bold px-12 sm:px-16 py-4 sm:py-6 text-lg sm:text-2xl rounded-2xl shadow-2xl hover:scale-110 transition-all duration-300 transform hover:shadow-white/50"
             >
-              <Play className="w-6 h-6 sm:w-8 sm:h-8 mr-4" />
               Start Your Journey
             </Button>
           </div>

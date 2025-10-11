@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Play, Pause, Square, Eye, Timer, MapPin } from 'lucide-react';
+import { Pause, Square, Eye, Timer, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Navigation from '@/components/Navigation';
@@ -126,8 +126,6 @@ const Session = () => {
                   >
                     {isLoading ? (
                       <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                    ) : (
-                      <Play className="w-6 h-6 mr-2" />
                     )}
                     {isLoading ? 'Starting...' : 'Start Session'}
                   </Button>
@@ -139,7 +137,7 @@ const Session = () => {
                       className="btn-outline px-6 py-4"
                       disabled={isLoading}
                     >
-                      {isPaused ? <Play className="w-5 h-5 mr-2" /> : <Pause className="w-5 h-5 mr-2" />}
+                      {isPaused ? null : <Pause className="w-5 h-5 mr-2" />}
                       {isPaused ? 'Resume' : 'Pause'}
                     </Button>
                     <Button 

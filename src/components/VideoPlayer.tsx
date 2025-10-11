@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Pause, Volume2, Download, Share, Maximize, SkipBack, SkipForward } from 'lucide-react';
+import { Volume2, Download, Share, Maximize, SkipBack, SkipForward } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -21,15 +21,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   onDownload,
   onShare 
 }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [totalTime, setTotalTime] = useState(100);
   const [volume, setVolume] = useState(100);
   const [showControls, setShowControls] = useState(true);
-
-  const togglePlay = () => {
-    setIsPlaying(!isPlaying);
-  };
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -47,23 +42,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         {/* Video Thumbnail/Player */}
         <div className="absolute inset-0 bg-gradient-to-br from-tennis-purple-900/50 to-tennis-green-900/50 flex items-center justify-center">
           <div className="text-center text-white">
-            <div className="text-6xl mb-4">{isPlaying ? '⏸️' : '▶️'}</div>
+            <div className="text-6xl mb-4">🎥</div>
             <h3 className="text-xl font-semibold mb-2">{title}</h3>
             <p className="text-gray-300">{duration}</p>
           </div>
         </div>
 
-        {/* Play Button Overlay */}
-        {!isPlaying && (
-          <div 
-            className="absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity duration-300"
-            onClick={togglePlay}
-          >
-            <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center hover:scale-110 transition-transform duration-300">
-              <Play className="w-10 h-10 text-white ml-1" />
-            </div>
-          </div>
-        )}
+
 
         {/* Video Controls */}
         {showControls && (
@@ -88,14 +73,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                   <SkipBack className="w-5 h-5" />
                 </Button>
 
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-white hover:text-tennis-green-400 p-2"
-                  onClick={togglePlay}
-                >
-                  {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
-                </Button>
+
 
                 <Button
                   size="sm"

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Clock, MapPin, Calendar, Play, Eye, CheckCircle } from 'lucide-react';
+import { Clock, MapPin, Calendar, Eye, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -71,7 +71,6 @@ const CheckIn = () => {
                   </div>
                   
                   <Button size="lg" className="tennis-button px-12 py-4 text-xl">
-                    <Play className="w-6 h-6 mr-3" />
                     Start Session
                   </Button>
                 </div>

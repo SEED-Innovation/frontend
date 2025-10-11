@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Download, Calendar, Clock, Star, TrendingUp, Eye, Share } from 'lucide-react';
+import { Download, Calendar, Clock, Star, TrendingUp, Eye, Share } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -78,13 +78,13 @@ const Recordings = () => {
     toast.success('Share link copied to clipboard!');
   };
 
-  const handlePlayVideo = (recording: any, e?: React.MouseEvent) => {
+  const handleViewVideo = (recording: any, e?: React.MouseEvent) => {
     if (e) {
       e.stopPropagation();
     }
-    console.log('Playing video:', recording.title);
+    console.log('Viewing video:', recording.title);
     setSelectedVideo(recording);
-    toast.success(`Now playing: ${recording.title}`);
+    toast.success(`Now viewing: ${recording.title}`);
   };
 
   if (selectedVideo) {
@@ -243,7 +243,7 @@ const Recordings = () => {
                     key={recording.id} 
                     className="premium-card card-with-buttons group cursor-pointer animate-fade-in hover:scale-105 transition-all duration-300" 
                     style={{ animationDelay: `${index * 0.1}s` }}
-                    onClick={() => handlePlayVideo(recording)}
+                    onClick={() => handleViewVideo(recording)}
                   >
                     <div className="relative">
                       <img
@@ -251,14 +251,7 @@ const Recordings = () => {
                         alt={recording.title}
                         className="w-full h-48 object-cover rounded-t-2xl"
                       />
-                      {/* Video overlay */}
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 rounded-t-2xl flex items-center justify-center pointer-events-none">
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                            <Play className="w-8 h-8 text-white ml-1" />
-                          </div>
-                        </div>
-                      </div>
+
                       {/* Duration badge */}
                       <Badge className="absolute bottom-3 right-3 bg-black/70 text-white">
                         {recording.duration}
@@ -305,10 +298,10 @@ const Recordings = () => {
                         <Button 
                           size="sm" 
                           className="flex-1 tennis-button text-sm glow-button clickable-element"
-                          onClick={(e) => handlePlayVideo(recording, e)}
+                          onClick={(e) => handleViewVideo(recording, e)}
                         >
-                          <Play className="w-4 h-4 mr-1" />
-                          Watch
+                          <Eye className="w-4 h-4 mr-1" />
+                          View
                         </Button>
                         <Button 
                           size="sm" 

@@ -6,6 +6,9 @@ export interface Camera {
   ipAddress: string;
   status: CameraStatus;
   port: number;
+  username?: string;
+  password?: string;
+  streamPath?: string;
   description?: string;
   lastConnectionTestTime?: string;
   lastConnectionSuccess?: boolean;

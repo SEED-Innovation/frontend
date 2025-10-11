@@ -5,7 +5,6 @@ import {
   Wifi,
   WifiOff,
   Settings,
-  Play,
   Pause,
   RotateCcw,
   Link,
@@ -18,7 +17,13 @@ import {
   CheckCircle,
   XCircle,
   Activity,
-  Loader2
+  Loader2,
+  Video,
+  Square,
+  Download,
+  FileVideo,
+  Clock,
+  HardDrive
 } from 'lucide-react';
 import {
   Card,
@@ -62,8 +67,15 @@ import {
   type CameraSummary, 
   type CreateCameraRequest, 
   type UpdateCameraRequest,
-  type Court
+  type Court,
+  type Recording,
+  type RecordingStatus as ApiRecordingStatus,
+  type RecordingSummary,
+  type CameraHealthSummary,
+  type StatusChangeNotification
 } from '@/services/cameraService';
+import { useCameraWebSocket } from '@/hooks/useCameraWebSocket';
+import { CameraStatusNotifications } from './CameraStatusNotifications';
 import type { Camera as CameraType, CameraStatus } from '@/types/camera';
 import { CourtSearchInput } from '@/components/admin/common/CourtSearchInput';
 import { Court as CourtType } from '@/types/court';
@@ -83,18 +95,89 @@ export default function CameraManagement() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isAssociateDialogOpen, setIsAssociateDialogOpen] = useState(false);
+  const [isRecordingDialogOpen, setIsRecordingDialogOpen] = useState(false);
   const [editingCamera, setEditingCamera] = useState<Partial<CameraType>>({});
   const [newCamera, setNewCamera] = useState<Partial<CreateCameraRequest>>({
     name: '',
     ipAddress: '',
     initialStatus: 'OFFLINE',
-    port: 8080,
+    port: 554,
+    username: '',
+    password: '',
+    streamPath: '/Streaming/Channels/101',
     description: ''
   });
   const [associatingCamera, setAssociatingCamera] = useState<CameraType | null>(null);
   const [selectedCourtId, setSelectedCourtId] = useState<string>('');
   const [selectedCourt, setSelectedCourt] = useState<CourtType | null>(null);
+  const [recordingCamera, setRecordingCamera] = useState<CameraType | null>(null);
+  const [recordings, setRecordings] = useState<Recording[]>([]);
+  const [recordingStatus, setRecordingStatus] = useState<{[key: string | number]: 'idle' | 'recording' | 'stopping'}>({});
+  const [recordingSummary, setRecordingSummary] = useState<RecordingSummary | null>(null);
+  const [healthSummary, setHealthSummary] = useState<CameraHealthSummary | null>(null);
+  const [wsConnected, setWsConnected] = useState(false);
+  const [lastStatusUpdate, setLastStatusUpdate] = useState<Date | null>(null);
+  const [statusNotifications, setStatusNotifications] = useState<StatusChangeNotification[]>([]);
   const { toast } = useToast();
+
+  // WebSocket connection for real-time camera status updates
+  useCameraWebSocket({
+    onCameraStatusUpdate: (updatedCamera: CameraType) => {
+      setCameras(prev => prev.map(c => 
+        c.id === updatedCamera.id ? updatedCamera : c
+      ));
+      setLastStatusUpdate(new Date());
+      
+      // Refresh summaries when camera status changes
+      loadHealthSummary();
+    },
+    onStatusChange: (notification: StatusChangeNotification) => {
+      // Add to notifications list
+      setStatusNotifications(prev => [notification, ...prev.slice(0, 4)]); // Keep max 5 notifications
+      
+      // Also show toast for critical status changes
+      if (notification.newStatus === 'OFFLINE') {
+        toast({
+          title: "Camera Offline",
+          description: `${notification.cameraName} has gone offline`,
+          variant: "destructive"
+        });
+      }
+    },
+    onConnectionChange: (connected: boolean) => {
+      setWsConnected(connected);
+      if (connected) {
+        toast({
+          title: "Real-time monitoring connected",
+          description: "Camera status updates will be shown in real-time",
+        });
+      }
+    }
+  });
+
+  // Load recording summary
+  const loadRecordingSummary = async () => {
+    try {
+      const summary = await cameraService.getRecordingSummary();
+      setRecordingSummary(summary);
+    } catch (error) {
+      console.error('Failed to load recording summary:', error);
+    }
+  };
+
+  // Load health summary
+  const loadHealthSummary = async () => {
+    try {
+      const summary = await cameraService.getHealthSummary();
+      // Convert timestamp string to Date
+      summary.lastCheckTime = new Date(summary.lastCheckTime);
+      setHealthSummary(summary);
+    } catch (error) {
+      console.error('Failed to load health summary:', error);
+    }
+  };
+
+
 
   // WebSocket connection for real-time updates - Disabled until server is available
   // useWebSocket({
@@ -114,7 +197,32 @@ export default function CameraManagement() {
   // Load initial data
   useEffect(() => {
     loadData();
+    loadRecordingSummary();
+    loadHealthSummary();
+    // Load recording status for all cameras
+    loadAllRecordingStatuses();
   }, []);
+
+  const loadAllRecordingStatuses = async () => {
+    try {
+      const statusMap: {[key: string | number]: 'idle' | 'recording' | 'stopping'} = {};
+      
+      // Load recording status for each camera
+      for (const camera of cameras) {
+        try {
+          const status = await cameraService.getRecordingStatus(camera.id);
+          statusMap[camera.id] = status.isRecording ? 'recording' : 'idle';
+        } catch (error) {
+          console.error(`Failed to load recording status for camera ${camera.id}:`, error);
+          statusMap[camera.id] = 'idle';
+        }
+      }
+      
+      setRecordingStatus(statusMap);
+    } catch (error) {
+      console.error('Failed to load recording statuses:', error);
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -157,9 +265,9 @@ export default function CameraManagement() {
       case 'OFFLINE':
         return <XCircle className="h-4 w-4 text-red-500" />;
       case 'MAINTENANCE':
-        return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
+        return <Settings className="h-4 w-4 text-yellow-500" />;
       case 'ERROR':
-        return <XCircle className="h-4 w-4 text-red-500" />;
+        return <AlertTriangle className="h-4 w-4 text-red-500" />;
       case 'TESTING_CONNECTION':
         return <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />;
       default:
@@ -167,7 +275,7 @@ export default function CameraManagement() {
     }
   };
 
-  const getStatusBadge = (status: CameraStatus) => {
+  const getStatusBadge = (status: CameraStatus, camera?: CameraType) => {
     const variants = {
       ACTIVE: 'default',
       OFFLINE: 'destructive',
@@ -176,9 +284,22 @@ export default function CameraManagement() {
       TESTING_CONNECTION: 'outline'
     } as const;
 
+    const getStatusText = () => {
+      if (status === 'OFFLINE' && camera?.lastConnectionTestTime) {
+        const lastTest = new Date(camera.lastConnectionTestTime);
+        const timeDiff = Date.now() - lastTest.getTime();
+        const minutesAgo = Math.floor(timeDiff / (1000 * 60));
+        
+        if (minutesAgo < 5) {
+          return `${status.replace('_', ' ')} (${minutesAgo}m ago)`;
+        }
+      }
+      return status.replace('_', ' ');
+    };
+
     return (
       <Badge variant={variants[status] || 'secondary'}>
-        {status.replace('_', ' ')}
+        {getStatusText()}
       </Badge>
     );
   };
@@ -275,12 +396,265 @@ export default function CameraManagement() {
     setIsViewDialogOpen(true);
   };
 
+  const handleStartRecording = async (camera: CameraType) => {
+    try {
+      setRecordingStatus(prev => ({ ...prev, [camera.id]: 'recording' }));
+      
+      const response = await cameraService.startRecording(camera.id);
+      
+      // Check if it's a toggle response (stopped recording) or normal start response
+      if ('action' in response) {
+        // It's a toggle response
+        const toggleResponse = response as any; // RecordingToggleResponse
+        if (toggleResponse.action === 'stopped') {
+          setRecordingStatus(prev => ({ ...prev, [camera.id]: 'idle' }));
+          toast({
+            title: "Recording stopped",
+            description: `Stopped recording from ${camera.name}`,
+          });
+        } else {
+          toast({
+            title: "Recording started",
+            description: `Started recording from ${camera.name}`,
+          });
+        }
+      } else {
+        // Normal start response
+        toast({
+          title: "Recording started",
+          description: `Started recording from ${camera.name}`,
+        });
+      }
+      
+      // Refresh recording summary
+      loadRecordingSummary();
+      
+    } catch (error) {
+      setRecordingStatus(prev => ({ ...prev, [camera.id]: 'idle' }));
+      const errorMessage = error instanceof Error ? error.message : "Failed to start recording";
+      toast({
+        title: "Recording failed",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleStopRecording = async (camera: CameraType) => {
+    try {
+      setRecordingStatus(prev => ({ ...prev, [camera.id]: 'stopping' }));
+      
+      const recording = await cameraService.stopRecording(camera.id);
+      
+      setRecordingStatus(prev => ({ ...prev, [camera.id]: 'idle' }));
+      
+      toast({
+        title: "Recording stopped",
+        description: `Stopped recording from ${camera.name}. Recording saved.`,
+      });
+      
+      // Refresh recordings if viewing this camera
+      if (recordingCamera?.id === camera.id) {
+        const updatedRecordings = await cameraService.getCameraRecordings(camera.id);
+        setRecordings(updatedRecordings);
+      }
+      
+      // Refresh recording summary
+      loadRecordingSummary();
+      
+    } catch (error) {
+      setRecordingStatus(prev => ({ ...prev, [camera.id]: 'idle' }));
+      toast({
+        title: "Stop recording failed",
+        description: "Failed to stop recording",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleViewRecordings = async (camera: CameraType) => {
+    try {
+      setRecordingCamera(camera);
+      
+      const cameraRecordings = await cameraService.getCameraRecordings(camera.id);
+      setRecordings(cameraRecordings);
+      setIsRecordingDialogOpen(true);
+      
+      toast({
+        title: "Recordings loaded",
+        description: `Found ${cameraRecordings.length} recordings for ${camera.name}`,
+      });
+      
+    } catch (error) {
+      toast({
+        title: "Failed to load recordings",
+        description: "Could not load recordings for this camera",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDownloadRecording = async (recording: Recording) => {
+    try {
+      await cameraService.downloadRecording(recording.id);
+      
+      toast({
+        title: "Download started",
+        description: `Downloading ${recording.filename}`,
+      });
+      
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to download recording";
+      toast({
+        title: "Download not available",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteRecording = async (recording: Recording) => {
+    try {
+      await cameraService.deleteRecording(recording.id);
+      
+      // Update local state
+      setRecordings(prev => prev.filter(r => r.id !== recording.id));
+      
+      // Refresh recording summary
+      loadRecordingSummary();
+      
+      toast({
+        title: "Recording deleted",
+        description: `${recording.filename} has been deleted`,
+      });
+      
+    } catch (error) {
+      toast({
+        title: "Delete failed",
+        description: "Failed to delete recording",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleClearAllRecordings = async () => {
+    try {
+      if (!recordingCamera) return;
+      
+      if (confirm(`Are you sure you want to delete all recordings for ${recordingCamera.name}? This action cannot be undone.`)) {
+        await cameraService.deleteAllCameraRecordings(recordingCamera.id);
+        
+        // Update state
+        setRecordings([]);
+        
+        // Refresh recording summary
+        loadRecordingSummary();
+        
+        toast({
+          title: "All recordings deleted",
+          description: `All recordings for ${recordingCamera.name} have been deleted`,
+        });
+      }
+      
+    } catch (error) {
+      toast({
+        title: "Clear failed",
+        description: "Failed to clear all recordings",
+        variant: "destructive"
+      });
+    }
+  };
+
+
+
+  const getRecordingStatusIcon = (camera: CameraType) => {
+    const status = recordingStatus[camera.id] || 'idle';
+    switch (status) {
+      case 'recording':
+        return <Video className="h-4 w-4 text-red-500 animate-pulse" />;
+      case 'stopping':
+        return <Loader2 className="h-4 w-4 text-yellow-500 animate-spin" />;
+      default:
+        return <Square className="h-4 w-4 text-gray-500" />;
+    }
+  };
+
+  const getTotalRecordingsCount = (): number => {
+    return recordingSummary?.totalRecordings || 0;
+  };
+
+  const getTotalStorageUsed = (): string => {
+    return recordingSummary?.totalStorageUsed || '0 MB';
+  };
+
+  const handleForceHealthCheck = async (camera?: CameraType) => {
+    try {
+      if (camera) {
+        // Check specific camera
+        const isHealthy = await cameraService.checkCameraHealth(camera.id);
+        toast({
+          title: "Health check completed",
+          description: `${camera.name} is ${isHealthy ? 'healthy' : 'offline'}`,
+          variant: isHealthy ? 'default' : 'destructive'
+        });
+      } else {
+        // Check all cameras
+        await cameraService.forceHealthCheckAll();
+        toast({
+          title: "Health check initiated",
+          description: "Checking all cameras... Results will appear shortly",
+        });
+      }
+      
+      // Refresh data after health check
+      setTimeout(() => {
+        loadData();
+        loadHealthSummary();
+      }, 2000);
+      
+    } catch (error) {
+      toast({
+        title: "Health check failed",
+        description: "Failed to perform health check",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleToggleMaintenanceMode = async (camera: CameraType) => {
+    try {
+      const isCurrentlyMaintenance = camera.status === 'MAINTENANCE';
+      const newMode = !isCurrentlyMaintenance;
+      
+      await cameraService.setCameraMaintenanceMode(camera.id, newMode);
+      
+      toast({
+        title: `Maintenance mode ${newMode ? 'enabled' : 'disabled'}`,
+        description: `${camera.name} is now ${newMode ? 'in maintenance' : 'back online'}`,
+      });
+      
+      // Refresh data
+      loadData();
+      loadHealthSummary();
+      
+    } catch (error) {
+      toast({
+        title: "Failed to toggle maintenance mode",
+        description: "Could not update camera maintenance status",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleEditCamera = (camera: CameraType) => {
     setEditingCamera({
       id: camera.id,
       name: camera.name,
       ipAddress: camera.ipAddress,
       port: camera.port,
+      username: camera.username,
+      password: camera.password,
+      streamPath: camera.streamPath,
       description: camera.description
     });
     setIsEditDialogOpen(true);
@@ -301,6 +675,9 @@ export default function CameraManagement() {
         name: editingCamera.name,
         ipAddress: editingCamera.ipAddress,
         port: editingCamera.port,
+        username: editingCamera.username,
+        password: editingCamera.password,
+        streamPath: editingCamera.streamPath,
         description: editingCamera.description
       };
 
@@ -340,7 +717,10 @@ export default function CameraManagement() {
       const createRequest: CreateCameraRequest = {
         name: newCamera.name,
         ipAddress: newCamera.ipAddress,
-        port: newCamera.port,
+        port: newCamera.port || 554,
+        username: newCamera.username,
+        password: newCamera.password,
+        streamPath: newCamera.streamPath || '/Streaming/Channels/101',
         initialStatus: newCamera.initialStatus || 'OFFLINE',
         description: newCamera.description
       };
@@ -359,7 +739,10 @@ export default function CameraManagement() {
         name: '',
         ipAddress: '',
         initialStatus: 'OFFLINE',
-        port: 8080,
+        port: 554,
+        username: '',
+        password: '',
+        streamPath: '/Streaming/Channels/101',
         description: ''
       });
 
@@ -408,24 +791,55 @@ export default function CameraManagement() {
     );
   }
 
+  const handleDismissNotification = (index: number) => {
+    setStatusNotifications(prev => prev.filter((_, i) => i !== index));
+  };
+
   return (
     <div className="space-y-6">
+      {/* Status Notifications */}
+      <CameraStatusNotifications 
+        notifications={statusNotifications}
+        onDismiss={handleDismissNotification}
+      />
+      
+
+      
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Camera Management</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Camera Recording Management</h1>
           <p className="text-muted-foreground">
-            Monitor and manage security cameras across all courts
+            Record and manage video footage from security cameras across all courts
           </p>
+          <div className="flex items-center space-x-4 mt-2">
+            <div className="flex items-center space-x-2">
+              <div className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+              <span className="text-sm text-muted-foreground">
+                {wsConnected ? 'Real-time monitoring active' : 'Real-time monitoring disconnected'}
+              </span>
+            </div>
+            {lastStatusUpdate && (
+              <span className="text-sm text-muted-foreground">
+                Last update: {lastStatusUpdate.toLocaleTimeString()}
+              </span>
+            )}
+          </div>
         </div>
-        <Button onClick={() => setIsAddDialogOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Camera
-        </Button>
+        <div className="flex items-center space-x-2">
+          <Button variant="outline" onClick={() => handleForceHealthCheck()}>
+            <Activity className="w-4 h-4 mr-2" />
+            Check All Cameras
+          </Button>
+          <Button onClick={() => setIsAddDialogOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Camera
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Cameras</CardTitle>
@@ -452,17 +866,49 @@ export default function CameraManagement() {
             <XCircle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summary.offlineCameras}</div>
+            <div className="text-2xl font-bold">{healthSummary?.offlineCameras || summary.offlineCameras}</div>
+            {healthSummary?.offlineCameras > 0 && (
+              <p className="text-xs text-red-600 mt-1">Requires attention</p>
+            )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Associated Courts</CardTitle>
-            <Link className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Maintenance Mode</CardTitle>
+            <Settings className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summary.associatedCourts}</div>
+            <div className="text-2xl font-bold">{healthSummary?.maintenanceCameras || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              {healthSummary?.lastCheckTime ? 
+                `Last check: ${healthSummary.lastCheckTime.toLocaleTimeString()}` : 
+                'No recent checks'
+              }
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Recording Cameras</CardTitle>
+            <Video className="h-4 w-4 text-red-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {recordingSummary?.activeRecordings || Object.values(recordingStatus).filter(status => status === 'recording').length}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Recordings</CardTitle>
+            <FileVideo className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{getTotalRecordingsCount()}</div>
+            <p className="text-xs text-muted-foreground">{getTotalStorageUsed()} used</p>
           </CardContent>
         </Card>
       </div>
@@ -470,9 +916,9 @@ export default function CameraManagement() {
       {/* Cameras Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Cameras</CardTitle>
+          <CardTitle>Camera Recording Management</CardTitle>
           <CardDescription>
-            Manage all security cameras and their connections
+            Start/stop recordings and manage recorded footage from security cameras
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -482,9 +928,10 @@ export default function CameraManagement() {
                 <TableHead>Name</TableHead>
                 <TableHead>IP Address</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Recording Status</TableHead>
                 <TableHead>Associated Court</TableHead>
-                <TableHead>Last Test</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>Recording Actions</TableHead>
+                <TableHead>Management</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -502,7 +949,16 @@ export default function CameraManagement() {
                     </code>
                   </TableCell>
                   <TableCell>
-                    {getStatusBadge(camera.status)}
+                    {getStatusBadge(camera.status, camera)}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      {getRecordingStatusIcon(camera)}
+                      <span className="text-sm">
+                        {recordingStatus[camera.id] === 'recording' ? 'Recording' : 
+                         recordingStatus[camera.id] === 'stopping' ? 'Stopping...' : 'Idle'}
+                      </span>
+                    </div>
                   </TableCell>
                   <TableCell>
                     {camera.associatedCourtName ? (
@@ -532,24 +988,61 @@ export default function CameraManagement() {
                     )}
                   </TableCell>
                   <TableCell>
-                    {camera.lastConnectionTestTime ? (
-                      <div className="text-sm">
-                        <div>{new Date(camera.lastConnectionTestTime).toLocaleDateString()}</div>
-                        <div className="text-muted-foreground">
-                          {camera.lastConnectionSuccess ? '✓ Success' : '✗ Failed'}
-                        </div>
-                      </div>
-                    ) : (
-                      <span className="text-muted-foreground">Never tested</span>
-                    )}
+                    <div className="flex items-center space-x-1">
+                      {recordingStatus[camera.id] !== 'recording' ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleStartRecording(camera)}
+                          disabled={camera.status !== 'ACTIVE' || recordingStatus[camera.id] === 'stopping'}
+                        >
+                          <Video className="w-3 h-3 mr-1" />
+                          Record
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleStopRecording(camera)}
+                          disabled={recordingStatus[camera.id] === 'stopping'}
+                        >
+                          <Square className="w-3 h-3 mr-1" />
+                          Stop
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleViewRecordings(camera)}
+                      >
+                        <FileVideo className="w-3 h-3" />
+                      </Button>
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-1">
                       <Button
                         variant="ghost"
                         size="sm"
+                        onClick={() => handleForceHealthCheck(camera)}
+                        title="Force health check"
+                      >
+                        <Activity className="w-3 h-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleToggleMaintenanceMode(camera)}
+                        title={camera.status === 'MAINTENANCE' ? 'Exit maintenance mode' : 'Enter maintenance mode'}
+                      >
+                        <Settings className={`w-3 h-3 ${camera.status === 'MAINTENANCE' ? 'text-yellow-500' : ''}`} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => handleTestConnection(camera)}
                         disabled={camera.status === 'TESTING_CONNECTION'}
+                        title="Test connection"
                       >
                         <Wifi className="w-3 h-3" />
                       </Button>
@@ -557,6 +1050,7 @@ export default function CameraManagement() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleViewCamera(camera)}
+                        title="View camera"
                       >
                         <Eye className="w-3 h-3" />
                       </Button>
@@ -564,6 +1058,7 @@ export default function CameraManagement() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleEditCamera(camera)}
+                        title="Edit camera"
                       >
                         <Edit className="w-3 h-3" />
                       </Button>
@@ -571,6 +1066,7 @@ export default function CameraManagement() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDeleteCamera(camera)}
+                        title="Delete camera"
                       >
                         <Trash2 className="w-3 h-3" />
                       </Button>
@@ -588,7 +1084,7 @@ export default function CameraManagement() {
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>
-              {selectedCamera?.name} - Live Stream
+              {selectedCamera?.name} - Live Preview
             </DialogTitle>
             <DialogDescription>
               IP: {selectedCamera?.ipAddress}:{selectedCamera?.port}
@@ -598,16 +1094,36 @@ export default function CameraManagement() {
             <div className="aspect-video bg-black rounded-lg overflow-hidden">
               <VideoPlayer 
                 videoUrl="/seed-ia-video.mp4"
-                title={`Live Stream - ${selectedCamera?.name}`}
-                duration="Live Stream"
+                title={`Live Preview - ${selectedCamera?.name}`}
+                duration="Live Preview"
               />
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 {getStatusIcon(selectedCamera?.status || 'OFFLINE')}
                 <span>Camera Status: {selectedCamera?.status}</span>
+                {selectedCamera && getRecordingStatusIcon(selectedCamera)}
+                <span>Recording: {recordingStatus[selectedCamera?.id || ''] || 'Idle'}</span>
               </div>
               <div className="flex items-center space-x-2">
+                {selectedCamera && recordingStatus[selectedCamera.id] !== 'recording' ? (
+                  <Button
+                    variant="destructive"
+                    onClick={() => handleStartRecording(selectedCamera)}
+                    disabled={selectedCamera.status !== 'ACTIVE'}
+                  >
+                    <Video className="w-4 h-4 mr-2" />
+                    Record
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    onClick={() => selectedCamera && handleStopRecording(selectedCamera)}
+                  >
+                    <Square className="w-4 h-4 mr-2" />
+                    Stop Recording
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   onClick={() => selectedCamera && handleTestConnection(selectedCamera)}
@@ -616,6 +1132,126 @@ export default function CameraManagement() {
                   Test Connection
                 </Button>
               </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Recordings Dialog */}
+      <Dialog open={isRecordingDialogOpen} onOpenChange={setIsRecordingDialogOpen}>
+        <DialogContent className="max-w-6xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>{recordingCamera?.name} - Recorded Videos</span>
+              {recordings.length > 0 && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleClearAllRecordings}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Clear All
+                </Button>
+              )}
+            </DialogTitle>
+            <DialogDescription>
+              Manage recorded video files from this camera ({recordings.length} recordings, {
+                (() => {
+                  let totalMB = 0;
+                  recordings.forEach(recording => {
+                    const sizeStr = recording.size;
+                    if (sizeStr.includes('GB')) {
+                      totalMB += parseFloat(sizeStr) * 1024;
+                    } else if (sizeStr.includes('MB')) {
+                      totalMB += parseFloat(sizeStr);
+                    }
+                  });
+                  return totalMB >= 1024 ? `${(totalMB / 1024).toFixed(1)} GB` : `${Math.round(totalMB)} MB`;
+                })()
+              } used)
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid gap-4">
+              {recordings.length === 0 ? (
+                <div className="text-center py-8">
+                  <FileVideo className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No recordings found for this camera</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Filename</TableHead>
+                      <TableHead>Duration</TableHead>
+                      <TableHead>Size</TableHead>
+                      <TableHead>Recorded</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {recordings.map((recording) => (
+                      <TableRow key={recording.id}>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center space-x-2">
+                            <FileVideo className="h-4 w-4 text-blue-500" />
+                            <span>{recording.filename}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-1">
+                            <Clock className="h-3 w-3 text-muted-foreground" />
+                            <span>{recording.duration}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-1">
+                            <HardDrive className="h-3 w-3 text-muted-foreground" />
+                            <span>{recording.size}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            <div>{recording.timestamp.toLocaleDateString()}</div>
+                            <div className="text-muted-foreground">
+                              {recording.timestamp.toLocaleTimeString()}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={recording.status === 'COMPLETED' ? 'default' : 'secondary'}>
+                            {recording.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDownloadRecording(recording)}
+                            >
+                              <Download className="w-3 h-3" />
+                            </Button>
+
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                if (confirm(`Are you sure you want to delete ${recording.filename}?`)) {
+                                  handleDeleteRecording(recording);
+                                }
+                              }}
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </div>
           </div>
         </DialogContent>
@@ -691,9 +1327,37 @@ export default function CameraManagement() {
               <Input
                 id="port"
                 type="number"
-                value={newCamera.port || 8080}
+                value={newCamera.port || 554}
                 onChange={(e) => setNewCamera({ ...newCamera, port: parseInt(e.target.value) })}
-                placeholder="8080"
+                placeholder="554"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                value={newCamera.username || ''}
+                onChange={(e) => setNewCamera({ ...newCamera, username: e.target.value })}
+                placeholder="e.g., admin"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={newCamera.password || ''}
+                onChange={(e) => setNewCamera({ ...newCamera, password: e.target.value })}
+                placeholder="Camera password"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="streamPath">Stream Path</Label>
+              <Input
+                id="streamPath"
+                value={newCamera.streamPath || '/Streaming/Channels/101'}
+                onChange={(e) => setNewCamera({ ...newCamera, streamPath: e.target.value })}
+                placeholder="/Streaming/Channels/101"
               />
             </div>
             <div className="space-y-2">
@@ -767,9 +1431,37 @@ export default function CameraManagement() {
               <Input
                 id="edit-port"
                 type="number"
-                value={editingCamera.port || 8080}
+                value={editingCamera.port || 554}
                 onChange={(e) => setEditingCamera({ ...editingCamera, port: parseInt(e.target.value) })}
-                placeholder="8080"
+                placeholder="554"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-username">Username</Label>
+              <Input
+                id="edit-username"
+                value={editingCamera.username || ''}
+                onChange={(e) => setEditingCamera({ ...editingCamera, username: e.target.value })}
+                placeholder="e.g., admin"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-password">Password</Label>
+              <Input
+                id="edit-password"
+                type="password"
+                value={editingCamera.password || ''}
+                onChange={(e) => setEditingCamera({ ...editingCamera, password: e.target.value })}
+                placeholder="Camera password"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-streamPath">Stream Path</Label>
+              <Input
+                id="edit-streamPath"
+                value={editingCamera.streamPath || ''}
+                onChange={(e) => setEditingCamera({ ...editingCamera, streamPath: e.target.value })}
+                placeholder="/Streaming/Channels/101"
               />
             </div>
             <div className="space-y-2">

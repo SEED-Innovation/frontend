@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Clock, Trophy, User, MapPin, Play, Video, Target } from 'lucide-react';
+import { Calendar, Clock, Trophy, User, MapPin, Video, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Navigation from '@/components/Navigation';
@@ -124,7 +124,6 @@ const Dashboard = () => {
                       <span className="text-sm font-medium text-tennis-purple-600">{session.type}</span>
                       <Link to="/checkin">
                         <Button size="sm" className="tennis-button glow-button">
-                          <Play className="w-4 h-4 mr-1" />
                           Check In
                         </Button>
                       </Link>
