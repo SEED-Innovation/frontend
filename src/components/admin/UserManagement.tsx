@@ -20,6 +20,7 @@ import { RefreshButton } from './RefreshButton';
 import { ActionMenu } from './ActionMenu';
 import { FilterChips } from './FilterChips';
 import { DetailDrawer } from './DetailDrawer';
+import { CreateAdminModal } from './CreateAdminModal';
 import {
   Table,
   TableBody,
@@ -45,6 +46,7 @@ const UserManagement = () => {
   const [detailUserType, setDetailUserType] = useState<'user' | 'manager'>('user');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoadingUserDetail, setIsLoadingUserDetail] = useState(false);
+  const [showCreateAdmin, setShowCreateAdmin] = useState(false);
   const [newUser, setNewUser] = useState({
     fullName: '',
     email: '',
@@ -368,10 +370,14 @@ const UserManagement = () => {
         <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
         <div className="flex space-x-2">
           <RefreshButton onRefresh={handleRefresh} isLoading={isRefreshing} />
+          <Button onClick={() => setShowCreateAdmin(true)} className="flex items-center space-x-2">
+            <UserPlus className="w-4 h-4" />
+            <span>Create Admin</span>
+          </Button>
           <Dialog open={showCreateUser} onOpenChange={setShowCreateUser}>
             <DialogTrigger asChild>
-              <Button className="flex items-center space-x-2">
-                <UserPlus className="w-4 h-4" />
+              <Button variant="outline" className="flex items-center space-x-2">
+                <Plus className="w-4 h-4" />
                 <span>Create User</span>
               </Button>
             </DialogTrigger>
@@ -747,6 +753,16 @@ const UserManagement = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Create Admin Modal */}
+      <CreateAdminModal
+        open={showCreateAdmin}
+        onOpenChange={setShowCreateAdmin}
+        onSuccess={(admin) => {
+          console.log('Admin created:', admin);
+          handleRefresh();
+        }}
+      />
 
       {/* Detail Drawer */}
       <DetailDrawer

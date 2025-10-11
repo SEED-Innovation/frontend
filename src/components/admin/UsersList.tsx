@@ -16,7 +16,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Edit,
-  RefreshCw
+  RefreshCw,
+  KeyRound
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,6 +38,8 @@ import { useQueryParam } from '@/hooks/useQueryParam';
 import { useUsersPaged, useToggleUserEnabled } from '@/lib/hooks/useUsersPaged';
 import type { UserListItem, UserResponse } from '@/types/user';
 import { UpdateUserForm } from './UpdateUserForm';
+import { ResetPasswordModal } from './ResetPasswordModal';
+import { DisableUserDialog } from './DisableUserDialog';
 
 interface UsersListProps {
   onViewUser?: (user: UserListItem) => void;
@@ -54,6 +57,9 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
   const [showEditForm, setShowEditForm] = useState(false);
   const [editingUser, setEditingUser] = useState<UserResponse | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [showStatusDialog, setShowStatusDialog] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserListItem | null>(null);
 
   const { data, isFetching, error, refetch } = useUsersPaged(page, size);
   const toggle = useToggleUserEnabled(page, size);
@@ -477,7 +483,20 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
                          <Button
                            variant="ghost"
                            size="sm"
-                           onClick={() => handleToggleEnabled(user)}
+                           onClick={() => {
+                             setSelectedUser(user);
+                             setShowResetPassword(true);
+                           }}
+                         >
+                           <KeyRound className="h-4 w-4" />
+                         </Button>
+                         <Button
+                           variant="ghost"
+                           size="sm"
+                           onClick={() => {
+                             setSelectedUser(user);
+                             setShowStatusDialog(true);
+                           }}
                            disabled={toggle.isPending}
                          >
                            {user.status === 'Active' ? (
@@ -537,6 +556,42 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
         onSubmit={handleUpdateUser}
         isManager={isManagersTab}
       />
+
+      {/* Reset Password Modal */}
+      {selectedUser && (
+        <ResetPasswordModal
+          open={showResetPassword}
+          onOpenChange={setShowResetPassword}
+          user={{
+            id: selectedUser.id,
+            fullName: selectedUser.fullName,
+            email: selectedUser.email || '',
+          }}
+          onSuccess={() => {
+            setShowResetPassword(false);
+            refetch();
+          }}
+          isSuperAdmin={true} // TODO: Get from auth context
+        />
+      )}
+
+      {/* Disable/Enable User Dialog */}
+      {selectedUser && (
+        <DisableUserDialog
+          open={showStatusDialog}
+          onOpenChange={setShowStatusDialog}
+          user={{
+            id: selectedUser.id,
+            fullName: selectedUser.fullName,
+            email: selectedUser.email || '',
+            enabled: selectedUser.status === 'Active',
+          }}
+          onSuccess={() => {
+            handleToggleEnabled(selectedUser);
+            setShowStatusDialog(false);
+          }}
+        />
+      )}
     </motion.div>
   );
 }
