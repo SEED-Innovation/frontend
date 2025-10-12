@@ -188,16 +188,7 @@ class CameraService {
     return response.json();
   }
 
-  async testConnection(cameraId: number): Promise<void> {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/cameras/${cameraId}/test-connection`, {
-      method: 'POST',
-      headers: this.getAuthHeaders()
-    });
 
-    if (!response.ok) {
-      throw new Error(`Failed to test camera connection: ${response.statusText}`);
-    }
-  }
 
   async getUnassociatedCourts(): Promise<Court[]> {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/cameras/unassociated-courts`, {

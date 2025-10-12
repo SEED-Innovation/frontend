@@ -2,17 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   Camera,
-  Wifi,
   WifiOff,
   Settings,
   Pause,
-  RotateCcw,
   Link,
   Unlink,
   Plus,
   Edit,
   Trash2,
-  Eye,
   AlertTriangle,
   CheckCircle,
   XCircle,
@@ -61,21 +58,20 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 // import { useWebSocket } from '@/hooks/useWebSocket'; // Disabled until WebSocket server is available
-import VideoPlayer from '@/components/VideoPlayer';
-import { 
-  cameraService, 
-  type CameraSummary, 
-  type CreateCameraRequest, 
+
+import {
+  cameraService,
+  type CameraSummary,
+  type CreateCameraRequest,
   type UpdateCameraRequest,
   type Court,
   type Recording,
   type RecordingStatus as ApiRecordingStatus,
   type RecordingSummary,
-  type CameraHealthSummary,
-  type StatusChangeNotification
+  type CameraHealthSummary
 } from '@/services/cameraService';
 import { useCameraWebSocket } from '@/hooks/useCameraWebSocket';
-import { CameraStatusNotifications } from './CameraStatusNotifications';
+
 import type { Camera as CameraType, CameraStatus } from '@/types/camera';
 import { CourtSearchInput } from '@/components/admin/common/CourtSearchInput';
 import { Court as CourtType } from '@/types/court';
@@ -93,7 +89,7 @@ export default function CameraManagement() {
   const [selectedCamera, setSelectedCamera] = useState<CameraType | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+
   const [isAssociateDialogOpen, setIsAssociateDialogOpen] = useState(false);
   const [isRecordingDialogOpen, setIsRecordingDialogOpen] = useState(false);
   const [editingCamera, setEditingCamera] = useState<Partial<CameraType>>({});
@@ -112,46 +108,27 @@ export default function CameraManagement() {
   const [selectedCourt, setSelectedCourt] = useState<CourtType | null>(null);
   const [recordingCamera, setRecordingCamera] = useState<CameraType | null>(null);
   const [recordings, setRecordings] = useState<Recording[]>([]);
-  const [recordingStatus, setRecordingStatus] = useState<{[key: string | number]: 'idle' | 'recording' | 'stopping'}>({});
+  const [recordingStatus, setRecordingStatus] = useState<{ [key: string | number]: 'idle' | 'recording' | 'stopping' }>({});
   const [recordingSummary, setRecordingSummary] = useState<RecordingSummary | null>(null);
   const [healthSummary, setHealthSummary] = useState<CameraHealthSummary | null>(null);
-  const [wsConnected, setWsConnected] = useState(false);
-  const [lastStatusUpdate, setLastStatusUpdate] = useState<Date | null>(null);
-  const [statusNotifications, setStatusNotifications] = useState<StatusChangeNotification[]>([]);
+
+
   const { toast } = useToast();
 
   // WebSocket connection for real-time camera status updates
   useCameraWebSocket({
     onCameraStatusUpdate: (updatedCamera: CameraType) => {
-      setCameras(prev => prev.map(c => 
+      setCameras(prev => prev.map(c =>
         c.id === updatedCamera.id ? updatedCamera : c
       ));
-      setLastStatusUpdate(new Date());
-      
+
+
       // Refresh summaries when camera status changes
       loadHealthSummary();
     },
-    onStatusChange: (notification: StatusChangeNotification) => {
-      // Add to notifications list
-      setStatusNotifications(prev => [notification, ...prev.slice(0, 4)]); // Keep max 5 notifications
-      
-      // Also show toast for critical status changes
-      if (notification.newStatus === 'OFFLINE') {
-        toast({
-          title: "Camera Offline",
-          description: `${notification.cameraName} has gone offline`,
-          variant: "destructive"
-        });
-      }
-    },
+
     onConnectionChange: (connected: boolean) => {
-      setWsConnected(connected);
-      if (connected) {
-        toast({
-          title: "Real-time monitoring connected",
-          description: "Camera status updates will be shown in real-time",
-        });
-      }
+      // Connection status no longer displayed
     }
   });
 
@@ -169,8 +146,7 @@ export default function CameraManagement() {
   const loadHealthSummary = async () => {
     try {
       const summary = await cameraService.getHealthSummary();
-      // Convert timestamp string to Date
-      summary.lastCheckTime = new Date(summary.lastCheckTime);
+
       setHealthSummary(summary);
     } catch (error) {
       console.error('Failed to load health summary:', error);
@@ -185,7 +161,7 @@ export default function CameraManagement() {
   //     setCameras(prev => prev.map(c => 
   //       c.id === updatedCamera.id ? updatedCamera : c
   //     ));
-      
+
   //     // Show toast for status changes
   //     toast({
   //       title: "Camera status updated",
@@ -205,8 +181,8 @@ export default function CameraManagement() {
 
   const loadAllRecordingStatuses = async () => {
     try {
-      const statusMap: {[key: string | number]: 'idle' | 'recording' | 'stopping'} = {};
-      
+      const statusMap: { [key: string | number]: 'idle' | 'recording' | 'stopping' } = {};
+
       // Load recording status for each camera
       for (const camera of cameras) {
         try {
@@ -217,7 +193,7 @@ export default function CameraManagement() {
           statusMap[camera.id] = 'idle';
         }
       }
-      
+
       setRecordingStatus(statusMap);
     } catch (error) {
       console.error('Failed to load recording statuses:', error);
@@ -231,7 +207,7 @@ export default function CameraManagement() {
         cameraService.getAllCameras(),
         cameraService.getSummary()
       ]);
-      
+
       setCameras(camerasData);
       setSummary(summaryData);
     } catch (error) {
@@ -268,8 +244,6 @@ export default function CameraManagement() {
         return <Settings className="h-4 w-4 text-yellow-500" />;
       case 'ERROR':
         return <AlertTriangle className="h-4 w-4 text-red-500" />;
-      case 'TESTING_CONNECTION':
-        return <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />;
       default:
         return <Activity className="h-4 w-4 text-gray-500" />;
     }
@@ -280,56 +254,17 @@ export default function CameraManagement() {
       ACTIVE: 'default',
       OFFLINE: 'destructive',
       MAINTENANCE: 'secondary',
-      ERROR: 'destructive',
-      TESTING_CONNECTION: 'outline'
+      ERROR: 'destructive'
     } as const;
-
-    const getStatusText = () => {
-      if (status === 'OFFLINE' && camera?.lastConnectionTestTime) {
-        const lastTest = new Date(camera.lastConnectionTestTime);
-        const timeDiff = Date.now() - lastTest.getTime();
-        const minutesAgo = Math.floor(timeDiff / (1000 * 60));
-        
-        if (minutesAgo < 5) {
-          return `${status.replace('_', ' ')} (${minutesAgo}m ago)`;
-        }
-      }
-      return status.replace('_', ' ');
-    };
 
     return (
       <Badge variant={variants[status] || 'secondary'}>
-        {getStatusText()}
+        {status.replace('_', ' ')}
       </Badge>
     );
   };
 
-  const handleTestConnection = async (camera: CameraType) => {
-    try {
-      // Optimistically update status
-      setCameras(prev => prev.map(c => 
-        c.id === camera.id ? { ...c, status: 'TESTING_CONNECTION' } : c
-      ));
 
-      await cameraService.testConnection(camera.id);
-      
-      toast({
-        title: "Connection test started",
-        description: `Testing ${camera.name}...`,
-      });
-    } catch (error) {
-      toast({
-        title: "Test failed",
-        description: "Failed to start connection test",
-        variant: "destructive"
-      });
-      
-      // Revert status on error
-      setCameras(prev => prev.map(c => 
-        c.id === camera.id ? { ...c, status: 'OFFLINE' } : c
-      ));
-    }
-  };
 
   const handleAssociateCamera = async () => {
     if (!associatingCamera || !selectedCourtId) return;
@@ -340,7 +275,7 @@ export default function CameraManagement() {
         { courtId: parseInt(selectedCourtId) }
       );
 
-      setCameras(prev => prev.map(c => 
+      setCameras(prev => prev.map(c =>
         c.id === associatingCamera.id ? updatedCamera : c
       ));
 
@@ -353,7 +288,7 @@ export default function CameraManagement() {
       setAssociatingCamera(null);
       setSelectedCourtId('');
       setSelectedCourt(null);
-      
+
       // Refresh summary
       const summaryData = await cameraService.getSummary();
       setSummary(summaryData);
@@ -369,8 +304,8 @@ export default function CameraManagement() {
   const handleDisassociateCamera = async (camera: CameraType) => {
     try {
       const updatedCamera = await cameraService.disassociateCamera(camera.id);
-      
-      setCameras(prev => prev.map(c => 
+
+      setCameras(prev => prev.map(c =>
         c.id === camera.id ? updatedCamera : c
       ));
 
@@ -391,17 +326,14 @@ export default function CameraManagement() {
     }
   };
 
-  const handleViewCamera = (camera: CameraType) => {
-    setSelectedCamera(camera);
-    setIsViewDialogOpen(true);
-  };
+
 
   const handleStartRecording = async (camera: CameraType) => {
     try {
       setRecordingStatus(prev => ({ ...prev, [camera.id]: 'recording' }));
-      
+
       const response = await cameraService.startRecording(camera.id);
-      
+
       // Check if it's a toggle response (stopped recording) or normal start response
       if ('action' in response) {
         // It's a toggle response
@@ -425,10 +357,10 @@ export default function CameraManagement() {
           description: `Started recording from ${camera.name}`,
         });
       }
-      
+
       // Refresh recording summary
       loadRecordingSummary();
-      
+
     } catch (error) {
       setRecordingStatus(prev => ({ ...prev, [camera.id]: 'idle' }));
       const errorMessage = error instanceof Error ? error.message : "Failed to start recording";
@@ -443,25 +375,25 @@ export default function CameraManagement() {
   const handleStopRecording = async (camera: CameraType) => {
     try {
       setRecordingStatus(prev => ({ ...prev, [camera.id]: 'stopping' }));
-      
+
       const recording = await cameraService.stopRecording(camera.id);
-      
+
       setRecordingStatus(prev => ({ ...prev, [camera.id]: 'idle' }));
-      
+
       toast({
         title: "Recording stopped",
         description: `Stopped recording from ${camera.name}. Recording saved.`,
       });
-      
+
       // Refresh recordings if viewing this camera
       if (recordingCamera?.id === camera.id) {
         const updatedRecordings = await cameraService.getCameraRecordings(camera.id);
         setRecordings(updatedRecordings);
       }
-      
+
       // Refresh recording summary
       loadRecordingSummary();
-      
+
     } catch (error) {
       setRecordingStatus(prev => ({ ...prev, [camera.id]: 'idle' }));
       toast({
@@ -475,16 +407,16 @@ export default function CameraManagement() {
   const handleViewRecordings = async (camera: CameraType) => {
     try {
       setRecordingCamera(camera);
-      
+
       const cameraRecordings = await cameraService.getCameraRecordings(camera.id);
       setRecordings(cameraRecordings);
       setIsRecordingDialogOpen(true);
-      
+
       toast({
         title: "Recordings loaded",
         description: `Found ${cameraRecordings.length} recordings for ${camera.name}`,
       });
-      
+
     } catch (error) {
       toast({
         title: "Failed to load recordings",
@@ -497,12 +429,12 @@ export default function CameraManagement() {
   const handleDownloadRecording = async (recording: Recording) => {
     try {
       await cameraService.downloadRecording(recording.id);
-      
+
       toast({
         title: "Download started",
         description: `Downloading ${recording.filename}`,
       });
-      
+
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to download recording";
       toast({
@@ -516,18 +448,18 @@ export default function CameraManagement() {
   const handleDeleteRecording = async (recording: Recording) => {
     try {
       await cameraService.deleteRecording(recording.id);
-      
+
       // Update local state
       setRecordings(prev => prev.filter(r => r.id !== recording.id));
-      
+
       // Refresh recording summary
       loadRecordingSummary();
-      
+
       toast({
         title: "Recording deleted",
         description: `${recording.filename} has been deleted`,
       });
-      
+
     } catch (error) {
       toast({
         title: "Delete failed",
@@ -540,22 +472,22 @@ export default function CameraManagement() {
   const handleClearAllRecordings = async () => {
     try {
       if (!recordingCamera) return;
-      
+
       if (confirm(`Are you sure you want to delete all recordings for ${recordingCamera.name}? This action cannot be undone.`)) {
         await cameraService.deleteAllCameraRecordings(recordingCamera.id);
-        
+
         // Update state
         setRecordings([]);
-        
+
         // Refresh recording summary
         loadRecordingSummary();
-        
+
         toast({
           title: "All recordings deleted",
           description: `All recordings for ${recordingCamera.name} have been deleted`,
         });
       }
-      
+
     } catch (error) {
       toast({
         title: "Clear failed",
@@ -583,9 +515,7 @@ export default function CameraManagement() {
     return recordingSummary?.totalRecordings || 0;
   };
 
-  const getTotalStorageUsed = (): string => {
-    return recordingSummary?.totalStorageUsed || '0 MB';
-  };
+
 
   const handleForceHealthCheck = async (camera?: CameraType) => {
     try {
@@ -605,13 +535,13 @@ export default function CameraManagement() {
           description: "Checking all cameras... Results will appear shortly",
         });
       }
-      
+
       // Refresh data after health check
       setTimeout(() => {
         loadData();
         loadHealthSummary();
       }, 2000);
-      
+
     } catch (error) {
       toast({
         title: "Health check failed",
@@ -625,18 +555,18 @@ export default function CameraManagement() {
     try {
       const isCurrentlyMaintenance = camera.status === 'MAINTENANCE';
       const newMode = !isCurrentlyMaintenance;
-      
+
       await cameraService.setCameraMaintenanceMode(camera.id, newMode);
-      
+
       toast({
         title: `Maintenance mode ${newMode ? 'enabled' : 'disabled'}`,
         description: `${camera.name} is now ${newMode ? 'in maintenance' : 'back online'}`,
       });
-      
+
       // Refresh data
       loadData();
       loadHealthSummary();
-      
+
     } catch (error) {
       toast({
         title: "Failed to toggle maintenance mode",
@@ -682,11 +612,11 @@ export default function CameraManagement() {
       };
 
       const updatedCamera = await cameraService.updateCamera(editingCamera.id, updateRequest);
-      
-      setCameras(prev => prev.map(c => 
+
+      setCameras(prev => prev.map(c =>
         c.id === editingCamera.id ? updatedCamera : c
       ));
-      
+
       toast({
         title: "Camera updated",
         description: `${editingCamera.name} has been updated successfully`,
@@ -726,9 +656,9 @@ export default function CameraManagement() {
       };
 
       const createdCamera = await cameraService.createCamera(createRequest);
-      
+
       setCameras(prev => [...prev, createdCamera]);
-      
+
       toast({
         title: "Camera added",
         description: `${createdCamera.name} has been added successfully`,
@@ -763,9 +693,9 @@ export default function CameraManagement() {
 
     try {
       await cameraService.deleteCamera(camera.id);
-      
+
       setCameras(prev => prev.filter(c => c.id !== camera.id));
-      
+
       toast({
         title: "Camera deleted",
         description: `${camera.name} has been deleted successfully`,
@@ -791,20 +721,14 @@ export default function CameraManagement() {
     );
   }
 
-  const handleDismissNotification = (index: number) => {
-    setStatusNotifications(prev => prev.filter((_, i) => i !== index));
-  };
+
 
   return (
     <div className="space-y-6">
-      {/* Status Notifications */}
-      <CameraStatusNotifications 
-        notifications={statusNotifications}
-        onDismiss={handleDismissNotification}
-      />
-      
 
-      
+
+
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -812,19 +736,7 @@ export default function CameraManagement() {
           <p className="text-muted-foreground">
             Record and manage video footage from security cameras across all courts
           </p>
-          <div className="flex items-center space-x-4 mt-2">
-            <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-green-500' : 'bg-red-500'}`} />
-              <span className="text-sm text-muted-foreground">
-                {wsConnected ? 'Real-time monitoring active' : 'Real-time monitoring disconnected'}
-              </span>
-            </div>
-            {lastStatusUpdate && (
-              <span className="text-sm text-muted-foreground">
-                Last update: {lastStatusUpdate.toLocaleTimeString()}
-              </span>
-            )}
-          </div>
+
         </div>
         <div className="flex items-center space-x-2">
           <Button variant="outline" onClick={() => handleForceHealthCheck()}>
@@ -880,12 +792,7 @@ export default function CameraManagement() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{healthSummary?.maintenanceCameras || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              {healthSummary?.lastCheckTime ? 
-                `Last check: ${healthSummary.lastCheckTime.toLocaleTimeString()}` : 
-                'No recent checks'
-              }
-            </p>
+
           </CardContent>
         </Card>
 
@@ -908,7 +815,7 @@ export default function CameraManagement() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{getTotalRecordingsCount()}</div>
-            <p className="text-xs text-muted-foreground">{getTotalStorageUsed()} used</p>
+
           </CardContent>
         </Card>
       </div>
@@ -955,8 +862,8 @@ export default function CameraManagement() {
                     <div className="flex items-center space-x-2">
                       {getRecordingStatusIcon(camera)}
                       <span className="text-sm">
-                        {recordingStatus[camera.id] === 'recording' ? 'Recording' : 
-                         recordingStatus[camera.id] === 'stopping' ? 'Stopping...' : 'Idle'}
+                        {recordingStatus[camera.id] === 'recording' ? 'Recording' :
+                          recordingStatus[camera.id] === 'stopping' ? 'Stopping...' : 'Idle'}
                       </span>
                     </div>
                   </TableCell>
@@ -1037,23 +944,8 @@ export default function CameraManagement() {
                       >
                         <Settings className={`w-3 h-3 ${camera.status === 'MAINTENANCE' ? 'text-yellow-500' : ''}`} />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleTestConnection(camera)}
-                        disabled={camera.status === 'TESTING_CONNECTION'}
-                        title="Test connection"
-                      >
-                        <Wifi className="w-3 h-3" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleViewCamera(camera)}
-                        title="View camera"
-                      >
-                        <Eye className="w-3 h-3" />
-                      </Button>
+
+
                       <Button
                         variant="ghost"
                         size="sm"
@@ -1079,63 +971,7 @@ export default function CameraManagement() {
         </CardContent>
       </Card>
 
-      {/* View Camera Dialog */}
-      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>
-              {selectedCamera?.name} - Live Preview
-            </DialogTitle>
-            <DialogDescription>
-              IP: {selectedCamera?.ipAddress}:{selectedCamera?.port}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="aspect-video bg-black rounded-lg overflow-hidden">
-              <VideoPlayer 
-                videoUrl="/seed-ia-video.mp4"
-                title={`Live Preview - ${selectedCamera?.name}`}
-                duration="Live Preview"
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                {getStatusIcon(selectedCamera?.status || 'OFFLINE')}
-                <span>Camera Status: {selectedCamera?.status}</span>
-                {selectedCamera && getRecordingStatusIcon(selectedCamera)}
-                <span>Recording: {recordingStatus[selectedCamera?.id || ''] || 'Idle'}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                {selectedCamera && recordingStatus[selectedCamera.id] !== 'recording' ? (
-                  <Button
-                    variant="destructive"
-                    onClick={() => handleStartRecording(selectedCamera)}
-                    disabled={selectedCamera.status !== 'ACTIVE'}
-                  >
-                    <Video className="w-4 h-4 mr-2" />
-                    Record
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    onClick={() => selectedCamera && handleStopRecording(selectedCamera)}
-                  >
-                    <Square className="w-4 h-4 mr-2" />
-                    Stop Recording
-                  </Button>
-                )}
-                <Button
-                  variant="outline"
-                  onClick={() => selectedCamera && handleTestConnection(selectedCamera)}
-                >
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  Test Connection
-                </Button>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+
 
       {/* Recordings Dialog */}
       <Dialog open={isRecordingDialogOpen} onOpenChange={setIsRecordingDialogOpen}>
@@ -1362,8 +1198,8 @@ export default function CameraManagement() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="status">Initial Status</Label>
-              <Select 
-                value={newCamera.initialStatus || 'OFFLINE'} 
+              <Select
+                value={newCamera.initialStatus || 'OFFLINE'}
                 onValueChange={(value) => setNewCamera({ ...newCamera, initialStatus: value as CameraStatus })}
               >
                 <SelectTrigger>
