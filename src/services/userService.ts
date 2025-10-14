@@ -303,6 +303,37 @@ export class UserService {
     }
   }
 
+  /**
+   * GET /admin/users/admins-paged - Get paginated admins
+   */
+  async getAdminsPaged(page: number = 0, size: number = 10): Promise<any> {
+    console.log(`👥 UserService.getAdminsPaged called - page: ${page}, size: ${size}`);
+    
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        size: size.toString()
+      });
+
+      const response = await fetch(`${this.baseUrl}/admin/users/admins-paged?${params}`, {
+        method: 'GET',
+        headers: this.getHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch paged admins: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ Paged admins from DB:', data);
+      return data;
+      
+    } catch (error) {
+      console.error('❌ Failed to load paged admins:', error);
+      throw error;
+    }
+  }
+
   // ================================
   // 🎯 UTILITY METHODS
   // ================================

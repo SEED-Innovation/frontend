@@ -47,8 +47,6 @@ export const resetPasswordSchema = z.object({
   
   confirmPassword: z.string(),
   
-  requirePasswordResetOnFirstLogin: z.boolean().default(false),
-  
   returnPlainPassword: z.boolean().default(false),
 }).refine((data) => data.newPassword === data.confirmPassword, {
   message: "Passwords don't match",

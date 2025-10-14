@@ -61,7 +61,7 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
   const [showStatusDialog, setShowStatusDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserListItem | null>(null);
 
-  const { data, isFetching, error, refetch } = useUsersPaged(page, size);
+  const { data, isFetching, error, refetch } = useUsersPaged(page, size, isManagersTab);
   const toggle = useToggleUserEnabled(page, size);
 
   const rows = useMemo(() => {

@@ -44,7 +44,6 @@ export function ResetPasswordModal({
     defaultValues: {
       newPassword: '',
       confirmPassword: '',
-      requirePasswordResetOnFirstLogin: false,
       returnPlainPassword: false,
     },
   });
@@ -70,7 +69,6 @@ export function ResetPasswordModal({
     try {
       const response = await resetUserPassword(user.id, {
         newPassword: data.newPassword,
-        requirePasswordResetOnFirstLogin: data.requirePasswordResetOnFirstLogin,
         returnPlainPassword: data.returnPlainPassword,
       });
 
@@ -212,42 +210,6 @@ export function ResetPasswordModal({
                     </FormControl>
                     <FormMessage />
                   </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="requirePasswordResetOnFirstLogin"
-                render={({ field }) => (
-                  <>
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          disabled={isSubmitting}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>
-                          Require password reset on next login
-                        </FormLabel>
-                        <FormDescription>
-                          User will be prompted to change this password when they log in
-                        </FormDescription>
-                      </div>
-                    </FormItem>
-                    
-                    {field.value && (
-                      <Alert variant="default" className="border-amber-500/50 bg-amber-500/10">
-                        <AlertTriangle className="h-4 w-4 text-amber-500" />
-                        <AlertDescription className="text-sm text-amber-700 dark:text-amber-400">
-                          This will create a temporary password using the NEW_PASSWORD_REQUIRED flow. 
-                          The user must change it on first login.
-                        </AlertDescription>
-                      </Alert>
-                    )}
-                  </>
                 )}
               />
 
