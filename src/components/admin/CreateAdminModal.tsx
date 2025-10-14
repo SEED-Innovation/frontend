@@ -71,8 +71,9 @@ export function CreateAdminModal({ open, onOpenChange, onSuccess }: CreateAdminM
         description: `${response.email} has been added as an admin.`,
       });
 
-      // Invalidate users query to show new admin in real-time
+      // Invalidate both users and admins queries to show new admin in real-time
       queryClient.invalidateQueries({ queryKey: ['users', 'paged'] });
+      queryClient.invalidateQueries({ queryKey: ['admins', 'paged'] });
 
       // Show credentials if available
       if (response.passwordPlain) {
