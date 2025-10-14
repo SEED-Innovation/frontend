@@ -480,18 +480,16 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
                          >
                            <Edit className="h-4 w-4" />
                          </Button>
-                          {isManagersTab && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedUser(user);
-                                setShowResetPassword(true);
-                              }}
-                            >
-                              <KeyRound className="h-4 w-4" />
-                            </Button>
-                          )}
+                         <Button
+                           variant="ghost"
+                           size="sm"
+                           onClick={() => {
+                             setSelectedUser(user);
+                             setShowResetPassword(true);
+                           }}
+                         >
+                           <KeyRound className="h-4 w-4" />
+                         </Button>
                          <Button
                            variant="ghost"
                            size="sm"
