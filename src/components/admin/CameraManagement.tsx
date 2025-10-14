@@ -57,7 +57,6 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-// import { useWebSocket } from '@/hooks/useWebSocket'; // Disabled until WebSocket server is available
 
 import {
   cameraService,

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Bell, Search, Menu, LogOut } from 'lucide-react';
+import { Search, Menu, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
@@ -46,10 +46,7 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar, collapsed })
       </div>
 
       <div className="flex items-center space-x-4">
-        <Button variant="ghost" size="sm" className="relative">
-          <Bell className="w-5 h-5 text-gray-600" />
-          <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-        </Button>
+
 
         <div className="flex items-center space-x-3">
           {user && (
