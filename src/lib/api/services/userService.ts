@@ -20,6 +20,19 @@ export async function getUsersPaged(page = 0, size = 50): Promise<AdminUserPageR
   return res.json();
 }
 
+export async function getAdminsPaged(page = 0, size = 50): Promise<AdminUserPageResponse> {
+  const url = new URL(`${import.meta.env.VITE_API_URL}${BASE}/admins-paged`);
+  url.searchParams.set('page', String(Math.max(0, page)));
+  url.searchParams.set('size', String(Math.min(100, Math.max(1, size))));
+  
+  const res = await fetch(url.toString(), {
+    headers: authHeaders(),
+  });
+  
+  if (!res.ok) throw new Error(`Failed to fetch admins (paged): ${res.statusText}`);
+  return res.json();
+}
+
 export async function updateUserEnabled(id: number, enabled: boolean) {
   const res = await fetch(`${import.meta.env.VITE_API_URL}${BASE}/update`, {
     method: 'PUT',

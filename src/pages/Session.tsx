@@ -124,7 +124,7 @@ const Session = () => {
                     className="tennis-button px-8 py-4 text-lg"
                     disabled={isLoading}
                   >
-                    {isLoading ? (
+                    {isLoading && (
                       <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                     )}
                     {isLoading ? 'Starting...' : 'Start Session'}

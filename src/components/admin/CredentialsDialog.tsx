@@ -51,7 +51,7 @@ export function CredentialsDialog({ open, onOpenChange, credentials, onClose }: 
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CheckCircle2 className="h-5 w-5 text-green-500" />
-            Admin Created Successfully
+            Admin Password Reset Successfully
           </DialogTitle>
           <DialogDescription>
             Save these credentials securely. This is the only time the password will be shown.
@@ -135,11 +135,6 @@ export function CredentialsDialog({ open, onOpenChange, credentials, onClose }: 
             </div>
           </div>
 
-          <Alert variant="default" className="border-blue-500/50 bg-blue-500/10">
-            <AlertDescription className="text-sm text-blue-700 dark:text-blue-400">
-              Copied credentials will be automatically cleared from clipboard after 10 seconds.
-            </AlertDescription>
-          </Alert>
         </div>
 
         <div className="flex justify-end gap-2">

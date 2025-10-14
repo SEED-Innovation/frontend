@@ -35,7 +35,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryParam } from '@/hooks/useQueryParam';
-import { useUsersPaged, useToggleUserEnabled } from '@/lib/hooks/useUsersPaged';
+import { useUsersPaged, useAdminsPaged, useToggleUserEnabled, useToggleAdminEnabled } from '@/lib/hooks/useUsersPaged';
 import type { UserListItem, UserResponse } from '@/types/user';
 import { UpdateUserForm } from './UpdateUserForm';
 import { ResetPasswordModal } from './ResetPasswordModal';
@@ -46,9 +46,10 @@ interface UsersListProps {
   searchTerm?: string;
   statusFilter?: string;
   isManagersTab?: boolean;
+  userType?: 'users' | 'admins';
 }
 
-export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 'All', isManagersTab = false }: UsersListProps) {
+export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 'All', isManagersTab = false, userType = 'users' }: UsersListProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -61,7 +62,7 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
   const [showStatusDialog, setShowStatusDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserListItem | null>(null);
 
-  const { data, isFetching, error, refetch } = useUsersPaged(page, size);
+  const { data, isFetching, error, refetch } = useUsersPaged(page, size, isManagersTab);
   const toggle = useToggleUserEnabled(page, size);
 
   const rows = useMemo(() => {
@@ -480,16 +481,18 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
                          >
                            <Edit className="h-4 w-4" />
                          </Button>
-                         <Button
-                           variant="ghost"
-                           size="sm"
-                           onClick={() => {
-                             setSelectedUser(user);
-                             setShowResetPassword(true);
-                           }}
-                         >
-                           <KeyRound className="h-4 w-4" />
-                         </Button>
+                         {isManagersTab && (
+                           <Button
+                             variant="ghost"
+                             size="sm"
+                             onClick={() => {
+                               setSelectedUser(user);
+                               setShowResetPassword(true);
+                             }}
+                           >
+                             <KeyRound className="h-4 w-4" />
+                           </Button>
+                         )}
                          <Button
                            variant="ghost"
                            size="sm"
