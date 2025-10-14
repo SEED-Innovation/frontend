@@ -585,6 +585,7 @@ const UserManagement = () => {
             searchTerm={searchTerm}
             statusFilter={statusFilter}
             isManagersTab={false}
+            userType="users"
           />
         </TabsContent>
 
@@ -594,6 +595,7 @@ const UserManagement = () => {
             searchTerm={searchTerm}
             statusFilter={statusFilter}
             isManagersTab={true}
+            userType="admins"
           />
         </TabsContent>
       </Tabs>

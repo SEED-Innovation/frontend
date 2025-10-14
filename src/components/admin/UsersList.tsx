@@ -35,7 +35,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryParam } from '@/hooks/useQueryParam';
-import { useUsersPaged, useToggleUserEnabled } from '@/lib/hooks/useUsersPaged';
+import { useUsersPaged, useAdminsPaged, useToggleUserEnabled, useToggleAdminEnabled } from '@/lib/hooks/useUsersPaged';
 import type { UserListItem, UserResponse } from '@/types/user';
 import { UpdateUserForm } from './UpdateUserForm';
 import { ResetPasswordModal } from './ResetPasswordModal';
@@ -46,9 +46,10 @@ interface UsersListProps {
   searchTerm?: string;
   statusFilter?: string;
   isManagersTab?: boolean;
+  userType?: 'users' | 'admins';
 }
 
-export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 'All', isManagersTab = false }: UsersListProps) {
+export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 'All', isManagersTab = false, userType = 'users' }: UsersListProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -61,8 +62,14 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
   const [showStatusDialog, setShowStatusDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserListItem | null>(null);
 
-  const { data, isFetching, error, refetch } = useUsersPaged(page, size);
-  const toggle = useToggleUserEnabled(page, size);
+  // Conditionally fetch users or admins based on userType
+  const { data, isFetching, error, refetch } = userType === 'admins' 
+    ? useAdminsPaged(page, size) 
+    : useUsersPaged(page, size);
+    
+  const toggle = userType === 'admins'
+    ? useToggleAdminEnabled(page, size)
+    : useToggleUserEnabled(page, size);
 
   const rows = useMemo(() => {
     const list = (data as any)?.users ?? [];
