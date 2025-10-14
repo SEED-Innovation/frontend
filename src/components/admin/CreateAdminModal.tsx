@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +21,7 @@ interface CreateAdminModalProps {
 }
 
 export function CreateAdminModal({ open, onOpenChange, onSuccess }: CreateAdminModalProps) {
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -68,6 +70,9 @@ export function CreateAdminModal({ open, onOpenChange, onSuccess }: CreateAdminM
         title: 'Admin created successfully',
         description: `${response.email} has been added as an admin.`,
       });
+
+      // Invalidate users query to show new admin in real-time
+      queryClient.invalidateQueries({ queryKey: ['users', 'paged'] });
 
       // Show credentials if available
       if (response.passwordPlain) {
