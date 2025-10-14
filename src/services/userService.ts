@@ -335,6 +335,112 @@ export class UserService {
   }
 
   // ================================
+  // 🔄 USER STATUS MANAGEMENT
+  // ================================
+
+  /**
+   * PATCH /admin/users/status/{id} - Enable user account
+   * Enables a user account without forcing logout
+   */
+  async enableUser(userId: number): Promise<UserResponse> {
+    console.log('✅ UserService.enableUser called for ID:', userId);
+    
+    try {
+      const response = await fetch(`${this.baseUrl}/admin/users/status/${userId}`, {
+        method: 'PATCH',
+        headers: {
+          ...this.getHeaders(),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          enabled: true,
+          forceLogout: false
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to enable user: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ User enabled:', data);
+      return data;
+      
+    } catch (error) {
+      console.error('❌ Failed to enable user:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * PATCH /admin/users/status/{id} - Disable user account
+   * Disables a user account and forces logout
+   */
+  async disableUser(userId: number): Promise<UserResponse> {
+    console.log('🚫 UserService.disableUser called for ID:', userId);
+    
+    try {
+      const response = await fetch(`${this.baseUrl}/admin/users/status/${userId}`, {
+        method: 'PATCH',
+        headers: {
+          ...this.getHeaders(),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          enabled: false,
+          forceLogout: true
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to disable user: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ User disabled:', data);
+      return data;
+      
+    } catch (error) {
+      console.error('❌ Failed to disable user:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * PATCH /admin/users/status/{id} - Update user status with custom options
+   * Allows custom control over enabled state and force logout
+   */
+  async updateUserStatus(userId: number, enabled: boolean, forceLogout: boolean = false): Promise<UserResponse> {
+    console.log(`🔄 UserService.updateUserStatus called for ID: ${userId}, enabled: ${enabled}, forceLogout: ${forceLogout}`);
+    
+    try {
+      const response = await fetch(`${this.baseUrl}/admin/users/status/${userId}`, {
+        method: 'PATCH',
+        headers: {
+          ...this.getHeaders(),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          enabled,
+          forceLogout
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update user status: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ User status updated:', data);
+      return data;
+      
+    } catch (error) {
+      console.error('❌ Failed to update user status:', error);
+      throw error;
+    }
+  }
+
+  // ================================
   // 🎯 UTILITY METHODS
   // ================================
 

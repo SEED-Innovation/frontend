@@ -43,3 +43,23 @@ export async function updateUserEnabled(id: number, enabled: boolean) {
   if (!res.ok) throw new Error(`Failed to update user: ${res.statusText}`);
   return res.json();
 }
+
+export async function enableUser(userId: number) {
+  const res = await fetch(`${import.meta.env.VITE_API_URL}${BASE}/${userId}/status/enable`, {
+    method: 'PATCH',
+    headers: authHeaders(),
+  });
+  
+  if (!res.ok) throw new Error(`Failed to enable user: ${res.statusText}`);
+  return res.json();
+}
+
+export async function disableUser(userId: number) {
+  const res = await fetch(`${import.meta.env.VITE_API_URL}${BASE}/${userId}/status/disable`, {
+    method: 'PATCH',
+    headers: authHeaders(),
+  });
+  
+  if (!res.ok) throw new Error(`Failed to disable user: ${res.statusText}`);
+  return res.json();
+}
