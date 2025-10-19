@@ -28,8 +28,8 @@ const Footer = () => {
               AI-powered tennis analytics platform that helps players improve their game through intelligent court monitoring and performance insights.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">Privacy</a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">Terms</a>
+              <a href="https://www.seedco.sa/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">Privacy</a>
+              <a href="https://www.seedco.sa/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">Terms</a>
               <a href="#" className="text-gray-400 hover:text-white transition-colors">Support</a>
             </div>
           </div>

@@ -320,13 +320,13 @@ const Auth = () => {
           style={{ fontFamily: 'Poppins, sans-serif' }}
         >
           By continuing, you agree to SEED's{' '}
-          <Link to="/terms" className="text-accent hover:text-accent/80 transition-colors duration-200">
+          <a href="https://www.seedco.sa/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-accent hover:text-accent/80 transition-colors duration-200">
             Terms of Service
-          </Link>{' '}
+          </a>{' '}
           and{' '}
-          <Link to="/privacy" className="text-accent hover:text-accent/80 transition-colors duration-200">
+          <a href="https://www.seedco.sa/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-accent hover:text-accent/80 transition-colors duration-200">
             Privacy Policy
-          </Link>
+          </a>
         </motion.div>
       </motion.div>
     </div>
