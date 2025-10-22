@@ -59,7 +59,7 @@ export default function EnhancedCourtForm({
     sportType: 'TENNIS' as SportType,
     type: '',
     location: '',
-    hourlyFee: 0,
+    hourlyFee: 1,
     hasSeedSystem: false,
     amenities: [],
     imageUrl: '',
@@ -178,7 +178,7 @@ export default function EnhancedCourtForm({
       isValidSport &&
       isValidType &&
       formData.location.trim() &&
-      formData.hourlyFee >= 0
+      formData.hourlyFee > 0
     );
   };
 
@@ -224,7 +224,7 @@ export default function EnhancedCourtForm({
         sportType: 'TENNIS' as SportType,
         type: '',
         location: '',
-        hourlyFee: 0,
+        hourlyFee: 1,
         hasSeedSystem: false,
         amenities: [],
         imageUrl: '',
@@ -327,13 +327,13 @@ export default function EnhancedCourtForm({
                 <Input
                   id="hourlyFee"
                   type="number"
-                  min="0"
+                  min="1"
                   step="1"
                   value={formData.hourlyFee}
                   onChange={(e) => handleInputChange('hourlyFee', Number(e.target.value))}
                   placeholder="120.00"
                 />
-                <p className="text-sm text-muted-foreground mt-1">Per hour (SAR)</p>
+                <p className="text-sm text-muted-foreground mt-1">Must be greater than 0 (SAR)</p>
               </div>
 
               <div className="flex items-center space-x-2">

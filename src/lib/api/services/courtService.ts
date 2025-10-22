@@ -195,7 +195,9 @@ class CourtService {
             
             if (!response.ok) {
                 const error = await response.json().catch(() => ({ message: response.statusText }));
-                throw new Error(error.message || `Failed to create court: ${response.statusText}`);
+                // Handle different error response formats
+                const errorMessage = error.message || error.errorCode || error.error || `Failed to create court: ${response.statusText}`;
+                throw new Error(errorMessage);
             }
             
             return response.json();
@@ -209,7 +211,9 @@ class CourtService {
 
             if (!response.ok) {
                 const error = await response.json().catch(() => ({ message: response.statusText }));
-                throw new Error(error.message || `Failed to create court: ${response.statusText}`);
+                // Handle different error response formats
+                const errorMessage = error.message || error.errorCode || error.error || `Failed to create court: ${response.statusText}`;
+                throw new Error(errorMessage);
             }
 
             return response.json();
@@ -264,7 +268,9 @@ class CourtService {
             
             if (!res.ok) {
                 const error = await res.json().catch(() => ({ message: res.statusText }));
-                throw new Error(error.message || `Failed to update court: ${res.statusText}`);
+                // Handle different error response formats
+                const errorMessage = error.message || error.errorCode || error.error || `Failed to update court: ${res.statusText}`;
+                throw new Error(errorMessage);
             }
             
             return res.json();
@@ -281,7 +287,9 @@ class CourtService {
             
             if (!res.ok) {
                 const error = await res.json().catch(() => ({ message: res.statusText }));
-                throw new Error(error.message || `Failed to update court: ${res.statusText}`);
+                // Handle different error response formats
+                const errorMessage = error.message || error.errorCode || error.error || `Failed to update court: ${res.statusText}`;
+                throw new Error(errorMessage);
             }
             
             return res.json();

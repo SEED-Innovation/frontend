@@ -184,7 +184,8 @@ const CourtManagement = () => {
       return true; // Success
     } catch (error) {
       console.error('Error creating court:', error);
-      toast.error('Failed to create court');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create court';
+      toast.error(errorMessage);
       return false; // Failure
     }
   };
@@ -276,7 +277,8 @@ const CourtManagement = () => {
       return true;
     } catch (error) {
       console.error('Error updating court:', error);
-      toast.error('Failed to update court');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update court';
+      toast.error(errorMessage);
       return false;
     }
   };
@@ -316,7 +318,8 @@ const CourtManagement = () => {
       toast.success(`Court status updated to ${newStatus.toLowerCase()}`);
     } catch (error) {
       console.error('Error updating court status:', error);
-      toast.error('Failed to update court status');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update court status';
+      toast.error(errorMessage);
     }
   };
 
@@ -371,7 +374,8 @@ const CourtManagement = () => {
       });
     } catch (error) {
       console.error('Error setting court availability:', error);
-      toast.error('Failed to update court availability');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update court availability';
+      toast.error(errorMessage);
     }
   };
 
