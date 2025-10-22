@@ -1,5 +1,5 @@
 export type SportType = 'TENNIS' | 'PADEL';
-export type CourtType = 'HARD' | 'CLAY' | 'GRASS' | 'CARPET' | 'ACRYLIC' | null;
+export type CourtType = 'HARD' | 'CLAY' | 'GRASS' | 'CARPET' | 'ACRYLIC' | 'PADEL' | null;
 
 export interface Court {
   id: number;                 // unify id type (number)

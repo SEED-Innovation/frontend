@@ -41,7 +41,8 @@ const SPORT_TYPES = [
 const TENNIS_COURT_TYPES = [
   { value: 'HARD', label: 'Hard Court' },
   { value: 'CLAY', label: 'Clay Court' },
-  { value: 'GRASS', label: 'Grass Court' }
+  { value: 'GRASS', label: 'Grass Court' },
+  { value: 'PADEL', label: 'Padel Court' }
 ];
 
 const PADEL_COURT_TYPES = [
@@ -49,7 +50,7 @@ const PADEL_COURT_TYPES = [
   { value: 'OUTDOOR', label: 'Outdoor Court' }
 ];
 
-type CourtType = "HARD" | "CLAY" | "GRASS" | "INDOOR" | "OUTDOOR";
+type CourtType = "HARD" | "CLAY" | "GRASS" | "INDOOR" | "OUTDOOR" | "PADEL";
 
 export default function EditCourtForm({ 
   open, 
@@ -165,7 +166,7 @@ export default function EditCourtForm({
 
   const isFormValid = () => {
     const sport = formData.sportType || 'TENNIS';
-    const isValidType = sport === 'PADEL' || (sport === 'TENNIS' && formData.type);
+    const isValidType = formData.type && formData.type.trim() !== '';
     
     return !!(
       formData.name?.trim() &&
@@ -203,9 +204,8 @@ export default function EditCourtForm({
         submitData.sportType = sport;
       }
       
-      const normalizedType = sport === 'PADEL' ? null : (formData.type || 'HARD');
-      if (normalizedType !== court?.type) {
-        submitData.type = normalizedType;
+      if (formData.type !== court?.type) {
+        submitData.type = formData.type || null;
       }
       if (formData.hourlyFee !== undefined && formData.hourlyFee !== court?.hourlyFee) {
         submitData.hourlyFee = formData.hourlyFee;
@@ -325,23 +325,21 @@ export default function EditCourtForm({
                 )}
               </div>
 
-              {(formData.sportType || 'TENNIS') === 'TENNIS' && (
-                <div>
-                  <Label htmlFor="type">Court Surface *</Label>
-                  <Select value={formData.type || ''} onValueChange={(value) => handleInputChange('type', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select court surface" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TENNIS_COURT_TYPES.map(type => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+              <div>
+                <Label htmlFor="type">Court Surface *</Label>
+                <Select value={formData.type || ''} onValueChange={(value) => handleInputChange('type', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select court surface" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TENNIS_COURT_TYPES.map(type => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
               <div>
                 <Label htmlFor="hourlyFee">Hourly Fee (SAR) *</Label>

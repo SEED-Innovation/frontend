@@ -847,7 +847,9 @@ const CourtManagement = () => {
                       <SelectContent>
                         <SelectItem value="all-types">All Types</SelectItem>
                         {uniqueTypes.map((type) => (
-                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                          <SelectItem key={type} value={type}>
+                            {type === 'PADEL' ? 'Padel Court' : type}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -1139,10 +1141,10 @@ const CourtManagement = () => {
                     </Badge>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {court.sportType === 'TENNIS' && court.type && (
+                    {court.type && (
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">Surface:</span>
-                        <span className="font-medium">{court.type}</span>
+                        <span className="font-medium">{court.type === 'PADEL' ? 'Padel Court' : court.type}</span>
                       </div>
                     )}
                     <div className="flex justify-between text-sm">

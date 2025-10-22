@@ -197,7 +197,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
             <div className="flex items-center text-sm text-gray-600">
                 <span>{booking.court.location}</span>
                 <span className="mx-2">•</span>
-                <span>{booking.court.type} Court</span>
+                <span>{booking.court.type === 'PADEL' ? 'Padel Court' : `${booking.court.type} Court`}</span>
             </div>
             
             <div className="flex items-center text-sm text-gray-600">
