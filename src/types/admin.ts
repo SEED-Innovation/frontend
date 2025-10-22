@@ -96,3 +96,18 @@ export interface ReportData {
   topCourts: Array<{ courtName: string; revenue: number; bookings: number }>;
   paymentMethodStats: Array<{ method: string; count: number; percentage: number }>;
 }
+
+export interface AdminProfileResponse {
+  id: number;
+  fullName: string;
+  email: string;
+  phone?: string;
+  username: string;
+  role: string;
+  profilePictureUrl?: string;
+  enabled: boolean;
+  createdAt: string;
+  lastLoginAt?: string;
+  assignedCourts: string[];
+  status: string;
+}
