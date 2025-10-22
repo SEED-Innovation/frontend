@@ -67,6 +67,7 @@ export default function EditCourtForm({
     name: '',
     location: '',
     type: undefined,
+    sportType: undefined,
     hourlyFee: undefined,
     hasSeedSystem: undefined,
     amenities: [],
@@ -92,6 +93,7 @@ export default function EditCourtForm({
         name: court.name,
         location: court.location,
         type: court.type as CourtType,
+        sportType: court.sportType,
         hourlyFee: court.hourlyFee,
         hasSeedSystem: court.hasSeedSystem,
         amenities: [...court.amenities],
@@ -165,7 +167,6 @@ export default function EditCourtForm({
   };
 
   const isFormValid = () => {
-    const sport = formData.sportType || 'TENNIS';
     const isValidType = formData.type && formData.type.trim() !== '';
     
     return !!(
