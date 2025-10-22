@@ -16,7 +16,7 @@ import BookingAnalyticsCharts from './BookingAnalyticsCharts';
 import { CurrencyDisplay } from '@/components/ui/currency-display';
 import {
     ClipboardList, BarChart3, CheckCircle, Clock, XCircle, AlertTriangle,
-    Search, Settings, TrendingUp, Calendar, Filter, Plus,
+    Search, TrendingUp, Calendar, Filter, Plus,
     Download, RefreshCw, Eye, Users, FileText, Activity, FileSpreadsheet,
     CalendarRange, User, MapPin, Mail, Phone, Building, Award, Crown,
     Sparkles, Zap, PlusCircle, PieChart as PieChartIcon
@@ -36,7 +36,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
     // ================================
     // 🏗️ STATE MANAGEMENT
     // ================================
-    
+
     const [bookings, setBookings] = useState<any[]>([]);
     const [courts, setCourts] = useState<any[]>([]);
     const [allUsers, setAllUsers] = useState<any[]>([]);
@@ -44,7 +44,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
-    const [currentView, setCurrentView] = useState<'dashboard' | 'manage' | 'analytics' | 'settings'>('manage');
+    const [currentView, setCurrentView] = useState<'dashboard' | 'manage' | 'analytics'>('manage');
 
     // ================================
     // 🔄 DATA LOADING
@@ -58,8 +58,8 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
         try {
             // Load bookings, stats, users, and courts concurrently with increased page size
             const [bookingsResponse, statsResponse, usersResponse, courtsResponse] = await Promise.all([
-                bookingService.getAdminBookings({ 
-                    page: 0, 
+                bookingService.getAdminBookings({
+                    page: 0,
                     size: 100  // Increased from default to get more bookings
                 }),
                 bookingService.getBookingStats(),
@@ -71,8 +71,8 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
             console.log('🔍 Response structure check:', bookingsResponse);
 
             // Extract bookings array from response
-            const bookingsArray = Array.isArray(bookingsResponse) 
-                ? bookingsResponse 
+            const bookingsArray = Array.isArray(bookingsResponse)
+                ? bookingsResponse
                 : (bookingsResponse as any)?.data || (bookingsResponse as any)?.bookings || [];
 
             console.log('📋 Final bookings array:', bookingsArray, 'Length:', bookingsArray.length);
@@ -146,7 +146,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
         console.log('✅ New booking created:', newBooking);
         setSuccess('Manual booking created successfully!');
         loadData(); // Refresh data
-        
+
         // Clear success message after 5 seconds
         setTimeout(() => setSuccess(null), 5000);
     };
@@ -163,7 +163,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
         >
             <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent" />
             <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-white/10 to-transparent rounded-full -translate-y-40 translate-x-40" />
-            
+
             <div className="relative z-10 flex items-center justify-between">
                 <div className="space-y-3">
                     <div className="flex items-center space-x-3">
@@ -176,9 +176,9 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                         </div>
                     </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
-                    <motion.div 
+                    <motion.div
                         whileHover={{ scale: 1.05 }}
                         className="text-center p-3 bg-white/10 rounded-xl backdrop-blur-sm border border-white/20"
                     >
@@ -188,8 +188,8 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                         </div>
                         <p className="text-xs text-blue-200 font-medium">Total Bookings</p>
                     </motion.div>
-                    
-                    <motion.div 
+
+                    <motion.div
                         whileHover={{ scale: 1.05 }}
                         className="text-center p-3 bg-white/10 rounded-xl backdrop-blur-sm border border-white/20"
                     >
@@ -208,34 +208,28 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <Tabs value={currentView} onValueChange={(value: any) => setCurrentView(value)} className="space-y-6">
                 <TabsList className="grid w-full grid-cols-4 p-1.5 bg-gradient-to-r from-admin-surface to-admin-secondary border-2 border-border rounded-xl h-12">
-                    <TabsTrigger 
-                        value="manage" 
+                    <TabsTrigger
+                        value="manage"
                         className="flex items-center space-x-2 h-9 rounded-lg font-medium text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
                     >
                         <Users className="w-4 h-4" />
                         <span>Manage Bookings</span>
                     </TabsTrigger>
-                    <TabsTrigger 
-                        value="analytics" 
+                    <TabsTrigger
+                        value="analytics"
                         className="flex items-center space-x-2 h-9 rounded-lg font-medium text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
                     >
                         <TrendingUp className="w-4 h-4" />
                         <span>Analytics</span>
                     </TabsTrigger>
-                    <TabsTrigger 
-                        value="dashboard" 
+                    <TabsTrigger
+                        value="dashboard"
                         className="flex items-center space-x-2 h-9 rounded-lg font-medium text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
                     >
                         <BarChart3 className="w-4 h-4" />
                         <span>Dashboard</span>
                     </TabsTrigger>
-                    <TabsTrigger 
-                        value="settings" 
-                        className="flex items-center space-x-2 h-9 rounded-lg font-medium text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
-                    >
-                        <Settings className="w-4 h-4" />
-                        <span>Settings</span>
-                    </TabsTrigger>
+
                 </TabsList>
 
                 <TabsContent value="manage" className="space-y-6">
@@ -250,9 +244,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                     {renderDashboardView()}
                 </TabsContent>
 
-                <TabsContent value="settings" className="space-y-6">
-                    {renderSettingsView()}
-                </TabsContent>
+
             </Tabs>
         </motion.div>
     );
@@ -261,8 +253,8 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
         return (
             <div className="space-y-6">
                 {/* Enhanced Stats Bar with Manual Booking */}
-                <motion.div 
-                    initial={{ opacity: 0, y: 20 }} 
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="flex flex-wrap items-center justify-between gap-4 p-6 bg-gradient-to-r from-admin-surface/50 to-admin-secondary/50 rounded-xl border border-border/50 backdrop-blur-sm"
                 >
@@ -280,7 +272,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                             {stats?.confirmedBookings || 0} Confirmed
                         </Badge>
                     </div>
-                    
+
                     <div className="flex items-center gap-3">
                         {/* Manual Booking Form - Integrated */}
                         <ManualBookingForm
@@ -292,10 +284,10 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                                 </Button>
                             }
                         />
-                        
-                        <Button 
+
+                        <Button
                             onClick={loadData}
-                            variant="outline" 
+                            variant="outline"
                             size="sm"
                             className="h-10 px-4 border-border/50 hover:border-primary/50 hover:bg-primary/5 text-muted-foreground hover:text-foreground transition-all duration-200"
                         >
@@ -337,21 +329,21 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
     const renderDashboardView = () => {
         // Prepare data for the big sector chart
         const sectorChartData = [
-            { 
-                name: 'Confirmed Bookings', 
-                value: stats?.confirmedBookings || 0, 
+            {
+                name: 'Confirmed Bookings',
+                value: stats?.confirmedBookings || 0,
                 color: 'hsl(var(--status-success))',
                 percentage: (((stats?.confirmedBookings || 0) / Math.max(stats?.totalBookings || 1, 1) * 100) || 0).toFixed(1)
             },
-            { 
-                name: 'Pending Bookings', 
-                value: stats?.pendingBookings || 0, 
+            {
+                name: 'Pending Bookings',
+                value: stats?.pendingBookings || 0,
                 color: 'hsl(var(--status-warning))',
                 percentage: (((stats?.pendingBookings || 0) / Math.max(stats?.totalBookings || 1, 1) * 100) || 0).toFixed(1)
             },
-            { 
-                name: 'Cancelled Bookings', 
-                value: stats?.cancelledBookings || 0, 
+            {
+                name: 'Cancelled Bookings',
+                value: stats?.cancelledBookings || 0,
                 color: 'hsl(var(--status-error))',
                 percentage: (((stats?.cancelledBookings || 0) / Math.max(stats?.totalBookings || 1, 1) * 100) || 0).toFixed(1)
             },
@@ -452,7 +444,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                                                 <Cell key={`cell-${index}`} fill={entry.color} />
                                             ))}
                                         </Pie>
-                                        <Tooltip 
+                                        <Tooltip
                                             contentStyle={{
                                                 backgroundColor: 'hsl(var(--background))',
                                                 border: '1px solid hsl(var(--border))',
@@ -474,7 +466,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                                     <h3 className="text-2xl font-bold text-foreground mb-2">Booking Distribution</h3>
                                     <p className="text-muted-foreground">Real-time analysis of your tennis court bookings</p>
                                 </div>
-                                
+
                                 <div className="space-y-4">
                                     {sectorChartData.map((item, index) => (
                                         <motion.div
@@ -485,7 +477,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                                             className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-background/50 to-background/30 border border-border/50 hover:border-border transition-all duration-200"
                                         >
                                             <div className="flex items-center space-x-3">
-                                                <div 
+                                                <div
                                                     className="w-4 h-4 rounded-full shadow-lg"
                                                     style={{ backgroundColor: item.color }}
                                                 />
@@ -519,47 +511,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
         );
     };
 
-    const renderSettingsView = () => (
-        <Card className="border-0 shadow-xl bg-card/90 backdrop-blur-sm">
-            <CardHeader>
-                <CardTitle className="flex items-center text-2xl font-bold">
-                    <Settings className="w-7 h-7 mr-3 text-primary" />
-                    Booking Management Settings
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-6">
-                        <h3 className="text-lg font-semibold text-foreground">Auto-Approval Settings</h3>
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between p-4 bg-admin-surface rounded-xl border border-border">
-                                <span className="font-medium">Auto-approve trusted users</span>
-                                <input type="checkbox" className="rounded w-5 h-5" />
-                            </div>
-                            <div className="flex items-center justify-between p-4 bg-admin-surface rounded-xl border border-border">
-                                <span className="font-medium">Auto-approve off-peak hours</span>
-                                <input type="checkbox" className="rounded w-5 h-5" />
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div className="space-y-6">
-                        <h3 className="text-lg font-semibold text-foreground">Notification Settings</h3>
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between p-4 bg-admin-surface rounded-xl border border-border">
-                                <span className="font-medium">Email notifications</span>
-                                <input type="checkbox" className="rounded w-5 h-5" defaultChecked />
-                            </div>
-                            <div className="flex items-center justify-between p-4 bg-admin-surface rounded-xl border border-border">
-                                <span className="font-medium">SMS notifications</span>
-                                <input type="checkbox" className="rounded w-5 h-5" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
-    );
+
 
     // ================================
     // 🎨 MAIN RENDER
@@ -573,7 +525,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
             {/* Success/Error Messages */}
             <AnimatePresence>
                 {(success || error) && (
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
@@ -587,7 +539,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                                 </AlertDescription>
                             </Alert>
                         )}
-                        
+
                         {error && (
                             <Alert className="bg-status-error/10 border-status-error/20 mb-4">
                                 <AlertTriangle className="h-5 w-5 text-status-error" />

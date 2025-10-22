@@ -12,13 +12,13 @@ import { CurrencyDisplay } from '@/components/ui/currency-display';
 import { format } from 'date-fns';
 import {
     CalendarIcon, Clock, Users, MapPin, Filter, Search, RefreshCw,
-    CheckCircle, XCircle, Eye, Edit, Trash2, MoreVertical,
+    CheckCircle, XCircle,
     ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
     TrendingUp, Activity, Crown, Sparkles, Building2,
     Mail, Phone, AlertCircle, Award, Zap
 } from 'lucide-react';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+
 import { formatDateTime, calculateDuration } from '@/utils';
 import { getStatusColor, getStatusIcon } from '@/utils/bookingUtils';
 
@@ -507,27 +507,7 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                                                                      </Button>
                                                                  </>
                                                              )}
-                                                             <DropdownMenu>
-                                                                 <DropdownMenuTrigger asChild>
-                                                                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-md border border-transparent hover:border-primary/20 hover:bg-primary/5">
-                                                                         <MoreVertical className="w-4 h-4" />
-                                                                     </Button>
-                                                                 </DropdownMenuTrigger>
-                                                                 <DropdownMenuContent align="end" className="w-40">
-                                                                     <DropdownMenuItem className="py-2 text-xs">
-                                                                         <Eye className="w-3 h-3 mr-2" />
-                                                                         View
-                                                                     </DropdownMenuItem>
-                                                                     <DropdownMenuItem className="py-2 text-xs">
-                                                                         <Edit className="w-3 h-3 mr-2" />
-                                                                         Edit
-                                                                     </DropdownMenuItem>
-                                                                     <DropdownMenuItem className="py-2 text-xs text-destructive">
-                                                                         <Trash2 className="w-3 h-3 mr-2" />
-                                                                         Delete
-                                                                     </DropdownMenuItem>
-                                                                 </DropdownMenuContent>
-                                                             </DropdownMenu>
+
                                                          </div>
                                                      </TableCell>
                                                 </motion.tr>

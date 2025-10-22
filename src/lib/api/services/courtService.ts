@@ -118,7 +118,7 @@ class CourtService {
         const url = new URL(`${this.baseUrl}/paged`);
         url.searchParams.set('page', String(Math.max(0, page)));
         url.searchParams.set('size', String(Math.min(100, Math.max(1, size))));
-        
+
         const response = await fetch(url.toString(), {
             method: 'GET',
             headers: this.getAuthHeaders()
@@ -157,7 +157,7 @@ class CourtService {
         if (file) {
             // Multipart path with image
             const fd = new FormData();
-            
+
             // Append scalar fields
             const appendIf = (k: string, v: any) => {
                 if (v === undefined || v === null) return;
@@ -192,14 +192,14 @@ class CourtService {
                 headers: { Authorization: `Bearer ${token}` },
                 body: fd
             });
-            
+
             if (!response.ok) {
                 const error = await response.json().catch(() => ({ message: response.statusText }));
                 // Handle different error response formats
                 const errorMessage = error.message || error.errorCode || error.error || `Failed to create court: ${response.statusText}`;
                 throw new Error(errorMessage);
             }
-            
+
             return response.json();
         } else {
             // JSON path without image
@@ -230,7 +230,7 @@ class CourtService {
         if (file) {
             // Multipart path
             const fd = new FormData();
-            
+
             // Append scalar fields if defined
             const appendIf = (k: string, v: any) => {
                 if (v === undefined || v === null) return;
@@ -252,9 +252,9 @@ class CourtService {
                 data.amenities.forEach(a => fd.append("amenities", a));
             }
 
-            // Manager (SUPER_ADMIN)
-            if (data.manager_id != null) {
-                fd.append("manager_id", String(data.manager_id));
+            // Manager (SUPER_ADMIN) - explicitly handle null to remove manager
+            if (data.manager_id !== undefined) {
+                fd.append("manager_id", data.manager_id === null ? "0" : String(data.manager_id));
             }
 
             // File part must be "image"
@@ -265,33 +265,33 @@ class CourtService {
                 headers: { Authorization: `Bearer ${token}` },
                 body: fd
             });
-            
+
             if (!res.ok) {
                 const error = await res.json().catch(() => ({ message: res.statusText }));
                 // Handle different error response formats
                 const errorMessage = error.message || error.errorCode || error.error || `Failed to update court: ${res.statusText}`;
                 throw new Error(errorMessage);
             }
-            
+
             return res.json();
         } else {
             // JSON path
             const res = await fetch(url, {
                 method: "PUT",
-                headers: { 
-                    Authorization: `Bearer ${token}`, 
-                    "Content-Type": "application/json" 
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json"
                 },
                 body: JSON.stringify(data)
             });
-            
+
             if (!res.ok) {
                 const error = await res.json().catch(() => ({ message: res.statusText }));
                 // Handle different error response formats
                 const errorMessage = error.message || error.errorCode || error.error || `Failed to update court: ${res.statusText}`;
                 throw new Error(errorMessage);
             }
-            
+
             return res.json();
         }
     }
@@ -415,7 +415,7 @@ class CourtService {
     async searchCourts(query: string): Promise<Court[]> {
         const url = new URL(`${this.baseUrl}/search`);
         url.searchParams.set('q', query);
-        
+
         const response = await fetch(url.toString(), {
             method: 'GET',
             headers: this.getAuthHeaders()
@@ -561,7 +561,7 @@ class CourtService {
         }
 
         const rawData = await response.json();
-        
+
         // Backend now returns real IDs - use them for edit/delete operations
         return rawData.map((item: any) => ({
             id: parseInt(item.id), // Use real database ID from backend
@@ -588,7 +588,7 @@ class CourtService {
         }
 
         const rawData = await response.json();
-        
+
         // Transform the backend response to match UnavailabilityRow interface
         return rawData.map((item: any) => ({
             id: item.id,              // Use real database ID from backend
