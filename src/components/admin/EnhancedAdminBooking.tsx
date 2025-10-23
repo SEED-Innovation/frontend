@@ -53,33 +53,33 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
 
             const matchesStatus = statusFilter === 'all' || booking.status === statusFilter;
             const matchesCourt = courtFilter === 'all' || booking.court?.id?.toString() === courtFilter;
-            
+
             // Enhanced date filtering with better logic
             const matchesDate = (() => {
                 if (!startDate && !endDate) return true;
-                
+
                 try {
                     const bookingDate = new Date(booking.startTime);
                     if (isNaN(bookingDate.getTime())) return false;
-                    
+
                     // Reset time to start of day for accurate comparison
                     const bookingDateOnly = new Date(bookingDate.getFullYear(), bookingDate.getMonth(), bookingDate.getDate());
-                    
+
                     let startDateOnly = null;
                     let endDateOnly = null;
-                    
+
                     if (startDate) {
                         startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
                     }
-                    
+
                     if (endDate) {
                         endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
                         endDateOnly.setHours(23, 59, 59, 999); // End of day
                     }
-                    
+
                     const isAfterStart = !startDateOnly || bookingDateOnly >= startDateOnly;
                     const isBeforeEnd = !endDateOnly || bookingDateOnly <= endDateOnly;
-                    
+
                     return isAfterStart && isBeforeEnd;
                 } catch (error) {
                     console.error('Date filtering error:', error);
@@ -95,14 +95,14 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
     const paginatedBookings = useMemo(() => {
         const startIndex = currentPage * pageSize;
         const endIndex = startIndex + pageSize;
-        
+
         // For large datasets (>1000), implement virtual scrolling
         if (filteredBookings.length > 1000) {
             // Only render visible items + buffer
             const bufferSize = 20;
             const visibleStart = Math.max(0, startIndex - bufferSize);
             const visibleEnd = Math.min(filteredBookings.length, endIndex + bufferSize);
-            
+
             return {
                 items: filteredBookings.slice(visibleStart, visibleEnd),
                 startIndex: visibleStart,
@@ -110,7 +110,7 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                 isVirtualized: true
             };
         }
-        
+
         return {
             items: filteredBookings.slice(startIndex, endIndex),
             startIndex,
@@ -144,7 +144,7 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                     <CardContent>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
-                            
+
                             <Select value={statusFilter} onValueChange={setStatusFilter}>
                                 <SelectTrigger className="h-10 border border-border hover:border-primary/50 rounded-lg bg-background/50 font-medium text-sm">
                                     <SelectValue placeholder="Filter by Status" />
@@ -157,7 +157,7 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                                     <SelectItem value="REJECTED">🚫 Rejected</SelectItem>
                                 </SelectContent>
                             </Select>
-                            
+
                             <Select value={courtFilter} onValueChange={setCourtFilter}>
                                 <SelectTrigger className="h-10 border border-border hover:border-primary/50 rounded-lg bg-background/50 font-medium text-sm">
                                     <SelectValue placeholder="Filter by Court" />
@@ -169,15 +169,15 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                                             <div className="flex items-center space-x-2 py-1">
                                                 <div className="relative w-6 h-6 rounded-md overflow-hidden bg-muted flex-shrink-0">
                                                     {court.imageUrl ? (
-                                                        <img 
-                                                            src={court.imageUrl} 
+                                                        <img
+                                                            src={court.imageUrl}
                                                             alt={court.name}
                                                             className="w-full h-full object-cover"
-                                                             onError={(e) => {
-                                                                 e.currentTarget.style.display = 'none';
-                                                                 const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-                                                                 if (fallback) fallback.style.display = 'flex';
-                                                             }}
+                                                            onError={(e) => {
+                                                                e.currentTarget.style.display = 'none';
+                                                                const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                                                                if (fallback) fallback.style.display = 'flex';
+                                                            }}
                                                         />
                                                     ) : null}
                                                     <div className={`absolute inset-0 flex items-center justify-center ${court.imageUrl ? 'hidden' : 'flex'}`}>
@@ -215,7 +215,7 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0" align="start">
                                     <div className="p-4 space-y-4">
-                                         <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-2">
                                                 <label className="text-sm font-medium">Start Date</label>
                                                 <Calendar
@@ -270,9 +270,9 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                                     </div>
                                 </PopoverContent>
                             </Popover>
-                            
-                            <Button 
-                                onClick={onRefresh} 
+
+                            <Button
+                                onClick={onRefresh}
                                 className="h-10 bg-gradient-to-r from-primary to-admin-accent hover:from-primary/90 hover:to-admin-accent/90 text-primary-foreground font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 text-sm"
                             >
                                 <RefreshCw className="w-5 h-5 mr-2" />
@@ -302,12 +302,12 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                             </div>
                         </div>
                     </CardHeader>
-                    
+
                     <CardContent className="p-0">
                         {isLoading ? (
                             <div className="flex flex-col items-center justify-center py-32">
-                                <motion.div 
-                                    animate={{ rotate: 360 }} 
+                                <motion.div
+                                    animate={{ rotate: 360 }}
                                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                                     className="p-4 bg-primary/10 rounded-full mb-8"
                                 >
@@ -330,183 +330,182 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                                         </p>
                                     </div>
                                 )}
-                                
+
                                 <div className="overflow-x-auto">
                                     <Table>
                                         <TableHeader>
                                             <TableRow className="bg-gradient-to-r from-admin-surface via-admin-secondary to-admin-surface border-b-2 border-border">
-                                                 <TableHead className="font-bold text-foreground py-3 text-sm">
-                                                     <div className="flex items-center space-x-2">
-                                                         <Users className="w-4 h-4 text-primary" />
-                                                         <span>User & Details</span>
-                                                     </div>
-                                                 </TableHead>
-                                                 <TableHead className="font-bold text-foreground py-3 text-sm">
-                                                     <div className="flex items-center space-x-2">
-                                                         <MapPin className="w-4 h-4 text-primary" />
-                                                         <span>Court & Schedule</span>
-                                                     </div>
-                                                 </TableHead>
-                                                 <TableHead className="font-bold text-foreground py-3 text-sm">
-                                                     <div className="flex items-center space-x-2">
-                                                         <Award className="w-4 h-4 text-primary" />
-                                                         <span>Status & Payment</span>
-                                                     </div>
-                                                 </TableHead>
-                                                 <TableHead className="font-bold text-foreground py-3 text-sm text-right">
-                                                     <div className="flex items-center justify-end space-x-2">
-                                                         <Zap className="w-4 h-4 text-primary" />
-                                                         <span>Actions</span>
-                                                     </div>
-                                                 </TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                     <TableBody>
-                                         <AnimatePresence>
-                                             {paginatedBookings.items?.map((booking, index) => (
-                                                <motion.tr
-                                                    key={booking.id}
-                                                    initial={{ opacity: 0, y: 20 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    exit={{ opacity: 0, y: -20 }}
-                                                    transition={{ delay: index * 0.05 }}
-                                                    className="hover:bg-gradient-to-r hover:from-primary/5 hover:to-admin-accent/5 transition-all duration-300 border-b border-border/50"
-                                                >
-                                                     <TableCell className="py-4">
-                                                         <div className="flex items-center space-x-3">
-                                                             <div className="relative">
-                                                                 <div className="w-12 h-12 rounded-xl overflow-hidden shadow-md">
-                                                                     {booking.user?.profilePictureUrl ? (
-                                                                         <img 
-                                                                             src={booking.user.profilePictureUrl} 
-                                                                             alt={`${booking.user.fullName || 'User'} profile`}
-                                                                             className="h-full w-full object-cover"
-                                                                             onError={(e) => {
-                                                                                 const target = e.target as HTMLImageElement;
-                                                                                 target.style.display = 'none';
-                                                                                 const fallback = target.parentElement?.querySelector('.fallback-avatar');
-                                                                                 if (fallback) fallback.classList.remove('hidden');
-                                                                             }}
-                                                                         />
-                                                                     ) : null}
-                                                                     <div className={`w-full h-full bg-gradient-to-br from-primary to-admin-accent rounded-xl flex items-center justify-center text-white font-bold text-sm fallback-avatar ${booking.user?.profilePictureUrl ? 'hidden' : ''}`}>
-                                                                         {booking.user?.fullName?.charAt(0) || booking.user?.email?.charAt(0) || 'U'}
-                                                                     </div>
-                                                                 </div>
-                                                                 <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-admin-accent rounded-full flex items-center justify-center">
-                                                                     <Users className="w-2 h-2 text-white" />
-                                                                 </div>
-                                                             </div>
-                                                             <div className="space-y-0.5">
-                                                                 <p className="font-bold text-foreground text-sm">
-                                                                     {booking.user?.fullName || 'Unknown User'}
-                                                                 </p>
-                                                                 <div className="flex items-center text-xs text-muted-foreground">
-                                                                     <Mail className="w-3 h-3 mr-1.5" />
-                                                                     {booking.user?.email || 'No email'}
-                                                                 </div>
-                                                                 <div className="flex items-center text-xs text-muted-foreground">
-                                                                     <span className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">ID: {booking.id}</span>
-                                                                 </div>
-                                                             </div>
-                                                         </div>
-                                                     </TableCell>
-                                                    
-                                                     <TableCell className="py-4">
-                                                         <div className="space-y-2">
-                                                             <div className="flex items-center space-x-2">
-                                                                 <div className="w-8 h-8 rounded-md overflow-hidden">
-                                                                     {booking.court?.imageUrl ? (
-                                                                         <img 
-                                                                             src={booking.court.imageUrl} 
-                                                                             alt={`${booking.court.name} court`}
-                                                                             className="h-full w-full object-cover"
-                                                                             onError={(e) => {
-                                                                                 const target = e.target as HTMLImageElement;
-                                                                                 target.style.display = 'none';
-                                                                                 const fallback = target.parentElement?.querySelector('.fallback-court');
-                                                                                 if (fallback) fallback.classList.remove('hidden');
-                                                                             }}
-                                                                         />
-                                                                     ) : null}
-                                                                     <div className={`w-full h-full bg-primary/10 rounded-md flex items-center justify-center fallback-court ${booking.court?.imageUrl ? 'hidden' : ''}`}>
-                                                                         <Building2 className="w-3 h-3 text-primary" />
-                                                                     </div>
-                                                                 </div>
-                                                                 <p className="font-bold text-foreground text-sm">{booking.court?.name}</p>
-                                                             </div>
-                                                             <div className="space-y-1">
-                                                                 <div className="flex items-center text-xs text-muted-foreground">
-                                                                     <CalendarIcon className="w-3 h-3 mr-1.5 text-admin-accent" />
-                                                                     {formatDateTime(booking.startTime)}
-                                                                 </div>
-                                                                 <div className="flex items-center text-xs text-muted-foreground">
-                                                                     <Clock className="w-3 h-3 mr-1.5 text-admin-accent" />
-                                                                     {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
-                                                                 </div>
-                                                             </div>
-                                                         </div>
-                                                     </TableCell>
-                                                    
-                                                     <TableCell className="py-4">
-                                                         <div className="space-y-2">
-                                                             <Badge 
-                                                                 className={`text-xs px-2 py-1 font-semibold rounded ${
-                                                                     booking.status === 'APPROVED' 
-                                                                         ? 'bg-status-success/10 text-status-success border-status-success/20' 
-                                                                         : booking.status === 'PENDING' 
-                                                                         ? 'bg-status-pending/10 text-status-pending border-status-pending/20' 
-                                                                         : 'bg-status-error/10 text-status-error border-status-error/20'
-                                                                 }`}
-                                                             >
-                                                                 {getStatusIcon(booking.status)} {booking.status}
-                                                             </Badge>
-                                                             <div className="flex items-center">
-                                                                 <CurrencyDisplay 
-                                                                     amount={calculateDuration(booking.startTime, booking.endTime) * (booking.court?.hourlyFee || 0)}
-                                                                     size="sm"
-                                                                     className="text-foreground font-bold text-sm"
-                                                                 />
-                                                             </div>
-                                                         </div>
-                                                     </TableCell>
-                                                    
-                                                     <TableCell className="py-4 text-right">
-                                                         <div className="flex items-center justify-end space-x-1.5">
-                                                             {booking.status === 'PENDING' && (
-                                                                 <>
-                                                                     <Button 
-                                                                         onClick={() => onApprove(booking.id)} 
-                                                                         size="sm" 
-                                                                         className="bg-gradient-to-r from-status-success to-status-success/80 hover:from-status-success/90 hover:to-status-success/70 text-white font-semibold px-2 py-1 rounded text-xs shadow-sm hover:shadow-md transition-all duration-200"
-                                                                     >
-                                                                         <CheckCircle className="w-3 h-3 mr-1" />
-                                                                         Approve
-                                                                     </Button>
-                                                                     <Button 
-                                                                         onClick={() => onReject(booking.id, 'Admin rejection')} 
-                                                                         variant="destructive" 
-                                                                         size="sm"
-                                                                         className="bg-gradient-to-r from-status-error to-status-error/80 hover:from-status-error/90 hover:to-status-error/70 font-semibold px-2 py-1 rounded text-xs shadow-sm hover:shadow-md transition-all duration-200"
-                                                                     >
-                                                                         <XCircle className="w-3 h-3 mr-1" />
-                                                                         Reject
-                                                                     </Button>
-                                                                 </>
-                                                             )}
+                                                <TableHead className="font-bold text-foreground py-3 text-sm">
+                                                    <div className="flex items-center space-x-2">
+                                                        <Users className="w-4 h-4 text-primary" />
+                                                        <span>User & Details</span>
+                                                    </div>
+                                                </TableHead>
+                                                <TableHead className="font-bold text-foreground py-3 text-sm">
+                                                    <div className="flex items-center space-x-2">
+                                                        <MapPin className="w-4 h-4 text-primary" />
+                                                        <span>Court & Schedule</span>
+                                                    </div>
+                                                </TableHead>
+                                                <TableHead className="font-bold text-foreground py-3 text-sm">
+                                                    <div className="flex items-center space-x-2">
+                                                        <Award className="w-4 h-4 text-primary" />
+                                                        <span>Status & Payment</span>
+                                                    </div>
+                                                </TableHead>
+                                                <TableHead className="font-bold text-foreground py-3 text-sm text-right">
+                                                    <div className="flex items-center justify-end space-x-2">
+                                                        <Zap className="w-4 h-4 text-primary" />
+                                                        <span>Actions</span>
+                                                    </div>
+                                                </TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            <AnimatePresence>
+                                                {paginatedBookings.items?.map((booking, index) => (
+                                                    <motion.tr
+                                                        key={booking.id}
+                                                        initial={{ opacity: 0, y: 20 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        exit={{ opacity: 0, y: -20 }}
+                                                        transition={{ delay: index * 0.05 }}
+                                                        className="hover:bg-gradient-to-r hover:from-primary/5 hover:to-admin-accent/5 transition-all duration-300 border-b border-border/50"
+                                                    >
+                                                        <TableCell className="py-4">
+                                                            <div className="flex items-center space-x-3">
+                                                                <div className="relative">
+                                                                    <div className="w-12 h-12 rounded-xl overflow-hidden shadow-md">
+                                                                        {booking.user?.profilePictureUrl ? (
+                                                                            <img
+                                                                                src={booking.user.profilePictureUrl}
+                                                                                alt={`${booking.user.fullName || 'User'} profile`}
+                                                                                className="h-full w-full object-cover"
+                                                                                onError={(e) => {
+                                                                                    const target = e.target as HTMLImageElement;
+                                                                                    target.style.display = 'none';
+                                                                                    const fallback = target.parentElement?.querySelector('.fallback-avatar');
+                                                                                    if (fallback) fallback.classList.remove('hidden');
+                                                                                }}
+                                                                            />
+                                                                        ) : null}
+                                                                        <div className={`w-full h-full bg-gradient-to-br from-primary to-admin-accent rounded-xl flex items-center justify-center text-white font-bold text-sm fallback-avatar ${booking.user?.profilePictureUrl ? 'hidden' : ''}`}>
+                                                                            {booking.user?.fullName?.charAt(0) || booking.user?.email?.charAt(0) || 'U'}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-admin-accent rounded-full flex items-center justify-center">
+                                                                        <Users className="w-2 h-2 text-white" />
+                                                                    </div>
+                                                                </div>
+                                                                <div className="space-y-0.5">
+                                                                    <p className="font-bold text-foreground text-sm">
+                                                                        {booking.user?.fullName || 'Unknown User'}
+                                                                    </p>
+                                                                    <div className="flex items-center text-xs text-muted-foreground">
+                                                                        <Mail className="w-3 h-3 mr-1.5" />
+                                                                        {booking.user?.email || 'No email'}
+                                                                    </div>
+                                                                    <div className="flex items-center text-xs text-muted-foreground">
+                                                                        <span className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">ID: {booking.id}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </TableCell>
 
-                                                         </div>
-                                                     </TableCell>
-                                                </motion.tr>
-                                            ))}
-                                        </AnimatePresence>
-                                    </TableBody>
-                                 </Table>
-                            </div>
+                                                        <TableCell className="py-4">
+                                                            <div className="space-y-2">
+                                                                <div className="flex items-center space-x-2">
+                                                                    <div className="w-8 h-8 rounded-md overflow-hidden">
+                                                                        {booking.court?.imageUrl ? (
+                                                                            <img
+                                                                                src={booking.court.imageUrl}
+                                                                                alt={`${booking.court.name} court`}
+                                                                                className="h-full w-full object-cover"
+                                                                                onError={(e) => {
+                                                                                    const target = e.target as HTMLImageElement;
+                                                                                    target.style.display = 'none';
+                                                                                    const fallback = target.parentElement?.querySelector('.fallback-court');
+                                                                                    if (fallback) fallback.classList.remove('hidden');
+                                                                                }}
+                                                                            />
+                                                                        ) : null}
+                                                                        <div className={`w-full h-full bg-primary/10 rounded-md flex items-center justify-center fallback-court ${booking.court?.imageUrl ? 'hidden' : ''}`}>
+                                                                            <Building2 className="w-3 h-3 text-primary" />
+                                                                        </div>
+                                                                    </div>
+                                                                    <p className="font-bold text-foreground text-sm">{booking.court?.name}</p>
+                                                                </div>
+                                                                <div className="space-y-1">
+                                                                    <div className="flex items-center text-xs text-muted-foreground">
+                                                                        <CalendarIcon className="w-3 h-3 mr-1.5 text-admin-accent" />
+                                                                        {formatDateTime(booking.startTime)}
+                                                                    </div>
+                                                                    <div className="flex items-center text-xs text-muted-foreground">
+                                                                        <Clock className="w-3 h-3 mr-1.5 text-admin-accent" />
+                                                                        {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </TableCell>
+
+                                                        <TableCell className="py-4">
+                                                            <div className="space-y-2">
+                                                                <Badge
+                                                                    className={`text-xs px-2 py-1 font-semibold rounded ${booking.status === 'APPROVED'
+                                                                        ? 'bg-status-success/10 text-status-success border-status-success/20'
+                                                                        : booking.status === 'PENDING'
+                                                                            ? 'bg-status-pending/10 text-status-pending border-status-pending/20'
+                                                                            : 'bg-status-error/10 text-status-error border-status-error/20'
+                                                                        }`}
+                                                                >
+                                                                    {getStatusIcon(booking.status)} {booking.status}
+                                                                </Badge>
+                                                                <div className="flex items-center">
+                                                                    <CurrencyDisplay
+                                                                        amount={calculateDuration(booking.startTime, booking.endTime) * (booking.court?.hourlyFee || 0)}
+                                                                        size="sm"
+                                                                        className="text-foreground font-bold text-sm"
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </TableCell>
+
+                                                        <TableCell className="py-4 text-right">
+                                                            <div className="flex items-center justify-end space-x-1.5">
+                                                                {booking.status === 'PENDING' && (
+                                                                    <>
+                                                                        <Button
+                                                                            onClick={() => onApprove(booking.id)}
+                                                                            size="sm"
+                                                                            className="bg-gradient-to-r from-status-success to-status-success/80 hover:from-status-success/90 hover:to-status-success/70 text-white font-semibold px-2 py-1 rounded text-xs shadow-sm hover:shadow-md transition-all duration-200"
+                                                                        >
+                                                                            <CheckCircle className="w-3 h-3 mr-1" />
+                                                                            Approve
+                                                                        </Button>
+                                                                        <Button
+                                                                            onClick={() => onReject(booking.id, 'Admin rejection')}
+                                                                            variant="destructive"
+                                                                            size="sm"
+                                                                            className="bg-gradient-to-r from-status-error to-status-error/80 hover:from-status-error/90 hover:to-status-error/70 font-semibold px-2 py-1 rounded text-xs shadow-sm hover:shadow-md transition-all duration-200"
+                                                                        >
+                                                                            <XCircle className="w-3 h-3 mr-1" />
+                                                                            Reject
+                                                                        </Button>
+                                                                    </>
+                                                                )}
+
+                                                            </div>
+                                                        </TableCell>
+                                                    </motion.tr>
+                                                ))}
+                                            </AnimatePresence>
+                                        </TableBody>
+                                    </Table>
+                                </div>
                             </>
                         )}
                     </CardContent>
-                    
+
                     {/* Enhanced Pagination */}
                     {!isLoading && totalPages > 1 && (
                         <div className="border-t border-border/50 bg-gradient-to-r from-admin-surface to-admin-secondary p-6">
@@ -519,15 +518,15 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                                         <SelectTrigger className="w-24 h-10">
                                             <SelectValue />
                                         </SelectTrigger>
-                                         <SelectContent>
-                                             <SelectItem value="10">10</SelectItem>
-                                             <SelectItem value="20">20</SelectItem>
-                                             <SelectItem value="50">50</SelectItem>
-                                             <SelectItem value="100">100</SelectItem>
-                                         </SelectContent>
+                                        <SelectContent>
+                                            <SelectItem value="10">10</SelectItem>
+                                            <SelectItem value="20">20</SelectItem>
+                                            <SelectItem value="50">50</SelectItem>
+                                            <SelectItem value="100">100</SelectItem>
+                                        </SelectContent>
                                     </Select>
                                 </div>
-                                
+
                                 <div className="flex items-center space-x-2">
                                     <Button
                                         variant="outline"
@@ -547,7 +546,7 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                                     >
                                         <ChevronLeft className="w-4 h-4" />
                                     </Button>
-                                    
+
                                     <div className="flex items-center space-x-1">
                                         {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                                             const pageNumber = Math.max(0, Math.min(totalPages - 5, currentPage - 2)) + i;
@@ -564,7 +563,7 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                                             );
                                         })}
                                     </div>
-                                    
+
                                     <Button
                                         variant="outline"
                                         size="sm"

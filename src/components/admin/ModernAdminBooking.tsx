@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    ClipboardList, CheckCircle, Clock, XCircle, Search, Filter, RefreshCw, 
+    ClipboardList, CheckCircle, Clock, XCircle, Filter, RefreshCw, 
     Users, MapPin, DollarSign, Calendar, Mail, Crown, Sparkles, Zap,
     Eye, Edit, Trash2, MoreVertical, ChevronLeft, ChevronRight,
     ChevronsLeft, ChevronsRight, TrendingUp, Settings
@@ -30,7 +30,7 @@ interface ModernAdminBookingProps {
 export const ModernAdminBooking: React.FC<ModernAdminBookingProps> = ({
     bookings, stats, courts, isLoading, onApprove, onReject, onCancel, onRefresh
 }) => {
-    const [searchTerm, setSearchTerm] = useState('');
+
     const [statusFilter, setStatusFilter] = useState('all');
     const [dateFilter, setDateFilter] = useState('all');
     const [courtFilter, setCourtFilter] = useState('all');
