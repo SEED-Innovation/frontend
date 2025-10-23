@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Search, Menu, LogOut } from 'lucide-react';
+import { Menu, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
@@ -36,13 +36,7 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar, collapsed })
           <Menu className="w-5 h-5" />
         </Button>
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder="Search bookings, players..."
-            className="pl-10 w-64"
-          />
-        </div>
+
       </div>
 
       <div className="flex items-center space-x-4">

@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CurrencyDisplay } from '@/components/ui/currency-display';
 import { format } from 'date-fns';
 import {
-    CalendarIcon, Clock, Users, MapPin, Filter, Search, RefreshCw,
+    CalendarIcon, Clock, Users, MapPin, Filter, RefreshCw,
     CheckCircle, XCircle,
     ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
     TrendingUp, Activity, Crown, Sparkles, Building2,
@@ -36,7 +36,7 @@ interface EnhancedAdminBookingProps {
 export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
     bookings, stats, courts, isLoading, onApprove, onReject, onCancel, onRefresh
 }) => {
-    const [searchTerm, setSearchTerm] = useState('');
+
     const [statusFilter, setStatusFilter] = useState('all');
     const [dateFilter, setDateFilter] = useState('all');
     const [courtFilter, setCourtFilter] = useState('all');
@@ -49,10 +49,7 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
     // Enhanced filtering logic
     const filteredBookings = useMemo(() => {
         return bookings.filter(booking => {
-            const matchesSearch = !searchTerm || 
-                booking.user?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                booking.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                booking.court?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesSearch = true;
 
             const matchesStatus = statusFilter === 'all' || booking.status === statusFilter;
             const matchesCourt = courtFilter === 'all' || booking.court?.id?.toString() === courtFilter;
@@ -92,7 +89,7 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
 
             return matchesSearch && matchesStatus && matchesCourt && matchesDate;
         });
-    }, [bookings, searchTerm, statusFilter, courtFilter, startDate, endDate]);
+    }, [bookings, statusFilter, courtFilter, startDate, endDate]);
 
     // Smart pagination with virtual scrolling for large datasets
     const paginatedBookings = useMemo(() => {
@@ -145,18 +142,8 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-                            <div className="lg:col-span-2">
-                                <div className="relative group">
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 transition-colors group-hover:text-primary" />
-                                    <Input
-                                        placeholder="Search bookings, users, courts..."
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="pl-10 h-10 border border-border hover:border-primary/50 focus:border-primary rounded-lg bg-background/50 text-sm font-medium transition-all duration-200"
-                                    />
-                                </div>
-                            </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
                             
                             <Select value={statusFilter} onValueChange={setStatusFilter}>
                                 <SelectTrigger className="h-10 border border-border hover:border-primary/50 rounded-lg bg-background/50 font-medium text-sm">
