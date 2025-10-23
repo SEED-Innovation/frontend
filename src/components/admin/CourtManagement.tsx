@@ -645,12 +645,30 @@ const CourtManagement = () => {
       </div>
 
       <Tabs defaultValue="courts" className="space-y-6">
-        <TabsList className={`grid w-full ${hasPermission('SUPER_ADMIN') ? 'grid-cols-3' : 'grid-cols-1'}`}>
-          <TabsTrigger value="courts">Courts</TabsTrigger>
+        <TabsList className={`grid w-full p-2 bg-gradient-to-r from-admin-surface to-admin-secondary border-2 border-border rounded-xl h-16 ${hasPermission('SUPER_ADMIN') ? 'grid-cols-3' : 'grid-cols-1'}`}>
+          <TabsTrigger 
+            value="courts" 
+            className="flex items-center space-x-2 h-12 rounded-lg font-medium text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
+          >
+            <Settings className="w-4 h-4" />
+            <span>Courts</span>
+          </TabsTrigger>
           {hasPermission('SUPER_ADMIN') && (
             <>
-              <TabsTrigger value="availability">Availability</TabsTrigger>
-              <TabsTrigger value="unavailability">Unavailability</TabsTrigger>
+              <TabsTrigger 
+                value="availability" 
+                className="flex items-center space-x-2 h-12 rounded-lg font-medium text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
+              >
+                <Calendar className="w-4 h-4" />
+                <span>Availability</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="unavailability" 
+                className="flex items-center space-x-2 h-12 rounded-lg font-medium text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
+              >
+                <X className="w-4 h-4" />
+                <span>Unavailability</span>
+              </TabsTrigger>
             </>
           )}
         </TabsList>

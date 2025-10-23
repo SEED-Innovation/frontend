@@ -38,7 +38,7 @@ const UserManagement = () => {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [adminNames, setAdminNames] = useState<string[]>([]);
   const [isLoadingAdmins, setIsLoadingAdmins] = useState(false);
-  
+
   // New state for enhanced functionality
   const [statusFilter, setStatusFilter] = useState('All');
   const [showDetailDrawer, setShowDetailDrawer] = useState(false);
@@ -74,18 +74,18 @@ const UserManagement = () => {
       const apiUrl = import.meta.env.VITE_API_URL || "";
       const res = await fetch(`${apiUrl}/admin/users/admins-paged?page=${page}&size=${size}`, {
         credentials: "include",
-        headers: { 
+        headers: {
           "Accept": "application/json",
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
-      
+
       if (!res.ok) {
         const errorText = await res.text();
         console.error('Backend error:', res.status, errorText);
         throw new Error(`Failed to load managers (${res.status}): ${errorText}`);
       }
-      
+
       const data = await res.json();
       console.log('Managers data loaded:', data);
       return data;
@@ -127,11 +127,11 @@ const UserManagement = () => {
       const email = item.email || '';
       const phone = item.phone || '';
       const matchesSearch = name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           phone.toLowerCase().includes(searchTerm.toLowerCase());
-      
+        email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        phone.toLowerCase().includes(searchTerm.toLowerCase());
+
       const matchesStatus = statusFilter === 'All' || item.status === statusFilter;
-      
+
       return matchesSearch && matchesStatus;
     });
   };
@@ -148,17 +148,17 @@ const UserManagement = () => {
     let alive = true;
     setManagersLoading(true);
     loadAdmins(managersPage, 10)
-      .then(d => { 
-        if (alive) { 
-          setManagersData(d); 
-          setManagersError(null); 
-        } 
+      .then(d => {
+        if (alive) {
+          setManagersData(d);
+          setManagersError(null);
+        }
       })
-      .catch(e => { 
-        if (alive) setManagersError(e.message || "Failed to load managers"); 
+      .catch(e => {
+        if (alive) setManagersError(e.message || "Failed to load managers");
       })
-      .finally(() => { 
-        if (alive) setManagersLoading(false); 
+      .finally(() => {
+        if (alive) setManagersLoading(false);
       });
     return () => { alive = false; };
   }, [managersPage]);
@@ -234,12 +234,12 @@ const UserManagement = () => {
       };
 
       console.log('Updating user:', updateRequest);
-      
+
       const updatedUser = await userService.updateUser(updateRequest);
-      
+
       console.log('User updated successfully:', updatedUser);
       toast.success('User updated successfully');
-      
+
     } catch (error) {
       console.error('Failed to update user:', error);
       toast.error('Failed to update user. Please try again.');
@@ -253,12 +253,12 @@ const UserManagement = () => {
       };
 
       console.log('Deleting user by email:', deleteRequest);
-      
+
       await userService.deleteUser(deleteRequest);
-      
+
       console.log('User deleted successfully');
       toast.success('User deleted successfully');
-      
+
     } catch (error) {
       console.error('Failed to delete user:', error);
       toast.error('Failed to delete user. Please try again.');
@@ -306,7 +306,7 @@ const UserManagement = () => {
     setShowDetailDrawer(true);
     setDetailUser(null); // Clear previous data
     setIsLoadingUserDetail(true);
-    
+
     try {
       if (userType === 'user') {
         // Use the optimized approach: fetch detailed user data on-demand
@@ -331,7 +331,7 @@ const UserManagement = () => {
     const date = new Date(lastLogin);
     const now = new Date();
     const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 0) return 'Today';
     if (diffDays === 1) return 'Yesterday';
     if (diffDays < 7) return `${diffDays} days ago`;
@@ -394,7 +394,7 @@ const UserManagement = () => {
                   <Input
                     id="fullName"
                     value={newUser.fullName}
-                    onChange={(e) => setNewUser({...newUser, fullName: e.target.value})}
+                    onChange={(e) => setNewUser({ ...newUser, fullName: e.target.value })}
                     placeholder="Enter full name"
                   />
                 </div>
@@ -404,7 +404,7 @@ const UserManagement = () => {
                     id="email"
                     type="email"
                     value={newUser.email}
-                    onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                    onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
                     placeholder="Enter email address"
                   />
                 </div>
@@ -413,7 +413,7 @@ const UserManagement = () => {
                   <Input
                     id="phone"
                     value={newUser.phone}
-                    onChange={(e) => setNewUser({...newUser, phone: e.target.value})}
+                    onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })}
                     placeholder="Enter phone number"
                   />
                 </div>
@@ -421,7 +421,7 @@ const UserManagement = () => {
                   <Label htmlFor="role">Role</Label>
                   <Select
                     value={newUser.role}
-                    onValueChange={(value) => setNewUser({...newUser, role: value})}
+                    onValueChange={(value) => setNewUser({ ...newUser, role: value })}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -443,7 +443,7 @@ const UserManagement = () => {
               </div>
             </DialogContent>
           </Dialog>
-          
+
           {/* Edit User Dialog */}
           <Dialog open={showEditUser} onOpenChange={setShowEditUser}>
             <DialogContent className="sm:max-w-md">
@@ -459,7 +459,7 @@ const UserManagement = () => {
                   <Input
                     id="editFullName"
                     value={editUser.fullName}
-                    onChange={(e) => setEditUser({...editUser, fullName: e.target.value})}
+                    onChange={(e) => setEditUser({ ...editUser, fullName: e.target.value })}
                     placeholder="Enter full name"
                   />
                 </div>
@@ -478,7 +478,7 @@ const UserManagement = () => {
                   <Input
                     id="editPhone"
                     value={editUser.phone}
-                    onChange={(e) => setEditUser({...editUser, phone: e.target.value})}
+                    onChange={(e) => setEditUser({ ...editUser, phone: e.target.value })}
                     placeholder="Enter phone number"
                   />
                 </div>
@@ -486,7 +486,7 @@ const UserManagement = () => {
                   <Label htmlFor="editRole">Role</Label>
                   <Select
                     value={editUser.role}
-                    onValueChange={(value) => setEditUser({...editUser, role: value})}
+                    onValueChange={(value) => setEditUser({ ...editUser, role: value })}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -501,7 +501,7 @@ const UserManagement = () => {
                   <Label htmlFor="editPlan">Plan</Label>
                   <Select
                     value={editUser.plan}
-                    onValueChange={(value) => setEditUser({...editUser, plan: value})}
+                    onValueChange={(value) => setEditUser({ ...editUser, plan: value })}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -517,7 +517,7 @@ const UserManagement = () => {
                   <Label htmlFor="editStatus">Status</Label>
                   <Select
                     value={editUser.status}
-                    onValueChange={(value) => setEditUser({...editUser, status: value})}
+                    onValueChange={(value) => setEditUser({ ...editUser, status: value })}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -574,14 +574,26 @@ const UserManagement = () => {
 
       {/* Tabs for Users and Managers */}
       <Tabs defaultValue="users" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="managers">Managers</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 p-2 bg-gradient-to-r from-admin-surface to-admin-secondary border-2 border-border rounded-xl h-16">
+          <TabsTrigger
+            value="users"
+            className="flex items-center space-x-2 h-12 rounded-lg font-medium text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
+          >
+            <Users className="w-4 h-4" />
+            <span>Users</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="managers"
+            className="flex items-center space-x-2 h-12 rounded-lg font-medium text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
+          >
+            <Crown className="w-4 h-4" />
+            <span>Managers</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="space-y-4">
-          <UsersList 
-            onViewUser={(user) => handleViewUser(user, 'user')} 
+          <UsersList
+            onViewUser={(user) => handleViewUser(user, 'user')}
             searchTerm={searchTerm}
             statusFilter={statusFilter}
             isManagersTab={false}
@@ -590,8 +602,8 @@ const UserManagement = () => {
         </TabsContent>
 
         <TabsContent value="managers" className="space-y-4">
-          <UsersList 
-            onViewUser={(user) => handleViewUser(user, 'manager')} 
+          <UsersList
+            onViewUser={(user) => handleViewUser(user, 'manager')}
             searchTerm={searchTerm}
             statusFilter={statusFilter}
             isManagersTab={true}

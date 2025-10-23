@@ -207,24 +207,24 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
     const renderNavigationTabs = () => (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <Tabs value={currentView} onValueChange={(value: any) => setCurrentView(value)} className="space-y-6">
-                <TabsList className="grid w-full grid-cols-4 p-1.5 bg-gradient-to-r from-admin-surface to-admin-secondary border-2 border-border rounded-xl h-12">
+                <TabsList className="grid w-full grid-cols-4 p-2 bg-gradient-to-r from-admin-surface to-admin-secondary border-2 border-border rounded-xl h-16">
                     <TabsTrigger
                         value="manage"
-                        className="flex items-center space-x-2 h-9 rounded-lg font-medium text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
+                        className="flex items-center space-x-2 h-12 rounded-lg font-medium text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
                     >
                         <Users className="w-4 h-4" />
                         <span>Manage Bookings</span>
                     </TabsTrigger>
                     <TabsTrigger
                         value="analytics"
-                        className="flex items-center space-x-2 h-9 rounded-lg font-medium text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
+                        className="flex items-center space-x-2 h-12 rounded-lg font-medium text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
                     >
                         <TrendingUp className="w-4 h-4" />
                         <span>Analytics</span>
                     </TabsTrigger>
                     <TabsTrigger
                         value="dashboard"
-                        className="flex items-center space-x-2 h-9 rounded-lg font-medium text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
+                        className="flex items-center space-x-2 h-12 rounded-lg font-medium text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
                     >
                         <BarChart3 className="w-4 h-4" />
                         <span>Dashboard</span>

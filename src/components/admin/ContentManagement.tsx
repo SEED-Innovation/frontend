@@ -89,11 +89,35 @@ const ContentManagement = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="challenges">Challenges</TabsTrigger>
-          <TabsTrigger value="training">Training Content</TabsTrigger>
-          <TabsTrigger value="community">Community Posts</TabsTrigger>
-          <TabsTrigger value="rewards">Rewards & Badges</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4 p-2 bg-gradient-to-r from-admin-surface to-admin-secondary border-2 border-border rounded-xl h-16">
+          <TabsTrigger 
+            value="challenges" 
+            className="flex items-center space-x-2 h-12 rounded-lg font-medium text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
+          >
+            <Trophy className="w-4 h-4" />
+            <span>Challenges</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="training" 
+            className="flex items-center space-x-2 h-12 rounded-lg font-medium text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
+          >
+            <Video className="w-4 h-4" />
+            <span>Training Content</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="community" 
+            className="flex items-center space-x-2 h-12 rounded-lg font-medium text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
+          >
+            <MessageSquare className="w-4 h-4" />
+            <span>Community Posts</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="rewards" 
+            className="flex items-center space-x-2 h-12 rounded-lg font-medium text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
+          >
+            <Trophy className="w-4 h-4" />
+            <span>Rewards & Badges</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="challenges" className="space-y-6">
