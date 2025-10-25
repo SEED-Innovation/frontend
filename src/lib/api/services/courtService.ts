@@ -1,5 +1,5 @@
 
-import { AdminCourtPageResponse, Court, SportType, CourtType } from '@/types/court';
+import { AdminCourtPageResponse, Court, SportType } from '@/types/court';
 
 export interface CreateCourtRequest {
     name: string;
@@ -586,10 +586,10 @@ class CourtService {
      * Get court availabilities (optionally filtered by court)
      */
     async getAvailabilities(courtId?: number): Promise<AdminCourtAvailabilityResponse[]> {
-        const url = courtId 
+        const url = courtId
             ? `${this.baseUrl}/availability?courtId=${courtId}`
             : `${this.baseUrl}/availability`;
-            
+
         const response = await fetch(url, {
             method: 'GET',
             headers: this.getAuthHeaders()
@@ -617,10 +617,10 @@ class CourtService {
      * Get court unavailabilities (optionally filtered by court)
      */
     async getUnavailabilities(courtId?: number): Promise<UnavailabilityRow[]> {
-        const url = courtId 
+        const url = courtId
             ? `${this.baseUrl}/availability/unavailabilities?courtId=${courtId}`
             : `${this.baseUrl}/availability/unavailabilities`;
-            
+
         const response = await fetch(url, {
             method: 'GET',
             headers: this.getAuthHeaders()

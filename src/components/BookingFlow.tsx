@@ -34,14 +34,14 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ onBookingComplete }) => {
   const [isBooking, setIsBooking] = useState(false);
 
   // Fetch real availability data
-  const { 
-    data: availabilityData, 
-    isLoading: availabilityLoading, 
-    error: availabilityError, 
-    refetch: refetchAvailability 
+  const {
+    data: availabilityData,
+    isLoading: availabilityLoading,
+    error: availabilityError,
+    refetch: refetchAvailability
   } = useAvailability(
-    selectedCourt?.id || 0, 
-    selectedDate, 
+    selectedCourt?.id || 0,
+    selectedDate,
     60
   );
 
@@ -93,7 +93,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ onBookingComplete }) => {
 
     try {
       setIsBooking(true);
-      
+
       // Create booking request for each selected slot
       for (const slot of selectedSlots) {
         const bookingRequest = {
@@ -116,13 +116,13 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ onBookingComplete }) => {
         totalHours: selectedSlots.length,
         totalPrice: selectedSlots.length * selectedCourt.pricePerHour
       };
-      
+
       toast.success('Booking confirmed successfully!');
       onBookingComplete(booking);
-      
+
     } catch (error) {
       handleApiError(error, 'Failed to create booking');
-      
+
       // If there was a race condition, refetch availability
       if (isErrorCode(error, 'SLOT_ALREADY_BOOKED') || isErrorCode(error, 'COURT_UNAVAILABLE_THIS_DAY')) {
         await refetchAvailability();
@@ -143,8 +143,8 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ onBookingComplete }) => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {courts.map((court, index) => (
-            <Card 
-              key={court.id} 
+            <Card
+              key={court.id}
               className="premium-card animate-fade-in cursor-pointer"
               style={{ animationDelay: `${index * 0.2}s` }}
               onClick={() => handleCourtSelect(court)}
@@ -167,7 +167,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ onBookingComplete }) => {
                   <MapPin className="w-4 h-4 mr-1" />
                   <span className="text-sm">{court.address}</span>
                 </div>
-                
+
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-sm text-gray-500">{court.distance} mi away</span>
                   <span className="text-2xl font-bold text-tennis-purple-700">
@@ -217,7 +217,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ onBookingComplete }) => {
               alt={selectedCourt.name}
               className="w-full h-64 object-cover rounded-2xl shadow-xl"
             />
-            
+
             <Card className="premium-card">
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -276,13 +276,12 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ onBookingComplete }) => {
                         key={slot.start}
                         onClick={() => handleTimeSlotSelect(slot.start)}
                         disabled={!slot.available}
-                        className={`time-slot ${
-                          selectedSlots.includes(slot.start)
-                            ? 'time-slot-selected' 
-                            : slot.available 
-                              ? 'time-slot-available'
-                              : 'time-slot-disabled'
-                        }`}
+                        className={`time-slot ${selectedSlots.includes(slot.start)
+                          ? 'time-slot-selected'
+                          : slot.available
+                            ? 'time-slot-available'
+                            : 'time-slot-disabled'
+                          }`}
                       >
                         <div className="text-sm font-medium">{slot.label || slot.start}</div>
                         <div className="text-xs">${slot.price}/hr</div>
@@ -290,7 +289,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ onBookingComplete }) => {
                     ))}
                   </div>
                 )}
-                
+
                 {selectedSlots.length > 0 && (
                   <div className="mt-6 p-4 bg-tennis-green-50 rounded-xl">
                     <h4 className="font-semibold text-tennis-green-700 mb-2">Selected Slots:</h4>
@@ -327,7 +326,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ onBookingComplete }) => {
               </CardContent>
             </Card>
 
-            <Button 
+            <Button
               onClick={handleBooking}
               disabled={selectedSlots.length === 0 || isBooking || availabilityLoading}
               className="w-full tennis-button glow-button text-lg py-4"
