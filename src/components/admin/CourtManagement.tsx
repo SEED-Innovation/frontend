@@ -74,7 +74,7 @@ const CourtManagement = () => {
 
   const [availabilityData, setAvailabilityData] = useState({
     courtId: 0,
-    dayOfWeek: '',
+    daysOfWeek: [] as string[],
     startTime: '',
     endTime: '',
     startDate: '',
@@ -353,22 +353,23 @@ const CourtManagement = () => {
   };
 
   const handleSetAvailability = async () => {
-    if (!availabilityData.courtId || !availabilityData.dayOfWeek || !availabilityData.startTime || !availabilityData.endTime) {
-      toast.error('Please fill in all availability fields');
+    if (!availabilityData.courtId || availabilityData.daysOfWeek.length === 0 || !availabilityData.startTime || !availabilityData.endTime) {
+      toast.error('Please fill in all availability fields and select at least one day');
       return;
     }
 
     try {
-      const requestData: SetCourtAvailabilityRequest = {
+      // Use bulk availability setting for better performance
+      const requestData: SetBulkCourtAvailabilityRequest = {
         courtId: availabilityData.courtId,
-        dayOfWeek: availabilityData.dayOfWeek.toUpperCase(),
+        daysOfWeek: availabilityData.daysOfWeek,
         start: availabilityData.startTime,
         end: availabilityData.endTime,
         startDate: availabilityData.startDate || undefined,
         endDate: availabilityData.endDate || undefined
       };
 
-      await courtService.setAvailability(requestData);
+      await courtService.setBulkAvailability(requestData);
 
       const dateRangeText = availabilityData.startDate && availabilityData.endDate
         ? ` for ${availabilityData.startDate} to ${availabilityData.endDate}`
@@ -376,10 +377,10 @@ const CourtManagement = () => {
           ? ` for ${availabilityData.startDate}`
           : ' (recurring weekly)';
 
-      toast.success(`Court availability set${dateRangeText} successfully`);
+      toast.success(`Court availability set for ${availabilityData.daysOfWeek.length} day(s)${dateRangeText} successfully`);
       setAvailabilityData({
         courtId: 0,
-        dayOfWeek: '',
+        daysOfWeek: [],
         startTime: '',
         endTime: '',
         startDate: '',
@@ -1389,21 +1390,74 @@ const CourtManagement = () => {
                     </Popover>
                   </div>
                   <div>
-                    <Label htmlFor="dayOfWeek">Day of Week</Label>
-                    <Select onValueChange={(value) => setAvailabilityData({ ...availabilityData, dayOfWeek: value })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select day" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="sunday">Sunday</SelectItem>
-                        <SelectItem value="monday">Monday</SelectItem>
-                        <SelectItem value="tuesday">Tuesday</SelectItem>
-                        <SelectItem value="wednesday">Wednesday</SelectItem>
-                        <SelectItem value="thursday">Thursday</SelectItem>
-                        <SelectItem value="friday">Friday</SelectItem>
-                        <SelectItem value="saturday">Saturday</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Label>Days of Week</Label>
+                        {availabilityData.daysOfWeek.length > 0 && (
+                          <Badge variant="secondary" className="text-xs">
+                            {availabilityData.daysOfWeek.length} selected
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setAvailabilityData({
+                            ...availabilityData,
+                            daysOfWeek: ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY']
+                          })}
+                        >
+                          Select All
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setAvailabilityData({
+                            ...availabilityData,
+                            daysOfWeek: []
+                          })}
+                        >
+                          Clear All
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      {[
+                        { value: 'SUNDAY', label: 'Sunday' },
+                        { value: 'MONDAY', label: 'Monday' },
+                        { value: 'TUESDAY', label: 'Tuesday' },
+                        { value: 'WEDNESDAY', label: 'Wednesday' },
+                        { value: 'THURSDAY', label: 'Thursday' },
+                        { value: 'FRIDAY', label: 'Friday' },
+                        { value: 'SATURDAY', label: 'Saturday' }
+                      ].map((day) => (
+                        <div key={day.value} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={day.value}
+                            checked={availabilityData.daysOfWeek.includes(day.value)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setAvailabilityData({
+                                  ...availabilityData,
+                                  daysOfWeek: [...availabilityData.daysOfWeek, day.value]
+                                });
+                              } else {
+                                setAvailabilityData({
+                                  ...availabilityData,
+                                  daysOfWeek: availabilityData.daysOfWeek.filter(d => d !== day.value)
+                                });
+                              }
+                            }}
+                          />
+                          <Label htmlFor={day.value} className="text-sm font-normal">
+                            {day.label}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                   <div>
                     <Label htmlFor="startTime">Start Time</Label>
@@ -1471,7 +1525,7 @@ const CourtManagement = () => {
                 )}
 
                 <Button onClick={handleSetAvailability} className="w-full">
-                  Set Availability
+                  Set Availability for Selected Days
                 </Button>
               </CardContent>
             </Card>

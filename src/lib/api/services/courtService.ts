@@ -45,6 +45,8 @@ export interface SetBulkCourtAvailabilityRequest {
     daysOfWeek: string[];
     start: string;
     end: string;
+    startDate?: string; // Optional: YYYY-MM-DD format for date-specific availability
+    endDate?: string;   // Optional: YYYY-MM-DD format for date range availability
 }
 
 export interface AdminCourtAvailabilityResponse {
