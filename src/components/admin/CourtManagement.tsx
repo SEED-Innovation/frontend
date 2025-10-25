@@ -10,10 +10,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
-import { courtService, CreateCourtRequest, UpdateCourtRequest, SetCourtAvailabilityRequest, AdminCourtAvailabilityResponse } from '@/lib/api/services/courtService';
+import { courtService, CreateCourtRequest, UpdateCourtRequest, SetCourtAvailabilityRequest, SetBulkCourtAvailabilityRequest, AdminCourtAvailabilityResponse } from '@/lib/api/services/courtService';
 import { Court, SportType } from '@/types/court';
 import { useCourtsPaged } from '@/lib/hooks/useCourtsPaged';
 import { USE_PAGINATED_COURTS } from '@/lib/config/flags';
@@ -37,14 +38,14 @@ import { CurrencyDisplay } from '@/components/ui/currency-display';
 
 const CourtManagement = () => {
   const { user, hasPermission } = useAdminAuth();
-  
+
   // Pagination state
   const [page, setPage] = useState(0);
   const pageSize = 20;
-  
+
   // Use paginated courts hook
   const { data: pagedData, isLoading: pagedLoading, refetch: refetchPaged } = useCourtsPaged(page, pageSize);
-  
+
   // Legacy state for backward compatibility
   const [courts, setCourts] = useState<Court[]>([]);
   const [admins, setAdmins] = useState<AdminUser[]>([]);
@@ -61,7 +62,7 @@ const CourtManagement = () => {
   const [removeDiscountDialogOpen, setRemoveDiscountDialogOpen] = useState(false);
   const [courtToRemoveDiscount, setCourtToRemoveDiscount] = useState<Court | null>(null);
 
-  const [newCourt, setNewCourt] = useState<CreateCourtRequest & {managerId?: string}>({
+  const [newCourt, setNewCourt] = useState<CreateCourtRequest & { managerId?: string }>({
     name: '',
     type: '',
     location: '',
@@ -75,18 +76,20 @@ const CourtManagement = () => {
     courtId: 0,
     dayOfWeek: '',
     startTime: '',
-    endTime: ''
+    endTime: '',
+    startDate: '',
+    endDate: ''
   });
   const [courtSearchOpen, setCourtSearchOpen] = useState(false);
   const [courtSearchValue, setCourtSearchValue] = useState("");
-  
+
   // Location filter state
   const [locationSearchOpen, setLocationSearchOpen] = useState(false);
   const [locationSearchValue, setLocationSearchValue] = useState("");
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [customLocationInput, setCustomLocationInput] = useState("");
   const [showCustomLocationInput, setShowCustomLocationInput] = useState(false);
-  
+
   // Advanced filtering state
   const [filters, setFilters] = useState({
     searchTerm: '',
@@ -97,10 +100,10 @@ const CourtManagement = () => {
     priceRange: [0, 300],
     hasSeedSystem: '',
   });
-  
+
   // Sport type filter state
   const [selectedSportType, setSelectedSportType] = useState<SportType | 'ALL'>('ALL');
-  
+
   // Manager filter state
   const [managerSearchOpen, setManagerSearchOpen] = useState(false);
   const [managerSearchValue, setManagerSearchValue] = useState("");
@@ -109,7 +112,7 @@ const CourtManagement = () => {
   // Get current courts data based on feature flag
   const currentCourts = USE_PAGINATED_COURTS ? (pagedData?.courts || []) : courts;
   const isCurrentlyLoading = USE_PAGINATED_COURTS ? pagedLoading : loading;
-  
+
   // Debug logging
   console.log('DEBUG CourtManagement:', {
     USE_PAGINATED_COURTS,
@@ -118,7 +121,7 @@ const CourtManagement = () => {
     page,
     pageSize
   });
-  
+
   // Fetch courts on component mount - only if not using paginated API
   useEffect(() => {
     if (!USE_PAGINATED_COURTS) {
@@ -130,7 +133,7 @@ const CourtManagement = () => {
 
   const fetchCourts = async () => {
     if (USE_PAGINATED_COURTS) return; // Skip if using paginated API
-    
+
     try {
       setLoading(true);
       const fetchedCourts = await courtService.getAllCourts();
@@ -148,13 +151,13 @@ const CourtManagement = () => {
     try {
       setAdminsLoading(true);
       console.log('Fetching admins...');
-      
+
       // Get all users and filter for admins
       const allUsers = await userService.getAllUsers();
       console.log('All users:', allUsers);
-      
+
       // Filter users to only include ADMIN role (since SUPER_ADMIN is from Cognito, not user table)
-      const adminUsers = allUsers.filter(user => 
+      const adminUsers = allUsers.filter(user =>
         user.role === 'ADMIN'
       ).map(user => ({
         id: user.id.toString(), // Convert to string for consistency
@@ -164,7 +167,7 @@ const CourtManagement = () => {
         assignedCourts: [],
         avatar: user.profilePictureUrl || undefined
       }));
-      
+
       console.log('Filtered admin users:', adminUsers);
       setAdmins(adminUsers);
     } catch (error) {
@@ -207,15 +210,15 @@ const CourtManagement = () => {
   const handleRemoveDiscount = async (court: Court) => {
     try {
       const updatedCourt = await courtService.removeDiscount(court.id);
-      
-      setCourts(prev => prev.map(c => 
+
+      setCourts(prev => prev.map(c =>
         c.id === court.id ? updatedCourt : c
       ));
 
       toast.success(`Discount removed from ${court.name}`);
     } catch (error: any) {
       console.error('Error removing discount:', error);
-      
+
       // Handle specific case where no discount exists
       if (error.message?.includes('No discount') || error.message?.includes('not found')) {
         toast.error("No discount currently applied to this court");
@@ -230,12 +233,12 @@ const CourtManagement = () => {
 
     try {
       const updatedCourt = await courtService.removeDiscount(courtToRemoveDiscount.id);
-      
+
       // Update the court in local state
-      setCourts(courts.map(court => 
+      setCourts(courts.map(court =>
         court.id === courtToRemoveDiscount.id ? updatedCourt : court
       ));
-      
+
       toast.success('Discount removed successfully');
       setRemoveDiscountDialogOpen(false);
       setCourtToRemoveDiscount(null);
@@ -251,8 +254,8 @@ const CourtManagement = () => {
       refetchPaged();
     } else {
       // Update the court in the local state
-      setCourts(prevCourts => 
-        prevCourts.map(court => 
+      setCourts(prevCourts =>
+        prevCourts.map(court =>
           court.id === updatedCourt.id ? updatedCourt : court
         )
       );
@@ -264,14 +267,14 @@ const CourtManagement = () => {
 
     try {
       const updatedCourt = await courtService.updateCourt(editingCourt.id, courtData, imageFile);
-      
+
       // Use functional update to ensure we have the latest state
-      setCourts(prevCourts => 
-        prevCourts.map(court => 
+      setCourts(prevCourts =>
+        prevCourts.map(court =>
           court.id === editingCourt.id ? updatedCourt : court
         )
       );
-      
+
       setEditingCourt(null);
       toast.success('Court updated successfully');
       return true;
@@ -286,7 +289,7 @@ const CourtManagement = () => {
   const canManageCourt = (court: Court) => {
     // SUPER_ADMIN can manage all courts
     if (hasPermission('SUPER_ADMIN')) return true;
-    
+
     // ADMIN can manage courts assigned to them
     if (user?.role === 'ADMIN') {
       console.log('Checking ADMIN permissions for court:', {
@@ -297,12 +300,12 @@ const CourtManagement = () => {
         managerIdType: typeof court.managerId,
         userIdType: typeof user.id
       });
-      
+
       // For now, let ADMIN manage all courts to test
       console.log('ADMIN can manage court - testing all courts');
       return true;
     }
-    
+
     return false;
   };
 
@@ -310,11 +313,11 @@ const CourtManagement = () => {
     try {
       const newStatus = court.status === 'AVAILABLE' ? 'UNAVAILABLE' : 'AVAILABLE';
       const updatedCourt = await courtService.updateCourtStatus(court.id, newStatus);
-      
-      setCourts(courts.map(c => 
+
+      setCourts(courts.map(c =>
         c.id === court.id ? updatedCourt : c
       ));
-      
+
       toast.success(`Court status updated to ${newStatus.toLowerCase()}`);
     } catch (error) {
       console.error('Error updating court status:', error);
@@ -326,7 +329,7 @@ const CourtManagement = () => {
   const handleDeleteCourt = async (courtId: string | number) => {
     try {
       await courtService.deleteCourt(courtId);
-      
+
       if (USE_PAGINATED_COURTS) {
         // Refetch paginated data
         await refetchPaged();
@@ -334,7 +337,7 @@ const CourtManagement = () => {
         // Update local state
         setCourts(courts.filter(court => court.id !== Number(courtId)));
       }
-      
+
       toast.success('Court deleted successfully');
       setDeleteDialogOpen(false);
       setCourtToDelete(null);
@@ -360,17 +363,27 @@ const CourtManagement = () => {
         courtId: availabilityData.courtId,
         dayOfWeek: availabilityData.dayOfWeek.toUpperCase(),
         start: availabilityData.startTime,
-        end: availabilityData.endTime
+        end: availabilityData.endTime,
+        startDate: availabilityData.startDate || undefined,
+        endDate: availabilityData.endDate || undefined
       };
 
       await courtService.setAvailability(requestData);
-      
-      toast.success('Court availability updated successfully');
+
+      const dateRangeText = availabilityData.startDate && availabilityData.endDate
+        ? ` for ${availabilityData.startDate} to ${availabilityData.endDate}`
+        : availabilityData.startDate
+          ? ` for ${availabilityData.startDate}`
+          : ' (recurring weekly)';
+
+      toast.success(`Court availability set${dateRangeText} successfully`);
       setAvailabilityData({
         courtId: 0,
         dayOfWeek: '',
         startTime: '',
-        endTime: ''
+        endTime: '',
+        startDate: '',
+        endDate: ''
       });
     } catch (error) {
       console.error('Error setting court availability:', error);
@@ -405,7 +418,7 @@ const CourtManagement = () => {
     // Search term filter
     if (filters.searchTerm) {
       const searchLower = filters.searchTerm.toLowerCase();
-      const matchesSearch = 
+      const matchesSearch =
         (court.name?.toLowerCase() || '').includes(searchLower) ||
         (court.type?.toLowerCase() || '').includes(searchLower) ||
         (court.location?.toLowerCase() || '').includes(searchLower) ||
@@ -462,8 +475,8 @@ const CourtManagement = () => {
   };
 
   // Check if any filters are active
-  const hasActiveFilters = 
-    filters.searchTerm !== '' || 
+  const hasActiveFilters =
+    filters.searchTerm !== '' ||
     (filters.manager !== '' && filters.manager !== 'all-managers') ||
     (filters.type !== '' && filters.type !== 'all-types') ||
     selectedLocations.length > 0 ||
@@ -476,8 +489,8 @@ const CourtManagement = () => {
     if (location === 'all-locations') {
       setSelectedLocations([]);
     } else {
-      setSelectedLocations(prev => 
-        prev.includes(location) 
+      setSelectedLocations(prev =>
+        prev.includes(location)
           ? prev.filter(loc => loc !== location)
           : [...prev, location]
       );
@@ -508,8 +521,8 @@ const CourtManagement = () => {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Court Management</h1>
           <p className="text-gray-600 mt-1">
-            {user?.role === 'SUPER_ADMIN' 
-              ? 'Manage all courts, availability, and pricing' 
+            {user?.role === 'SUPER_ADMIN'
+              ? 'Manage all courts, availability, and pricing'
               : 'Manage your assigned courts, availability, and pricing'
             }
           </p>
@@ -521,7 +534,7 @@ const CourtManagement = () => {
           </Button>
           {hasPermission('SUPER_ADMIN') && (
             <>
-              <Button 
+              <Button
                 className="flex items-center gap-2"
                 onClick={() => {
                   setCreateDialogOpen(true);
@@ -607,12 +620,12 @@ const CourtManagement = () => {
                     </div>
                     <span className="text-muted-foreground">→</span>
                     <div className="text-primary font-semibold">
-                      <CurrencyDisplay 
-                        amount={courtToRemoveDiscount.isPercentage 
+                      <CurrencyDisplay
+                        amount={courtToRemoveDiscount.isPercentage
                           ? Math.max(0, (courtToRemoveDiscount.hourlyFee || 0) * (1 - (courtToRemoveDiscount.discountAmount || 0) / 100))
                           : Math.max(0, (courtToRemoveDiscount.hourlyFee || 0) - (courtToRemoveDiscount.discountAmount || 0))
-                        } 
-                        size="md" 
+                        }
+                        size="md"
                       />
                     </div>
                   </div>
@@ -646,8 +659,8 @@ const CourtManagement = () => {
 
       <Tabs defaultValue="courts" className="space-y-6">
         <TabsList className={`grid w-full p-2 bg-gradient-to-r from-admin-surface to-admin-secondary border-2 border-border rounded-xl h-16 ${hasPermission('SUPER_ADMIN') ? 'grid-cols-3' : 'grid-cols-1'}`}>
-          <TabsTrigger 
-            value="courts" 
+          <TabsTrigger
+            value="courts"
             className="flex items-center space-x-2 h-12 rounded-lg font-medium text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
           >
             <Settings className="w-4 h-4" />
@@ -655,15 +668,15 @@ const CourtManagement = () => {
           </TabsTrigger>
           {hasPermission('SUPER_ADMIN') && (
             <>
-              <TabsTrigger 
-                value="availability" 
+              <TabsTrigger
+                value="availability"
                 className="flex items-center space-x-2 h-12 rounded-lg font-medium text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
               >
                 <Calendar className="w-4 h-4" />
                 <span>Availability</span>
               </TabsTrigger>
-              <TabsTrigger 
-                value="unavailability" 
+              <TabsTrigger
+                value="unavailability"
                 className="flex items-center space-x-2 h-12 rounded-lg font-medium text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
               >
                 <X className="w-4 h-4" />
@@ -719,8 +732,8 @@ const CourtManagement = () => {
                   Courts loaded in pages of {pageSize}
                 </div>
               )*/}
-              {selectedSportType === 'ALL' 
-                ? `Showing all ${USE_PAGINATED_COURTS ? (pagedData?.totalElements || 0) : currentCourts.length} courts` 
+              {selectedSportType === 'ALL'
+                ? `Showing all ${USE_PAGINATED_COURTS ? (pagedData?.totalElements || 0) : currentCourts.length} courts`
                 : `Showing ${currentCourts.filter(court => court.sportType === selectedSportType).length} ${selectedSportType.toLowerCase()} courts`
               }
             </div>
@@ -748,15 +761,15 @@ const CourtManagement = () => {
                 Filters
                 {hasActiveFilters && (
                   <Badge variant="secondary" className="ml-2 px-1 py-0 text-xs">
-                  {[
-                    filters.searchTerm !== '',
-                    filters.manager !== '' && filters.manager !== 'all-managers',
-                    filters.type !== '' && filters.type !== 'all-types',
-                    selectedLocations.length > 0,
-                    filters.status !== '' && filters.status !== 'all-status',
-                    filters.hasSeedSystem !== '' && filters.hasSeedSystem !== 'all-courts',
-                    filters.priceRange[0] !== 0 || filters.priceRange[1] !== maxPrice
-                  ].filter(Boolean).length}
+                    {[
+                      filters.searchTerm !== '',
+                      filters.manager !== '' && filters.manager !== 'all-managers',
+                      filters.type !== '' && filters.type !== 'all-types',
+                      selectedLocations.length > 0,
+                      filters.status !== '' && filters.status !== 'all-status',
+                      filters.hasSeedSystem !== '' && filters.hasSeedSystem !== 'all-courts',
+                      filters.priceRange[0] !== 0 || filters.priceRange[1] !== maxPrice
+                    ].filter(Boolean).length}
                   </Badge>
                 )}
               </Button>
@@ -859,8 +872,8 @@ const CourtManagement = () => {
                   {/* Type Filter */}
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Court Type</Label>
-                    <Select 
-                      value={filters.type} 
+                    <Select
+                      value={filters.type}
                       onValueChange={(value) => setFilters(prev => ({ ...prev, type: value }))}
                     >
                       <SelectTrigger>
@@ -891,8 +904,8 @@ const CourtManagement = () => {
                           {selectedLocations.length === 0
                             ? "All Locations"
                             : selectedLocations.length === 1
-                            ? selectedLocations[0]
-                            : `${selectedLocations.length} locations selected`}
+                              ? selectedLocations[0]
+                              : `${selectedLocations.length} locations selected`}
                           <div className="flex items-center gap-1">
                             {selectedLocations.length > 0 && (
                               <Button
@@ -978,7 +991,7 @@ const CourtManagement = () => {
                         </Command>
                       </PopoverContent>
                     </Popover>
-                    
+
                     {/* Custom Location Input */}
                     {showCustomLocationInput && (
                       <div className="flex gap-2 mt-2">
@@ -1045,8 +1058,8 @@ const CourtManagement = () => {
                   {/* Status Filter */}
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Status</Label>
-                    <Select 
-                      value={filters.status} 
+                    <Select
+                      value={filters.status}
                       onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}
                     >
                       <SelectTrigger>
@@ -1063,8 +1076,8 @@ const CourtManagement = () => {
                   {/* Seed System Filter */}
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Seed System</Label>
-                    <Select 
-                      value={filters.hasSeedSystem} 
+                    <Select
+                      value={filters.hasSeedSystem}
                       onValueChange={(value) => setFilters(prev => ({ ...prev, hasSeedSystem: value }))}
                     >
                       <SelectTrigger>
@@ -1124,301 +1137,347 @@ const CourtManagement = () => {
           ) : currentCourts.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-gray-500">
-                {user?.role === 'SUPER_ADMIN' 
-                  ? 'No courts found. Create your first court to get started.' 
+                {user?.role === 'SUPER_ADMIN'
+                  ? 'No courts found. Create your first court to get started.'
                   : 'No courts assigned to you yet.'
                 }
               </p>
             </div>
           ) : (
             <>
-            <div className="grid gap-4 md:grid-cols-2">
-              {filteredCourts.map((court) => (
-                <Card key={court.id} className="overflow-hidden">
-                  {/* Court Image Placeholder */}
-                  <div className="relative h-32 bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
-                    {court.imageUrl ? (
-                      <img 
-                        src={court.imageUrl} 
-                        alt={`${court.name} court`}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="text-center">
-                        <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-2">
-                          <Settings className="w-6 h-6 text-primary/60" />
+              <div className="grid gap-4 md:grid-cols-2">
+                {filteredCourts.map((court) => (
+                  <Card key={court.id} className="overflow-hidden">
+                    {/* Court Image Placeholder */}
+                    <div className="relative h-32 bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+                      {court.imageUrl ? (
+                        <img
+                          src={court.imageUrl}
+                          alt={`${court.name} court`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="text-center">
+                          <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-2">
+                            <Settings className="w-6 h-6 text-primary/60" />
+                          </div>
+                          <p className="text-sm text-muted-foreground">Court Image</p>
                         </div>
-                        <p className="text-sm text-muted-foreground">Court Image</p>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                    <CardTitle className="text-lg">{court.name}</CardTitle>
-                    <Badge 
-                      variant="secondary" 
-                      className="text-xs"
-                    >
-                      {court.sportType === 'PADEL' ? '🟩 Padel' : '🎾 Tennis'}
-                    </Badge>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {court.type && (
+                      )}
+                    </div>
+
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                      <CardTitle className="text-lg">{court.name}</CardTitle>
+                      <Badge
+                        variant="secondary"
+                        className="text-xs"
+                      >
+                        {court.sportType === 'PADEL' ? '🟩 Padel' : '🎾 Tennis'}
+                      </Badge>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {court.type && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Surface:</span>
+                          <span className="font-medium">{court.type === 'PADEL' ? 'Padel Court' : court.type}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Surface:</span>
-                        <span className="font-medium">{court.type === 'PADEL' ? 'Padel Court' : court.type}</span>
+                        <span className="text-gray-600">Location:</span>
+                        <span className="font-medium">{court.location}</span>
                       </div>
-                    )}
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Location:</span>
-                      <span className="font-medium">{court.location}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">SEED System:</span>
-                      <span className={`font-medium ${court.hasSeedSystem ? 'text-green-600' : 'text-gray-600'}`}>
-                        {court.hasSeedSystem ? 'Yes' : 'No'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Manager:</span>
-                      <span className="font-medium">
-                        {court.manager ? court.manager.name : 'No manager assigned'}
-                      </span>
-                    </div>
-                    {canManageCourt(court) && (
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-600">Status:</span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className={`text-xs ${court.status === 'AVAILABLE' ? 'text-green-600 border-green-600' : 'text-red-600 border-red-600'}`}
-                          onClick={() => handleToggleStatus(court)}
-                        >
-                          {court.status === 'AVAILABLE' ? 'Available' : 'Unavailable'}
-                        </Button>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">SEED System:</span>
+                        <span className={`font-medium ${court.hasSeedSystem ? 'text-green-600' : 'text-gray-600'}`}>
+                          {court.hasSeedSystem ? 'Yes' : 'No'}
+                        </span>
                       </div>
-                    )}
-                    
-                    {/* Pricing & Discount Section */}
-                    <div className="p-3 rounded-lg bg-gradient-to-r from-primary/5 to-accent/5 border">
-                      <div className="flex items-start justify-between gap-3">
-                        {/* Left side - Pricing info */}
-                        <div className="flex-1">
-                          <span className="text-sm font-medium text-muted-foreground mb-2 block">Pricing</span>
-                          <div className="flex items-center gap-2">
-                            {(court.discountAmount != null && court.discountAmount > 0 && court.hourlyFee) ? (
-                              <>
-                                <div className="line-through text-muted-foreground text-sm">
-                                  <CurrencyDisplay amount={court.hourlyFee || 0} size="sm" />
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Manager:</span>
+                        <span className="font-medium">
+                          {court.manager ? court.manager.name : 'No manager assigned'}
+                        </span>
+                      </div>
+                      {canManageCourt(court) && (
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-gray-600">Status:</span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className={`text-xs ${court.status === 'AVAILABLE' ? 'text-green-600 border-green-600' : 'text-red-600 border-red-600'}`}
+                            onClick={() => handleToggleStatus(court)}
+                          >
+                            {court.status === 'AVAILABLE' ? 'Available' : 'Unavailable'}
+                          </Button>
+                        </div>
+                      )}
+
+                      {/* Pricing & Discount Section */}
+                      <div className="p-3 rounded-lg bg-gradient-to-r from-primary/5 to-accent/5 border">
+                        <div className="flex items-start justify-between gap-3">
+                          {/* Left side - Pricing info */}
+                          <div className="flex-1">
+                            <span className="text-sm font-medium text-muted-foreground mb-2 block">Pricing</span>
+                            <div className="flex items-center gap-2">
+                              {(court.discountAmount != null && court.discountAmount > 0 && court.hourlyFee) ? (
+                                <>
+                                  <div className="line-through text-muted-foreground text-sm">
+                                    <CurrencyDisplay amount={court.hourlyFee || 0} size="sm" />
+                                  </div>
+                                  <span className="text-muted-foreground">→</span>
+                                  <div className="text-primary font-semibold">
+                                    <CurrencyDisplay
+                                      amount={court.isPercentage
+                                        ? Math.max(0, (court.hourlyFee || 0) * (1 - (court.discountAmount || 0) / 100))
+                                        : Math.max(0, (court.hourlyFee || 0) - (court.discountAmount || 0))
+                                      }
+                                      size="md"
+                                    />
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="font-semibold">
+                                  <CurrencyDisplay amount={court.hourlyFee || 0} size="md" />
                                 </div>
-                                <span className="text-muted-foreground">→</span>
-                                <div className="text-primary font-semibold">
-                                  <CurrencyDisplay 
-                                    amount={court.isPercentage 
-                                      ? Math.max(0, (court.hourlyFee || 0) * (1 - (court.discountAmount || 0) / 100))
-                                      : Math.max(0, (court.hourlyFee || 0) - (court.discountAmount || 0))
-                                    } 
-                                    size="md" 
-                                  />
-                                </div>
-                              </>
-                            ) : (
-                              <div className="font-semibold">
-                                <CurrencyDisplay amount={court.hourlyFee || 0} size="md" />
-                              </div>
+                              )}
+                            </div>
+                            {(court.discountAmount != null && court.discountAmount > 0) && (
+                              <Badge variant="secondary" className="text-xs mt-2 animate-fade-in">
+                                {court.isPercentage ? `-${court.discountAmount}%` : `-${court.discountAmount} SAR`}
+                              </Badge>
                             )}
                           </div>
-                          {(court.discountAmount != null && court.discountAmount > 0) && (
-                            <Badge variant="secondary" className="text-xs mt-2 animate-fade-in">
-                              {court.isPercentage ? `-${court.discountAmount}%` : `-${court.discountAmount} SAR`}
-                            </Badge>
+
+                          {/* Right side - Discount controls */}
+                          {canManageCourt(court) && (
+                            <div className="flex flex-col gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 text-xs px-3 py-1 whitespace-nowrap bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 text-blue-700 hover:from-blue-100 hover:to-indigo-100 hover:border-blue-300 hover:text-blue-800 transition-all duration-200 hover-scale"
+                                onClick={() => handleDiscountCourt(court)}
+                              >
+                                <TagIcon className="w-3 h-3 mr-1" />
+                                {(court.discountAmount != null && court.discountAmount > 0) ? 'Edit Discount' : 'Add Discount'}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 text-xs px-3 py-1 whitespace-nowrap bg-gradient-to-r from-red-50 to-rose-50 border-red-200 text-red-700 hover:from-red-100 hover:to-rose-100 hover:border-red-300 hover:text-red-800 transition-all duration-200 hover-scale"
+                                onClick={() => handleRemoveDiscount(court)}
+                              >
+                                <X className="w-3 h-3 mr-1" />
+                                Remove Discount
+                              </Button>
+                            </div>
                           )}
                         </div>
-
-                        {/* Right side - Discount controls */}
+                      </div>
+                      <div className="flex gap-2 pt-2">
                         {canManageCourt(court) && (
-                          <div className="flex flex-col gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-8 text-xs px-3 py-1 whitespace-nowrap bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 text-blue-700 hover:from-blue-100 hover:to-indigo-100 hover:border-blue-300 hover:text-blue-800 transition-all duration-200 hover-scale"
-                              onClick={() => handleDiscountCourt(court)}
-                            >
-                              <TagIcon className="w-3 h-3 mr-1" />
-                              {(court.discountAmount != null && court.discountAmount > 0) ? 'Edit Discount' : 'Add Discount'}
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-8 text-xs px-3 py-1 whitespace-nowrap bg-gradient-to-r from-red-50 to-rose-50 border-red-200 text-red-700 hover:from-red-100 hover:to-rose-100 hover:border-red-300 hover:text-red-800 transition-all duration-200 hover-scale"
-                              onClick={() => handleRemoveDiscount(court)}
-                            >
-                              <X className="w-3 h-3 mr-1" />
-                              Remove Discount
-                            </Button>
-                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                            onClick={() => handleEditCourt(court)}
+                          >
+                            <Edit className="w-4 h-4 mr-1" />
+                            Edit
+                          </Button>
+                        )}
+                        {canManageCourt(court) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 text-red-600 hover:text-red-700"
+                            onClick={() => confirmDeleteCourt(court)}
+                          >
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            Delete
+                          </Button>
                         )}
                       </div>
-                    </div>
-                    <div className="flex gap-2 pt-2">
-                      {canManageCourt(court) && (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="flex-1"
-                          onClick={() => handleEditCourt(court)}
-                        >
-                          <Edit className="w-4 h-4 mr-1" />
-                          Edit
-                        </Button>
-                      )}
-                      {canManageCourt(court) && (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="flex-1 text-red-600 hover:text-red-700"
-                          onClick={() => confirmDeleteCourt(court)}
-                        >
-                          <Trash2 className="w-4 h-4 mr-1" />
-                          Delete
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            
-            {/* Pagination for paginated courts */}
-            {USE_PAGINATED_COURTS && pagedData && (
-              <div className="mt-8 border-t pt-6">
-                <div className="text-sm text-muted-foreground mb-4 text-center">
-                  Showing page {page + 1} of {pagedData.totalPages} • {pagedData.totalElements} total courts
-                </div>
-                <PaginationBar
-                  page={page}
-                  setPage={setPage}
-                  hasPrev={pagedData.hasPrevious}
-                  hasNext={pagedData.hasNext}
-                  totalPages={pagedData.totalPages}
-                />
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-            )}
+
+              {/* Pagination for paginated courts */}
+              {USE_PAGINATED_COURTS && pagedData && (
+                <div className="mt-8 border-t pt-6">
+                  <div className="text-sm text-muted-foreground mb-4 text-center">
+                    Showing page {page + 1} of {pagedData.totalPages} • {pagedData.totalElements} total courts
+                  </div>
+                  <PaginationBar
+                    page={page}
+                    setPage={setPage}
+                    hasPrev={pagedData.hasPrevious}
+                    hasNext={pagedData.hasNext}
+                    totalPages={pagedData.totalPages}
+                  />
+                </div>
+              )}
             </>
           )}
         </TabsContent>
 
         {hasPermission('SUPER_ADMIN') && (
           <TabsContent value="availability" className="space-y-6">
-          {/* Keep existing availability form */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="w-5 h-5" />
-                Set Court Availability
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="court">Select Court</Label>
-                  <Popover open={courtSearchOpen} onOpenChange={setCourtSearchOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={courtSearchOpen}
-                        className="w-full justify-between"
-                      >
-                         {availabilityData.courtId
-                           ? currentCourts.find((court) => court.id === availabilityData.courtId)?.name
-                          : "Select court..."}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-full p-0">
-                      <Command>
-                        <CommandInput
-                          placeholder="Search courts..."
-                          value={courtSearchValue}
-                          onValueChange={setCourtSearchValue}
-                        />
-                        <CommandList>
-                          <CommandEmpty>No court found.</CommandEmpty>
-                          <CommandGroup>
-                            {courts
-                              .filter((court) =>
-                                court.name.toLowerCase().includes(courtSearchValue.toLowerCase())
-                              )
-                              .map((court) => (
-                                <CommandItem
-                                  key={court.id}
-                                  value={court.name}
-                                  onSelect={() => {
-                                    setAvailabilityData({...availabilityData, courtId: court.id})
-                                    setCourtSearchOpen(false)
-                                    setCourtSearchValue("")
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      availabilityData.courtId === court.id ? "opacity-100" : "opacity-0"
-                                    )}
-                                  />
-                                  {court.name}
-                                </CommandItem>
-                              ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
+            {/* Keep existing availability form */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5" />
+                  Set Court Availability
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="court">Select Court</Label>
+                    <Popover open={courtSearchOpen} onOpenChange={setCourtSearchOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={courtSearchOpen}
+                          className="w-full justify-between"
+                        >
+                          {availabilityData.courtId
+                            ? currentCourts.find((court) => court.id === availabilityData.courtId)?.name
+                            : "Select court..."}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0">
+                        <Command>
+                          <CommandInput
+                            placeholder="Search courts..."
+                            value={courtSearchValue}
+                            onValueChange={setCourtSearchValue}
+                          />
+                          <CommandList>
+                            <CommandEmpty>No court found.</CommandEmpty>
+                            <CommandGroup>
+                              {currentCourts
+                                .filter((court) =>
+                                  court.name.toLowerCase().includes(courtSearchValue.toLowerCase())
+                                )
+                                .map((court) => (
+                                  <CommandItem
+                                    key={court.id}
+                                    value={court.name}
+                                    onSelect={() => {
+                                      setAvailabilityData({ ...availabilityData, courtId: court.id })
+                                      setCourtSearchOpen(false)
+                                      setCourtSearchValue("")
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        availabilityData.courtId === court.id ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    {court.name}
+                                  </CommandItem>
+                                ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div>
+                    <Label htmlFor="dayOfWeek">Day of Week</Label>
+                    <Select onValueChange={(value) => setAvailabilityData({ ...availabilityData, dayOfWeek: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select day" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="sunday">Sunday</SelectItem>
+                        <SelectItem value="monday">Monday</SelectItem>
+                        <SelectItem value="tuesday">Tuesday</SelectItem>
+                        <SelectItem value="wednesday">Wednesday</SelectItem>
+                        <SelectItem value="thursday">Thursday</SelectItem>
+                        <SelectItem value="friday">Friday</SelectItem>
+                        <SelectItem value="saturday">Saturday</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="startTime">Start Time</Label>
+                    <Input
+                      id="startTime"
+                      type="time"
+                      value={availabilityData.startTime}
+                      onChange={(e) => setAvailabilityData({ ...availabilityData, startTime: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="endTime">End Time</Label>
+                    <Input
+                      id="endTime"
+                      type="time"
+                      value={availabilityData.endTime}
+                      onChange={(e) => setAvailabilityData({ ...availabilityData, endTime: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="startDate">Start Date (Optional)</Label>
+                    <Input
+                      id="startDate"
+                      type="date"
+                      value={availabilityData.startDate}
+                      onChange={(e) => setAvailabilityData({ ...availabilityData, startDate: e.target.value })}
+                      placeholder="Leave empty for recurring weekly"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Leave empty for recurring weekly schedule
+                    </p>
+                  </div>
+                  <div>
+                    <Label htmlFor="endDate">End Date (Optional)</Label>
+                    <Input
+                      id="endDate"
+                      type="date"
+                      value={availabilityData.endDate}
+                      onChange={(e) => setAvailabilityData({ ...availabilityData, endDate: e.target.value })}
+                      placeholder="Leave empty for single date or recurring"
+                      min={availabilityData.startDate}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Only needed if setting a date range
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="dayOfWeek">Day of Week</Label>
-                  <Select onValueChange={(value) => setAvailabilityData({...availabilityData, dayOfWeek: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select day" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="sunday">Sunday</SelectItem>
-                      <SelectItem value="monday">Monday</SelectItem>
-                      <SelectItem value="tuesday">Tuesday</SelectItem>
-                      <SelectItem value="wednesday">Wednesday</SelectItem>
-                      <SelectItem value="thursday">Thursday</SelectItem>
-                      <SelectItem value="friday">Friday</SelectItem>
-                      <SelectItem value="saturday">Saturday</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="startTime">Start Time</Label>
-                  <Input
-                    id="startTime"
-                    type="time"
-                    value={availabilityData.startTime}
-                    onChange={(e) => setAvailabilityData({...availabilityData, startTime: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="endTime">End Time</Label>
-                  <Input
-                    id="endTime"
-                    type="time"
-                    value={availabilityData.endTime}
-                    onChange={(e) => setAvailabilityData({...availabilityData, endTime: e.target.value})}
-                  />
-                </div>
-              </div>
-              <Button onClick={handleSetAvailability} className="w-full">
-                Set Availability
-              </Button>
-            </CardContent>
-          </Card>
 
-          {/* New Availability Table */}
-          <AvailabilityTable />
+                {/* Date Range Info */}
+                {(availabilityData.startDate || availabilityData.endDate) && (
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-2 text-blue-800">
+                      <Calendar className="w-4 h-4" />
+                      <span className="font-medium">Date Range Schedule</span>
+                    </div>
+                    <p className="text-sm text-blue-700 mt-1">
+                      {availabilityData.startDate && availabilityData.endDate
+                        ? `This availability will apply from ${availabilityData.startDate} to ${availabilityData.endDate}`
+                        : availabilityData.startDate
+                          ? `This availability will apply only on ${availabilityData.startDate}`
+                          : 'Please set a start date for date-specific availability'
+                      }
+                    </p>
+                  </div>
+                )}
+
+                <Button onClick={handleSetAvailability} className="w-full">
+                  Set Availability
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* New Availability Table */}
+            <AvailabilityTable />
           </TabsContent>
         )}
 

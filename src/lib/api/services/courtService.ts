@@ -36,6 +36,15 @@ export interface SetCourtAvailabilityRequest {
     dayOfWeek: string;
     start: string;
     end: string;
+    startDate?: string; // Optional: YYYY-MM-DD format for date-specific availability
+    endDate?: string;   // Optional: YYYY-MM-DD format for date range availability
+}
+
+export interface SetBulkCourtAvailabilityRequest {
+    courtId: number;
+    daysOfWeek: string[];
+    start: string;
+    end: string;
 }
 
 export interface AdminCourtAvailabilityResponse {
@@ -495,6 +504,32 @@ class CourtService {
     }
 
     /**
+     * Set court availability for multiple days
+     */
+    async setBulkAvailability(availabilityData: SetBulkCourtAvailabilityRequest): Promise<AdminCourtAvailabilityResponse[]> {
+        const response = await fetch(`${this.baseUrl}/availability/set-bulk`, {
+            method: 'POST',
+            headers: this.getAuthHeaders(),
+            body: JSON.stringify(availabilityData)
+        });
+
+        if (!response.ok) {
+            let errorMessage = `Failed to set bulk court availability: ${response.statusText}`;
+            try {
+                const errorData = await response.text();
+                if (errorData) {
+                    errorMessage = errorData;
+                }
+            } catch (e) {
+                // If parsing fails, use the default message
+            }
+            throw new Error(errorMessage);
+        }
+
+        return response.json();
+    }
+
+    /**
      * Update court availability
      */
     async updateAvailability(id: number, availabilityData: SetCourtAvailabilityRequest): Promise<AdminCourtAvailabilityResponse> {
@@ -548,10 +583,14 @@ class CourtService {
     }
 
     /**
-     * Get all court availabilities
+     * Get court availabilities (optionally filtered by court)
      */
-    async getAvailabilities(): Promise<AdminCourtAvailabilityResponse[]> {
-        const response = await fetch(`${this.baseUrl}/availability`, {
+    async getAvailabilities(courtId?: number): Promise<AdminCourtAvailabilityResponse[]> {
+        const url = courtId 
+            ? `${this.baseUrl}/availability?courtId=${courtId}`
+            : `${this.baseUrl}/availability`;
+            
+        const response = await fetch(url, {
             method: 'GET',
             headers: this.getAuthHeaders()
         });
@@ -575,10 +614,14 @@ class CourtService {
     }
 
     /**
-     * Get all court unavailabilities
+     * Get court unavailabilities (optionally filtered by court)
      */
-    async getUnavailabilities(): Promise<UnavailabilityRow[]> {
-        const response = await fetch(`${this.baseUrl}/availability/unavailabilities`, {
+    async getUnavailabilities(courtId?: number): Promise<UnavailabilityRow[]> {
+        const url = courtId 
+            ? `${this.baseUrl}/availability/unavailabilities?courtId=${courtId}`
+            : `${this.baseUrl}/availability/unavailabilities`;
+            
+        const response = await fetch(url, {
             method: 'GET',
             headers: this.getAuthHeaders()
         });
