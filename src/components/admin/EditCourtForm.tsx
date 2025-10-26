@@ -108,7 +108,19 @@ export default function EditCourtForm({
   }, [court, open, admins]);
 
   const handleInputChange = (field: keyof typeof formData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
+      // Auto-set court type when sport type changes
+      if (field === 'sportType') {
+        if (value === 'PADEL') {
+          updated.type = null; // Pass null for PADEL courts
+        } else if (prev.type === 'PADEL' || prev.type === null) {
+          // If changing from PADEL to TENNIS, reset type
+          updated.type = undefined;
+        }
+      }
+      return updated;
+    });
   };
 
   const handleAmenityToggle = (amenity: string) => {
@@ -206,7 +218,7 @@ export default function EditCourtForm({
       }
       
       if (formData.type !== court?.type) {
-        submitData.type = formData.type || null;
+        submitData.type = (formData.sportType || 'TENNIS') === 'PADEL' ? null : (formData.type || null);
       }
       if (formData.hourlyFee !== undefined && formData.hourlyFee !== court?.hourlyFee) {
         submitData.hourlyFee = formData.hourlyFee;
@@ -328,18 +340,35 @@ export default function EditCourtForm({
 
               <div>
                 <Label htmlFor="type">Court Surface *</Label>
-                <Select value={formData.type || ''} onValueChange={(value) => handleInputChange('type', value)}>
+                <Select 
+                  value={(formData.sportType || 'TENNIS') === 'PADEL' ? 'PADEL' : (formData.type || '')} 
+                  onValueChange={(value) => handleInputChange('type', value)}
+                  disabled={(formData.sportType || 'TENNIS') === 'PADEL'}
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select court surface" />
+                    <SelectValue placeholder={
+                      (formData.sportType || 'TENNIS') === 'PADEL' 
+                        ? "PADEL (Auto-selected by backend)" 
+                        : "Select court surface"
+                    } />
                   </SelectTrigger>
                   <SelectContent>
-                    {TENNIS_COURT_TYPES.map(type => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
+                    {(formData.sportType || 'TENNIS') === 'PADEL' ? (
+                      <SelectItem value="PADEL">Padel Court</SelectItem>
+                    ) : (
+                      TENNIS_COURT_TYPES.filter(type => type.value !== 'PADEL').map(type => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
+                {(formData.sportType || 'TENNIS') === 'PADEL' && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Court type will be automatically set to PADEL by the backend
+                  </p>
+                )}
               </div>
 
               <div>
