@@ -9,23 +9,33 @@ export interface CameraSummary {
 
 export interface CreateCameraRequest {
   name: string;
-  ipAddress: string;
-  port: number;
+  ipAddress?: string;
+  port?: number;
   username?: string;
   password?: string;
   streamPath?: string;
   initialStatus: CameraStatus;
   description?: string;
+  
+  // Hik-Connect specific fields
+  deviceSerial?: string;
+  channelNo?: number;
+  hikConnectEnabled?: boolean;
 }
 
 export interface UpdateCameraRequest {
   name: string;
-  ipAddress: string;
-  port: number;
+  ipAddress?: string;
+  port?: number;
   username?: string;
   password?: string;
   streamPath?: string;
   description?: string;
+  
+  // Hik-Connect specific fields
+  deviceSerial?: string;
+  channelNo?: number;
+  hikConnectEnabled?: boolean;
 }
 
 export interface AssociateCameraRequest {
@@ -87,6 +97,34 @@ export interface StatusChangeNotification {
   timestamp: Date;
 }
 
+// Hik-Connect specific interfaces
+export interface HikConnectLoginRequest {
+  username: string;
+  password: string;
+}
+
+export interface HikConnectCameraInfo {
+  deviceSerial: string;
+  deviceName: string;
+  channelNo: number;
+  channelName: string;
+  isOnline: boolean;
+  model?: string;
+  firmwareVersion?: string;
+}
+
+export interface AddHikConnectCameraRequest {
+  deviceSerial: string;
+  channelNo?: number;
+}
+
+export interface StreamUrlResponse {
+  streamUrl: string;
+  type: 'live' | 'playback';
+  startTime?: string;
+  endTime?: string;
+}
+
 class CameraService {
   private getAuthHeaders() {
     const token = localStorage.getItem('accessToken');
@@ -109,8 +147,8 @@ class CameraService {
     return response.json();
   }
 
-  async getAllCameras(): Promise<Camera[]> {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/cameras`, {
+  async getAllCameras(): Promise<{ cameras: Camera[]; count: number }> {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/cameras`, {
       method: 'GET',
       headers: this.getAuthHeaders()
     });
@@ -362,7 +400,7 @@ class CameraService {
     window.URL.revokeObjectURL(url);
   }
 
-  async testCameraConnection(cameraId: number): Promise<{connected: boolean, message: string}> {
+  async testRecordingConnection(cameraId: number): Promise<{connected: boolean, message: string}> {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/cameras/${cameraId}/test-recording-connection`, {
       method: 'POST',
       headers: this.getAuthHeaders()
@@ -435,6 +473,102 @@ class CameraService {
     if (!response.ok) {
       throw new Error(`Failed to set maintenance mode: ${response.statusText}`);
     }
+  }
+
+  // Hik-Connect specific methods
+  async loginToHikConnect(credentials: HikConnectLoginRequest): Promise<{ message: string }> {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/cameras/hik-connect/login`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(credentials)
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || `Failed to login to Hik-Connect: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  async getAvailableHikConnectCameras(): Promise<{ cameras: HikConnectCameraInfo[]; count: number }> {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/cameras/hik-connect/available`, {
+      method: 'GET',
+      headers: this.getAuthHeaders()
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get available cameras: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  async syncHikConnectCameras(): Promise<{ message: string }> {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/cameras/hik-connect/sync`, {
+      method: 'POST',
+      headers: this.getAuthHeaders()
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to sync cameras: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  async addHikConnectCamera(request: AddHikConnectCameraRequest): Promise<{ message: string; camera: Camera }> {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/cameras/hik-connect/add`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(request)
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || `Failed to add camera: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  async getLiveStreamUrl(cameraId: number): Promise<StreamUrlResponse> {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/cameras/${cameraId}/stream/live`, {
+      method: 'GET',
+      headers: this.getAuthHeaders()
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get live stream URL: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  async getPlaybackUrl(cameraId: number, startTime: string, endTime: string): Promise<StreamUrlResponse> {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/cameras/${cameraId}/stream/playback?startTime=${encodeURIComponent(startTime)}&endTime=${encodeURIComponent(endTime)}`, {
+      method: 'GET',
+      headers: this.getAuthHeaders()
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get playback URL: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  async testCameraConnection(cameraId: number): Promise<{ connected: boolean; streamUrl?: string; error?: string; timestamp: string }> {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/cameras/${cameraId}/test`, {
+      method: 'POST',
+      headers: this.getAuthHeaders()
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to test camera connection: ${response.statusText}`);
+    }
+
+    return response.json();
   }
 }
 

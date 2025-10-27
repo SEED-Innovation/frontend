@@ -20,7 +20,14 @@ import {
   Download,
   FileVideo,
   Clock,
-  HardDrive
+  HardDrive,
+  Cloud,
+  RefreshCw,
+  Eye,
+  Play,
+  LogIn,
+  Wifi,
+  Monitor
 } from 'lucide-react';
 import {
   Card,
@@ -67,7 +74,11 @@ import {
   type Recording,
   type RecordingStatus as ApiRecordingStatus,
   type RecordingSummary,
-  type CameraHealthSummary
+  type CameraHealthSummary,
+  type HikConnectLoginRequest,
+  type HikConnectCameraInfo,
+  type AddHikConnectCameraRequest,
+  type StreamUrlResponse
 } from '@/services/cameraService';
 import { useCameraWebSocket } from '@/hooks/useCameraWebSocket';
 
@@ -100,7 +111,10 @@ export default function CameraManagement() {
     username: '',
     password: '',
     streamPath: '/Streaming/Channels/101',
-    description: ''
+    description: '',
+    deviceSerial: '',
+    channelNo: 1,
+    hikConnectEnabled: false
   });
   const [associatingCamera, setAssociatingCamera] = useState<CameraType | null>(null);
   const [selectedCourtId, setSelectedCourtId] = useState<string>('');
@@ -110,6 +124,20 @@ export default function CameraManagement() {
   const [recordingStatus, setRecordingStatus] = useState<{ [key: string | number]: 'idle' | 'recording' | 'stopping' }>({});
   const [recordingSummary, setRecordingSummary] = useState<RecordingSummary | null>(null);
   const [healthSummary, setHealthSummary] = useState<CameraHealthSummary | null>(null);
+
+  // Hik-Connect specific state
+  const [isHikConnectLoginOpen, setIsHikConnectLoginOpen] = useState(false);
+  const [isHikConnectCamerasOpen, setIsHikConnectCamerasOpen] = useState(false);
+  const [isStreamViewerOpen, setIsStreamViewerOpen] = useState(false);
+  const [hikConnectCredentials, setHikConnectCredentials] = useState<HikConnectLoginRequest>({
+    username: '',
+    password: ''
+  });
+  const [availableHikConnectCameras, setAvailableHikConnectCameras] = useState<HikConnectCameraInfo[]>([]);
+  const [hikConnectLoading, setHikConnectLoading] = useState(false);
+  const [streamingCamera, setStreamingCamera] = useState<CameraType | null>(null);
+  const [streamUrl, setStreamUrl] = useState<string>('');
+  const [streamLoading, setStreamLoading] = useState(false);
 
 
   const { toast } = useToast();
@@ -202,12 +230,14 @@ export default function CameraManagement() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [camerasData, summaryData] = await Promise.all([
+      const [camerasResponse, summaryData] = await Promise.all([
         cameraService.getAllCameras(),
         cameraService.getSummary()
       ]);
 
-      setCameras(camerasData);
+      // Handle the new response format from backend
+      const cameras = camerasResponse.cameras || camerasResponse;
+      setCameras(cameras);
       setSummary(summaryData);
     } catch (error) {
       toast({
@@ -242,7 +272,11 @@ export default function CameraManagement() {
       case 'MAINTENANCE':
         return <Settings className="h-4 w-4 text-yellow-500" />;
       case 'ERROR':
+      case 'HIK_CONNECT_ERROR':
+      case 'NOT_FOUND_IN_HIK_CONNECT':
         return <AlertTriangle className="h-4 w-4 text-red-500" />;
+      case 'STREAM_UNAVAILABLE':
+        return <WifiOff className="h-4 w-4 text-yellow-500" />;
       default:
         return <Activity className="h-4 w-4 text-gray-500" />;
     }
@@ -253,12 +287,25 @@ export default function CameraManagement() {
       ACTIVE: 'default',
       OFFLINE: 'destructive',
       MAINTENANCE: 'secondary',
-      ERROR: 'destructive'
+      ERROR: 'destructive',
+      HIK_CONNECT_ERROR: 'destructive',
+      NOT_FOUND_IN_HIK_CONNECT: 'destructive',
+      STREAM_UNAVAILABLE: 'secondary'
     } as const;
+
+    const labels = {
+      ACTIVE: 'Active',
+      OFFLINE: 'Offline',
+      MAINTENANCE: 'Maintenance',
+      ERROR: 'Error',
+      HIK_CONNECT_ERROR: 'Hik-Connect Error',
+      NOT_FOUND_IN_HIK_CONNECT: 'Not Found',
+      STREAM_UNAVAILABLE: 'Stream Unavailable'
+    };
 
     return (
       <Badge variant={variants[status] || 'secondary'}>
-        {status.replace('_', ' ')}
+        {labels[status] || status.replace('_', ' ')}
       </Badge>
     );
   };
@@ -575,6 +622,134 @@ export default function CameraManagement() {
     }
   };
 
+  // Hik-Connect handler functions
+  const handleHikConnectLogin = async () => {
+    if (!hikConnectCredentials.username || !hikConnectCredentials.password) {
+      toast({
+        title: "Missing credentials",
+        description: "Please enter both username and password",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setHikConnectLoading(true);
+      const result = await cameraService.loginToHikConnect(hikConnectCredentials);
+      
+      toast({
+        title: "Login successful",
+        description: result.message,
+      });
+
+      setIsHikConnectLoginOpen(false);
+      setHikConnectCredentials({ username: '', password: '' });
+    } catch (error) {
+      toast({
+        title: "Login failed",
+        description: error instanceof Error ? error.message : "Failed to login to Hik-Connect",
+        variant: "destructive"
+      });
+    } finally {
+      setHikConnectLoading(false);
+    }
+  };
+
+  const handleLoadAvailableCameras = async () => {
+    try {
+      setHikConnectLoading(true);
+      const result = await cameraService.getAvailableHikConnectCameras();
+      setAvailableHikConnectCameras(result.cameras);
+      setIsHikConnectCamerasOpen(true);
+
+      toast({
+        title: "Cameras loaded",
+        description: `Found ${result.count} cameras in your Hik-Connect account`,
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to load cameras",
+        description: error instanceof Error ? error.message : "Failed to get cameras from Hik-Connect",
+        variant: "destructive"
+      });
+    } finally {
+      setHikConnectLoading(false);
+    }
+  };
+
+  const handleSyncHikConnectCameras = async () => {
+    try {
+      setHikConnectLoading(true);
+      const result = await cameraService.syncHikConnectCameras();
+      
+      toast({
+        title: "Sync completed",
+        description: result.message,
+      });
+
+      // Refresh camera list
+      loadData();
+    } catch (error) {
+      toast({
+        title: "Sync failed",
+        description: error instanceof Error ? error.message : "Failed to sync cameras",
+        variant: "destructive"
+      });
+    } finally {
+      setHikConnectLoading(false);
+    }
+  };
+
+  const handleAddHikConnectCamera = async (hikCamera: HikConnectCameraInfo) => {
+    try {
+      const request: AddHikConnectCameraRequest = {
+        deviceSerial: hikCamera.deviceSerial,
+        channelNo: hikCamera.channelNo
+      };
+
+      const result = await cameraService.addHikConnectCamera(request);
+      
+      toast({
+        title: "Camera added",
+        description: result.message,
+      });
+
+      // Refresh camera list and close dialog
+      loadData();
+      setIsHikConnectCamerasOpen(false);
+    } catch (error) {
+      toast({
+        title: "Failed to add camera",
+        description: error instanceof Error ? error.message : "Failed to add camera",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleViewLiveStream = async (camera: CameraType) => {
+    try {
+      setStreamLoading(true);
+      setStreamingCamera(camera);
+      
+      const result = await cameraService.getLiveStreamUrl(camera.id);
+      setStreamUrl(result.streamUrl);
+      setIsStreamViewerOpen(true);
+
+      toast({
+        title: "Stream loaded",
+        description: `Live stream from ${camera.name} is ready`,
+      });
+    } catch (error) {
+      toast({
+        title: "Stream unavailable",
+        description: error instanceof Error ? error.message : "Failed to get live stream",
+        variant: "destructive"
+      });
+    } finally {
+      setStreamLoading(false);
+    }
+  };
+
   const handleEditCamera = (camera: CameraType) => {
     setEditingCamera({
       id: camera.id,
@@ -633,13 +808,34 @@ export default function CameraManagement() {
   };
 
   const handleAddCamera = async () => {
-    if (!newCamera.name || !newCamera.ipAddress || !newCamera.port) {
+    // Validate required fields based on camera type
+    if (!newCamera.name) {
       toast({
         title: "Missing required fields",
-        description: "Please fill in all required fields (Name, IP Address, Port)",
+        description: "Please enter a camera name",
         variant: "destructive"
       });
       return;
+    }
+
+    if (newCamera.hikConnectEnabled) {
+      if (!newCamera.deviceSerial) {
+        toast({
+          title: "Missing required fields",
+          description: "Please enter the device serial number for Hik-Connect camera",
+          variant: "destructive"
+        });
+        return;
+      }
+    } else {
+      if (!newCamera.ipAddress || !newCamera.port) {
+        toast({
+          title: "Missing required fields",
+          description: "Please fill in IP Address and Port for IP camera",
+          variant: "destructive"
+        });
+        return;
+      }
     }
 
     try {
@@ -651,7 +847,11 @@ export default function CameraManagement() {
         password: newCamera.password,
         streamPath: newCamera.streamPath || '/Streaming/Channels/101',
         initialStatus: newCamera.initialStatus || 'OFFLINE',
-        description: newCamera.description
+        description: newCamera.description,
+        // Hik-Connect specific fields
+        deviceSerial: newCamera.deviceSerial,
+        channelNo: newCamera.channelNo || 1,
+        hikConnectEnabled: newCamera.hikConnectEnabled || false
       };
 
       const createdCamera = await cameraService.createCamera(createRequest);
@@ -672,7 +872,10 @@ export default function CameraManagement() {
         username: '',
         password: '',
         streamPath: '/Streaming/Channels/101',
-        description: ''
+        description: '',
+        deviceSerial: '',
+        channelNo: 1,
+        hikConnectEnabled: false
       });
 
       // Refresh summary
@@ -738,6 +941,18 @@ export default function CameraManagement() {
 
         </div>
         <div className="flex items-center space-x-2">
+          <Button variant="outline" onClick={() => setIsHikConnectLoginOpen(true)}>
+            <LogIn className="w-4 h-4 mr-2" />
+            Hik-Connect Login
+          </Button>
+          <Button variant="outline" onClick={handleLoadAvailableCameras} disabled={hikConnectLoading}>
+            <Cloud className="w-4 h-4 mr-2" />
+            Browse Cameras
+          </Button>
+          <Button variant="outline" onClick={handleSyncHikConnectCameras} disabled={hikConnectLoading}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Sync Cameras
+          </Button>
           <Button variant="outline" onClick={() => handleForceHealthCheck()}>
             <Activity className="w-4 h-4 mr-2" />
             Check All Cameras
@@ -832,10 +1047,12 @@ export default function CameraManagement() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>IP Address</TableHead>
+                <TableHead>Connection</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Recording Status</TableHead>
                 <TableHead>Associated Court</TableHead>
+                <TableHead>Stream Actions</TableHead>
                 <TableHead>Recording Actions</TableHead>
                 <TableHead>Management</TableHead>
               </TableRow>
@@ -846,16 +1063,62 @@ export default function CameraManagement() {
                   <TableCell className="font-medium">
                     <div className="flex items-center space-x-2">
                       {getStatusIcon(camera.status)}
-                      <span>{camera.name}</span>
+                      <div>
+                        <div>{camera.name}</div>
+                        {camera.deviceName && camera.deviceName !== camera.name && (
+                          <div className="text-xs text-muted-foreground">{camera.deviceName}</div>
+                        )}
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <code className="px-2 py-1 bg-muted rounded text-sm">
-                      {camera.ipAddress}:{camera.port}
-                    </code>
+                    {camera.hikConnectEnabled ? (
+                      <div className="space-y-1">
+                        <div className="flex items-center space-x-1">
+                          <Cloud className="h-3 w-3 text-blue-500" />
+                          <span className="text-xs">Hik-Connect</span>
+                        </div>
+                        <code className="px-1 py-0.5 bg-blue-50 text-blue-700 rounded text-xs">
+                          {camera.deviceSerial}
+                        </code>
+                        {camera.channelNo && (
+                          <div className="text-xs text-muted-foreground">
+                            Ch. {camera.channelNo}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <div className="flex items-center space-x-1">
+                          <Wifi className="h-3 w-3 text-gray-500" />
+                          <span className="text-xs">Direct IP</span>
+                        </div>
+                        <code className="px-1 py-0.5 bg-muted rounded text-xs">
+                          {camera.ipAddress}:{camera.port}
+                        </code>
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell>
                     {getStatusBadge(camera.status, camera)}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      {camera.hikConnectEnabled ? (
+                        <Badge variant="secondary" className="text-xs">
+                          <Cloud className="w-3 h-3 mr-1" />
+                          Cloud
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-xs">
+                          <Monitor className="w-3 h-3 mr-1" />
+                          Local
+                        </Badge>
+                      )}
+                      {camera.isOnline && (
+                        <div className="w-2 h-2 bg-green-500 rounded-full" title="Online" />
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
@@ -892,6 +1155,35 @@ export default function CameraManagement() {
                         Associate
                       </Button>
                     )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleViewLiveStream(camera)}
+                        disabled={camera.status !== 'ACTIVE' || streamLoading}
+                        title="View live stream"
+                      >
+                        <Eye className="w-3 h-3" />
+                      </Button>
+                      {camera.hikConnectEnabled && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            // TODO: Implement playback viewer
+                            toast({
+                              title: "Playback viewer",
+                              description: "Playback viewer coming soon",
+                            });
+                          }}
+                          title="View recordings"
+                        >
+                          <Play className="w-3 h-3" />
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-1">
@@ -1131,14 +1423,46 @@ export default function CameraManagement() {
 
       {/* Add Camera Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Add New Camera</DialogTitle>
             <DialogDescription>
-              Configure a new security camera
+              Configure a new security camera (IP Camera or Hik-Connect)
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Camera Type</Label>
+              <div className="flex space-x-4">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="ip-camera"
+                    name="camera-type"
+                    checked={!newCamera.hikConnectEnabled}
+                    onChange={() => setNewCamera({ ...newCamera, hikConnectEnabled: false })}
+                  />
+                  <Label htmlFor="ip-camera" className="flex items-center space-x-1">
+                    <Monitor className="w-4 h-4" />
+                    <span>IP Camera</span>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="hik-connect"
+                    name="camera-type"
+                    checked={newCamera.hikConnectEnabled}
+                    onChange={() => setNewCamera({ ...newCamera, hikConnectEnabled: true })}
+                  />
+                  <Label htmlFor="hik-connect" className="flex items-center space-x-1">
+                    <Cloud className="w-4 h-4" />
+                    <span>Hik-Connect</span>
+                  </Label>
+                </div>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="name">Camera Name *</Label>
               <Input
@@ -1148,53 +1472,84 @@ export default function CameraManagement() {
                 placeholder="e.g., Court 1 Main Camera"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="ip">IP Address *</Label>
-              <Input
-                id="ip"
-                value={newCamera.ipAddress || ''}
-                onChange={(e) => setNewCamera({ ...newCamera, ipAddress: e.target.value })}
-                placeholder="e.g., 192.168.1.101"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="port">Port *</Label>
-              <Input
-                id="port"
-                type="number"
-                value={newCamera.port || 554}
-                onChange={(e) => setNewCamera({ ...newCamera, port: parseInt(e.target.value) })}
-                placeholder="554"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                value={newCamera.username || ''}
-                onChange={(e) => setNewCamera({ ...newCamera, username: e.target.value })}
-                placeholder="e.g., admin"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={newCamera.password || ''}
-                onChange={(e) => setNewCamera({ ...newCamera, password: e.target.value })}
-                placeholder="Camera password"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="streamPath">Stream Path</Label>
-              <Input
-                id="streamPath"
-                value={newCamera.streamPath || '/Streaming/Channels/101'}
-                onChange={(e) => setNewCamera({ ...newCamera, streamPath: e.target.value })}
-                placeholder="/Streaming/Channels/101"
-              />
-            </div>
+
+            {newCamera.hikConnectEnabled ? (
+              // Hik-Connect specific fields
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="device-serial">Device Serial *</Label>
+                  <Input
+                    id="device-serial"
+                    value={newCamera.deviceSerial || ''}
+                    onChange={(e) => setNewCamera({ ...newCamera, deviceSerial: e.target.value })}
+                    placeholder="e.g., DS-2CD2xxx-xxx"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="channel">Channel Number</Label>
+                  <Input
+                    id="channel"
+                    type="number"
+                    value={newCamera.channelNo || 1}
+                    onChange={(e) => setNewCamera({ ...newCamera, channelNo: parseInt(e.target.value) })}
+                    placeholder="1"
+                    min="1"
+                  />
+                </div>
+              </>
+            ) : (
+              // IP Camera specific fields
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="ip">IP Address *</Label>
+                  <Input
+                    id="ip"
+                    value={newCamera.ipAddress || ''}
+                    onChange={(e) => setNewCamera({ ...newCamera, ipAddress: e.target.value })}
+                    placeholder="e.g., 192.168.1.101"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="port">Port *</Label>
+                  <Input
+                    id="port"
+                    type="number"
+                    value={newCamera.port || 554}
+                    onChange={(e) => setNewCamera({ ...newCamera, port: parseInt(e.target.value) })}
+                    placeholder="554"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    value={newCamera.username || ''}
+                    onChange={(e) => setNewCamera({ ...newCamera, username: e.target.value })}
+                    placeholder="e.g., admin"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={newCamera.password || ''}
+                    onChange={(e) => setNewCamera({ ...newCamera, password: e.target.value })}
+                    placeholder="Camera password"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="streamPath">Stream Path</Label>
+                  <Input
+                    id="streamPath"
+                    value={newCamera.streamPath || '/Streaming/Channels/101'}
+                    onChange={(e) => setNewCamera({ ...newCamera, streamPath: e.target.value })}
+                    placeholder="/Streaming/Channels/101"
+                  />
+                </div>
+              </>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="status">Initial Status</Label>
               <Select
@@ -1317,6 +1672,220 @@ export default function CameraManagement() {
                 Save Changes
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Hik-Connect Login Dialog */}
+      <Dialog open={isHikConnectLoginOpen} onOpenChange={setIsHikConnectLoginOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Cloud className="w-5 h-5 text-blue-500" />
+              <span>Login to Hik-Connect</span>
+            </DialogTitle>
+            <DialogDescription>
+              Enter your Hik-Connect account credentials to access your cloud cameras
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="hik-username">Username/Email</Label>
+              <Input
+                id="hik-username"
+                type="email"
+                value={hikConnectCredentials.username}
+                onChange={(e) => setHikConnectCredentials({ 
+                  ...hikConnectCredentials, 
+                  username: e.target.value 
+                })}
+                placeholder="your@email.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="hik-password">Password</Label>
+              <Input
+                id="hik-password"
+                type="password"
+                value={hikConnectCredentials.password}
+                onChange={(e) => setHikConnectCredentials({ 
+                  ...hikConnectCredentials, 
+                  password: e.target.value 
+                })}
+                placeholder="Your Hik-Connect password"
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setIsHikConnectLoginOpen(false);
+                  setHikConnectCredentials({ username: '', password: '' });
+                }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleHikConnectLogin} 
+                disabled={hikConnectLoading}
+              >
+                {hikConnectLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Login
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Available Hik-Connect Cameras Dialog */}
+      <Dialog open={isHikConnectCamerasOpen} onOpenChange={setIsHikConnectCamerasOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Cloud className="w-5 h-5 text-blue-500" />
+              <span>Available Hik-Connect Cameras</span>
+            </DialogTitle>
+            <DialogDescription>
+              Select cameras from your Hik-Connect account to add to the system
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {availableHikConnectCameras.length === 0 ? (
+              <div className="text-center py-8">
+                <Cloud className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">No cameras found in your Hik-Connect account</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Make sure your cameras are online and properly configured in Hik-Connect
+                </p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Device Name</TableHead>
+                    <TableHead>Serial Number</TableHead>
+                    <TableHead>Channel</TableHead>
+                    <TableHead>Model</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {availableHikConnectCameras.map((hikCamera) => (
+                    <TableRow key={`${hikCamera.deviceSerial}-${hikCamera.channelNo}`}>
+                      <TableCell className="font-medium">
+                        <div>
+                          <div>{hikCamera.deviceName}</div>
+                          {hikCamera.channelName && (
+                            <div className="text-xs text-muted-foreground">
+                              {hikCamera.channelName}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <code className="px-2 py-1 bg-muted rounded text-sm">
+                          {hikCamera.deviceSerial}
+                        </code>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          Ch. {hikCamera.channelNo}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          <div>{hikCamera.model || 'Unknown'}</div>
+                          {hikCamera.firmwareVersion && (
+                            <div className="text-xs text-muted-foreground">
+                              v{hikCamera.firmwareVersion}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          {hikCamera.isOnline ? (
+                            <Badge variant="default">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Online
+                            </Badge>
+                          ) : (
+                            <Badge variant="destructive">
+                              <XCircle className="w-3 h-3 mr-1" />
+                              Offline
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleAddHikConnectCamera(hikCamera)}
+                          disabled={!hikCamera.isOnline}
+                        >
+                          <Plus className="w-3 h-3 mr-1" />
+                          Add
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Stream Viewer Dialog */}
+      <Dialog open={isStreamViewerOpen} onOpenChange={setIsStreamViewerOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Eye className="w-5 h-5 text-blue-500" />
+              <span>Live Stream - {streamingCamera?.name}</span>
+            </DialogTitle>
+            <DialogDescription>
+              Live video feed from the camera
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {streamLoading ? (
+              <div className="flex items-center justify-center h-64">
+                <Loader2 className="h-8 w-8 animate-spin" />
+                <span className="ml-2">Loading stream...</span>
+              </div>
+            ) : streamUrl ? (
+              <div className="relative bg-black rounded-lg overflow-hidden">
+                <video
+                  src={streamUrl}
+                  controls
+                  autoPlay
+                  className="w-full h-auto max-h-96"
+                  onError={() => {
+                    toast({
+                      title: "Stream error",
+                      description: "Failed to load video stream",
+                      variant: "destructive"
+                    });
+                  }}
+                >
+                  Your browser does not support the video tag.
+                </video>
+                <div className="absolute top-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm">
+                  <div className="flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                    <span>LIVE</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <AlertTriangle className="h-12 w-12 mx-auto text-yellow-500 mb-4" />
+                <p className="text-muted-foreground">Stream not available</p>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
