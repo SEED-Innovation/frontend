@@ -21,6 +21,7 @@ import { ActionMenu } from './ActionMenu';
 import { FilterChips } from './FilterChips';
 import { DetailDrawer } from './DetailDrawer';
 import { CreateAdminModal } from './CreateAdminModal';
+import { DeleteUserDialog } from './DeleteUserDialog';
 import {
   Table,
   TableBody,
@@ -47,6 +48,8 @@ const UserManagement = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoadingUserDetail, setIsLoadingUserDetail] = useState(false);
   const [showCreateAdmin, setShowCreateAdmin] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<any>(null);
   const [newUser, setNewUser] = useState({
     fullName: '',
     email: '',
@@ -296,9 +299,13 @@ const UserManagement = () => {
   };
 
   const handleDelete = (user: any) => {
-    if (confirm(`Are you sure you want to delete ${user.name}?`)) {
-      handleDeleteUser(user.email);
-    }
+    setUserToDelete(user);
+    setShowDeleteDialog(true);
+  };
+
+  const handleDeleteSuccess = () => {
+    // Refresh the data after successful deletion
+    handleRefresh();
   };
 
   const handleViewUser = async (user: any, userType: 'user' | 'manager') => {
@@ -594,6 +601,7 @@ const UserManagement = () => {
         <TabsContent value="users" className="space-y-4">
           <UsersList
             onViewUser={(user) => handleViewUser(user, 'user')}
+            onDeleteUser={handleDelete}
             searchTerm={searchTerm}
             statusFilter={statusFilter}
             isManagersTab={false}
@@ -604,6 +612,7 @@ const UserManagement = () => {
         <TabsContent value="managers" className="space-y-4">
           <UsersList
             onViewUser={(user) => handleViewUser(user, 'manager')}
+            onDeleteUser={handleDelete}
             searchTerm={searchTerm}
             statusFilter={statusFilter}
             isManagersTab={true}
@@ -632,6 +641,17 @@ const UserManagement = () => {
         user={detailUser}
         userType={detailUserType}
         isLoading={isLoadingUserDetail}
+      />
+
+      {/* Delete User Dialog */}
+      <DeleteUserDialog
+        isOpen={showDeleteDialog}
+        onClose={() => {
+          setShowDeleteDialog(false);
+          setUserToDelete(null);
+        }}
+        user={userToDelete}
+        onSuccess={handleDeleteSuccess}
       />
     </motion.div>
   );

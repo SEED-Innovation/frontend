@@ -17,7 +17,8 @@ import {
   ChevronRight,
   Edit,
   RefreshCw,
-  KeyRound
+  KeyRound,
+  Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,13 +44,14 @@ import { DisableUserDialog } from './DisableUserDialog';
 
 interface UsersListProps {
   onViewUser?: (user: UserListItem) => void;
+  onDeleteUser?: (user: UserListItem) => void;
   searchTerm?: string;
   statusFilter?: string;
   isManagersTab?: boolean;
   userType?: 'users' | 'admins';
 }
 
-export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 'All', isManagersTab = false, userType = 'users' }: UsersListProps) {
+export default function UsersList({ onViewUser, onDeleteUser, searchTerm = '', statusFilter = 'All', isManagersTab = false, userType = 'users' }: UsersListProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -507,6 +509,14 @@ export default function UsersList({ onViewUser, searchTerm = '', statusFilter = 
                            ) : (
                              <CheckCircle className="h-4 w-4 text-green-500" />
                            )}
+                         </Button>
+                         <Button
+                           variant="ghost"
+                           size="sm"
+                           onClick={() => onDeleteUser?.(user)}
+                           className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                         >
+                           <Trash2 className="h-4 w-4" />
                          </Button>
                        </div>
                      </TableCell>
