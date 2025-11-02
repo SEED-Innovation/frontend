@@ -122,26 +122,20 @@ export async function updateUserStatus(
   userId: number,
   data: UpdateUserStatusRequest
 ): Promise<void> {
-  const response = await fetch(`${BASE_URL}/admin/users/status/${userId}`, {
-    method: 'PATCH',
-    headers: authHeaders(),
-    body: JSON.stringify(data)
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    
-    if (response.status === 404) {
+  try {
+    await apiClient.patch<void>(`/admin/users/status/${userId}`, data);
+  } catch (error: any) {
+    if (error.status === 404) {
       throw new Error('User not found');
     }
-    if (response.status === 403) {
+    if (error.status === 403) {
       throw new Error('Access denied');
     }
-    if (response.status === 429) {
+    if (error.status === 429) {
       throw new Error('Rate limit exceeded. Please try again later.');
     }
     
-    throw new Error(error.message || 'Failed to update user status');
+    throw new Error(error.data?.message || 'Failed to update user status');
   }
 }
 
