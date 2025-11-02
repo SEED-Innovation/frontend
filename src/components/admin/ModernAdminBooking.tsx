@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,6 +31,7 @@ interface ModernAdminBookingProps {
 export const ModernAdminBooking: React.FC<ModernAdminBookingProps> = ({
     bookings, stats, courts, isLoading, onApprove, onReject, onCancel, onRefresh
 }) => {
+    const { t } = useTranslation('admin');
 
     const [statusFilter, setStatusFilter] = useState('all');
     const [dateFilter, setDateFilter] = useState('all');
@@ -68,18 +70,18 @@ export const ModernAdminBooking: React.FC<ModernAdminBookingProps> = ({
                     <div>
                         <h1 className="text-3xl font-bold mb-2 flex items-center">
                             <Crown className="w-8 h-8 mr-3 text-yellow-400" />
-                            Advanced Booking Management
+                            {t('modernAdminBooking.title')}
                         </h1>
-                        <p className="text-gray-300 text-lg">Professional tennis court booking administration</p>
+                        <p className="text-gray-300 text-lg">{t('modernAdminBooking.subtitle')}</p>
                     </div>
                     <div className="flex items-center space-x-6">
                         <div className="text-center">
                             <p className="text-3xl font-bold text-blue-400">{filteredBookings.length}</p>
-                            <p className="text-sm text-gray-400">Total Bookings</p>
+                            <p className="text-sm text-gray-400">{t('modernAdminBooking.totalBookings')}</p>
                         </div>
                         <div className="text-center">
                             <p className="text-3xl font-bold text-yellow-400">{stats.pending || 0}</p>
-                            <p className="text-sm text-gray-400">Pending</p>
+                            <p className="text-sm text-gray-400">{t('modernAdminBooking.pending')}</p>
                         </div>
                     </div>
                 </div>
@@ -91,7 +93,7 @@ export const ModernAdminBooking: React.FC<ModernAdminBookingProps> = ({
                     <CardHeader>
                         <CardTitle className="flex items-center text-xl">
                             <Sparkles className="w-6 h-6 mr-3 text-blue-600" />
-                            Smart Filters & Search
+                            {t('modernAdminBooking.smartFilters')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -99,23 +101,23 @@ export const ModernAdminBooking: React.FC<ModernAdminBookingProps> = ({
 
                             <Select value={statusFilter} onValueChange={setStatusFilter}>
                                 <SelectTrigger className="h-12 border-2">
-                                    <SelectValue placeholder="Status" />
+                                    <SelectValue placeholder={t('modernAdminBooking.status')} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">All Statuses</SelectItem>
-                                    <SelectItem value="PENDING">⏳ Pending</SelectItem>
-                                    <SelectItem value="APPROVED">✅ Approved</SelectItem>
-                                    <SelectItem value="CANCELLED">❌ Cancelled</SelectItem>
+                                    <SelectItem value="all">{t('modernAdminBooking.allStatuses')}</SelectItem>
+                                    <SelectItem value="PENDING">{t('modernAdminBooking.pendingStatus')}</SelectItem>
+                                    <SelectItem value="APPROVED">{t('modernAdminBooking.approved')}</SelectItem>
+                                    <SelectItem value="CANCELLED">{t('modernAdminBooking.cancelled')}</SelectItem>
                                 </SelectContent>
                             </Select>
                             <Select value={dateFilter} onValueChange={setDateFilter}>
                                 <SelectTrigger className="h-12 border-2">
-                                    <SelectValue placeholder="Date" />
+                                    <SelectValue placeholder={t('modernAdminBooking.date')} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">All Dates</SelectItem>
-                                    <SelectItem value="today">Today</SelectItem>
-                                    <SelectItem value="week">This Week</SelectItem>
+                                    <SelectItem value="all">{t('modernAdminBooking.allDates')}</SelectItem>
+                                    <SelectItem value="today">{t('modernAdminBooking.today')}</SelectItem>
+                                    <SelectItem value="week">{t('modernAdminBooking.thisWeek')}</SelectItem>
                                 </SelectContent>
                             </Select>
                             <Button onClick={onRefresh} className="h-12 bg-gradient-to-r from-blue-600 to-blue-700">
@@ -234,11 +236,11 @@ export const ModernAdminBooking: React.FC<ModernAdminBookingProps> = ({
                                                             <>
                                                                 <Button onClick={() => onApprove(booking.id)} size="sm" className="bg-green-600 hover:bg-green-700">
                                                                     <CheckCircle className="w-4 h-4 mr-1" />
-                                                                    Approve
+                                                                    {t('modernAdminBooking.approve')}
                                                                 </Button>
                                                                 <Button onClick={() => onReject(booking.id, 'Admin rejection')} variant="destructive" size="sm">
                                                                     <XCircle className="w-4 h-4 mr-1" />
-                                                                    Reject
+                                                                    {t('modernAdminBooking.reject')}
                                                                 </Button>
                                                             </>
                                                         )}
@@ -249,9 +251,9 @@ export const ModernAdminBooking: React.FC<ModernAdminBookingProps> = ({
                                                                 </Button>
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent align="end">
-                                                                <DropdownMenuItem><Eye className="w-4 h-4 mr-2" />View Details</DropdownMenuItem>
-                                                                <DropdownMenuItem><Edit className="w-4 h-4 mr-2" />Edit</DropdownMenuItem>
-                                                                <DropdownMenuItem className="text-red-600"><Trash2 className="w-4 h-4 mr-2" />Delete</DropdownMenuItem>
+                                                                <DropdownMenuItem><Eye className="w-4 h-4 mr-2" />{t('modernAdminBooking.viewDetails')}</DropdownMenuItem>
+                                                                <DropdownMenuItem><Edit className="w-4 h-4 mr-2" />{t('modernAdminBooking.edit')}</DropdownMenuItem>
+                                                                <DropdownMenuItem className="text-red-600"><Trash2 className="w-4 h-4 mr-2" />{t('modernAdminBooking.delete')}</DropdownMenuItem>
                                                             </DropdownMenuContent>
                                                         </DropdownMenu>
                                                     </div>

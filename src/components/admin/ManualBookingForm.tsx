@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -76,6 +77,8 @@ const ManualBookingForm: React.FC<ManualBookingFormProps> = ({
     triggerButton,
     className = ""
 }) => {
+    const { t } = useTranslation('admin');
+    
     // ================================
     // 🏗️ STATE MANAGEMENT
     // ================================
@@ -323,7 +326,7 @@ const loadCourts = async () => {
         if (Object.keys(newErrors).length > 0) {
             const firstError = Object.values(newErrors)[0];
             toast({
-                title: "Form Validation Error",
+                title: t('manualBooking.toasts.formValidationError'),
                 description: firstError,
                 variant: "destructive"
             });
@@ -457,8 +460,11 @@ const loadCourts = async () => {
             
             // Show success toast
             toast({
-                title: "Booking Created Successfully",
-                description: `Booking confirmed for ${selectedUser?.fullName} at ${selectedCourt?.name}`,
+                title: t('manualBooking.toasts.bookingCreatedSuccessfully'),
+                description: t('manualBooking.toasts.bookingConfirmed', { 
+                    user: selectedUser?.fullName, 
+                    court: selectedCourt?.name 
+                }),
             });
             
             // Auto-open print dialog if receipt was generated
@@ -567,48 +573,48 @@ const loadCourts = async () => {
                     <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
                         <CheckCircle className="w-5 h-5 text-primary" />
                     </div>
-                    <h4 className="text-lg font-semibold text-foreground">Booking Summary</h4>
+                    <h4 className="text-lg font-semibold text-foreground">{t('manualBooking.bookingSummary')}</h4>
                 </div>
                 
                 <div className="space-y-4">
                     <div className="grid gap-3">
                         <div className="flex items-center justify-between py-2 border-b border-border/50">
-                            <span className="text-sm text-muted-foreground font-medium">Customer</span>
+                            <span className="text-sm text-muted-foreground font-medium">{t('manualBooking.customer')}</span>
                             <span className="font-semibold text-foreground">{selectedUser.fullName}</span>
                         </div>
                         
                         <div className="flex items-center justify-between py-2 border-b border-border/50">
-                            <span className="text-sm text-muted-foreground font-medium">Court</span>
+                            <span className="text-sm text-muted-foreground font-medium">{t('manualBooking.court')}</span>
                             <span className="font-semibold text-foreground">{court.name}</span>
                         </div>
                         
                         <div className="flex items-center justify-between py-2 border-b border-border/50">
-                            <span className="text-sm text-muted-foreground font-medium">Date</span>
+                            <span className="text-sm text-muted-foreground font-medium">{t('manualBooking.date')}</span>
                             <span className="font-semibold text-foreground">
                                 {formData.date ? format(formData.date, 'PPP') : '-'}
                             </span>
                         </div>
                         
                         <div className="flex items-center justify-between py-2 border-b border-border/50">
-                            <span className="text-sm text-muted-foreground font-medium">Time</span>
+                            <span className="text-sm text-muted-foreground font-medium">{t('manualBooking.time')}</span>
                             <span className="font-semibold text-foreground">
                                 {formData.selectedSlot.formattedTimeRange}
                             </span>
                         </div>
                         
                         <div className="flex items-center justify-between py-2 border-b border-border/50">
-                            <span className="text-sm text-muted-foreground font-medium">Duration</span>
-                            <span className="font-semibold text-foreground">{formData.duration} minutes</span>
+                            <span className="text-sm text-muted-foreground font-medium">{t('manualBooking.duration')}</span>
+                            <span className="font-semibold text-foreground">{formData.duration} {t('manualBooking.minutes')}</span>
                         </div>
                         
                         <div className="flex items-center justify-between py-2 border-b border-border/50">
-                            <span className="text-sm text-muted-foreground font-medium">Match Type</span>
+                            <span className="text-sm text-muted-foreground font-medium">{t('manualBooking.matchType')}</span>
                             <span className="font-semibold text-foreground">{formData.matchType || '-'}</span>
                         </div>
                     </div>
                     
                     <div className="bg-background/80 border border-primary/30 rounded-lg p-4 flex items-center justify-between">
-                        <span className="text-base font-semibold text-foreground">Total Amount</span>
+                        <span className="text-base font-semibold text-foreground">{t('manualBooking.totalAmount')}</span>
                         <span className="text-xl font-bold text-primary">
                             <CurrencyDisplay amount={formData.selectedSlot.price || 0} size="lg" showSymbol />
                         </span>
@@ -628,7 +634,7 @@ const loadCourts = async () => {
                 {triggerButton || (
                     <Button className={className}>
                         <Plus className="w-4 h-4 mr-2" />
-                        Manual Booking
+                        {t('manualBooking.title')}
                     </Button>
                 )}
             </DialogTrigger>
@@ -639,10 +645,10 @@ const loadCourts = async () => {
                         <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
                             <Plus className="w-5 h-5 text-primary" />
                         </div>
-                        Create Manual Booking
+                        {t('manualBooking.createManualBooking')}
                     </DialogTitle>
                     <DialogDescription className="text-base text-muted-foreground mt-2">
-                        Create a new booking on behalf of a user. Complete all required fields to proceed.
+                        {t('manualBooking.description')}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -672,7 +678,7 @@ const loadCourts = async () => {
                             {/* User Selection */}
                             <div className="lg:col-span-2">
                             {renderFormField(
-                                'Select User',
+                                t('manualBooking.selectUser'),
                                 'userId',
                                 <div className="space-y-2">
                                     {/* Search Input */}
@@ -701,9 +707,9 @@ const loadCourts = async () => {
                                         <SelectTrigger>
                                             <SelectValue 
                                                 placeholder={
-                                                    usersLoading ? "Loading users..." : 
+                                                    usersLoading ? t('manualBooking.loadingUsers') : 
                                                     selectedUser ? `${selectedUser.fullName} (${selectedUser.email})` :
-                                                    "Choose a user"
+                                                    t('manualBooking.chooseUser')
                                                 } 
                                             />
                                         </SelectTrigger>
@@ -757,7 +763,7 @@ const loadCourts = async () => {
                         {/* Court Selection */}
                         <div className="md:col-span-2">
                             {renderFormField(
-                                'Select Court',
+                                t('manualBooking.selectCourt'),
                                 'courtId',
                                 <div className="space-y-2">
                                     {/* Search Input */}
@@ -778,7 +784,7 @@ const loadCourts = async () => {
                                         disabled={courtsLoading}
                                     >
                                         <SelectTrigger>
-                                            <SelectValue placeholder={courtsLoading ? "Loading courts..." : "Choose a court"} />
+                                            <SelectValue placeholder={courtsLoading ? t('manualBooking.loadingCourts') : t('manualBooking.chooseCourt')} />
                                         </SelectTrigger>
                                         <SelectContent className="bg-white">
                                             {filteredCourts.length === 0 ? (
@@ -826,7 +832,7 @@ const loadCourts = async () => {
                         {/* Date Selection */}
                         <div>
                             {renderFormField(
-                                'Date',
+                                t('manualBooking.date'),
                                 'date',
                                 <Popover>
                                     <PopoverTrigger asChild>
@@ -838,7 +844,7 @@ const loadCourts = async () => {
                                             )}
                                         >
                                             <CalendarIcon className="mr-2 h-4 w-4" />
-                                            {formData.date ? format(formData.date, "PPP") : "Pick a date"}
+                                            {formData.date ? format(formData.date, "PPP") : t('manualBooking.pickDate')}
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-auto p-0" align="start">
@@ -857,14 +863,14 @@ const loadCourts = async () => {
                         {/* Duration Selection */}
                         <div>
                             {renderFormField(
-                                'Duration',
+                                t('manualBooking.duration'),
                                 'duration',
                                 <Select
                                     value={formData.duration?.toString() || ''}
                                     onValueChange={(value) => handleInputChange('duration', parseInt(value))}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select duration" />
+                                        <SelectValue placeholder={t('manualBooking.selectDuration')} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {getDurationOptions().map((option) => (
@@ -883,26 +889,26 @@ const loadCourts = async () => {
                         {/* Match Type */}
                         <div>
                             {renderFormField(
-                                'Match Type',
+                                t('manualBooking.matchType'),
                                 'matchType',
                                 <Select
                                     value={formData.matchType}
                                     onValueChange={(value) => handleInputChange('matchType', value)}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select match type" />
+                                        <SelectValue placeholder={t('manualBooking.selectMatchType')} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="SINGLE">
                                             <div className="flex items-center space-x-2">
                                                 <User className="w-4 h-4" />
-                                                <span>Singles Match</span>
+                                                <span>{t('manualBooking.single')}</span>
                                             </div>
                                         </SelectItem>
                                         <SelectItem value="DOUBLE">
                                             <div className="flex items-center space-x-2">
                                                 <User className="w-4 h-4" />
-                                                <span>Doubles Match</span>
+                                                <span>{t('manualBooking.double')}</span>
                                             </div>
                                         </SelectItem>
                                     </SelectContent>
@@ -914,7 +920,7 @@ const loadCourts = async () => {
                         {formData.courtId && formData.date && formData.duration && (
                             <div className="md:col-span-2">
                                 {renderFormField(
-                                    'Available Time Slots',
+                                    t('manualBooking.availableTimeSlots'),
                                     'selectedSlot',
                                     <div className="space-y-2">
                                         {slotsLoading ? (
@@ -954,32 +960,32 @@ const loadCourts = async () => {
                         {/* Payment Method */}
                         <div>
                             {renderFormField(
-                                'Payment Method',
+                                t('manualBooking.selectPaymentMethod'),
                                 'paymentMethod',
                                 <Select
                                     value={formData.paymentMethod}
                                     onValueChange={(value) => handleInputChange('paymentMethod', value)}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select payment method" />
+                                        <SelectValue placeholder={t('manualBooking.selectPaymentMethod')} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="CASH">
                                             <div className="flex items-center space-x-2">
                                                 <span>💵</span>
-                                                <span>Cash Payment</span>
+                                                <span>{t('manualBooking.cash')}</span>
                                             </div>
                                         </SelectItem>
                                         <SelectItem value="TAP_TO_MANAGER">
                                             <div className="flex items-center space-x-2">
                                                 <span>💳</span>
-                                                <span>Tap/Card to Manager</span>
+                                                <span>{t('manualBooking.tapCardToManager')}</span>
                                             </div>
                                         </SelectItem>
                                         <SelectItem value="PENDING">
                                             <div className="flex items-center space-x-2">
                                                 <span>⏳</span>
-                                                <span>Pending Payment</span>
+                                                <span>{t('manualBooking.pending')}</span>
                                             </div>
                                         </SelectItem>
                                     </SelectContent>
@@ -990,7 +996,7 @@ const loadCourts = async () => {
                         {/* Receipt Email Options */}
                         <div>
                             {renderFormField(
-                                'Receipt Email',
+                                t('manualBooking.receiptEmail'),
                                 'sendReceiptEmail',
                                 <div className="space-y-3">
                                     <div className="flex items-center space-x-2">
@@ -1002,12 +1008,12 @@ const loadCourts = async () => {
                                             className="rounded border-gray-300"
                                         />
                                         <label htmlFor="sendReceiptEmail" className="text-sm font-medium">
-                                            Send receipt via email
+                                            {t('manualBooking.sendReceiptEmail')}
                                         </label>
                                     </div>
                                     {formData.sendReceiptEmail && (
                                         <Input
-                                            placeholder="Email address for receipt"
+                                            placeholder={t('manualBooking.emailAddressForReceipt')}
                                             value={formData.customerEmail}
                                             onChange={(e) => handleInputChange('customerEmail', e.target.value)}
                                             type="email"
@@ -1021,10 +1027,10 @@ const loadCourts = async () => {
                         {/* Notes */}
                         <div className="md:col-span-2">
                             {renderFormField(
-                                'Notes',
+                                t('manualBooking.notes'),
                                 'notes',
                                 <Textarea
-                                    placeholder="Optional notes for this booking..."
+                                    placeholder={t('manualBooking.notesPlaceholder')}
                                     value={formData.notes}
                                     onChange={(e) => handleInputChange('notes', e.target.value)}
                                     rows={3}
@@ -1047,7 +1053,7 @@ const loadCourts = async () => {
                         disabled={isLoading}
                         className="min-w-[100px]"
                     >
-                        Cancel
+                        {t('manualBooking.cancel')}
                     </Button>
                     <Button
                         type="submit"
@@ -1058,12 +1064,12 @@ const loadCourts = async () => {
                         {isLoading ? (
                             <>
                                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                Creating...
+                                {t('manualBooking.creating')}
                             </>
                         ) : (
                             <>
                                 <Plus className="w-4 h-4 mr-2" />
-                                Create Booking
+                                {t('manualBooking.createBooking')}
                             </>
                         )}
                     </Button>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -50,6 +51,7 @@ const getInitials = (name: string | null | undefined): string => {
 };
 
 export function UpdateUserForm({ user, isOpen, onClose, onSubmit, isManager = false }: UpdateUserFormProps) {
+  const { t } = useTranslation('admin');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<UpdateUserFormData>({
@@ -96,7 +98,7 @@ export function UpdateUserForm({ user, isOpen, onClose, onSubmit, isManager = fa
             <div className="p-2 rounded-lg bg-primary/10">
               {isManager ? <Crown className="h-6 w-6 text-primary" /> : <User className="h-6 w-6 text-primary" />}
             </div>
-            Update {isManager ? 'Manager' : 'User'}
+            {isManager ? t('updateUser.updateManager') : t('updateUser.updateUser')}
           </DialogTitle>
         </DialogHeader>
 
@@ -107,7 +109,7 @@ export function UpdateUserForm({ user, isOpen, onClose, onSubmit, isManager = fa
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
                   <User className="h-5 w-5" />
-                  Profile Information
+                  {t('updateUser.profileInformation')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -122,7 +124,7 @@ export function UpdateUserForm({ user, isOpen, onClose, onSubmit, isManager = fa
                     <div className="flex items-center gap-2">
                       <h3 className="text-xl font-semibold">{user.fullName}</h3>
                       <Badge variant={user.enabled ? "default" : "destructive"}>
-                        {user.enabled ? 'Active' : 'Disabled'}
+                        {user.enabled ? t('updateUser.active') : t('updateUser.disabled')}
                       </Badge>
                       <Badge variant="outline">{user.role}</Badge>
                     </div>
@@ -140,7 +142,7 @@ export function UpdateUserForm({ user, isOpen, onClose, onSubmit, isManager = fa
                       <FormItem>
                         <FormLabel className="flex items-center gap-2">
                           <User className="h-4 w-4" />
-                          Full Name
+                          {t('updateUser.fullName')}
                         </FormLabel>
                         <FormControl>
                           <Input {...field} placeholder="Enter full name" />
@@ -157,7 +159,7 @@ export function UpdateUserForm({ user, isOpen, onClose, onSubmit, isManager = fa
                       <FormItem>
                         <FormLabel className="flex items-center gap-2">
                           <Mail className="h-4 w-4" />
-                          Email
+                          {t('updateUser.email')}
                         </FormLabel>
                         <FormControl>
                           <Input {...field} type="email" placeholder="Enter email address" />
@@ -174,7 +176,7 @@ export function UpdateUserForm({ user, isOpen, onClose, onSubmit, isManager = fa
                       <FormItem>
                         <FormLabel className="flex items-center gap-2">
                           <Phone className="h-4 w-4" />
-                          Phone Number
+                          {t('updateUser.phone')}
                         </FormLabel>
                         <FormControl>
                           <Input {...field} placeholder="+966xxxxxxxxx" />
@@ -191,7 +193,7 @@ export function UpdateUserForm({ user, isOpen, onClose, onSubmit, isManager = fa
                       <FormItem>
                         <FormLabel className="flex items-center gap-2">
                           <User className="h-4 w-4" />
-                          Username
+                          {t('updateUser.username')}
                         </FormLabel>
                         <FormControl>
                           <Input {...field} placeholder="Enter username" />
@@ -208,7 +210,7 @@ export function UpdateUserForm({ user, isOpen, onClose, onSubmit, isManager = fa
                       <FormItem className="md:col-span-2">
                         <FormLabel className="flex items-center gap-2">
                           <User className="h-4 w-4" />
-                          Profile Picture
+                          {t('updateUser.profilePicture')}
                         </FormLabel>
                         <FormControl>
                           <div className="space-y-4">
@@ -227,13 +229,13 @@ export function UpdateUserForm({ user, isOpen, onClose, onSubmit, isManager = fa
                                   <User className="h-8 w-8 text-primary" />
                                 </div>
                                 <div className="space-y-1">
-                                  <p className="text-sm font-medium">Drop your profile picture here</p>
-                                  <p className="text-xs text-muted-foreground">or click to browse files</p>
+                                  <p className="text-sm font-medium">{t('updateUser.dropProfilePicture')}</p>
+                                  <p className="text-xs text-muted-foreground">{t('updateUser.orClickToBrowse')}</p>
                                 </div>
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                  <span>Supports: JPG, PNG, WEBP</span>
+                                  <span>{t('updateUser.supportedFormats')}</span>
                                   <span>•</span>
-                                  <span>Max size: 5MB</span>
+                                  <span>{t('updateUser.maxSize')}</span>
                                 </div>
                               </div>
                               <input
@@ -261,9 +263,9 @@ export function UpdateUserForm({ user, isOpen, onClose, onSubmit, isManager = fa
                                   </AvatarFallback>
                                 </Avatar>
                                 <div className="flex-1">
-                                  <p className="text-sm font-medium">Current Profile Picture</p>
+                                  <p className="text-sm font-medium">{t('updateUser.currentProfilePicture')}</p>
                                   <p className="text-xs text-muted-foreground truncate">
-                                    {field.value || user?.profilePictureUrl || 'No image set'}
+                                    {field.value || user?.profilePictureUrl || t('updateUser.noImageSet')}
                                   </p>
                                 </div>
                                 {field.value && (
@@ -274,7 +276,7 @@ export function UpdateUserForm({ user, isOpen, onClose, onSubmit, isManager = fa
                                     onClick={() => field.onChange('')}
                                     className="text-destructive hover:text-destructive"
                                   >
-                                    Remove
+                                    {t('updateUser.remove')}
                                   </Button>
                                 )}
                               </div>
@@ -294,7 +296,7 @@ export function UpdateUserForm({ user, isOpen, onClose, onSubmit, isManager = fa
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
                   <Activity className="h-5 w-5" />
-                  Personal Details
+                  {t('updateUser.personalDetails')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">

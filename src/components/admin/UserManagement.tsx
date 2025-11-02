@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import UsersList from './UsersList';
@@ -33,6 +34,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const UserManagement = () => {
+  const { t } = useTranslation('admin');
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [showEditUser, setShowEditUser] = useState(false);
@@ -374,58 +376,58 @@ const UserManagement = () => {
       className="space-y-6"
     >
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{t('userManagement.title')}</h2>
         <div className="flex space-x-2">
           <RefreshButton onRefresh={handleRefresh} isLoading={isRefreshing} />
           <Button onClick={() => setShowCreateAdmin(true)} className="flex items-center space-x-2">
             <UserPlus className="w-4 h-4" />
-            <span>Create Admin</span>
+            <span>{t('userManagement.createAdmin')}</span>
           </Button>
           <Dialog open={showCreateUser} onOpenChange={setShowCreateUser}>
             <DialogTrigger asChild>
               <Button variant="outline" className="flex items-center space-x-2">
                 <Plus className="w-4 h-4" />
-                <span>Create User</span>
+                <span>{t('userManagement.createUser')}</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>Create New User</DialogTitle>
+                <DialogTitle>{t('userManagement.createNewUser')}</DialogTitle>
                 <DialogDescription>
-                  Add a new user to the system. All fields marked with * are required.
+                  {t('userManagement.addNewUserDescription')}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name *</Label>
+                  <Label htmlFor="fullName">{t('userManagement.fullName')} *</Label>
                   <Input
                     id="fullName"
                     value={newUser.fullName}
                     onChange={(e) => setNewUser({ ...newUser, fullName: e.target.value })}
-                    placeholder="Enter full name"
+                    placeholder={t('userManagement.enterFullName')}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email *</Label>
+                  <Label htmlFor="email">{t('userManagement.email')} *</Label>
                   <Input
                     id="email"
                     type="email"
                     value={newUser.email}
                     onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                    placeholder="Enter email address"
+                    placeholder={t('userManagement.enterEmailAddress')}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone *</Label>
+                  <Label htmlFor="phone">{t('userManagement.phone')} *</Label>
                   <Input
                     id="phone"
                     value={newUser.phone}
                     onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })}
-                    placeholder="Enter phone number"
+                    placeholder={t('userManagement.enterPhoneNumber')}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="role">Role</Label>
+                  <Label htmlFor="role">{t('userManagement.role')}</Label>
                   <Select
                     value={newUser.role}
                     onValueChange={(value) => setNewUser({ ...newUser, role: value })}
@@ -434,17 +436,17 @@ const UserManagement = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="PLAYER">Player</SelectItem>
-                      <SelectItem value="ADMIN">Admin</SelectItem>
+                      <SelectItem value="PLAYER">{t('userManagement.player')}</SelectItem>
+                      <SelectItem value="ADMIN">{t('userManagement.admin')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="flex justify-end space-x-2 pt-4">
                   <Button variant="outline" onClick={() => setShowCreateUser(false)}>
-                    Cancel
+                    {t('userManagement.cancel')}
                   </Button>
                   <Button onClick={handleCreateUser}>
-                    Create User
+                    {t('userManagement.createUser')}
                   </Button>
                 </div>
               </div>
@@ -455,23 +457,23 @@ const UserManagement = () => {
           <Dialog open={showEditUser} onOpenChange={setShowEditUser}>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>Edit User</DialogTitle>
+                <DialogTitle>{t('userManagement.editUser')}</DialogTitle>
                 <DialogDescription>
-                  Update user information. Some fields like email cannot be changed for security reasons.
+                  {t('userManagement.updateUserDescription')}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="editFullName">Full Name *</Label>
+                  <Label htmlFor="editFullName">{t('userManagement.fullName')} *</Label>
                   <Input
                     id="editFullName"
                     value={editUser.fullName}
                     onChange={(e) => setEditUser({ ...editUser, fullName: e.target.value })}
-                    placeholder="Enter full name"
+                    placeholder={t('userManagement.enterFullName')}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="editEmail">Email (Read-only)</Label>
+                  <Label htmlFor="editEmail">{t('userManagement.emailReadOnly')}</Label>
                   <Input
                     id="editEmail"
                     type="email"
@@ -481,16 +483,16 @@ const UserManagement = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="editPhone">Phone *</Label>
+                  <Label htmlFor="editPhone">{t('userManagement.phone')} *</Label>
                   <Input
                     id="editPhone"
                     value={editUser.phone}
                     onChange={(e) => setEditUser({ ...editUser, phone: e.target.value })}
-                    placeholder="Enter phone number"
+                    placeholder={t('userManagement.enterPhoneNumber')}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="editRole">Role</Label>
+                  <Label htmlFor="editRole">{t('userManagement.role')}</Label>
                   <Select
                     value={editUser.role}
                     onValueChange={(value) => setEditUser({ ...editUser, role: value })}
@@ -499,13 +501,13 @@ const UserManagement = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="PLAYER">Player</SelectItem>
-                      <SelectItem value="ADMIN">Admin</SelectItem>
+                      <SelectItem value="PLAYER">{t('userManagement.player')}</SelectItem>
+                      <SelectItem value="ADMIN">{t('userManagement.admin')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="editPlan">Plan</Label>
+                  <Label htmlFor="editPlan">{t('userManagement.plan')}</Label>
                   <Select
                     value={editUser.plan}
                     onValueChange={(value) => setEditUser({ ...editUser, plan: value })}
@@ -514,14 +516,14 @@ const UserManagement = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Free">Free</SelectItem>
-                      <SelectItem value="Basic">Basic</SelectItem>
-                      <SelectItem value="Premium">Premium</SelectItem>
+                      <SelectItem value="Free">{t('userManagement.free')}</SelectItem>
+                      <SelectItem value="Basic">{t('userManagement.basic')}</SelectItem>
+                      <SelectItem value="Premium">{t('userManagement.premium')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="editStatus">Status</Label>
+                  <Label htmlFor="editStatus">{t('userManagement.status')}</Label>
                   <Select
                     value={editUser.status}
                     onValueChange={(value) => setEditUser({ ...editUser, status: value })}
@@ -530,17 +532,17 @@ const UserManagement = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Active">Active</SelectItem>
-                      <SelectItem value="Disabled">Disabled</SelectItem>
+                      <SelectItem value="Active">{t('userManagement.active')}</SelectItem>
+                      <SelectItem value="Disabled">{t('userManagement.disabled')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="flex justify-end space-x-2 pt-4">
                   <Button variant="outline" onClick={() => setShowEditUser(false)}>
-                    Cancel
+                    {t('userManagement.cancel')}
                   </Button>
                   <Button onClick={handleSaveUserChanges}>
-                    Save Changes
+                    {t('userManagement.saveChanges')}
                   </Button>
                 </div>
               </div>
@@ -556,7 +558,7 @@ const UserManagement = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search by name, email, or phone..."
+                placeholder={t('userManagement.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -565,13 +567,13 @@ const UserManagement = () => {
             <div className="flex gap-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder={t('userManagement.status')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="All">All Status</SelectItem>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Suspended">Suspended</SelectItem>
-                  <SelectItem value="Disabled">Disabled</SelectItem>
+                  <SelectItem value="All">{t('userManagement.allStatus')}</SelectItem>
+                  <SelectItem value="Active">{t('userManagement.active')}</SelectItem>
+                  <SelectItem value="Suspended">{t('userManagement.suspended')}</SelectItem>
+                  <SelectItem value="Disabled">{t('userManagement.disabled')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -587,14 +589,14 @@ const UserManagement = () => {
             className="flex items-center space-x-2 h-12 rounded-lg font-medium text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
           >
             <Users className="w-4 h-4" />
-            <span>Users</span>
+            <span>{t('userManagement.users')}</span>
           </TabsTrigger>
           <TabsTrigger
             value="managers"
             className="flex items-center space-x-2 h-12 rounded-lg font-medium text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
           >
             <Crown className="w-4 h-4" />
-            <span>Managers</span>
+            <span>{t('userManagement.managers')}</span>
           </TabsTrigger>
         </TabsList>
 

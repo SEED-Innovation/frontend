@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -33,6 +34,7 @@ export function ResetPasswordModal({
   onSuccess,
   isSuperAdmin = false 
 }: ResetPasswordModalProps) {
+  const { t } = useTranslation('admin');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -116,9 +118,9 @@ export function ResetPasswordModal({
   };
 
   const getPasswordStrengthLabel = () => {
-    if (passwordStrength < 40) return 'Weak';
-    if (passwordStrength < 70) return 'Moderate';
-    return 'Strong';
+    if (passwordStrength < 40) return t('resetPassword.weak');
+    if (passwordStrength < 70) return t('resetPassword.fair');
+    return t('resetPassword.strong');
   };
 
   return (
@@ -130,10 +132,10 @@ export function ResetPasswordModal({
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                 <KeyRound className="h-5 w-5 text-primary" />
               </div>
-              Reset Password
+              {t('resetPassword.title')}
             </DialogTitle>
             <DialogDescription>
-              Reset password for <span className="font-medium text-foreground">{user.fullName}</span> ({user.email})
+              {t('resetPassword.description', { name: user.fullName, email: user.email })}
             </DialogDescription>
           </DialogHeader>
 
@@ -144,12 +146,12 @@ export function ResetPasswordModal({
                 name="newPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>New Password</FormLabel>
+                    <FormLabel>{t('resetPassword.newPassword')}</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
                           type={showPassword ? 'text' : 'password'}
-                          placeholder="Enter new password"
+                          placeholder={t('resetPassword.enterNewPassword')}
                           {...field}
                           onChange={(e) => handlePasswordChange(e.target.value)}
                           disabled={isSubmitting}
@@ -169,7 +171,7 @@ export function ResetPasswordModal({
                     {field.value && (
                       <div className="space-y-1">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">Password strength:</span>
+                          <span className="text-muted-foreground">{t('resetPassword.passwordStrength')}:</span>
                           <span className={passwordStrength >= 70 ? 'text-green-600' : passwordStrength >= 40 ? 'text-amber-600' : 'text-red-600'}>
                             {getPasswordStrengthLabel()}
                           </span>
@@ -187,12 +189,12 @@ export function ResetPasswordModal({
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
+                    <FormLabel>{t('resetPassword.confirmPassword')}</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
                           type={showConfirmPassword ? 'text' : 'password'}
-                          placeholder="Confirm new password"
+                          placeholder={t('resetPassword.confirmNewPassword')}
                           {...field}
                           disabled={isSubmitting}
                         />
@@ -228,10 +230,10 @@ export function ResetPasswordModal({
                       </FormControl>
                       <div className="space-y-1 leading-none">
                         <FormLabel className="text-blue-700 dark:text-blue-400">
-                          Show password after reset (Super Admin only)
+                          {t('resetPassword.returnPlainPassword')}
                         </FormLabel>
                         <FormDescription className="text-blue-600 dark:text-blue-500">
-                          Display the new password for copying. Use with caution.
+                          {t('resetPassword.returnPlainPasswordDescription')}
                         </FormDescription>
                       </div>
                     </FormItem>
@@ -246,18 +248,18 @@ export function ResetPasswordModal({
                   onClick={() => onOpenChange(false)}
                   disabled={isSubmitting}
                 >
-                  Cancel
+                  {t('resetPassword.cancel')}
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Resetting...
+                      {t('resetPassword.resetting')}
                     </>
                   ) : (
                     <>
                       <KeyRound className="mr-2 h-4 w-4" />
-                      Reset Password
+                      {t('resetPassword.resetPassword')}
                     </>
                   )}
                 </Button>

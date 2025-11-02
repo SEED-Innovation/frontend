@@ -239,12 +239,12 @@ const AdminDashboard = () => {
         className="mb-8"
       >
         <h1 className="text-3xl font-bold text-gray-900">
-          Welcome back, {user?.name}!
+          {t('admin.dashboard.welcomeBack', { name: user?.name })}
         </h1>
         <p className="text-gray-600 mt-2">
           {hasPermission('SUPER_ADMIN') 
-            ? 'Manage all tennis facilities and monitor system performance'
-            : 'Manage your assigned courts and bookings'
+            ? t('admin.dashboard.superAdminSubtitle')
+            : t('admin.dashboard.adminSubtitle')
           }
         </p>
       </motion.div>

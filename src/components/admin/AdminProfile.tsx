@@ -5,9 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAdminProfile } from '@/hooks/useAdminProfile';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslation } from 'react-i18next';
 
 const AdminProfile = () => {
   const { profile, loading, error } = useAdminProfile();
+  const { t } = useTranslation('web');
 
   if (loading) {
     return (
@@ -18,15 +20,15 @@ const AdminProfile = () => {
         className="space-y-6"
       >
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
-          <p className="text-gray-600 mt-1">View your admin account details</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('admin.menu.myProfile')}</h1>
+          <p className="text-gray-600 mt-1">{t('admin.pages.profile.subtitle')}</p>
         </div>
 
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <User className="w-5 h-5" />
-              Profile Information
+              {t('admin.pages.profile.information')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -156,7 +158,7 @@ const AdminProfile = () => {
               <div className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-gray-500" />
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Email Address</p>
+                  <p className="text-sm font-medium text-gray-500">{t('admin.pages.profile.emailAddress')}</p>
                   <p className="text-gray-900">{profile.email}</p>
                 </div>
               </div>
@@ -173,7 +175,7 @@ const AdminProfile = () => {
                 <div className="flex items-center gap-3">
                   <Phone className="w-5 h-5 text-gray-500" />
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Phone Number</p>
+                    <p className="text-sm font-medium text-gray-500">{t('admin.pages.profile.phoneNumber')}</p>
                     <p className="text-gray-900">{profile.phone}</p>
                   </div>
                 </div>
@@ -184,7 +186,7 @@ const AdminProfile = () => {
               <div className="flex items-center gap-3">
                 <User className="w-5 h-5 text-gray-500" />
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Username</p>
+                  <p className="text-sm font-medium text-gray-500">{t('admin.pages.profile.username')}</p>
                   <p className="text-gray-900">{profile.username}</p>
                 </div>
               </div>
@@ -192,7 +194,7 @@ const AdminProfile = () => {
               <div className="flex items-center gap-3">
                 <Calendar className="w-5 h-5 text-gray-500" />
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Account Created</p>
+                  <p className="text-sm font-medium text-gray-500">{t('admin.pages.profile.accountCreated')}</p>
                   <p className="text-gray-900">{formatDate(profile.createdAt)}</p>
                 </div>
               </div>
@@ -209,7 +211,7 @@ const AdminProfile = () => {
 
           {profile.assignedCourts && profile.assignedCourts.length > 0 && (
             <div className="pt-4 border-t">
-              <h4 className="text-sm font-medium text-gray-500 mb-2">Assigned Courts</h4>
+              <h4 className="text-sm font-medium text-gray-500 mb-2">{t('admin.pages.profile.assignedCourts')}</h4>
               <div className="flex flex-wrap gap-2">
                 {profile.assignedCourts.map((court, index) => (
                   <Badge key={index} variant="outline">

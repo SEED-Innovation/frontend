@@ -1,5 +1,4 @@
 {
-
   "auth": {
     "signIn": "Sign In",
     "signUp": "Sign Up",
@@ -149,7 +148,7 @@
         "description": "Discover AI-enabled courts near you"
       },
       "leaderboard": {
-        "title": "Leaderboard", 
+        "title": "Leaderboard",
         "description": "See how you rank against others"
       },
       "recordings": {
@@ -224,16 +223,11 @@
       "import": "Import",
       "view": "View",
       "manage": "Manage",
-      "status": "Status",
-      "active": "Active",
-      "inactive": "Inactive",
-      "pending": "Pending",
-      "approved": "Approved",
-      "rejected": "Rejected",
-      "total": "Total",
+      "create": "Create",
+      "update": "Update",
+      "remove": "Remove",
       "loading": "Loading...",
-      "noData": "No data available",
-      "actions": "Actions"
+      "noData": "No data available"
     },
     "pages": {
       "courtManagement": {
@@ -306,6 +300,33 @@
         "addNewCamera": "Add New Camera",
         "editCamera": "Edit Camera",
         "associateCameraWithCourt": "Associate Camera with Court"
+      },
+      "profile": {
+        "subtitle": "View your admin account details",
+        "information": "Profile Information",
+        "emailAddress": "Email Address",
+        "phoneNumber": "Phone Number",
+        "username": "Username",
+        "accountCreated": "Account Created",
+        "assignedCourts": "Assigned Courts"
+      },
+      "sessionMonitoring": {
+        "subtitle": "Monitor active sessions and court usage",
+        "underConstruction": "Under Construction",
+        "comingSoon": "Session Monitoring Coming Soon",
+        "description": "🚧 This section is under construction and will be available soon."
+      },
+      "receiptManagement": {
+        "title": "Receipt Management",
+        "subtitle": "Manage all receipts and payment records",
+        "totalReceipts": "Total Receipts",
+        "filtersAndSearch": "Filters & Search",
+        "searchPlaceholder": "Search receipts...",
+        "downloadPDF": "Download PDF",
+        "sendEmail": "Send Email",
+        "cancelReceipt": "Cancel Receipt",
+        "previous": "Previous",
+        "next": "Next"
       }
     },
     "forms": {
@@ -412,7 +433,10 @@
       "online": "Online",
       "offline": "Offline",
       "available": "Available",
-      "unavailable": "Unavailable"
+      "unavailable": "Unavailable",
+      "paid": "Paid",
+      "failed": "Failed",
+      "success": "Success"
     },
     "stats": {
       "totalRevenue": "💰 Total Revenue",
@@ -426,6 +450,11 @@
       "paymentMethods": "Payment Methods",
       "topCourtsPerformance": "Top Courts Performance"
     },
+    "dashboard": {
+      "welcomeBack": "Welcome back, {{name}}!",
+      "superAdminSubtitle": "Manage all tennis facilities and monitor system performance",
+      "adminSubtitle": "Manage your assigned courts and bookings"
+    },
     "addInstallation": "Add Installation",
     "camera": "Camera",
     "connection": "Connection",
@@ -435,7 +464,6 @@
     "sessionsToday": "Sessions Today",
     "systemInformation": "System Information",
     "courtId": "Court ID",
-    "status": "Status",
     "signal": "Signal",
     "maintenance": "Maintenance",
     "lastService": "Last Service",
@@ -545,7 +573,7 @@
     "whatsNext": "What's next?",
     "nextSteps": [
       "Book your first AI-powered session",
-      "Explore advanced analytics features", 
+      "Explore advanced analytics features",
       "Download unlimited match recordings"
     ],
     "getStarted": "Get Started",
@@ -707,7 +735,6 @@
       "seedLogoAlt": "SEED Logo",
       "it": "it."
     },
-
     "stats": {
       "activePlayers": "Active Players",
       "aiEnabledCourts": "AI-Enabled Courts",
@@ -722,7 +749,7 @@
         "description": "Register your session and get ready to unleash your potential"
       },
       "play": {
-        "title": "Play", 
+        "title": "Play",
         "description": "Step onto the court and let our AI capture every moment of brilliance"
       },
       "thrive": {
@@ -744,17 +771,29 @@
       "beginner": {
         "title": "Beginner",
         "description": "Learn fundamentals with AI-guided feedback",
-        "features": ["Basic shot tracking", "Technique tips", "Progress tracking"]
+        "features": [
+          "Basic shot tracking",
+          "Technique tips",
+          "Progress tracking"
+        ]
       },
       "amateur": {
-        "title": "Amateur", 
+        "title": "Amateur",
         "description": "Improve consistency and strategy",
-        "features": ["Advanced analytics", "Match insights", "Performance trends"]
+        "features": [
+          "Advanced analytics",
+          "Match insights",
+          "Performance trends"
+        ]
       },
       "professional": {
         "title": "Professional",
-        "description": "Elite-level analysis and optimization", 
-        "features": ["Pro-level metrics", "Competition analysis", "Custom coaching"]
+        "description": "Elite-level analysis and optimization",
+        "features": [
+          "Pro-level metrics",
+          "Competition analysis",
+          "Custom coaching"
+        ]
       }
     },
     "aiTechnology": {
@@ -770,7 +809,7 @@
         "description": "Instant analysis and feedback delivered within minutes of your session"
       },
       "precisionAnalytics": {
-        "title": "Precision Analytics", 
+        "title": "Precision Analytics",
         "description": "Shot placement, speed, and accuracy measured with professional-grade precision"
       }
     },
@@ -822,6 +861,9 @@
         "description": "Connect with fellow players, share highlights, and join challenges"
       }
     },
+    "navigation": {
+      "adminLogin": "Admin Login"
+    },
     "testimonials": {
       "title": "Trusted by Champions",
       "subtitle": "See what tennis professionals and enthusiasts are saying"
@@ -865,18 +907,17 @@
       "buildFuture": "Let's Build the Future of Tennis Together",
       "buildFutureDesc": "Whether you're a club owner, coach, or passionate player, we'd love to hear from you. Discover how SEED's AI technology can elevate your tennis experience.",
       "generalInquiries": "General Inquiries",
-      "partnerships": "Partnerships", 
+      "partnerships": "Partnerships",
       "support": "Support",
       "responseTime": "Response time: Within 24 hours • Available 24/7",
       "generalEmail": "info@seedinnovation.com",
       "partnershipsEmail": "partners@seedinnovation.com",
       "supportEmail": "support@seedinnovation.com",
       "firstNamePlaceholder": "John",
-      "lastNamePlaceholder": "Doe", 
+      "lastNamePlaceholder": "Doe",
       "emailPlaceholder": "john@example.com",
       "subjectPlaceholder": "Partnership Inquiry"
     },
-
     "footer": {
       "description": "AI-powered tennis analytics platform helping players and coaches achieve excellence through data-driven insights.",
       "downloadMobileApp": "Download Mobile App",
@@ -957,7 +998,7 @@
     "preferences": "Preferences",
     "playingLevel": "Playing Level",
     "beginner": "Beginner",
-    "intermediate": "Intermediate", 
+    "intermediate": "Intermediate",
     "advanced": "Advanced",
     "professional": "Professional",
     "favoritePosition": "Favorite Position",

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +26,7 @@ export const DiscountModal: React.FC<DiscountModalProps> = ({
   onClose,
   onCourtUpdated
 }) => {
+  const { t } = useTranslation('admin');
   const [discountAmount, setDiscountAmount] = useState<number>(court.discountAmount || 0);
   const [isPercentage, setIsPercentage] = useState<boolean>(court.isPercentage || false);
   const [loading, setLoading] = useState(false);
@@ -118,14 +120,14 @@ export const DiscountModal: React.FC<DiscountModalProps> = ({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-primary" />
-              Manage Discount - {court.name}
+              {t('discountModal.title', { courtName: court.name })}
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-6">
             {/* Current Pricing */}
             <div className="p-4 rounded-lg bg-muted/50">
-              <Label className="text-sm font-medium text-muted-foreground">Current Hourly Fee</Label>
+              <Label className="text-sm font-medium text-muted-foreground">{t('discountModal.currentHourlyFee')}</Label>
               <div className="mt-1">
                 <CurrencyDisplay amount={court.hourlyFee} size="lg" />
               </div>
@@ -139,10 +141,10 @@ export const DiscountModal: React.FC<DiscountModalProps> = ({
             {/* Discount Configuration */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium">Discount Type</Label>
+                <Label className="text-sm font-medium">{t('discountModal.discountType')}</Label>
                 <div className="flex items-center gap-2">
                   <span className={`text-sm ${!isPercentage ? 'text-foreground' : 'text-muted-foreground'}`}>
-                    Fixed (SAR)
+                    {t('discountModal.fixedSar')}
                   </span>
                   <Switch
                     checked={isPercentage}
@@ -150,14 +152,16 @@ export const DiscountModal: React.FC<DiscountModalProps> = ({
                     disabled={loading}
                   />
                   <span className={`text-sm ${isPercentage ? 'text-foreground' : 'text-muted-foreground'}`}>
-                    Percentage (%)
+                    {t('discountModal.percentagePercent')}
                   </span>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="discount-amount">
-                  Discount Amount {isPercentage ? '(%)' : '(SAR)'}
+                  {t('discountModal.discountAmount', { 
+                    type: isPercentage ? t('discountModal.discountAmountPercent') : t('discountModal.discountAmountSar') 
+                  })}
                 </Label>
                 <div className="relative">
                   <Input
@@ -196,7 +200,7 @@ export const DiscountModal: React.FC<DiscountModalProps> = ({
             {/* Live Preview */}
             {discountAmount > 0 && (
               <div className="p-4 rounded-lg bg-gradient-to-r from-primary/5 to-accent/5 border">
-                <Label className="text-sm font-medium text-muted-foreground">Price Preview</Label>
+                <Label className="text-sm font-medium text-muted-foreground">{t('discountModal.pricePreview')}</Label>
                 <div className="mt-2 flex items-center gap-3">
                   <div className="line-through text-muted-foreground">
                     <CurrencyDisplay amount={court.hourlyFee} size="md" />
@@ -207,7 +211,7 @@ export const DiscountModal: React.FC<DiscountModalProps> = ({
                   </div>
                 </div>
                 <div className="mt-1 text-sm text-muted-foreground">
-                  You save: <CurrencyDisplay amount={court.hourlyFee - finalPrice} size="sm" />
+                  {t('discountModal.youSave')}: <CurrencyDisplay amount={court.hourlyFee - finalPrice} size="sm" />
                 </div>
               </div>
             )}
@@ -220,19 +224,19 @@ export const DiscountModal: React.FC<DiscountModalProps> = ({
                 onClick={() => setShowRemoveDialog(true)}
                 disabled={loading}
               >
-                Remove Discount
+                {t('discountModal.removeDiscount')}
               </Button>
             )}
             <div className="flex gap-2">
               <Button variant="outline" onClick={onClose} disabled={loading}>
-                Cancel
+                {t('discountModal.cancel')}
               </Button>
               <Button
                 onClick={handleApplyDiscount}
                 disabled={loading || !isValidDiscount()}
               >
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Apply Discount
+                {t('discountModal.applyDiscount')}
               </Button>
             </div>
           </DialogFooter>
@@ -243,21 +247,21 @@ export const DiscountModal: React.FC<DiscountModalProps> = ({
       <AlertDialog open={showRemoveDialog} onOpenChange={setShowRemoveDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove Discount</AlertDialogTitle>
+            <AlertDialogTitle>{t('discountModal.confirmRemove')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to remove the discount from "{court.name}"? 
-              The hourly fee will return to <CurrencyDisplay amount={court.hourlyFee} className="inline-flex" />.
+              {t('discountModal.confirmRemoveDescription', { courtName: court.name })}
+              {t('discountModal.hourlyFeeReturn')} <CurrencyDisplay amount={court.hourlyFee} className="inline-flex" />.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={loading}>{t('discountModal.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleRemoveDiscount}
               disabled={loading}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Remove Discount
+              {t('discountModal.removeDiscount')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

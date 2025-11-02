@@ -48,8 +48,10 @@ import { useToast } from '@/hooks/use-toast';
 import { receiptService } from '@/services';
 import { ReceiptResponse, ReceiptStatus, ReceiptType } from '@/types/receipt';
 import { CurrencyDisplay } from '@/components/ui/currency-display';
+import { useTranslation } from 'react-i18next';
 
 const ReceiptManagement: React.FC = () => {
+  const { t } = useTranslation('web');
   const [receipts, setReceipts] = useState<ReceiptResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -197,12 +199,12 @@ const ReceiptManagement: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Receipt Management</h2>
-          <p className="text-gray-600">Manage all receipts and payment records</p>
+          <h2 className="text-2xl font-bold text-gray-900">{t('admin.pages.receiptManagement.title')}</h2>
+          <p className="text-gray-600">{t('admin.pages.receiptManagement.subtitle')}</p>
         </div>
         <Button onClick={loadReceipts} variant="outline">
           <RefreshCw className="w-4 h-4 mr-2" />
-          Refresh
+          {t('admin.common.refresh')}
         </Button>
       </div>
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import {
   Camera,
   WifiOff,
@@ -80,6 +81,12 @@ import {
   type AddHikConnectCameraRequest,
   type StreamUrlResponse
 } from '@/services/cameraService';
+import {
+  hikCentralService,
+  type HikCentralCameraInfo,
+  type HikCentralRecording,
+  type RecordingParams
+} from '@/services/hikCentralService';
 import { useCameraWebSocket } from '@/hooks/useCameraWebSocket';
 
 import type { Camera as CameraType, CameraStatus } from '@/types/camera';
@@ -87,6 +94,7 @@ import { CourtSearchInput } from '@/components/admin/common/CourtSearchInput';
 import { Court as CourtType } from '@/types/court';
 
 export default function CameraManagement() {
+  const { t } = useTranslation('admin');
   const [cameras, setCameras] = useState<CameraType[]>([]);
   const [summary, setSummary] = useState<CameraSummary>({
     totalCameras: 0,
@@ -138,6 +146,14 @@ export default function CameraManagement() {
   const [streamingCamera, setStreamingCamera] = useState<CameraType | null>(null);
   const [streamUrl, setStreamUrl] = useState<string>('');
   const [streamLoading, setStreamLoading] = useState(false);
+
+  // HikCentral Professional specific state
+  const [isHikCentralCamerasOpen, setIsHikCentralCamerasOpen] = useState(false);
+  const [isHikCentralRecordingsOpen, setIsHikCentralRecordingsOpen] = useState(false);
+  const [availableHikCentralCameras, setAvailableHikCentralCameras] = useState<HikCentralCameraInfo[]>([]);
+  const [hikCentralRecordings, setHikCentralRecordings] = useState<HikCentralRecording[]>([]);
+  const [hikCentralLoading, setHikCentralLoading] = useState(false);
+  const [selectedHikCentralCamera, setSelectedHikCentralCamera] = useState<HikCentralCameraInfo | null>(null);
 
 
   const { toast } = useToast();
@@ -236,13 +252,13 @@ export default function CameraManagement() {
       ]);
 
       // Handle the new response format from backend
-      const cameras = camerasResponse.cameras || camerasResponse;
+      const cameras = Array.isArray(camerasResponse) ? camerasResponse : camerasResponse.cameras;
       setCameras(cameras);
       setSummary(summaryData);
     } catch (error) {
       toast({
-        title: "Error loading data",
-        description: "Failed to load camera data",
+        title: t('cameraManagement.toasts.errorLoadingData'),
+        description: t('cameraManagement.toasts.failedToLoadCameraData'),
         variant: "destructive"
       });
     } finally {
@@ -256,8 +272,8 @@ export default function CameraManagement() {
       setCourts(courtsData);
     } catch (error) {
       toast({
-        title: "Error loading courts",
-        description: "Failed to load available courts",
+        title: t('cameraManagement.toasts.errorLoadingCourts'),
+        description: t('cameraManagement.toasts.failedToLoadCourts'),
         variant: "destructive"
       });
     }
@@ -294,13 +310,13 @@ export default function CameraManagement() {
     } as const;
 
     const labels = {
-      ACTIVE: 'Active',
-      OFFLINE: 'Offline',
-      MAINTENANCE: 'Maintenance',
-      ERROR: 'Error',
-      HIK_CONNECT_ERROR: 'Hik-Connect Error',
-      NOT_FOUND_IN_HIK_CONNECT: 'Not Found',
-      STREAM_UNAVAILABLE: 'Stream Unavailable'
+      ACTIVE: t('cameraManagement.active'),
+      OFFLINE: t('cameraManagement.offline'),
+      MAINTENANCE: t('cameraManagement.maintenance'),
+      ERROR: t('cameraManagement.error'),
+      HIK_CONNECT_ERROR: t('cameraManagement.hikConnectError'),
+      NOT_FOUND_IN_HIK_CONNECT: t('cameraManagement.notFound'),
+      STREAM_UNAVAILABLE: t('cameraManagement.streamUnavailable')
     };
 
     return (
@@ -326,8 +342,8 @@ export default function CameraManagement() {
       ));
 
       toast({
-        title: "Camera associated",
-        description: `${associatingCamera.name} has been associated with the court`,
+        title: t('cameraManagement.toasts.cameraAssociated'),
+        description: t('cameraManagement.toasts.cameraAssociatedWith', { name: associatingCamera.name }),
       });
 
       setIsAssociateDialogOpen(false);
@@ -340,8 +356,8 @@ export default function CameraManagement() {
       setSummary(summaryData);
     } catch (error) {
       toast({
-        title: "Association failed",
-        description: "Failed to associate camera with court",
+        title: t('cameraManagement.toasts.associationFailed'),
+        description: t('cameraManagement.toasts.failedToAssociate'),
         variant: "destructive"
       });
     }
@@ -356,8 +372,8 @@ export default function CameraManagement() {
       ));
 
       toast({
-        title: "Camera disassociated",
-        description: `${camera.name} has been removed from ${camera.associatedCourtName}`,
+        title: t('cameraManagement.toasts.cameraDisassociated'),
+        description: t('cameraManagement.toasts.cameraRemovedFrom', { name: camera.name, court: camera.associatedCourtName }),
       });
 
       // Refresh summary
@@ -365,8 +381,8 @@ export default function CameraManagement() {
       setSummary(summaryData);
     } catch (error) {
       toast({
-        title: "Disassociation failed",
-        description: "Failed to disassociate camera",
+        title: t('cameraManagement.toasts.disassociationFailed'),
+        description: t('cameraManagement.toasts.failedToDisassociate'),
         variant: "destructive"
       });
     }
@@ -387,20 +403,20 @@ export default function CameraManagement() {
         if (toggleResponse.action === 'stopped') {
           setRecordingStatus(prev => ({ ...prev, [camera.id]: 'idle' }));
           toast({
-            title: "Recording stopped",
-            description: `Stopped recording from ${camera.name}`,
+            title: t('cameraManagement.toasts.recordingStopped'),
+            description: t('cameraManagement.toasts.stoppedRecordingFrom', { name: camera.name }),
           });
         } else {
           toast({
-            title: "Recording started",
-            description: `Started recording from ${camera.name}`,
+            title: t('cameraManagement.toasts.recordingStarted'),
+            description: t('cameraManagement.toasts.startedRecordingFrom', { name: camera.name }),
           });
         }
       } else {
         // Normal start response
         toast({
-          title: "Recording started",
-          description: `Started recording from ${camera.name}`,
+          title: t('cameraManagement.toasts.recordingStarted'),
+          description: t('cameraManagement.toasts.startedRecordingFrom', { name: camera.name }),
         });
       }
 
@@ -409,9 +425,9 @@ export default function CameraManagement() {
 
     } catch (error) {
       setRecordingStatus(prev => ({ ...prev, [camera.id]: 'idle' }));
-      const errorMessage = error instanceof Error ? error.message : "Failed to start recording";
+      const errorMessage = error instanceof Error ? error.message : t('cameraManagement.toasts.failedToStartRecording');
       toast({
-        title: "Recording failed",
+        title: t('cameraManagement.toasts.recordingFailed'),
         description: errorMessage,
         variant: "destructive"
       });
@@ -427,8 +443,8 @@ export default function CameraManagement() {
       setRecordingStatus(prev => ({ ...prev, [camera.id]: 'idle' }));
 
       toast({
-        title: "Recording stopped",
-        description: `Stopped recording from ${camera.name}. Recording saved.`,
+        title: t('cameraManagement.toasts.recordingStopped'),
+        description: t('cameraManagement.toasts.stoppedRecordingFrom', { name: camera.name }),
       });
 
       // Refresh recordings if viewing this camera
@@ -443,8 +459,8 @@ export default function CameraManagement() {
     } catch (error) {
       setRecordingStatus(prev => ({ ...prev, [camera.id]: 'idle' }));
       toast({
-        title: "Stop recording failed",
-        description: "Failed to stop recording",
+        title: t('cameraManagement.toasts.stopRecordingFailed'),
+        description: t('cameraManagement.toasts.failedToStopRecording'),
         variant: "destructive"
       });
     }
@@ -459,14 +475,14 @@ export default function CameraManagement() {
       setIsRecordingDialogOpen(true);
 
       toast({
-        title: "Recordings loaded",
-        description: `Found ${cameraRecordings.length} recordings for ${camera.name}`,
+        title: t('cameraManagement.toasts.recordingsLoaded'),
+        description: t('cameraManagement.toasts.foundRecordings', { count: cameraRecordings.length, name: camera.name }),
       });
 
     } catch (error) {
       toast({
-        title: "Failed to load recordings",
-        description: "Could not load recordings for this camera",
+        title: t('cameraManagement.toasts.failedToLoadRecordings'),
+        description: t('cameraManagement.toasts.couldNotLoadRecordings'),
         variant: "destructive"
       });
     }
@@ -477,14 +493,14 @@ export default function CameraManagement() {
       await cameraService.downloadRecording(recording.id);
 
       toast({
-        title: "Download started",
-        description: `Downloading ${recording.filename}`,
+        title: t('cameraManagement.toasts.downloadStarted'),
+        description: t('cameraManagement.toasts.downloading', { filename: recording.filename }),
       });
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to download recording";
+      const errorMessage = error instanceof Error ? error.message : t('cameraManagement.toasts.failedToDownloadRecording');
       toast({
-        title: "Download not available",
+        title: t('cameraManagement.toasts.downloadNotAvailable'),
         description: errorMessage,
         variant: "destructive"
       });
@@ -502,14 +518,14 @@ export default function CameraManagement() {
       loadRecordingSummary();
 
       toast({
-        title: "Recording deleted",
-        description: `${recording.filename} has been deleted`,
+        title: t('cameraManagement.toasts.recordingDeleted'),
+        description: t('cameraManagement.toasts.recordingDeletedMessage', { filename: recording.filename }),
       });
 
     } catch (error) {
       toast({
-        title: "Delete failed",
-        description: "Failed to delete recording",
+        title: t('cameraManagement.toasts.deleteFailed'),
+        description: t('cameraManagement.toasts.failedToDeleteRecording'),
         variant: "destructive"
       });
     }
@@ -519,7 +535,7 @@ export default function CameraManagement() {
     try {
       if (!recordingCamera) return;
 
-      if (confirm(`Are you sure you want to delete all recordings for ${recordingCamera.name}? This action cannot be undone.`)) {
+      if (confirm(t('cameraManagement.confirmations.deleteAllRecordings', { name: recordingCamera.name }))) {
         await cameraService.deleteAllCameraRecordings(recordingCamera.id);
 
         // Update state
@@ -529,15 +545,15 @@ export default function CameraManagement() {
         loadRecordingSummary();
 
         toast({
-          title: "All recordings deleted",
-          description: `All recordings for ${recordingCamera.name} have been deleted`,
+          title: t('cameraManagement.toasts.allRecordingsDeleted'),
+          description: t('cameraManagement.toasts.allRecordingsDeletedMessage', { name: recordingCamera.name }),
         });
       }
 
     } catch (error) {
       toast({
-        title: "Clear failed",
-        description: "Failed to clear all recordings",
+        title: t('cameraManagement.toasts.clearFailed'),
+        description: t('cameraManagement.toasts.failedToClearRecordings'),
         variant: "destructive"
       });
     }
@@ -569,16 +585,19 @@ export default function CameraManagement() {
         // Check specific camera
         const isHealthy = await cameraService.checkCameraHealth(camera.id);
         toast({
-          title: "Health check completed",
-          description: `${camera.name} is ${isHealthy ? 'healthy' : 'offline'}`,
+          title: t('cameraManagement.toasts.healthCheckCompleted'),
+          description: t('cameraManagement.toasts.cameraHealthy', {
+            name: camera.name,
+            status: isHealthy ? t('cameraManagement.toasts.healthy') : t('cameraManagement.offline')
+          }),
           variant: isHealthy ? 'default' : 'destructive'
         });
       } else {
         // Check all cameras
         await cameraService.forceHealthCheckAll();
         toast({
-          title: "Health check initiated",
-          description: "Checking all cameras... Results will appear shortly",
+          title: t('cameraManagement.toasts.healthCheckInitiated'),
+          description: t('cameraManagement.toasts.checkingAllCameras'),
         });
       }
 
@@ -590,8 +609,8 @@ export default function CameraManagement() {
 
     } catch (error) {
       toast({
-        title: "Health check failed",
-        description: "Failed to perform health check",
+        title: t('cameraManagement.toasts.healthCheckFailed'),
+        description: t('cameraManagement.toasts.failedToPerformHealthCheck'),
         variant: "destructive"
       });
     }
@@ -605,8 +624,8 @@ export default function CameraManagement() {
       await cameraService.setCameraMaintenanceMode(camera.id, newMode);
 
       toast({
-        title: `Maintenance mode ${newMode ? 'enabled' : 'disabled'}`,
-        description: `${camera.name} is now ${newMode ? 'in maintenance' : 'back online'}`,
+        title: newMode ? t('cameraManagement.toasts.maintenanceModeEnabled') : t('cameraManagement.toasts.maintenanceModeDisabled'),
+        description: newMode ? t('cameraManagement.toasts.cameraInMaintenance', { name: camera.name }) : t('cameraManagement.toasts.cameraBackOnline', { name: camera.name }),
       });
 
       // Refresh data
@@ -615,8 +634,8 @@ export default function CameraManagement() {
 
     } catch (error) {
       toast({
-        title: "Failed to toggle maintenance mode",
-        description: "Could not update camera maintenance status",
+        title: t('cameraManagement.toasts.failedToToggleMaintenance'),
+        description: t('cameraManagement.toasts.couldNotUpdateMaintenance'),
         variant: "destructive"
       });
     }
@@ -636,7 +655,7 @@ export default function CameraManagement() {
     try {
       setHikConnectLoading(true);
       const result = await cameraService.loginToHikConnect(hikConnectCredentials);
-      
+
       toast({
         title: "Login successful",
         description: result.message,
@@ -681,7 +700,7 @@ export default function CameraManagement() {
     try {
       setHikConnectLoading(true);
       const result = await cameraService.syncHikConnectCameras();
-      
+
       toast({
         title: "Sync completed",
         description: result.message,
@@ -708,7 +727,7 @@ export default function CameraManagement() {
       };
 
       const result = await cameraService.addHikConnectCamera(request);
-      
+
       toast({
         title: "Camera added",
         description: result.message,
@@ -730,7 +749,7 @@ export default function CameraManagement() {
     try {
       setStreamLoading(true);
       setStreamingCamera(camera);
-      
+
       const result = await cameraService.getLiveStreamUrl(camera.id);
       setStreamUrl(result.streamUrl);
       setIsStreamViewerOpen(true);
@@ -743,6 +762,167 @@ export default function CameraManagement() {
       toast({
         title: "Stream unavailable",
         description: error instanceof Error ? error.message : "Failed to get live stream",
+        variant: "destructive"
+      });
+    } finally {
+      setStreamLoading(false);
+    }
+  };
+
+  // HikCentral Professional handler functions
+  const handleTestHikCentralConnectivity = async () => {
+    try {
+      setHikCentralLoading(true);
+      const result = await hikCentralService.testConnectivity();
+
+      toast({
+        title: result.connected ? "Connection successful" : "Connection failed",
+        description: result.message,
+        variant: result.connected ? "default" : "destructive"
+      });
+    } catch (error) {
+      toast({
+        title: "Connection test failed",
+        description: error instanceof Error ? error.message : "Failed to test HikCentral connectivity",
+        variant: "destructive"
+      });
+    } finally {
+      setHikCentralLoading(false);
+    }
+  };
+
+  const handleLoadHikCentralCameras = async () => {
+    try {
+      setHikCentralLoading(true);
+      const result = await hikCentralService.getCameras();
+      setAvailableHikCentralCameras(result.cameras);
+      setIsHikCentralCamerasOpen(true);
+
+      toast({
+        title: "Cameras loaded",
+        description: `Found ${result.count} cameras in HikCentral Professional`,
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to load cameras",
+        description: error instanceof Error ? error.message : "Failed to get cameras from HikCentral",
+        variant: "destructive"
+      });
+    } finally {
+      setHikCentralLoading(false);
+    }
+  };
+
+  const handleViewHikCentralLiveStream = async (camera: HikCentralCameraInfo) => {
+    try {
+      setStreamLoading(true);
+      setSelectedHikCentralCamera(camera);
+
+      const result = await hikCentralService.getLiveStreamUrl(camera.cameraId);
+      setStreamUrl(result.streamUrl);
+      setIsStreamViewerOpen(true);
+
+      toast({
+        title: "Stream loaded",
+        description: `Live stream from ${camera.cameraName} is ready`,
+      });
+    } catch (error) {
+      toast({
+        title: "Stream unavailable",
+        description: error instanceof Error ? error.message : "Failed to get live stream from HikCentral",
+        variant: "destructive"
+      });
+    } finally {
+      setStreamLoading(false);
+    }
+  };
+
+  const handleStartHikCentralRecording = async (camera: HikCentralCameraInfo) => {
+    try {
+      const params: RecordingParams = {
+        recordType: "manual",
+        duration: 3600, // 1 hour
+        quality: "high"
+      };
+
+      const result = await hikCentralService.startRecording(camera.cameraId, params);
+
+      toast({
+        title: "Recording started",
+        description: result.message,
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to start recording",
+        description: error instanceof Error ? error.message : "Failed to start recording on HikCentral",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleStopHikCentralRecording = async (camera: HikCentralCameraInfo) => {
+    try {
+      const result = await hikCentralService.stopRecording(camera.cameraId);
+
+      toast({
+        title: "Recording stopped",
+        description: result.message,
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to stop recording",
+        description: error instanceof Error ? error.message : "Failed to stop recording on HikCentral",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleViewHikCentralRecordings = async (camera: HikCentralCameraInfo) => {
+    try {
+      setHikCentralLoading(true);
+      setSelectedHikCentralCamera(camera);
+
+      // Get recordings for the last 24 hours
+      const result = await hikCentralService.getLast24HoursRecordings(camera.cameraId);
+      setHikCentralRecordings(result.recordings);
+      setIsHikCentralRecordingsOpen(true);
+
+      toast({
+        title: "Recordings loaded",
+        description: `Found ${result.count} recordings for ${camera.cameraName}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to load recordings",
+        description: error instanceof Error ? error.message : "Failed to get recordings from HikCentral",
+        variant: "destructive"
+      });
+    } finally {
+      setHikCentralLoading(false);
+    }
+  };
+
+  const handlePlayHikCentralRecording = async (recording: HikCentralRecording) => {
+    try {
+      if (!selectedHikCentralCamera) return;
+
+      setStreamLoading(true);
+      const result = await hikCentralService.getPlaybackUrl(
+        selectedHikCentralCamera.cameraId, 
+        recording.recordingId
+      );
+      
+      setStreamUrl(result.playbackUrl);
+      setIsStreamViewerOpen(true);
+
+      toast({
+        title: "Playback ready",
+        description: `Playing recording from ${selectedHikCentralCamera.cameraName}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Playback unavailable",
+        description: error instanceof Error ? error.message : "Failed to get playback URL",
         variant: "destructive"
       });
     } finally {
@@ -934,32 +1114,40 @@ export default function CameraManagement() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Camera Recording Management</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('cameraManagement.title')}</h1>
           <p className="text-muted-foreground">
-            Record and manage video footage from security cameras across all courts
+            {t('cameraManagement.subtitle')}
           </p>
 
         </div>
         <div className="flex items-center space-x-2">
           <Button variant="outline" onClick={() => setIsHikConnectLoginOpen(true)}>
             <LogIn className="w-4 h-4 mr-2" />
-            Hik-Connect Login
+            {t('cameraManagement.hikConnectLogin')}
           </Button>
           <Button variant="outline" onClick={handleLoadAvailableCameras} disabled={hikConnectLoading}>
             <Cloud className="w-4 h-4 mr-2" />
-            Browse Cameras
+            {t('cameraManagement.browseCameras')}
           </Button>
           <Button variant="outline" onClick={handleSyncHikConnectCameras} disabled={hikConnectLoading}>
             <RefreshCw className="w-4 h-4 mr-2" />
-            Sync Cameras
+            {t('cameraManagement.syncCameras')}
+          </Button>
+          <Button variant="outline" onClick={handleTestHikCentralConnectivity} disabled={hikCentralLoading}>
+            <Monitor className="w-4 h-4 mr-2" />
+            HikCentral Test
+          </Button>
+          <Button variant="outline" onClick={handleLoadHikCentralCameras} disabled={hikCentralLoading}>
+            <Monitor className="w-4 h-4 mr-2" />
+            HikCentral Cameras
           </Button>
           <Button variant="outline" onClick={() => handleForceHealthCheck()}>
             <Activity className="w-4 h-4 mr-2" />
-            Check All Cameras
+            {t('cameraManagement.checkAllCameras')}
           </Button>
           <Button onClick={() => setIsAddDialogOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
-            Add Camera
+            {t('cameraManagement.addCamera')}
           </Button>
         </div>
       </div>
@@ -968,7 +1156,7 @@ export default function CameraManagement() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Cameras</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('cameraManagement.totalCameras')}</CardTitle>
             <Camera className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -978,7 +1166,7 @@ export default function CameraManagement() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Cameras</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('cameraManagement.activeCameras')}</CardTitle>
             <CheckCircle className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
@@ -988,20 +1176,20 @@ export default function CameraManagement() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Offline Cameras</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('cameraManagement.offlineCameras')}</CardTitle>
             <XCircle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{healthSummary?.offlineCameras || summary.offlineCameras}</div>
             {healthSummary?.offlineCameras > 0 && (
-              <p className="text-xs text-red-600 mt-1">Requires attention</p>
+              <p className="text-xs text-red-600 mt-1">{t('cameraManagement.requiresAttention')}</p>
             )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Maintenance Mode</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('cameraManagement.maintenanceMode')}</CardTitle>
             <Settings className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
@@ -1012,7 +1200,7 @@ export default function CameraManagement() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Recording Cameras</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('cameraManagement.recordingCameras')}</CardTitle>
             <Video className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
@@ -1024,7 +1212,7 @@ export default function CameraManagement() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Recordings</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('cameraManagement.totalRecordings')}</CardTitle>
             <FileVideo className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
@@ -1037,24 +1225,24 @@ export default function CameraManagement() {
       {/* Cameras Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Camera Recording Management</CardTitle>
+          <CardTitle>{t('cameraManagement.tableTitle')}</CardTitle>
           <CardDescription>
-            Start/stop recordings and manage recorded footage from security cameras
+            {t('cameraManagement.tableDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Connection</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Recording Status</TableHead>
-                <TableHead>Associated Court</TableHead>
-                <TableHead>Stream Actions</TableHead>
-                <TableHead>Recording Actions</TableHead>
-                <TableHead>Management</TableHead>
+                <TableHead>{t('cameraManagement.name')}</TableHead>
+                <TableHead>{t('cameraManagement.connection')}</TableHead>
+                <TableHead>{t('cameraManagement.status')}</TableHead>
+                <TableHead>{t('cameraManagement.type')}</TableHead>
+                <TableHead>{t('cameraManagement.recordingStatus')}</TableHead>
+                <TableHead>{t('cameraManagement.associatedCourt')}</TableHead>
+                <TableHead>{t('cameraManagement.streamActions')}</TableHead>
+                <TableHead>{t('cameraManagement.recordingActions')}</TableHead>
+                <TableHead>{t('cameraManagement.management')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -1076,7 +1264,7 @@ export default function CameraManagement() {
                       <div className="space-y-1">
                         <div className="flex items-center space-x-1">
                           <Cloud className="h-3 w-3 text-blue-500" />
-                          <span className="text-xs">Hik-Connect</span>
+                          <span className="text-xs">{t('cameraManagement.hikConnect')}</span>
                         </div>
                         <code className="px-1 py-0.5 bg-blue-50 text-blue-700 rounded text-xs">
                           {camera.deviceSerial}
@@ -1091,7 +1279,7 @@ export default function CameraManagement() {
                       <div className="space-y-1">
                         <div className="flex items-center space-x-1">
                           <Wifi className="h-3 w-3 text-gray-500" />
-                          <span className="text-xs">Direct IP</span>
+                          <span className="text-xs">{t('cameraManagement.directIp')}</span>
                         </div>
                         <code className="px-1 py-0.5 bg-muted rounded text-xs">
                           {camera.ipAddress}:{camera.port}
@@ -1107,16 +1295,16 @@ export default function CameraManagement() {
                       {camera.hikConnectEnabled ? (
                         <Badge variant="secondary" className="text-xs">
                           <Cloud className="w-3 h-3 mr-1" />
-                          Cloud
+                          {t('cameraManagement.cloud')}
                         </Badge>
                       ) : (
                         <Badge variant="outline" className="text-xs">
                           <Monitor className="w-3 h-3 mr-1" />
-                          Local
+                          {t('cameraManagement.local')}
                         </Badge>
                       )}
                       {camera.isOnline && (
-                        <div className="w-2 h-2 bg-green-500 rounded-full" title="Online" />
+                        <div className="w-2 h-2 bg-green-500 rounded-full" title={t('cameraManagement.online')} />
                       )}
                     </div>
                   </TableCell>
@@ -1124,8 +1312,8 @@ export default function CameraManagement() {
                     <div className="flex items-center space-x-2">
                       {getRecordingStatusIcon(camera)}
                       <span className="text-sm">
-                        {recordingStatus[camera.id] === 'recording' ? 'Recording' :
-                          recordingStatus[camera.id] === 'stopping' ? 'Stopping...' : 'Idle'}
+                        {recordingStatus[camera.id] === 'recording' ? t('cameraManagement.recording') :
+                          recordingStatus[camera.id] === 'stopping' ? t('cameraManagement.stopping') : t('cameraManagement.idle')}
                       </span>
                     </div>
                   </TableCell>
@@ -1152,7 +1340,7 @@ export default function CameraManagement() {
                         }}
                       >
                         <Link className="w-3 h-3 mr-1" />
-                        Associate
+                        {t('cameraManagement.associate')}
                       </Button>
                     )}
                   </TableCell>
@@ -1163,7 +1351,7 @@ export default function CameraManagement() {
                         size="sm"
                         onClick={() => handleViewLiveStream(camera)}
                         disabled={camera.status !== 'ACTIVE' || streamLoading}
-                        title="View live stream"
+                        title={t('cameraManagement.viewLiveStream')}
                       >
                         <Eye className="w-3 h-3" />
                       </Button>
@@ -1174,11 +1362,11 @@ export default function CameraManagement() {
                           onClick={() => {
                             // TODO: Implement playback viewer
                             toast({
-                              title: "Playback viewer",
-                              description: "Playback viewer coming soon",
+                              title: t('cameraManagement.playbackViewer'),
+                              description: t('cameraManagement.playbackViewerComingSoon'),
                             });
                           }}
-                          title="View recordings"
+                          title={t('cameraManagement.viewRecordings')}
                         >
                           <Play className="w-3 h-3" />
                         </Button>
@@ -1195,7 +1383,7 @@ export default function CameraManagement() {
                           disabled={camera.status !== 'ACTIVE' || recordingStatus[camera.id] === 'stopping'}
                         >
                           <Video className="w-3 h-3 mr-1" />
-                          Record
+                          {t('cameraManagement.record')}
                         </Button>
                       ) : (
                         <Button
@@ -1205,7 +1393,7 @@ export default function CameraManagement() {
                           disabled={recordingStatus[camera.id] === 'stopping'}
                         >
                           <Square className="w-3 h-3 mr-1" />
-                          Stop
+                          {t('cameraManagement.stop')}
                         </Button>
                       )}
                       <Button
@@ -1223,7 +1411,7 @@ export default function CameraManagement() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleForceHealthCheck(camera)}
-                        title="Force health check"
+                        title={t('cameraManagement.forceHealthCheck')}
                       >
                         <Activity className="w-3 h-3" />
                       </Button>
@@ -1231,7 +1419,7 @@ export default function CameraManagement() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleToggleMaintenanceMode(camera)}
-                        title={camera.status === 'MAINTENANCE' ? 'Exit maintenance mode' : 'Enter maintenance mode'}
+                        title={camera.status === 'MAINTENANCE' ? t('cameraManagement.exitMaintenanceMode') : t('cameraManagement.enterMaintenanceMode')}
                       >
                         <Settings className={`w-3 h-3 ${camera.status === 'MAINTENANCE' ? 'text-yellow-500' : ''}`} />
                       </Button>
@@ -1241,7 +1429,7 @@ export default function CameraManagement() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleEditCamera(camera)}
-                        title="Edit camera"
+                        title={t('cameraManagement.editCamera')}
                       >
                         <Edit className="w-3 h-3" />
                       </Button>
@@ -1249,7 +1437,7 @@ export default function CameraManagement() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDeleteCamera(camera)}
-                        title="Delete camera"
+                        title={t('cameraManagement.deleteCamera')}
                       >
                         <Trash2 className="w-3 h-3" />
                       </Button>
@@ -1269,7 +1457,7 @@ export default function CameraManagement() {
         <DialogContent className="max-w-6xl">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
-              <span>{recordingCamera?.name} - Recorded Videos</span>
+              <span>{recordingCamera?.name} - {t('cameraManagement.recordedVideos')}</span>
               {recordings.length > 0 && (
                 <Button
                   variant="destructive"
@@ -1277,12 +1465,12 @@ export default function CameraManagement() {
                   onClick={handleClearAllRecordings}
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
-                  Clear All
+                  {t('cameraManagement.clearAll')}
                 </Button>
               )}
             </DialogTitle>
             <DialogDescription>
-              Manage recorded video files from this camera ({recordings.length} recordings, {
+              {t('cameraManagement.manageRecordings')} ({recordings.length} recordings, {
                 (() => {
                   let totalMB = 0;
                   recordings.forEach(recording => {
@@ -1295,7 +1483,7 @@ export default function CameraManagement() {
                   });
                   return totalMB >= 1024 ? `${(totalMB / 1024).toFixed(1)} GB` : `${Math.round(totalMB)} MB`;
                 })()
-              } used)
+              } {t('cameraManagement.recordingsUsed')})
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -1303,18 +1491,18 @@ export default function CameraManagement() {
               {recordings.length === 0 ? (
                 <div className="text-center py-8">
                   <FileVideo className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">No recordings found for this camera</p>
+                  <p className="text-muted-foreground">{t('cameraManagement.noRecordings')}</p>
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Filename</TableHead>
-                      <TableHead>Duration</TableHead>
-                      <TableHead>Size</TableHead>
-                      <TableHead>Recorded</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead>{t('cameraManagement.filename')}</TableHead>
+                      <TableHead>{t('cameraManagement.duration')}</TableHead>
+                      <TableHead>{t('cameraManagement.size')}</TableHead>
+                      <TableHead>{t('cameraManagement.recorded')}</TableHead>
+                      <TableHead>{t('cameraManagement.status')}</TableHead>
+                      <TableHead>{t('cameraManagement.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1348,7 +1536,7 @@ export default function CameraManagement() {
                         </TableCell>
                         <TableCell>
                           <Badge variant={recording.status === 'COMPLETED' ? 'default' : 'secondary'}>
-                            {recording.status}
+                            {recording.status === 'COMPLETED' ? t('cameraManagement.completed') : recording.status}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -1365,7 +1553,7 @@ export default function CameraManagement() {
                               variant="ghost"
                               size="sm"
                               onClick={() => {
-                                if (confirm(`Are you sure you want to delete ${recording.filename}?`)) {
+                                if (confirm(t('cameraManagement.confirmations.deleteRecording', { filename: recording.filename }))) {
                                   handleDeleteRecording(recording);
                                 }
                               }}
@@ -1388,16 +1576,16 @@ export default function CameraManagement() {
       <Dialog open={isAssociateDialogOpen} onOpenChange={setIsAssociateDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Associate Camera with Court</DialogTitle>
+            <DialogTitle>{t('cameraManagement.associateWithCourt')}</DialogTitle>
             <DialogDescription>
-              Select a court to associate with {associatingCamera?.name}
+              {t('cameraManagement.selectCourt')} {associatingCamera?.name}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="court-select">Available Courts</Label>
+              <Label htmlFor="court-select">{t('cameraManagement.availableCourts')}</Label>
               <CourtSearchInput
-                placeholder="Search for a court..."
+                placeholder={t('cameraManagement.searchCourt')}
                 value={selectedCourt}
                 onSelect={(court) => {
                   setSelectedCourt(court);
@@ -1411,10 +1599,10 @@ export default function CameraManagement() {
                 setSelectedCourt(null);
                 setSelectedCourtId('');
               }}>
-                Cancel
+                {t('cameraManagement.cancel')}
               </Button>
               <Button onClick={handleAssociateCamera} disabled={!selectedCourtId}>
-                Associate
+                {t('cameraManagement.associate')}
               </Button>
             </div>
           </div>
@@ -1425,14 +1613,14 @@ export default function CameraManagement() {
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Add New Camera</DialogTitle>
+            <DialogTitle>{t('cameraManagement.addNewCamera')}</DialogTitle>
             <DialogDescription>
-              Configure a new security camera (IP Camera or Hik-Connect)
+              {t('cameraManagement.configureCamera')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Camera Type</Label>
+              <Label>{t('cameraManagement.cameraType')}</Label>
               <div className="flex space-x-4">
                 <div className="flex items-center space-x-2">
                   <input
@@ -1444,7 +1632,7 @@ export default function CameraManagement() {
                   />
                   <Label htmlFor="ip-camera" className="flex items-center space-x-1">
                     <Monitor className="w-4 h-4" />
-                    <span>IP Camera</span>
+                    <span>{t('cameraManagement.ipCamera')}</span>
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -1457,19 +1645,19 @@ export default function CameraManagement() {
                   />
                   <Label htmlFor="hik-connect" className="flex items-center space-x-1">
                     <Cloud className="w-4 h-4" />
-                    <span>Hik-Connect</span>
+                    <span>{t('cameraManagement.hikConnect')}</span>
                   </Label>
                 </div>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="name">Camera Name *</Label>
+              <Label htmlFor="name">{t('cameraManagement.cameraName')} *</Label>
               <Input
                 id="name"
                 value={newCamera.name || ''}
                 onChange={(e) => setNewCamera({ ...newCamera, name: e.target.value })}
-                placeholder="e.g., Court 1 Main Camera"
+                placeholder={t('cameraManagement.cameraNamePlaceholder')}
               />
             </div>
 
@@ -1477,16 +1665,16 @@ export default function CameraManagement() {
               // Hik-Connect specific fields
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="device-serial">Device Serial *</Label>
+                  <Label htmlFor="device-serial">{t('cameraManagement.deviceSerial')} *</Label>
                   <Input
                     id="device-serial"
                     value={newCamera.deviceSerial || ''}
                     onChange={(e) => setNewCamera({ ...newCamera, deviceSerial: e.target.value })}
-                    placeholder="e.g., DS-2CD2xxx-xxx"
+                    placeholder={t('cameraManagement.deviceSerialPlaceholder')}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="channel">Channel Number</Label>
+                  <Label htmlFor="channel">{t('cameraManagement.channelNumber')}</Label>
                   <Input
                     id="channel"
                     type="number"
@@ -1501,16 +1689,16 @@ export default function CameraManagement() {
               // IP Camera specific fields
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="ip">IP Address *</Label>
+                  <Label htmlFor="ip">{t('cameraManagement.ipAddress')} *</Label>
                   <Input
                     id="ip"
                     value={newCamera.ipAddress || ''}
                     onChange={(e) => setNewCamera({ ...newCamera, ipAddress: e.target.value })}
-                    placeholder="e.g., 192.168.1.101"
+                    placeholder={t('cameraManagement.ipAddressPlaceholder')}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="port">Port *</Label>
+                  <Label htmlFor="port">{t('cameraManagement.port')} *</Label>
                   <Input
                     id="port"
                     type="number"
@@ -1520,26 +1708,26 @@ export default function CameraManagement() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="username">Username</Label>
+                  <Label htmlFor="username">{t('cameraManagement.username')}</Label>
                   <Input
                     id="username"
                     value={newCamera.username || ''}
                     onChange={(e) => setNewCamera({ ...newCamera, username: e.target.value })}
-                    placeholder="e.g., admin"
+                    placeholder={t('cameraManagement.usernamePlaceholder')}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">{t('cameraManagement.password')}</Label>
                   <Input
                     id="password"
                     type="password"
                     value={newCamera.password || ''}
                     onChange={(e) => setNewCamera({ ...newCamera, password: e.target.value })}
-                    placeholder="Camera password"
+                    placeholder={t('cameraManagement.cameraPassword')}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="streamPath">Stream Path</Label>
+                  <Label htmlFor="streamPath">{t('cameraManagement.streamPath')}</Label>
                   <Input
                     id="streamPath"
                     value={newCamera.streamPath || '/Streaming/Channels/101'}
@@ -1551,7 +1739,7 @@ export default function CameraManagement() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="status">Initial Status</Label>
+              <Label htmlFor="status">{t('cameraManagement.initialStatus')}</Label>
               <Select
                 value={newCamera.initialStatus || 'OFFLINE'}
                 onValueChange={(value) => setNewCamera({ ...newCamera, initialStatus: value as CameraStatus })}
@@ -1560,28 +1748,28 @@ export default function CameraManagement() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ACTIVE">Active</SelectItem>
-                  <SelectItem value="OFFLINE">Offline</SelectItem>
-                  <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
+                  <SelectItem value="ACTIVE">{t('cameraManagement.active')}</SelectItem>
+                  <SelectItem value="OFFLINE">{t('cameraManagement.offline')}</SelectItem>
+                  <SelectItem value="MAINTENANCE">{t('cameraManagement.maintenance')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">{t('cameraManagement.description')}</Label>
               <Textarea
                 id="description"
                 value={newCamera.description || ''}
                 onChange={(e) => setNewCamera({ ...newCamera, description: e.target.value })}
-                placeholder="Optional description"
+                placeholder={t('cameraManagement.descriptionPlaceholder')}
                 rows={3}
               />
             </div>
             <div className="flex justify-end space-x-2">
               <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                Cancel
+                {t('cameraManagement.cancel')}
               </Button>
               <Button onClick={handleAddCamera}>
-                Add Camera
+                {t('cameraManagement.addCamera')}
               </Button>
             </div>
           </div>
@@ -1592,32 +1780,32 @@ export default function CameraManagement() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Camera</DialogTitle>
+            <DialogTitle>{t('cameraManagement.editCamera')}</DialogTitle>
             <DialogDescription>
-              Update camera configuration
+              {t('cameraManagement.updateCameraConfig')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-name">Camera Name *</Label>
+              <Label htmlFor="edit-name">{t('cameraManagement.cameraName')} *</Label>
               <Input
                 id="edit-name"
                 value={editingCamera.name || ''}
                 onChange={(e) => setEditingCamera({ ...editingCamera, name: e.target.value })}
-                placeholder="e.g., Court 1 Main Camera"
+                placeholder={t('cameraManagement.cameraNamePlaceholder')}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-ip">IP Address *</Label>
+              <Label htmlFor="edit-ip">{t('cameraManagement.ipAddress')} *</Label>
               <Input
                 id="edit-ip"
                 value={editingCamera.ipAddress || ''}
                 onChange={(e) => setEditingCamera({ ...editingCamera, ipAddress: e.target.value })}
-                placeholder="e.g., 192.168.1.101"
+                placeholder={t('cameraManagement.ipAddressPlaceholder')}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-port">Port *</Label>
+              <Label htmlFor="edit-port">{t('cameraManagement.port')} *</Label>
               <Input
                 id="edit-port"
                 type="number"
@@ -1627,26 +1815,26 @@ export default function CameraManagement() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-username">Username</Label>
+              <Label htmlFor="edit-username">{t('cameraManagement.username')}</Label>
               <Input
                 id="edit-username"
                 value={editingCamera.username || ''}
                 onChange={(e) => setEditingCamera({ ...editingCamera, username: e.target.value })}
-                placeholder="e.g., admin"
+                placeholder={t('cameraManagement.usernamePlaceholder')}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-password">Password</Label>
+              <Label htmlFor="edit-password">{t('cameraManagement.password')}</Label>
               <Input
                 id="edit-password"
                 type="password"
                 value={editingCamera.password || ''}
                 onChange={(e) => setEditingCamera({ ...editingCamera, password: e.target.value })}
-                placeholder="Camera password"
+                placeholder={t('cameraManagement.cameraPassword')}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-streamPath">Stream Path</Label>
+              <Label htmlFor="edit-streamPath">{t('cameraManagement.streamPath')}</Label>
               <Input
                 id="edit-streamPath"
                 value={editingCamera.streamPath || ''}
@@ -1655,21 +1843,21 @@ export default function CameraManagement() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-description">Description</Label>
+              <Label htmlFor="edit-description">{t('cameraManagement.description')}</Label>
               <Textarea
                 id="edit-description"
                 value={editingCamera.description || ''}
                 onChange={(e) => setEditingCamera({ ...editingCamera, description: e.target.value })}
-                placeholder="Optional description"
+                placeholder={t('cameraManagement.descriptionPlaceholder')}
                 rows={3}
               />
             </div>
             <div className="flex justify-end space-x-2">
               <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                Cancel
+                {t('cameraManagement.cancel')}
               </Button>
               <Button onClick={handleSaveCamera}>
-                Save Changes
+                {t('cameraManagement.saveChanges')}
               </Button>
             </div>
           </div>
@@ -1695,9 +1883,9 @@ export default function CameraManagement() {
                 id="hik-username"
                 type="email"
                 value={hikConnectCredentials.username}
-                onChange={(e) => setHikConnectCredentials({ 
-                  ...hikConnectCredentials, 
-                  username: e.target.value 
+                onChange={(e) => setHikConnectCredentials({
+                  ...hikConnectCredentials,
+                  username: e.target.value
                 })}
                 placeholder="your@email.com"
               />
@@ -1708,29 +1896,29 @@ export default function CameraManagement() {
                 id="hik-password"
                 type="password"
                 value={hikConnectCredentials.password}
-                onChange={(e) => setHikConnectCredentials({ 
-                  ...hikConnectCredentials, 
-                  password: e.target.value 
+                onChange={(e) => setHikConnectCredentials({
+                  ...hikConnectCredentials,
+                  password: e.target.value
                 })}
                 placeholder="Your Hik-Connect password"
               />
             </div>
             <div className="flex justify-end space-x-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => {
                   setIsHikConnectLoginOpen(false);
                   setHikConnectCredentials({ username: '', password: '' });
                 }}
               >
-                Cancel
+                {t('cameraManagement.cancel')}
               </Button>
-              <Button 
-                onClick={handleHikConnectLogin} 
+              <Button
+                onClick={handleHikConnectLogin}
                 disabled={hikConnectLoading}
               >
                 {hikConnectLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Login
+                {t('cameraManagement.login')}
               </Button>
             </div>
           </div>
@@ -1743,31 +1931,31 @@ export default function CameraManagement() {
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
               <Cloud className="w-5 h-5 text-blue-500" />
-              <span>Available Hik-Connect Cameras</span>
+              <span>{t('cameraManagement.availableHikConnectCameras')}</span>
             </DialogTitle>
             <DialogDescription>
-              Select cameras from your Hik-Connect account to add to the system
+              {t('cameraManagement.selectCamerasFromAccount')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             {availableHikConnectCameras.length === 0 ? (
               <div className="text-center py-8">
                 <Cloud className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">No cameras found in your Hik-Connect account</p>
+                <p className="text-muted-foreground">{t('cameraManagement.noCamerasFound')}</p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Make sure your cameras are online and properly configured in Hik-Connect
+                  {t('cameraManagement.makeSureCamerasOnline')}
                 </p>
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Device Name</TableHead>
-                    <TableHead>Serial Number</TableHead>
-                    <TableHead>Channel</TableHead>
-                    <TableHead>Model</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t('cameraManagement.deviceName')}</TableHead>
+                    <TableHead>{t('cameraManagement.serialNumber')}</TableHead>
+                    <TableHead>{t('cameraManagement.channel')}</TableHead>
+                    <TableHead>{t('cameraManagement.model')}</TableHead>
+                    <TableHead>{t('cameraManagement.status')}</TableHead>
+                    <TableHead>{t('cameraManagement.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1795,7 +1983,7 @@ export default function CameraManagement() {
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
-                          <div>{hikCamera.model || 'Unknown'}</div>
+                          <div>{hikCamera.model || t('cameraManagement.unknown')}</div>
                           {hikCamera.firmwareVersion && (
                             <div className="text-xs text-muted-foreground">
                               v{hikCamera.firmwareVersion}
@@ -1808,12 +1996,12 @@ export default function CameraManagement() {
                           {hikCamera.isOnline ? (
                             <Badge variant="default">
                               <CheckCircle className="w-3 h-3 mr-1" />
-                              Online
+                              {t('cameraManagement.online')}
                             </Badge>
                           ) : (
                             <Badge variant="destructive">
                               <XCircle className="w-3 h-3 mr-1" />
-                              Offline
+                              {t('cameraManagement.offline')}
                             </Badge>
                           )}
                         </div>
@@ -1826,7 +2014,7 @@ export default function CameraManagement() {
                           disabled={!hikCamera.isOnline}
                         >
                           <Plus className="w-3 h-3 mr-1" />
-                          Add
+                          {t('cameraManagement.add')}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -1844,17 +2032,17 @@ export default function CameraManagement() {
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
               <Eye className="w-5 h-5 text-blue-500" />
-              <span>Live Stream - {streamingCamera?.name}</span>
+              <span>{t('cameraManagement.liveStream')} - {streamingCamera?.name || selectedHikCentralCamera?.cameraName}</span>
             </DialogTitle>
             <DialogDescription>
-              Live video feed from the camera
+              {t('cameraManagement.liveVideoFeed')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             {streamLoading ? (
               <div className="flex items-center justify-center h-64">
                 <Loader2 className="h-8 w-8 animate-spin" />
-                <span className="ml-2">Loading stream...</span>
+                <span className="ml-2">{t('cameraManagement.loadingStream')}</span>
               </div>
             ) : streamUrl ? (
               <div className="relative bg-black rounded-lg overflow-hidden">
@@ -1865,8 +2053,8 @@ export default function CameraManagement() {
                   className="w-full h-auto max-h-96"
                   onError={() => {
                     toast({
-                      title: "Stream error",
-                      description: "Failed to load video stream",
+                      title: t('cameraManagement.toasts.streamError'),
+                      description: t('cameraManagement.toasts.failedToLoadVideoStream'),
                       variant: "destructive"
                     });
                   }}
@@ -1876,15 +2064,198 @@ export default function CameraManagement() {
                 <div className="absolute top-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm">
                   <div className="flex items-center space-x-1">
                     <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                    <span>LIVE</span>
+                    <span>{t('cameraManagement.live')}</span>
                   </div>
                 </div>
               </div>
             ) : (
               <div className="text-center py-8">
                 <AlertTriangle className="h-12 w-12 mx-auto text-yellow-500 mb-4" />
-                <p className="text-muted-foreground">Stream not available</p>
+                <p className="text-muted-foreground">{t('cameraManagement.streamNotAvailable')}</p>
               </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* HikCentral Cameras Dialog */}
+      <Dialog open={isHikCentralCamerasOpen} onOpenChange={setIsHikCentralCamerasOpen}>
+        <DialogContent className="max-w-6xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Monitor className="w-5 h-5 text-blue-500" />
+              <span>HikCentral Professional Cameras</span>
+            </DialogTitle>
+            <DialogDescription>
+              Cameras available in your HikCentral Professional system
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {availableHikCentralCameras.length === 0 ? (
+              <div className="text-center py-8">
+                <Monitor className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">No cameras found in HikCentral Professional</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Make sure your cameras are properly configured and online
+                </p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Camera Name</TableHead>
+                    <TableHead>Camera ID</TableHead>
+                    <TableHead>IP Address</TableHead>
+                    <TableHead>Model</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {availableHikCentralCameras.map((camera) => (
+                    <TableRow key={camera.cameraId}>
+                      <TableCell className="font-medium">
+                        <div>
+                          <div>{camera.cameraName}</div>
+                          <div className="text-xs text-muted-foreground">
+                            Channel {camera.channelNo}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <code className="px-2 py-1 bg-muted rounded text-sm">
+                          {camera.cameraId}
+                        </code>
+                      </TableCell>
+                      <TableCell>{camera.ipAddress}</TableCell>
+                      <TableCell>{camera.model || 'Unknown'}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          {camera.online ? (
+                            <Badge variant="default">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Online
+                            </Badge>
+                          ) : (
+                            <Badge variant="destructive">
+                              <XCircle className="w-3 h-3 mr-1" />
+                              Offline
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewHikCentralLiveStream(camera)}
+                            disabled={!camera.online}
+                            title="View Live Stream"
+                          >
+                            <Eye className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleStartHikCentralRecording(camera)}
+                            disabled={!camera.online}
+                            title="Start Recording"
+                          >
+                            <Video className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewHikCentralRecordings(camera)}
+                            title="View Recordings"
+                          >
+                            <FileVideo className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* HikCentral Recordings Dialog */}
+      <Dialog open={isHikCentralRecordingsOpen} onOpenChange={setIsHikCentralRecordingsOpen}>
+        <DialogContent className="max-w-6xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <FileVideo className="w-5 h-5 text-blue-500" />
+              <span>HikCentral Recordings - {selectedHikCentralCamera?.cameraName}</span>
+            </DialogTitle>
+            <DialogDescription>
+              Recordings from HikCentral Professional (Last 24 hours)
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {hikCentralRecordings.length === 0 ? (
+              <div className="text-center py-8">
+                <FileVideo className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">No recordings found</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  No recordings available for the last 24 hours
+                </p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Recording ID</TableHead>
+                    <TableHead>Start Time</TableHead>
+                    <TableHead>Duration</TableHead>
+                    <TableHead>File Size</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {hikCentralRecordings.map((recording) => (
+                    <TableRow key={recording.recordingId}>
+                      <TableCell className="font-medium">
+                        <code className="px-2 py-1 bg-muted rounded text-sm">
+                          {recording.recordingId}
+                        </code>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          <div>{new Date(recording.startTime).toLocaleDateString()}</div>
+                          <div className="text-muted-foreground">
+                            {new Date(recording.startTime).toLocaleTimeString()}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {hikCentralService.formatDuration(recording.duration)}
+                      </TableCell>
+                      <TableCell>
+                        {hikCentralService.formatFileSize(recording.fileSize)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{recording.recordType}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handlePlayHikCentralRecording(recording)}
+                          title="Play Recording"
+                        >
+                          <Play className="w-3 h-3 mr-1" />
+                          Play
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
           </div>
         </DialogContent>

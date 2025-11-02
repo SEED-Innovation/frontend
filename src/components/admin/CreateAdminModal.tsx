@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
@@ -21,6 +22,7 @@ interface CreateAdminModalProps {
 }
 
 export function CreateAdminModal({ open, onOpenChange, onSuccess }: CreateAdminModalProps) {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -113,9 +115,9 @@ export function CreateAdminModal({ open, onOpenChange, onSuccess }: CreateAdminM
   };
 
   const getPasswordStrengthLabel = () => {
-    if (passwordStrength < 40) return 'Weak';
-    if (passwordStrength < 70) return 'Moderate';
-    return 'Strong';
+    if (passwordStrength < 40) return t('createAdmin.weak');
+    if (passwordStrength < 70) return t('createAdmin.fair');
+    return t('createAdmin.strong');
   };
 
   return (
@@ -127,10 +129,10 @@ export function CreateAdminModal({ open, onOpenChange, onSuccess }: CreateAdminM
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                 <UserPlus className="h-5 w-5 text-primary" />
               </div>
-              Create New Admin
+              {t('createAdmin.title')}
             </DialogTitle>
             <DialogDescription>
-              Create a new administrator account with full access privileges.
+              {t('createAdmin.description')}
             </DialogDescription>
           </DialogHeader>
 
@@ -143,11 +145,11 @@ export function CreateAdminModal({ open, onOpenChange, onSuccess }: CreateAdminM
                   <FormItem>
                     <FormLabel className="flex items-center gap-2">
                       <Shield className="h-4 w-4" />
-                      Full Name
+                      {t('createAdmin.fullName')}
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Enter full name"
+                        placeholder={t('createAdmin.enterFullName')}
                         {...field}
                         disabled={isSubmitting}
                       />
@@ -164,12 +166,12 @@ export function CreateAdminModal({ open, onOpenChange, onSuccess }: CreateAdminM
                   <FormItem>
                     <FormLabel className="flex items-center gap-2">
                       <Mail className="h-4 w-4" />
-                      Email
+                      {t('createAdmin.email')}
                     </FormLabel>
                     <FormControl>
                       <Input
                         type="email"
-                        placeholder="admin@seed.ma"
+                        placeholder={t('createAdmin.emailPlaceholder')}
                         {...field}
                         disabled={isSubmitting}
                       />
@@ -186,12 +188,12 @@ export function CreateAdminModal({ open, onOpenChange, onSuccess }: CreateAdminM
                   <FormItem>
                     <FormLabel className="flex items-center gap-2">
                       <Phone className="h-4 w-4" />
-                      Phone (Optional)
+                      {t('createAdmin.phone')} ({t('createAdmin.optional')})
                     </FormLabel>
                     <FormControl>
                       <Input
                         type="tel"
-                        placeholder="+9665XXXXXXXX"
+                        placeholder={t('createAdmin.phonePlaceholder')}
                         {...field}
                         disabled={isSubmitting}
                       />
@@ -208,13 +210,13 @@ export function CreateAdminModal({ open, onOpenChange, onSuccess }: CreateAdminM
                   <FormItem>
                     <FormLabel className="flex items-center gap-2">
                       <Lock className="h-4 w-4" />
-                      Password
+                      {t('createAdmin.password')}
                     </FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
                           type={showPassword ? 'text' : 'password'}
-                          placeholder="Enter password"
+                          placeholder={t('createAdmin.enterPassword')}
                           {...field}
                           onChange={(e) => handlePasswordChange(e.target.value)}
                           disabled={isSubmitting}
@@ -234,7 +236,7 @@ export function CreateAdminModal({ open, onOpenChange, onSuccess }: CreateAdminM
                     {field.value && (
                       <div className="space-y-1">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">Password strength:</span>
+                          <span className="text-muted-foreground">{t('createAdmin.passwordStrength')}:</span>
                           <span className={passwordStrength >= 70 ? 'text-green-600' : passwordStrength >= 40 ? 'text-amber-600' : 'text-red-600'}>
                             {getPasswordStrengthLabel()}
                           </span>
@@ -252,12 +254,12 @@ export function CreateAdminModal({ open, onOpenChange, onSuccess }: CreateAdminM
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
+                    <FormLabel>{t('createAdmin.confirmPassword')}</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
                           type={showConfirmPassword ? 'text' : 'password'}
-                          placeholder="Confirm password"
+                          placeholder={t('createAdmin.confirmPasswordPlaceholder')}
                           {...field}
                           disabled={isSubmitting}
                         />
@@ -285,18 +287,18 @@ export function CreateAdminModal({ open, onOpenChange, onSuccess }: CreateAdminM
                   onClick={() => onOpenChange(false)}
                   disabled={isSubmitting}
                 >
-                  Cancel
+                  {t('createAdmin.cancel')}
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating...
+                      {t('createAdmin.creating')}
                     </>
                   ) : (
                     <>
                       <UserPlus className="mr-2 h-4 w-4" />
-                      Create Admin
+                      {t('createAdmin.createAdmin')}
                     </>
                   )}
                 </Button>
