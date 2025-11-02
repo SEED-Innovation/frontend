@@ -19,8 +19,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { AdminPaymentsPageDto, PaymentTransaction, PaymentIdRequest } from '@/types/admin';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 const PaymentManagement = () => {
+  const { t } = useTranslation('web');
   // State management
   const [pageData, setPageData] = useState<AdminPaymentsPageDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -111,7 +113,7 @@ const PaymentManagement = () => {
   const getStatusDisplay = (status: string) => {
     switch (status) {
       case 'SUCCESS': return 'Paid';
-      case 'PENDING': return 'Pending';
+      case 'PENDING': return t('admin.status.pending');
       case 'FAILED': return 'Failed';
       default: return status;
     }
@@ -245,7 +247,7 @@ const PaymentManagement = () => {
       color: 'text-green-600'
     },
     {
-      title: 'Pending',
+      title: t('admin.status.pending'),
       value: pageData.pendingCount,
       icon: Clock,
       color: 'text-yellow-600'
@@ -263,8 +265,8 @@ const PaymentManagement = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Payment Management</h1>
-          <p className="text-gray-600 mt-1">Monitor and manage all court booking payments</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('admin.pages.paymentManagement.title')}</h1>
+          <p className="text-gray-600 mt-1">{t('admin.pages.paymentManagement.subtitle')}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button 
@@ -275,7 +277,7 @@ const PaymentManagement = () => {
             className="flex items-center gap-2"
           >
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-            Refresh
+            {t('admin.common.refresh')}
           </Button>
           <Button 
             className="flex items-center gap-2"
@@ -334,7 +336,7 @@ const PaymentManagement = () => {
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="SUCCESS">Paid</SelectItem>
-                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="PENDING">{t('admin.status.pending')}</SelectItem>
                 <SelectItem value="FAILED">Failed</SelectItem>
               </SelectContent>
             </Select>
@@ -347,12 +349,12 @@ const PaymentManagement = () => {
                 <TableRow>
                   <TableHead>Reference</TableHead>
                   <TableHead>Player</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>{t('admin.forms.labels.amount')}</TableHead>
+                  <TableHead>{t('admin.forms.labels.status')}</TableHead>
                   <TableHead>Method</TableHead>
-                  <TableHead>Court</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>{t('admin.forms.labels.court')}</TableHead>
+                  <TableHead>{t('admin.forms.labels.date')}</TableHead>
+                  <TableHead>{t('admin.tables.headers.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

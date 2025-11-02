@@ -1,25 +1,5 @@
 {
-  "landing": {
-    "title": "SEED Tennis",
-    "subtitle": "Professional Tennis Court Booking System",
-    "description": "Book tennis courts, track your games, and improve your skills with our comprehensive tennis management platform.",
-    "getStarted": "Get Started",
-    "learnMore": "Learn More",
-    "features": {
-      "booking": {
-        "title": "Easy Booking",
-        "description": "Book tennis courts with just a few clicks"
-      },
-      "tracking": {
-        "title": "Game Tracking",
-        "description": "Track your games and monitor your progress"
-      },
-      "community": {
-        "title": "Tennis Community",
-        "description": "Connect with other tennis players"
-      }
-    }
-  },
+
   "auth": {
     "signIn": "Sign In",
     "signUp": "Sign Up",
@@ -33,7 +13,27 @@
     "orContinueWith": "Or continue with",
     "termsAndConditions": "Terms and Conditions",
     "privacyPolicy": "Privacy Policy",
-    "agreeToTerms": "I agree to the Terms and Conditions"
+    "agreeToTerms": "I agree to the Terms and Conditions",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithApple": "Continue with Apple",
+    "termsOfService": "Terms of Service",
+    "privacyPolicyLink": "Privacy Policy",
+    "and": "and",
+    "welcomeBack": "Welcome back to SEED!",
+    "accountCreated": "Account created successfully!"
+  },
+  "language": {
+    "selectLanguage": "Select Your Language",
+    "choosePreferred": "Choose your preferred language to continue",
+    "welcomeToSeed": "Welcome to SEED Tennis",
+    "selectToGetStarted": "Please select your preferred language to get started",
+    "canChangeAnytime": "You can change the language anytime from settings",
+    "continue": "Continue",
+    "skip": "Skip",
+    "english": "English",
+    "arabic": "العربية",
+    "englishDescription": "Select English as your language",
+    "arabicDescription": "اختر العربية كلغتك"
   },
   "booking": {
     "title": "Book a Court",
@@ -49,13 +49,29 @@
     "totalPrice": "Total Price",
     "paymentMethod": "Payment Method",
     "confirmBooking": "Confirm Booking",
-    "bookingConfirmed": "Booking Confirmed",
+    "bookingConfirmed": "Booking Confirmed!",
     "bookingReference": "Booking Reference",
     "myBookings": "My Bookings",
     "upcomingBookings": "Upcoming Bookings",
     "pastBookings": "Past Bookings",
     "cancelBooking": "Cancel Booking",
-    "rescheduleBooking": "Reschedule Booking"
+    "rescheduleBooking": "Reschedule Booking",
+    "findPerfectCourt": "Find Your Perfect Court",
+    "aiEnabledCourts": "AI-enabled courts with advanced tracking technology",
+    "failedToLoad": "Failed to load availability",
+    "tryAgain": "Try Again",
+    "selectedSlots": "Selected Slots:",
+    "amenities": "Amenities",
+    "courtBookingSuccess": "Your court session has been successfully booked.",
+    "bookingDetailsTitle": "Booking Details:",
+    "court": "Court",
+    "date": "Date",
+    "timeSlots": "Time Slots",
+    "totalHours": "Duration",
+    "hour": "hour",
+    "hours": "hours",
+    "goToCheckIn": "Go to Check-In",
+    "backToDashboard": "Back to Dashboard"
   },
   "courts": {
     "title": "Tennis Courts",
@@ -96,6 +112,8 @@
   "dashboard": {
     "title": "Dashboard",
     "welcome": "Welcome back",
+    "welcomeUser": "Welcome back, {{name}}!",
+    "readyForSession": "Ready for your next tennis session?",
     "quickStats": "Quick Stats",
     "recentActivity": "Recent Activity",
     "upcomingGames": "Upcoming Games",
@@ -103,7 +121,46 @@
     "monthlyStats": "Monthly Statistics",
     "weeklySchedule": "Weekly Schedule",
     "notifications": "Notifications",
-    "quickActions": "Quick Actions"
+    "quickActions": "Quick Actions",
+    "stats": {
+      "matchesPlayed": "Matches Played",
+      "winRate": "Win Rate",
+      "hoursPlayed": "Hours Played",
+      "rank": "Rank"
+    },
+    "upcomingSessions": {
+      "title": "Upcoming Sessions",
+      "bookNew": "Book New",
+      "confirmed": "confirmed",
+      "practiceSession": "Practice Session",
+      "match": "Match",
+      "checkIn": "Check In"
+    },
+    "recentMatches": {
+      "title": "Recent Matches",
+      "viewAll": "View All",
+      "vs": "vs",
+      "win": "WIN",
+      "loss": "LOSS"
+    },
+    "quickActionsItems": {
+      "findCourts": {
+        "title": "Find Courts",
+        "description": "Discover AI-enabled courts near you"
+      },
+      "leaderboard": {
+        "title": "Leaderboard", 
+        "description": "See how you rank against others"
+      },
+      "recordings": {
+        "title": "Recordings",
+        "description": "Watch and analyze your matches"
+      },
+      "challenges": {
+        "title": "Challenges",
+        "description": "Join challenges and earn badges"
+      }
+    }
   },
   "navigation": {
     "home": "Home",
@@ -112,7 +169,13 @@
     "profile": "Profile",
     "settings": "Settings",
     "dashboard": "Dashboard",
-    "admin": "Admin"
+    "admin": "Admin",
+    "checkIn": "Check-In",
+    "recordings": "Recordings",
+    "leaderboard": "Leaderboard",
+    "challenges": "Challenges",
+    "upgrade": "Upgrade",
+    "logout": "Logout"
   },
   "challenges": {
     "title": "Challenges & Achievements",
@@ -131,8 +194,238 @@
     "comingSoon": "Coming Soon"
   },
   "admin": {
+    "password": "Password",
     "courtInstallations": "Court Installations",
     "monitorManage": "Monitor and manage court camera installations",
+    "menu": {
+      "dashboard": "Dashboard",
+      "admins": "Admins",
+      "courts": "Courts",
+      "bookings": "Bookings",
+      "sessions": "Sessions",
+      "cameras": "Cameras",
+      "payments": "Payments",
+      "analytics": "Analytics",
+      "settings": "Settings",
+      "myProfile": "My Profile",
+      "courtManagement": "Court Management"
+    },
+    "common": {
+      "add": "Add",
+      "edit": "Edit",
+      "delete": "Delete",
+      "save": "Save",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "search": "Search",
+      "filter": "Filter",
+      "refresh": "Refresh",
+      "export": "Export",
+      "import": "Import",
+      "view": "View",
+      "manage": "Manage",
+      "status": "Status",
+      "active": "Active",
+      "inactive": "Inactive",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "total": "Total",
+      "loading": "Loading...",
+      "noData": "No data available",
+      "actions": "Actions"
+    },
+    "pages": {
+      "courtManagement": {
+        "title": "Court Management",
+        "subtitle": "Manage all courts, availability, and pricing",
+        "addNewCourt": "Add New Court",
+        "availability": "Availability",
+        "unavailability": "Unavailability",
+        "allSports": "All Sports",
+        "tennis": "Tennis",
+        "padel": "Padel",
+        "showingCourts": "Showing all {{count}} courts",
+        "searchPlaceholder": "Search courts by name, type, location, or manager...",
+        "filters": "Filters",
+        "surface": "Surface",
+        "location": "Location"
+      },
+      "paymentManagement": {
+        "title": "Payment Management",
+        "subtitle": "Monitor and manage all court booking payments",
+        "totalPayments": "Total Payments",
+        "pendingPayments": "Pending Payments",
+        "completedPayments": "Completed Payments",
+        "failedPayments": "Failed Payments",
+        "exportCSV": "Export CSV",
+        "markAsPaid": "Mark as Paid",
+        "noPaymentsFound": "No payments found",
+        "noPaymentsMatchingFilters": "No payments found matching your filters",
+        "showingPayments": "Showing {{start}} to {{end}} of {{total}} payments"
+      },
+      "analytics": {
+        "title": "Analytics",
+        "subtitle": "System performance and analytics",
+        "comingSoon": "Analytics Coming Soon",
+        "underConstruction": "🚧 This section is under construction and will be available soon."
+      },
+      "bookingManagement": {
+        "title": "Booking Management",
+        "subtitle": "View and manage court bookings",
+        "manualBooking": "Manual Booking",
+        "createManualBooking": "Create Manual Booking",
+        "filterBookings": "Filter Bookings",
+        "bookingStatusOverview": "Booking Status Overview",
+        "bookingDistribution": "Booking Distribution",
+        "advancedBookingManagement": "Advanced Booking Management",
+        "bookingManagementDashboard": "Booking Management Dashboard"
+      },
+      "userManagement": {
+        "title": "User Management",
+        "subtitle": "Manage users and administrators",
+        "createAdmin": "Create Admin",
+        "createUser": "Create User",
+        "createNewUser": "Create New User",
+        "editUser": "Edit User",
+        "allStatus": "All Status",
+        "searchPlaceholder": "Search by name, email, or phone..."
+      },
+      "cameraManagement": {
+        "title": "Camera Recording Management",
+        "subtitle": "Manage camera systems and recordings",
+        "browseCameras": "Browse Cameras",
+        "syncCameras": "Sync Cameras",
+        "checkAllCameras": "Check All Cameras",
+        "addCamera": "Add Camera",
+        "totalCameras": "Total Cameras",
+        "activeCameras": "Active Cameras",
+        "offlineCameras": "Offline Cameras",
+        "recordingCameras": "Recording Cameras",
+        "totalRecordings": "Total Recordings",
+        "addNewCamera": "Add New Camera",
+        "editCamera": "Edit Camera",
+        "associateCameraWithCourt": "Associate Camera with Court"
+      }
+    },
+    "forms": {
+      "labels": {
+        "name": "Name",
+        "fullName": "Full Name",
+        "email": "Email",
+        "emailAddress": "Email Address",
+        "phone": "Phone",
+        "phoneNumber": "Phone Number",
+        "username": "Username",
+        "password": "Password",
+        "description": "Description",
+        "location": "Location",
+        "address": "Address",
+        "date": "Date",
+        "time": "Time",
+        "startTime": "Start Time",
+        "endTime": "End Time",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "type": "Type",
+        "status": "Status",
+        "court": "Court",
+        "user": "User",
+        "amount": "Amount",
+        "total": "Total",
+        "totalAmount": "Total Amount",
+        "price": "Price",
+        "pricePreview": "Price Preview"
+      },
+      "placeholders": {
+        "searchUsers": "Search for a user by name or email...",
+        "searchCourts": "Search for a court by name, location, or type...",
+        "searchCourtsByName": "Search courts by name...",
+        "searchManagers": "Search managers...",
+        "searchAddress": "Search address or drop the pin",
+        "selectUser": "Select user",
+        "selectCourt": "Select court",
+        "selectDuration": "Select duration",
+        "selectMatchType": "Select match type",
+        "selectPaymentMethod": "Select payment method",
+        "selectSkillLevel": "Select skill level",
+        "selectVisibility": "Select visibility",
+        "selectRole": "Select role",
+        "selectPlan": "Select plan",
+        "typeToSearch": "Type to search courts...",
+        "emailForReceipt": "Email address for receipt",
+        "courtName": "e.g., Court 1 – Center",
+        "courtDescription": "Additional details about the court...",
+        "cameraName": "e.g., Court 1 Main Camera",
+        "cameraPassword": "Camera password"
+      },
+      "buttons": {
+        "create": "Create",
+        "createBooking": "Create Booking",
+        "createCourt": "Create Court",
+        "createAdmin": "Create Admin",
+        "createUser": "Create User",
+        "addCamera": "Add Camera",
+        "saveChanges": "Save Changes",
+        "approve": "Approve",
+        "reject": "Reject",
+        "approveBooking": "Approve Booking",
+        "rejectBooking": "Reject Booking",
+        "cancelBooking": "Cancel Booking",
+        "viewDetails": "View Details",
+        "editBooking": "Edit Booking",
+        "deleteBooking": "Delete Booking",
+        "clearAll": "Clear All",
+        "clearDate": "Clear Date",
+        "removeSelected": "Remove Selected",
+        "deleteSelected": "Delete Selected",
+        "blockThisDate": "Block This Date",
+        "removeDiscount": "Remove Discount",
+        "markAsPaid": "Mark as Paid"
+      }
+    },
+    "tables": {
+      "headers": {
+        "name": "Name",
+        "status": "Status",
+        "type": "Type",
+        "court": "Court",
+        "date": "Date",
+        "time": "Time",
+        "amount": "Amount",
+        "actions": "Actions",
+        "recordingStatus": "Recording Status",
+        "associatedCourt": "Associated Court",
+        "streamActions": "Stream Actions",
+        "recordingActions": "Recording Actions",
+        "management": "Management",
+        "deviceName": "Device Name"
+      }
+    },
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled",
+      "active": "Active",
+      "inactive": "Inactive",
+      "online": "Online",
+      "offline": "Offline",
+      "available": "Available",
+      "unavailable": "Unavailable"
+    },
+    "stats": {
+      "totalRevenue": "💰 Total Revenue",
+      "totalBookings": "📅 Total Bookings",
+      "totalCourts": "🎾 Total Courts",
+      "totalAdmins": "👨‍💼 Total Admins",
+      "topPlayersByBookings": "Top Players by Bookings",
+      "topCourtsByBookings": "Top Courts by Bookings",
+      "noCourtData": "No Court Data",
+      "peakUsageTimes": "Peak Usage Times",
+      "paymentMethods": "Payment Methods",
+      "topCourtsPerformance": "Top Courts Performance"
+    },
     "addInstallation": "Add Installation",
     "camera": "Camera",
     "connection": "Connection",
@@ -163,7 +456,28 @@
     "password": "Password",
     "testConnection": "Test Connection",
     "availableCameras": "Available Cameras",
-    "model": "Model"
+    "model": "Model",
+    "login": {
+      "welcomeToThe": "Welcome to the",
+      "adminUniverse": "Admin Universe",
+      "adminPowerhouse": "SEED's core administrative powerhouse. Manage everything from one beautiful dashboard.",
+      "secureAccess": "Secure Access",
+      "smartDashboard": "Smart Dashboard",
+      "adminPortal": "Admin Portal",
+      "logInToSeed": "Log in to SEED",
+      "yourEmailAndPassword": "Your email and password",
+      "yourEmail": "Your email",
+      "enterEmailAddress": "Enter your email address",
+      "enterPassword": "Enter your password",
+      "forgotPassword": "Forgot password?",
+      "contactAdminForReset": "Contact your system administrator for password reset",
+      "signIn": "Sign in",
+      "signingIn": "Signing in...",
+      "backToSeedPlatform": "Back to SEED Platform",
+      "pleaseFillAllFields": "Please fill in all fields",
+      "welcomeToSeedAdmin": "Welcome to SEED Admin Dashboard! 🎉",
+      "loginFailed": "Login failed. Please try again."
+    }
   },
   "ui": {
     "previous": "Previous",
@@ -180,7 +494,62 @@
     "edit": "Edit",
     "add": "Add",
     "submit": "Submit",
-    "back": "Back"
+    "back": "Back",
+    "backToCourts": "← Back to Courts",
+    "selectCourt": "Select Court",
+    "booking": "Booking...",
+    "bookSession": "Book Session",
+    "hour": "hour",
+    "hours": "hours",
+    "total": "Total",
+    "aiTechnologyFeatures": "AI Technology Features",
+    "availableTimeSlots": "Available Time Slots",
+    "noAvailableSlots": "No available slots for this date",
+    "faq": "FAQ",
+    "seedTagline": "See it. SEED it. Smash it.",
+    "goToPreviousPage": "Go to previous page",
+    "goToNextPage": "Go to next page",
+    "matchThumbnail": "Match thumbnail",
+    "averageSessionTime": "1h 32m"
+  },
+  "errors": {
+    "dateAlreadyBlocked": "This date is already blocked for this court.",
+    "slotAlreadyBooked": "That time slot was just booked by someone else. Please choose another slot.",
+    "courtUnavailableThisDay": "This court just became unavailable for this date. Please pick another date.",
+    "blockoutConflictWithBookings": "Cannot block this date: Existing bookings must be cancelled first.",
+    "accessDenied": "Access denied: You do not have permission to perform this action.",
+    "courtNotFound": "Court not found. Please refresh and try again.",
+    "bookingNotFound": "Booking not found. It may have been cancelled or modified.",
+    "dateInPast": "Cannot set unavailability for past dates.",
+    "invalidDateFormat": "Invalid date format. Please use the date picker.",
+    "serverError": "Server error occurred. Please try again in a moment.",
+    "connectionError": "Connection error. Please check your internet connection and try again.",
+    "unexpectedError": "An unexpected error occurred. Please try again."
+  },
+  "receipts": {
+    "title": "My Receipts",
+    "subtitle": "View and download your booking receipts",
+    "loading": "Loading your receipts...",
+    "noReceipts": "No receipts found",
+    "noReceiptsDesc": "You don't have any receipts yet.",
+    "receiptNumber": "Receipt #",
+    "court": "Court",
+    "dateTime": "Date & Time",
+    "amount": "Amount",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "subscription": {
+    "welcomeToPremium": "Welcome to SEED Premium!",
+    "subscriptionActive": "Your subscription is now active. Start exploring all the premium features.",
+    "whatsNext": "What's next?",
+    "nextSteps": [
+      "Book your first AI-powered session",
+      "Explore advanced analytics features", 
+      "Download unlimited match recordings"
+    ],
+    "getStarted": "Get Started",
+    "goToDashboard": "Go to Dashboard"
   },
   "forms": {
     "email": "Email Address",
@@ -199,6 +568,440 @@
     "info": "Information",
     "noData": "No data available",
     "tryAgain": "Please try again",
-    "networkError": "Network connection error"
+    "networkError": "Network connection error",
+    "loggedOutSuccessfully": "Logged out successfully!",
+    "redirectingToSubscription": "Redirecting to subscription...",
+    "bookingApprovedSuccessfully": "Booking approved successfully",
+    "bookingRejected": "Booking rejected",
+    "bookingCancelled": "Booking cancelled",
+    "pleaseFillAllFields": "Please fill in all fields",
+    "manualBookingCreated": "Manual booking created successfully",
+    "failedToApplyCourtFilter": "Failed to apply court filter",
+    "failedToApplyDateFilter": "Failed to apply date filter",
+    "dateFilterCleared": "Date filter cleared",
+    "reportExportedPDF": "Report exported as PDF",
+    "reportExportedCSV": "Report exported as CSV",
+    "failedToLoadPayments": "Failed to load payments data",
+    "paymentManuallyConfirmed": "Payment manually confirmed",
+    "failedToConfirmPayment": "Failed to confirm payment",
+    "noAuthTokenFound": "No authentication token found",
+    "csvExportCompleted": "CSV export completed successfully",
+    "openingAddClubDialog": "Opening add club dialog...",
+    "failedToLoadCourts": "Failed to load courts",
+    "failedToLoadAdmins": "Failed to load admins",
+    "courtCreatedSuccessfully": "Court created successfully",
+    "noDiscountApplied": "No discount currently applied to this court",
+    "failedToRemoveDiscount": "Failed to remove discount. Please try again.",
+    "discountRemovedSuccessfully": "Discount removed successfully",
+    "courtUpdatedSuccessfully": "Court updated successfully",
+    "courtDeletedSuccessfully": "Court deleted successfully",
+    "failedToDeleteCourt": "Failed to delete court",
+    "pleaseFillAvailabilityFields": "Please fill in all availability fields and select at least one day",
+    "noRowsSelected": "No rows selected",
+    "usingMockData": "Using mock data - API not available",
+    "failedToLoadData": "Failed to load data",
+    "unavailabilityUpdatedSuccessfully": "Unavailability updated successfully",
+    "unavailabilityDeletedSuccessfully": "Unavailability deleted successfully",
+    "failedToLoadAdminNames": "Failed to load admin names. You may not have permission to view this data.",
+    "pleaseFillRequiredFields": "Please fill in all required fields",
+    "userCreatedSuccessfully": "User created successfully",
+    "userUpdatedSuccessfully": "User updated successfully",
+    "failedToUpdateUser": "Failed to update user. Please try again.",
+    "userDeletedSuccessfully": "User deleted successfully",
+    "failedToDeleteUser": "Failed to delete user. Please try again."
+  },
+  "notFound": {
+    "title": "Page Not Found",
+    "description": "Sorry, we couldn't find the page you're looking for. It might have been moved or doesn't exist.",
+    "goToDashboard": "Go to Dashboard",
+    "goBack": "Go Back"
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "subtitle": "See how you rank against the community",
+    "thisMonth": "This Month",
+    "allTime": "All Time",
+    "points": "pts",
+    "winRate": "Win Rate",
+    "matches": "Matches",
+    "winStreak": "Win Streak",
+    "wins": "wins",
+    "fullRankings": "Full Rankings",
+    "you": "You",
+    "viewProfile": "View Profile",
+    "loadMorePlayers": "Load More Players"
+  },
+  "checkIn": {
+    "title": "Check-In",
+    "subtitle": "Confirm your presence and start your tennis session",
+    "youreCheckedIn": "You're Checked In!",
+    "readyToStart": "Ready to start your tennis session",
+    "startSession": "Start Session",
+    "aiFeaturesReady": "AI Features Ready",
+    "cameraActive": "Camera Active",
+    "aiProcessing": "AI Processing",
+    "recordingReady": "Recording Ready",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "aiFeaturesAvailable": "AI Features Available",
+    "checkInNow": "Check In Now",
+    "viewDetails": "View Details",
+    "notYetAvailable": "Not Yet Available",
+    "noUpcomingBookings": "No Upcoming Bookings",
+    "noBookingsDescription": "You don't have any upcoming tennis sessions. Book a court to get started!",
+    "bookACourt": "Book a Court",
+    "clubName": "Riverside Tennis Club",
+    "sessionTime": "Today, 2:00 PM - 4:00 PM",
+    "courtNumber": "Court 3"
+  },
+  "recordings": {
+    "title": "Match Recordings",
+    "subtitle": "Review your sessions with AI-powered analytics",
+    "backToRecordings": "← Back to Recordings",
+    "date": "Date:",
+    "court": "Court:",
+    "duration": "Duration:",
+    "score": "Score:",
+    "performanceStats": "Performance Stats",
+    "totalServes": "Total Serves",
+    "serveAccuracy": "Serve Accuracy",
+    "avgSpeed": "Avg Speed",
+    "winners": "Winners",
+    "aiInsights": "AI Insights",
+    "greatServeConsistency": "Great serve consistency in this match!",
+    "considerBackhandPlacement": "Consider working on backhand placement",
+    "excellentNetPlay": "Excellent net play improvement",
+    "allVideos": "All Videos",
+    "matches": "Matches",
+    "practice": "Practice",
+    "premium": "Premium",
+    "aiTracked": "AI Tracked",
+    "view": "View",
+    "downloading": "Downloading {{title}}...",
+    "premiumRequired": "Premium subscription required for downloads",
+    "shareLinkCopied": "Share link copied to clipboard!",
+    "nowViewing": "Now viewing: {{title}}",
+    "showingMatchesOnly": "Showing matches only...",
+    "showingPracticeOnly": "Showing practice sessions only..."
+  },
+  "landing": {
+    "title": "SEED Tennis",
+    "subtitle": "Professional Tennis Court Booking System",
+    "description": "Book tennis courts, track your games, and improve your skills with our comprehensive tennis management platform.",
+    "getStarted": "Get Started",
+    "learnMore": "Learn More",
+    "hero": {
+      "newWayOf": "A NEW WAY OF",
+      "playing": "playing",
+      "mastering": "mastering",
+      "analyzing": "analyzing",
+      "sports": "SPORTS",
+      "unleashGame": "Unleash your A-Game!",
+      "seeIt": "See it.",
+      "seedIt": "SEED",
+      "smashIt": "Smash it!",
+      "startFreeTrial": "Start Free Trial",
+      "watchDemo": "Watch Demo",
+      "innovation": "INNOVATION",
+      "tennisCourtAlt": "Tennis Court",
+      "seedLogoAlt": "SEED Logo",
+      "it": "it."
+    },
+
+    "stats": {
+      "activePlayers": "Active Players",
+      "aiEnabledCourts": "AI-Enabled Courts",
+      "matchesAnalyzed": "Matches Analyzed",
+      "accuracyRate": "Accuracy Rate"
+    },
+    "howItWorks": {
+      "title": "Master In Three Steps!",
+      "subtitle": "Unleash your potential with our revolutionary approach to tennis excellence",
+      "checkIn": {
+        "title": "Check In",
+        "description": "Register your session and get ready to unleash your potential"
+      },
+      "play": {
+        "title": "Play", 
+        "description": "Step onto the court and let our AI capture every moment of brilliance"
+      },
+      "thrive": {
+        "title": "Thrive!",
+        "description": "Transform insights into action and watch your game reach new heights"
+      }
+    },
+    "aiVideo": {
+      "title": "See AI in Action",
+      "subtitle": "Watch how our smart AI technology analyzes tennis matches in real-time",
+      "description": "Experience the power of AI-driven tennis analysis",
+      "see": "See",
+      "aiInAction": "AI in Action",
+      "browserNotSupported": "Your browser does not support the video tag."
+    },
+    "playerLevels": {
+      "title": "Designed for All Levels",
+      "subtitle": "Whether you're just starting or competing professionally",
+      "beginner": {
+        "title": "Beginner",
+        "description": "Learn fundamentals with AI-guided feedback",
+        "features": ["Basic shot tracking", "Technique tips", "Progress tracking"]
+      },
+      "amateur": {
+        "title": "Amateur", 
+        "description": "Improve consistency and strategy",
+        "features": ["Advanced analytics", "Match insights", "Performance trends"]
+      },
+      "professional": {
+        "title": "Professional",
+        "description": "Elite-level analysis and optimization", 
+        "features": ["Pro-level metrics", "Competition analysis", "Custom coaching"]
+      }
+    },
+    "aiTechnology": {
+      "title": "Backed by Advanced AI",
+      "subtitle": "Our computer vision technology captures every detail of your game, providing insights that were previously only available to professional players.",
+      "experienceTechnology": "Experience the Technology",
+      "computerVision": {
+        "title": "Computer Vision",
+        "description": "Advanced camera tracking for precise ball and player movement analysis"
+      },
+      "realTimeProcessing": {
+        "title": "Real-time Processing",
+        "description": "Instant analysis and feedback delivered within minutes of your session"
+      },
+      "precisionAnalytics": {
+        "title": "Precision Analytics", 
+        "description": "Shot placement, speed, and accuracy measured with professional-grade precision"
+      }
+    },
+    "whatYouGet": {
+      "title": "What You Get",
+      "subtitle": "Everything you need to elevate your tennis game",
+      "automatedVideo": {
+        "title": "Automated Video Recording",
+        "description": "Every session automatically recorded and stored in the cloud"
+      },
+      "detailedStats": {
+        "title": "Detailed Statistics",
+        "description": "Shot placement, speed, accuracy, and improvement tracking"
+      },
+      "achievements": {
+        "title": "Achievements & Badges",
+        "description": "Unlock rewards as you improve and reach new milestones"
+      },
+      "community": {
+        "title": "Community Features",
+        "description": "Share highlights, connect with players, and join challenges"
+      }
+    },
+    "features": {
+      "title": "Unlock Your Game with SEED Insights",
+      "subtitle": "From grassroots to grand slams, SEED INNOVATION isn't just tracking tennis—we're rewriting how it's played, watched, and judged. Every serve, volley, and stroke is meticulously tracked to elevate player performance and deliver actionable insights that drive continuous improvement.",
+      "heatmaps": {
+        "title": "Heatmaps",
+        "description": "Visualize a player's positioning and activity on the court with detailed movement patterns"
+      },
+      "speedTracking": {
+        "title": "Speed Tracking",
+        "description": "Monitor a player's pace during matches with real-time velocity measurements"
+      },
+      "performanceInsights": {
+        "title": "Performance Insights",
+        "description": "Evaluate past performances to identify trends and patterns for strategic improvement"
+      },
+      "shotAnalysis": {
+        "title": "Shot Analysis",
+        "description": "Visualize shot accuracy on the court and discover new strategic patterns"
+      },
+      "smartBooking": {
+        "title": "Smart Court Booking",
+        "description": "Seamlessly book AI-enabled courts with integrated technology features"
+      },
+      "communityHub": {
+        "title": "Community Hub",
+        "description": "Connect with fellow players, share highlights, and join challenges"
+      }
+    },
+    "testimonials": {
+      "title": "Trusted by Champions",
+      "subtitle": "See what tennis professionals and enthusiasts are saying"
+    },
+    "mobileApp": {
+      "title": "Get the Mobile App",
+      "subtitle": "Experience SEED INNOVATION on the go. Track your performance, book courts, and access AI insights directly from your mobile device.",
+      "downloadNow": "Download Now",
+      "availableOn": "Available on your favorite platform. Start your tennis revolution today!",
+      "freeDownload": "Free download",
+      "noCreditCard": "No credit card required",
+      "realTimeAnalytics": {
+        "title": "Real-time Analytics",
+        "description": "Access live match insights and performance metrics instantly on your phone."
+      },
+      "quickBooking": {
+        "title": "Quick Booking",
+        "description": "Book courts, manage sessions, and check availability with just a few taps."
+      },
+      "matchRecordings": {
+        "title": "Match Recordings",
+        "description": "Review your games, share highlights, and track your progress over time."
+      }
+    },
+    "cta": {
+      "title": "Ready to Play Smarter?",
+      "subtitle": "Unleash your A-Game with SEED INNOVATION's revolutionary AI-powered tennis analytics. Transform every serve, volley, and stroke into actionable insights.",
+      "startJourney": "Start Your Journey"
+    },
+    "contact": {
+      "title": "Get in Touch",
+      "subtitle": "Ready to revolutionize your tennis game? Let's connect and explore how SEED can transform your athletic journey.",
+      "sendMessage": "Send us a message",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email",
+      "subject": "Subject",
+      "message": "Message",
+      "tellUsNeeds": "Tell us about your needs...",
+      "sendMessageBtn": "Send Message",
+      "buildFuture": "Let's Build the Future of Tennis Together",
+      "buildFutureDesc": "Whether you're a club owner, coach, or passionate player, we'd love to hear from you. Discover how SEED's AI technology can elevate your tennis experience.",
+      "generalInquiries": "General Inquiries",
+      "partnerships": "Partnerships", 
+      "support": "Support",
+      "responseTime": "Response time: Within 24 hours • Available 24/7",
+      "generalEmail": "info@seedinnovation.com",
+      "partnershipsEmail": "partners@seedinnovation.com",
+      "supportEmail": "support@seedinnovation.com",
+      "firstNamePlaceholder": "John",
+      "lastNamePlaceholder": "Doe", 
+      "emailPlaceholder": "john@example.com",
+      "subjectPlaceholder": "Partnership Inquiry"
+    },
+
+    "footer": {
+      "description": "AI-powered tennis analytics platform helping players and coaches achieve excellence through data-driven insights.",
+      "downloadMobileApp": "Download Mobile App",
+      "product": "Product",
+      "bookCourts": "Book Courts",
+      "matchAnalysis": "Match Analysis",
+      "leaderboards": "Leaderboards",
+      "pricing": "Pricing",
+      "support": "Support",
+      "helpCenter": "Help Center",
+      "contactUs": "Contact Us",
+      "privacyPolicy": "Privacy Policy",
+      "termsOfService": "Terms of Service",
+      "copyright": "© 2025 SEED INNOVATION. All rights reserved. Built for the future of tennis.",
+      "helpCenterSoon": "Help Center coming soon!",
+      "contactFormSoon": "Contact form coming soon!",
+      "privacySoon": "Privacy policy coming soon!",
+      "termsSoon": "Terms coming soon!"
+    },
+    "features": {
+      "booking": {
+        "title": "Easy Booking",
+        "description": "Book tennis courts with just a few clicks"
+      },
+      "tracking": {
+        "title": "Game Tracking",
+        "description": "Track your games and monitor your progress"
+      },
+      "community": {
+        "title": "Tennis Community",
+        "description": "Connect with other tennis players"
+      }
+    }
+  },
+  "session": {
+    "title": "Live Session",
+    "courtLocation": "Riverside Tennis Club - Court 3",
+    "sessionActive": "Session Active",
+    "courtInfo": "Court 3, Riverside Tennis Club",
+    "cameraFeed": "Camera Feed",
+    "sessionStats": "Session Stats",
+    "duration": "Duration",
+    "shots": "Shots",
+    "accuracy": "Accuracy",
+    "speed": "Speed",
+    "endSession": "End Session",
+    "pauseSession": "Pause Session",
+    "resumeSession": "Resume Session",
+    "sessionEnded": "Session Ended",
+    "viewResults": "View Results",
+    "backToLeaderboard": "Back to Leaderboard",
+    "readyToStart": "Ready to Start",
+    "starting": "Starting...",
+    "startSession": "Start Session",
+    "ending": "Ending...",
+    "liveStreamingActive": "Live streaming active",
+    "readyToStream": "Ready to stream",
+    "realTimeAnalysis": "Real-time analysis",
+    "waitingToStart": "Waiting to start",
+    "dataStorage": "Data Storage",
+    "cloudBackupActive": "Cloud backup active",
+    "readyToBackup": "Ready to backup",
+    "viewPreviousSessions": "View Previous Sessions",
+    "checkLeaderboard": "Check Leaderboard",
+    "startingAiCamera": "Starting AI camera session...",
+    "sessionStartedTracking": "Session started! AI is now tracking your game.",
+    "sessionResumed": "Session resumed",
+    "sessionPaused": "Session paused",
+    "endingSessionProcessing": "Ending session and processing data...",
+    "sessionCompletedRedirecting": "Session completed! Redirecting to recordings...",
+    "loadingRecordings": "Loading your recordings...",
+    "loadingLeaderboard": "Loading leaderboard..."
+  },
+  "profile": {
+    "title": "My Profile",
+    "personalInfo": "Personal Information",
+    "contactInfo": "Contact Information",
+    "preferences": "Preferences",
+    "playingLevel": "Playing Level",
+    "beginner": "Beginner",
+    "intermediate": "Intermediate", 
+    "advanced": "Advanced",
+    "professional": "Professional",
+    "favoritePosition": "Favorite Position",
+    "playingStyle": "Playing Style",
+    "achievements": "Achievements",
+    "statistics": "Statistics",
+    "gamesPlayed": "Games Played",
+    "winRate": "Win Rate",
+    "hoursPlayed": "Hours Played",
+    "accuracy": "Accuracy",
+    "wins": "Wins",
+    "games": "Games",
+    "monthly": "Monthly",
+    "editProfile": "Edit Profile",
+    "saveChanges": "Save Changes",
+    "personalDetails": "Personal Details",
+    "gamePreferences": "Game Preferences",
+    "skillLevel": "Skill Level",
+    "dominantHand": "Dominant Hand",
+    "leftHanded": "Left-handed",
+    "rightHanded": "Right-handed",
+    "ambidextrous": "Ambidextrous",
+    "playingExperience": "Playing Experience",
+    "years": "years",
+    "favoriteShot": "Favorite Shot",
+    "forehand": "Forehand",
+    "backhand": "Backhand",
+    "serve": "Serve",
+    "volley": "Volley",
+    "overhead": "Overhead",
+    "drop": "Drop Shot",
+    "managePlan": "Manage Plan",
+    "badges": "Badges",
+    "performanceMetrics": "Performance Metrics",
+    "totalShots": "Total Shots",
+    "accuracyRate": "Accuracy Rate",
+    "averageSession": "Average Session",
+    "rankings": "Rankings",
+    "globalRank": "Global Rank",
+    "monthlyRank": "Monthly Rank",
+    "totalPoints": "Total Points",
+    "league": "League",
+    "advanced": "Advanced",
+    "badgeCollection": "Badge Collection",
+    "earned": "Earned"
   }
 }

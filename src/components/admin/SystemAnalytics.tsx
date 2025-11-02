@@ -2,8 +2,10 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { BarChart3, Construction } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useTranslation } from 'react-i18next';
 
 const SystemAnalytics = () => {
+  const { t } = useTranslation('web');
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -12,8 +14,8 @@ const SystemAnalytics = () => {
       className="space-y-6"
     >
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Analytics</h1>
-        <p className="text-gray-600 mt-1">System performance and analytics</p>
+        <h1 className="text-3xl font-bold text-gray-900">{t('admin.pages.analytics.title')}</h1>
+        <p className="text-gray-600 mt-1">{t('admin.pages.analytics.subtitle')}</p>
       </div>
 
       <Card>
@@ -26,9 +28,9 @@ const SystemAnalytics = () => {
         <CardContent>
           <div className="text-center py-8">
             <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Analytics Coming Soon</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('admin.pages.analytics.comingSoon')}</h3>
             <p className="text-gray-600">
-              🚧 This section is under construction and will be available soon.
+              {t('admin.pages.analytics.underConstruction')}
             </p>
           </div>
         </CardContent>

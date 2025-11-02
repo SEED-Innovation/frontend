@@ -28,8 +28,10 @@ import { receiptService } from '@/services/receiptService';
 import { useCourtsPaged } from '@/lib/hooks/useCourtsPaged';
 import { USE_PAGINATED_COURTS } from '@/lib/config/flags';
 import { PaginationBar } from '@/components/common/PaginationBar';
+import { useTranslation } from 'react-i18next';
 
 const AdminDashboard = () => {
+  const { t } = useTranslation('web');
   const { user, hasPermission } = useAdminAuth();
   
   // Pagination state for courts
@@ -250,42 +252,42 @@ const AdminDashboard = () => {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         <StatCard
-          title="💰 Total Revenue"
+          title={t('admin.stats.totalRevenue')}
           value={<CurrencyDisplay amount={dashboardStats.totalRevenue} size="xl" showSymbol />}
           change={dashboardStats.monthlyGrowth}
           icon={DollarSign}
           color="bg-green-500"
         />
         <StatCard
-          title="📅 Total Bookings"
+          title={t('admin.stats.totalBookings')}
           value={dashboardStats.todayBookings}
           change={null}
           icon={Calendar}
           color="bg-blue-500"
         />
         <StatCard
-          title="✅ Approved"
+          title={`✅ ${t('admin.status.approved')}`}
           value={dashboardStats.confirmedBookings}
           change={null}
           icon={Activity}
           color="bg-green-500"
         />
         <StatCard
-          title="⏳ Pending"
+          title={`⏳ ${t('admin.status.pending')}`}
           value={dashboardStats.pendingBookings}
           change={null}
           icon={Clock}
           color="bg-yellow-500"
         />
         <StatCard
-          title="🎾 Total Courts"
+          title={t('admin.stats.totalCourts')}
           value={dashboardStats.totalCourts}
           change={null}
           icon={Building}
           color="bg-indigo-500"
         />
         <StatCard
-          title="👨‍💼 Total Admins"
+          title={t('admin.stats.totalAdmins')}
           value={dashboardStats.totalManagers}
           change={null}
           icon={UserCheck}
@@ -312,7 +314,7 @@ const AdminDashboard = () => {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Users className="w-5 h-5 mr-2" />
-                Top Players by Bookings
+                {t('admin.stats.topPlayersByBookings')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -391,7 +393,7 @@ const AdminDashboard = () => {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Trophy className="w-5 h-5 mr-2" />
-                Top Courts by Bookings
+                {t('admin.stats.topCourtsByBookings')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -403,7 +405,7 @@ const AdminDashboard = () => {
               ) : topCourts.length === 0 ? (
                 <div className="text-center py-8">
                   <Trophy className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-muted-foreground mb-2">No Court Data</h3>
+                  <h3 className="text-lg font-medium text-muted-foreground mb-2">{t('admin.stats.noCourtData')}</h3>
                   <p className="text-sm text-muted-foreground">No courts with bookings found.</p>
                 </div>
               ) : (

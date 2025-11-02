@@ -35,9 +35,11 @@ import { UnavailabilityTable } from './unavailability/UnavailabilityTable';
 import { UnavailabilityForm } from './unavailability/UnavailabilityForm';
 import { DiscountModal } from './DiscountModal';
 import { CurrencyDisplay } from '@/components/ui/currency-display';
+import { useTranslation } from 'react-i18next';
 
 const CourtManagement = () => {
   const { user, hasPermission } = useAdminAuth();
+  const { t } = useTranslation('web');
 
   // Pagination state
   const [page, setPage] = useState(0);
@@ -520,18 +522,15 @@ const CourtManagement = () => {
     >
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Court Management</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t('admin.pages.courtManagement.title')}</h1>
           <p className="text-gray-600 mt-1">
-            {user?.role === 'SUPER_ADMIN'
-              ? 'Manage all courts, availability, and pricing'
-              : 'Manage your assigned courts, availability, and pricing'
-            }
+            {t('admin.pages.courtManagement.subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => fetchCourts()} disabled={loading}>
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
+            {t('admin.common.refresh')}
           </Button>
           {hasPermission('SUPER_ADMIN') && (
             <>
@@ -593,9 +592,7 @@ const CourtManagement = () => {
                     variant="outline"
                     onClick={() => setDeleteDialogOpen(false)}
                     className="flex-1"
-                  >
-                    Cancel
-                  </Button>
+                  >{t('admin.common.cancel')}</Button>
                 </div>
               </div>
             )}
@@ -648,9 +645,7 @@ const CourtManagement = () => {
                     variant="outline"
                     onClick={() => setRemoveDiscountDialogOpen(false)}
                     className="flex-1"
-                  >
-                    Cancel
-                  </Button>
+                  >{t('admin.common.cancel')}</Button>
                 </div>
               </div>
             )}
@@ -893,7 +888,7 @@ const CourtManagement = () => {
 
                   {/* Location Filter */}
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">Location</Label>
+                    <Label className="text-sm font-medium">{t('admin.forms.labels.location')}</Label>
                     <Popover open={locationSearchOpen} onOpenChange={setLocationSearchOpen}>
                       <PopoverTrigger asChild>
                         <Button
@@ -1016,9 +1011,7 @@ const CourtManagement = () => {
                           size="sm"
                           onClick={handleAddCustomLocation}
                           disabled={!customLocationInput.trim()}
-                        >
-                          Add
-                        </Button>
+                        >{t('admin.common.add')}</Button>
                         <Button
                           size="sm"
                           variant="outline"
@@ -1026,9 +1019,7 @@ const CourtManagement = () => {
                             setShowCustomLocationInput(false);
                             setCustomLocationInput("");
                           }}
-                        >
-                          Cancel
-                        </Button>
+                        >{t('admin.common.cancel')}</Button>
                       </div>
                     )}
 
@@ -1058,7 +1049,7 @@ const CourtManagement = () => {
 
                   {/* Status Filter */}
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">Status</Label>
+                    <Label className="text-sm font-medium">{t('admin.forms.labels.status')}</Label>
                     <Select
                       value={filters.status}
                       onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}
@@ -1282,9 +1273,7 @@ const CourtManagement = () => {
                             className="flex-1"
                             onClick={() => handleEditCourt(court)}
                           >
-                            <Edit className="w-4 h-4 mr-1" />
-                            Edit
-                          </Button>
+                            <Edit className="w-4 h-4 mr-1" />{t('admin.common.edit')}</Button>
                         )}
                         {canManageCourt(court) && (
                           <Button
@@ -1293,9 +1282,7 @@ const CourtManagement = () => {
                             className="flex-1 text-red-600 hover:text-red-700"
                             onClick={() => confirmDeleteCourt(court)}
                           >
-                            <Trash2 className="w-4 h-4 mr-1" />
-                            Delete
-                          </Button>
+                            <Trash2 className="w-4 h-4 mr-1" />{t('admin.common.delete')}</Button>
                         )}
                       </div>
                     </CardContent>
@@ -1353,7 +1340,7 @@ const CourtManagement = () => {
                       <PopoverContent className="w-full p-0">
                         <Command>
                           <CommandInput
-                            placeholder="Search courts..."
+                            placeholder={t('admin.forms.placeholders.searchCourtsByName')}
                             value={courtSearchValue}
                             onValueChange={setCourtSearchValue}
                           />
@@ -1419,9 +1406,7 @@ const CourtManagement = () => {
                             ...availabilityData,
                             daysOfWeek: []
                           })}
-                        >
-                          Clear All
-                        </Button>
+                        >{t('admin.forms.buttons.clearAll')}</Button>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2 mt-2">

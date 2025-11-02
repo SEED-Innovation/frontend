@@ -1,15 +1,20 @@
 
 import React, { useState } from 'react';
-import { Settings, Trophy, Star, Target, Award, Edit } from 'lucide-react';
+import { Settings, Trophy, Star, Target, Award, Edit, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import Navigation from '@/components/Navigation';
 import { Link } from 'react-router-dom';
+import { LanguageToggle } from '@/components/common/LanguageToggle';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState('stats');
+  const { language } = useLanguage();
+  const { t } = useTranslation('web');
 
   const userStats = {
     name: 'John Doe',
@@ -73,19 +78,19 @@ const Profile = () => {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="text-center p-3 bg-gray-50 rounded-xl">
                       <div className="text-2xl font-bold text-tennis-purple-700">{userStats.accuracyRate}%</div>
-                      <div className="text-xs text-gray-600">Accuracy</div>
+                      <div className="text-xs text-gray-600">{t('profile.accuracy')}</div>
                     </div>
                     <div className="text-center p-3 bg-gray-50 rounded-xl">
                       <div className="text-2xl font-bold text-tennis-green-700">{userStats.winsCount}</div>
-                      <div className="text-xs text-gray-600">Wins</div>
+                      <div className="text-xs text-gray-600">{t('profile.wins')}</div>
                     </div>
                     <div className="text-center p-3 bg-gray-50 rounded-xl">
                       <div className="text-2xl font-bold text-blue-700">{userStats.gamesPlayed}</div>
-                      <div className="text-xs text-gray-600">Games</div>
+                      <div className="text-xs text-gray-600">{t('profile.games')}</div>
                     </div>
                     <div className="text-center p-3 bg-gray-50 rounded-xl">
                       <div className="text-2xl font-bold text-yellow-700">#{userStats.monthlyRank}</div>
-                      <div className="text-xs text-gray-600">Monthly</div>
+                      <div className="text-xs text-gray-600">{t('profile.monthly')}</div>
                     </div>
                   </div>
                 </div>
@@ -94,12 +99,12 @@ const Profile = () => {
                 <div className="flex flex-col space-y-3">
                   <Link to="/subscription">
                     <Button className="tennis-button">
-                      Manage Plan
+                      {t('profile.managePlan')}
                     </Button>
                   </Link>
                   <Button variant="outline" className="btn-outline">
                     <Settings className="w-4 h-4 mr-2" />
-                    Settings
+                    {t('navigation.settings')}
                   </Button>
                 </div>
               </div>
@@ -108,9 +113,10 @@ const Profile = () => {
 
           {/* Content Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
-              <TabsTrigger value="stats">Statistics</TabsTrigger>
-              <TabsTrigger value="badges">Badges</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto">
+              <TabsTrigger value="stats">{t('profile.statistics')}</TabsTrigger>
+              <TabsTrigger value="badges">{t('profile.badges')}</TabsTrigger>
+              <TabsTrigger value="settings">{t('navigation.settings')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="stats" className="space-y-6">
@@ -120,27 +126,27 @@ const Profile = () => {
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <Target className="w-5 h-5 mr-2 text-tennis-purple-600" />
-                      Performance Metrics
+                      {t('profile.performanceMetrics')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Total Shots</span>
+                      <span className="text-gray-600">{t('profile.totalShots')}</span>
                       <span className="font-bold text-lg">{userStats.totalShots}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Accuracy Rate</span>
+                      <span className="text-gray-600">{t('profile.accuracyRate')}</span>
                       <span className="font-bold text-lg text-tennis-green-600">{userStats.accuracyRate}%</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Win Rate</span>
+                      <span className="text-gray-600">{t('profile.winRate')}</span>
                       <span className="font-bold text-lg text-tennis-purple-600">
                         {Math.round((userStats.winsCount / userStats.gamesPlayed) * 100)}%
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Average Session</span>
-                      <span className="font-bold text-lg">1h 32m</span>
+                      <span className="text-gray-600">{t('profile.averageSession')}</span>
+                      <span className="font-bold text-lg">{t('profile.averageSessionTime')}</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -149,25 +155,25 @@ const Profile = () => {
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <Trophy className="w-5 h-5 mr-2 text-tennis-purple-600" />
-                      Rankings
+                      {t('profile.rankings')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Global Rank</span>
+                      <span className="text-gray-600">{t('profile.globalRank')}</span>
                       <span className="font-bold text-lg">#{userStats.rank}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Monthly Rank</span>
+                      <span className="text-gray-600">{t('profile.monthlyRank')}</span>
                       <span className="font-bold text-lg text-tennis-green-600">#{userStats.monthlyRank}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Total Points</span>
+                      <span className="text-gray-600">{t('profile.totalPoints')}</span>
                       <span className="font-bold text-lg text-tennis-purple-600">{userStats.points}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">League</span>
-                      <span className="font-bold text-lg">Advanced</span>
+                      <span className="text-gray-600">{t('profile.league')}</span>
+                      <span className="font-bold text-lg">{t('profile.advanced')}</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -180,7 +186,7 @@ const Profile = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Award className="w-5 h-5 mr-2 text-tennis-purple-600" />
-                    Badge Collection
+                    {t('profile.badgeCollection')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -204,7 +210,7 @@ const Profile = () => {
                         <p className="text-sm text-gray-600">{badge.description}</p>
                         {badge.earned && (
                           <Badge className="mt-3 bg-tennis-green-100 text-tennis-green-700">
-                            Earned
+                            {t('profile.earned')}
                           </Badge>
                         )}
                       </div>
@@ -212,6 +218,83 @@ const Profile = () => {
                   </div>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="settings" className="space-y-6">
+              {/* Settings */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="premium-card animate-fade-in">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Globe className="w-5 h-5 mr-2 text-tennis-purple-600" />
+                      {language === 'ar' ? 'تفضيلات اللغة' : 'Language Preferences'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <span className="font-medium text-gray-900">
+                          {language === 'ar' ? 'اللغة الحالية' : 'Current Language'}
+                        </span>
+                        <p className="text-sm text-gray-600">
+                          {language === 'ar' 
+                            ? 'اختر اللغة المفضلة لواجهة التطبيق' 
+                            : 'Choose your preferred language for the interface'
+                          }
+                        </p>
+                      </div>
+                      <LanguageToggle variant="outline" showText={true} />
+                    </div>
+                    
+                    <div className="p-3 bg-accent/10 rounded-lg border border-accent/20">
+                      <div className="flex items-start space-x-2 rtl:space-x-reverse">
+                        <Globe className="w-4 h-4 text-accent mt-0.5" />
+                        <p className="text-sm text-accent">
+                          {language === 'ar' 
+                            ? 'سيتم تطبيق تغيير اللغة فوراً على جميع أجزاء التطبيق'
+                            : 'Language changes will be applied immediately across the entire application'
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="premium-card animate-fade-in" style={{ animationDelay: '0.1s' }}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Settings className="w-5 h-5 mr-2 text-tennis-purple-600" />
+                      {language === 'ar' ? 'إعدادات أخرى' : 'Other Settings'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">
+                        {language === 'ar' ? 'الإشعارات' : 'Notifications'}
+                      </span>
+                      <Button variant="outline" size="sm">
+                        {language === 'ar' ? 'إدارة' : 'Manage'}
+                      </Button>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">
+                        {language === 'ar' ? 'الخصوصية' : 'Privacy'}
+                      </span>
+                      <Button variant="outline" size="sm">
+                        {language === 'ar' ? 'إدارة' : 'Manage'}
+                      </Button>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">
+                        {language === 'ar' ? 'الحساب' : 'Account'}
+                      </span>
+                      <Button variant="outline" size="sm">
+                        {language === 'ar' ? 'إدارة' : 'Manage'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
           </Tabs>
         </div>

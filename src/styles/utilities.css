@@ -108,3 +108,174 @@
     @apply border-2 border-gray-800;
   }
 }
+
+/* RTL and Text Overflow Utilities */
+.rtl-flip {
+  transform: scaleX(-1);
+}
+
+.text-ellipsis {
+  text-overflow: ellipsis;
+}
+
+.hyphens-auto {
+  hyphens: auto;
+}
+
+.hyphens-none {
+  hyphens: none;
+}
+
+/* Multi-line text truncation */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.line-clamp-4 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.line-clamp-5 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+}
+
+.line-clamp-6 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 6;
+}
+
+/* Display webkit box utility */
+.display-webkit-box {
+  display: -webkit-box;
+}
+
+.-webkit-box-orient-vertical {
+  -webkit-box-orient: vertical;
+}
+
+/* RTL-aware spacing utilities */
+.ms-1 { margin-inline-start: 0.25rem; }
+.ms-2 { margin-inline-start: 0.5rem; }
+.ms-3 { margin-inline-start: 0.75rem; }
+.ms-4 { margin-inline-start: 1rem; }
+.ms-5 { margin-inline-start: 1.25rem; }
+.ms-6 { margin-inline-start: 1.5rem; }
+.ms-8 { margin-inline-start: 2rem; }
+.ms-10 { margin-inline-start: 2.5rem; }
+.ms-12 { margin-inline-start: 3rem; }
+
+.me-1 { margin-inline-end: 0.25rem; }
+.me-2 { margin-inline-end: 0.5rem; }
+.me-3 { margin-inline-end: 0.75rem; }
+.me-4 { margin-inline-end: 1rem; }
+.me-5 { margin-inline-end: 1.25rem; }
+.me-6 { margin-inline-end: 1.5rem; }
+.me-8 { margin-inline-end: 2rem; }
+.me-10 { margin-inline-end: 2.5rem; }
+.me-12 { margin-inline-end: 3rem; }
+
+.ps-1 { padding-inline-start: 0.25rem; }
+.ps-2 { padding-inline-start: 0.5rem; }
+.ps-3 { padding-inline-start: 0.75rem; }
+.ps-4 { padding-inline-start: 1rem; }
+.ps-5 { padding-inline-start: 1.25rem; }
+.ps-6 { padding-inline-start: 1.5rem; }
+.ps-8 { padding-inline-start: 2rem; }
+.ps-10 { padding-inline-start: 2.5rem; }
+.ps-12 { padding-inline-start: 3rem; }
+
+.pe-1 { padding-inline-end: 0.25rem; }
+.pe-2 { padding-inline-end: 0.5rem; }
+.pe-3 { padding-inline-end: 0.75rem; }
+.pe-4 { padding-inline-end: 1rem; }
+.pe-5 { padding-inline-end: 1.25rem; }
+.pe-6 { padding-inline-end: 1.5rem; }
+.pe-8 { padding-inline-end: 2rem; }
+.pe-10 { padding-inline-end: 2.5rem; }
+.pe-12 { padding-inline-end: 3rem; }
+
+/* Text direction utilities */
+.dir-ltr { direction: ltr; }
+.dir-rtl { direction: rtl; }
+
+/* Arabic text optimization */
+.arabic-text {
+  font-feature-settings: "liga" 1, "calt" 1, "kern" 1;
+  text-rendering: optimizeLegibility;
+  line-height: 1.6;
+}
+
+/* Responsive text utilities with Arabic support */
+.text-responsive-arabic-xs {
+  @apply text-xs sm:text-sm;
+  line-height: 1.6;
+}
+
+.text-responsive-arabic-sm {
+  @apply text-sm sm:text-base;
+  line-height: 1.6;
+}
+
+.text-responsive-arabic-base {
+  @apply text-base sm:text-lg;
+  line-height: 1.6;
+}
+
+.text-responsive-arabic-lg {
+  @apply text-lg sm:text-xl lg:text-2xl;
+  line-height: 1.5;
+}
+
+.text-responsive-arabic-xl {
+  @apply text-xl sm:text-2xl lg:text-3xl;
+  line-height: 1.4;
+}
+
+/* Better word breaking for Arabic */
+.break-arabic {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+/* Prevent text selection for UI elements */
+.select-none-ui {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Enhanced focus styles for accessibility */
+.focus-enhanced {
+  @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+}
+
+.focus-enhanced-inset {
+  @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset;
+}

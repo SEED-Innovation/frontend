@@ -4,6 +4,7 @@ import { Menu, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { toast } from 'sonner';
+import LanguageToggler from '@/components/ui/language-toggler';
 
 interface AdminHeaderProps {
   onToggleSidebar: () => void;
@@ -39,7 +40,7 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar, collapsed })
       </div>
 
       <div className="flex items-center space-x-4">
-
+        <LanguageToggler />
 
         <div className="flex items-center space-x-3">
           {user && (

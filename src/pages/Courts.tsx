@@ -7,8 +7,10 @@ import { CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 const Courts = () => {
+  const { t } = useTranslation('web');
   const [bookingComplete, setBookingComplete] = useState(false);
   const [completedBooking, setCompletedBooking] = useState<any>(null);
   const navigate = useNavigate();
@@ -16,16 +18,16 @@ const Courts = () => {
   const handleBookingComplete = (booking: any) => {
     setCompletedBooking(booking);
     setBookingComplete(true);
-    toast.success('Court booking confirmed successfully!');
+    toast.success(t('messages.success'));
   };
 
   const handleCheckIn = () => {
-    toast.info('Redirecting to check-in...');
+    toast.info(t('messages.info'));
     setTimeout(() => navigate('/checkin'), 500);
   };
 
   const handleDashboard = () => {
-    toast.info('Returning to dashboard...');
+    toast.info(t('messages.info'));
     setTimeout(() => navigate('/dashboard'), 500);
   };
 
@@ -42,33 +44,33 @@ const Courts = () => {
                   <CheckCircle className="w-12 h-12 text-tennis-green-600" />
                 </div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                  Booking Confirmed!
+                  {t('booking.bookingConfirmed')}
                 </h1>
                 <p className="text-xl text-gray-600 mb-8">
-                  Your court session has been successfully booked.
+                  {t('booking.courtBookingSuccess')}
                 </p>
                 
                 <div className="bg-gray-50 rounded-xl p-6 mb-8 text-left">
-                  <h3 className="font-semibold text-gray-900 mb-4">Booking Details:</h3>
+                  <h3 className="font-semibold text-gray-900 mb-4">{t('booking.bookingDetailsTitle')}</h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Court:</span>
+                      <span className="text-gray-600">{t('booking.court')}:</span>
                       <span className="font-medium">{completedBooking.court.name}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Date:</span>
+                      <span className="text-gray-600">{t('booking.date')}:</span>
                       <span className="font-medium">{completedBooking.date}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Time Slots:</span>
+                      <span className="text-gray-600">{t('booking.timeSlots')}:</span>
                       <span className="font-medium">{completedBooking.slots.join(', ')}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Duration:</span>
-                      <span className="font-medium">{completedBooking.totalHours} hour{completedBooking.totalHours !== 1 ? 's' : ''}</span>
+                      <span className="text-gray-600">{t('booking.totalHours')}:</span>
+                      <span className="font-medium">{completedBooking.totalHours} {completedBooking.totalHours !== 1 ? t('booking.hours') : t('booking.hour')}</span>
                     </div>
                     <div className="flex justify-between border-t pt-2 mt-2">
-                      <span className="text-gray-600">Total Price:</span>
+                      <span className="text-gray-600">{t('booking.totalPrice')}:</span>
                       <span className="font-bold text-tennis-purple-700">${completedBooking.totalPrice}</span>
                     </div>
                   </div>
@@ -79,14 +81,14 @@ const Courts = () => {
                     onClick={handleCheckIn}
                     className="tennis-button clickable-element"
                   >
-                    Go to Check-In
+                    {t('booking.goToCheckIn')}
                   </Button>
                   <Button 
                     onClick={handleDashboard}
                     variant="outline" 
                     className="btn-outline clickable-element"
                   >
-                    Back to Dashboard
+                    {t('booking.backToDashboard')}
                   </Button>
                 </div>
               </CardContent>

@@ -5,9 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Navigation from '@/components/Navigation';
+import { useTranslation } from 'react-i18next';
 
 const CheckIn = () => {
   const [checkedIn, setCheckedIn] = useState(false);
+  const { t } = useTranslation('web');
 
   const upcomingBookings = [
     {
@@ -50,28 +52,28 @@ const CheckIn = () => {
               <div className="w-24 h-24 tennis-gradient rounded-full flex items-center justify-center mx-auto mb-6 animate-glow">
                 <CheckCircle className="w-12 h-12 text-white" />
               </div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">You're Checked In!</h1>
-              <p className="text-xl text-gray-600">Ready to start your tennis session</p>
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">{t('checkIn.youreCheckedIn')}</h1>
+              <p className="text-xl text-gray-600">{t('checkIn.readyToStart')}</p>
             </div>
 
             {/* Session Info */}
             <Card className="court-card mb-8">
               <CardContent className="p-8">
                 <div className="text-center">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4">Riverside Tennis Club</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('checkIn.clubName')}</h2>
                   <div className="flex items-center justify-center text-gray-600 space-x-6 mb-8">
                     <div className="flex items-center">
                       <Calendar className="w-5 h-5 mr-2" />
-                      Today, 2:00 PM - 4:00 PM
+                      {t('checkIn.sessionTime')}
                     </div>
                     <div className="flex items-center">
                       <MapPin className="w-5 h-5 mr-2" />
-                      Court 3
+                      {t('checkIn.courtNumber')}
                     </div>
                   </div>
                   
                   <Button size="lg" className="tennis-button px-12 py-4 text-xl">
-                    Start Session
+                    {t('checkIn.startSession')}
                   </Button>
                 </div>
               </CardContent>
@@ -82,22 +84,22 @@ const CheckIn = () => {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Eye className="w-5 h-5 mr-2 text-tennis-purple-600" />
-                  AI Features Ready
+                  {t('checkIn.aiFeaturesReady')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="text-center p-4 bg-tennis-green-50 rounded-xl">
                     <div className="w-3 h-3 bg-tennis-green-500 rounded-full mx-auto mb-2"></div>
-                    <p className="text-sm font-medium text-tennis-green-700">Camera Active</p>
+                    <p className="text-sm font-medium text-tennis-green-700">{t('checkIn.cameraActive')}</p>
                   </div>
                   <div className="text-center p-4 bg-tennis-green-50 rounded-xl">
                     <div className="w-3 h-3 bg-tennis-green-500 rounded-full mx-auto mb-2"></div>
-                    <p className="text-sm font-medium text-tennis-green-700">AI Processing</p>
+                    <p className="text-sm font-medium text-tennis-green-700">{t('checkIn.aiProcessing')}</p>
                   </div>
                   <div className="text-center p-4 bg-tennis-green-50 rounded-xl">
                     <div className="w-3 h-3 bg-tennis-green-500 rounded-full mx-auto mb-2"></div>
-                    <p className="text-sm font-medium text-tennis-green-700">Recording Ready</p>
+                    <p className="text-sm font-medium text-tennis-green-700">{t('checkIn.recordingReady')}</p>
                   </div>
                 </div>
               </CardContent>
@@ -116,8 +118,8 @@ const CheckIn = () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Check-In</h1>
-            <p className="text-gray-600">Confirm your presence and start your tennis session</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('checkIn.title')}</h1>
+            <p className="text-gray-600">{t('checkIn.subtitle')}</p>
           </div>
 
           {/* Upcoming Bookings */}
@@ -153,7 +155,7 @@ const CheckIn = () => {
                           ? 'bg-tennis-green-100 text-tennis-green-700' 
                           : 'bg-blue-100 text-blue-700'
                       }>
-                        {booking.status === 'upcoming' ? 'Today' : 'Tomorrow'}
+                        {booking.status === 'upcoming' ? t('checkIn.today') : t('checkIn.tomorrow')}
                       </Badge>
                     </div>
 
@@ -161,7 +163,7 @@ const CheckIn = () => {
                     <div className="mb-6">
                       <h4 className="text-sm font-semibold text-gray-900 mb-2 flex items-center">
                         <Eye className="w-4 h-4 mr-1 text-tennis-purple-600" />
-                        AI Features Available
+                        {t('checkIn.aiFeaturesAvailable')}
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         {booking.features.map((feature, i) => (
@@ -181,13 +183,13 @@ const CheckIn = () => {
                             className="tennis-button flex-1 clickable-element"
                           >
                             <CheckCircle className="w-4 h-4 mr-2" />
-                            Check In Now
+                            {t('checkIn.checkInNow')}
                           </Button>
                           <Button 
                             variant="outline" 
                             className="border-tennis-purple-200 text-tennis-purple-700 clickable-element"
                           >
-                            View Details
+                            {t('checkIn.viewDetails')}
                           </Button>
                         </>
                       ) : (
@@ -198,13 +200,13 @@ const CheckIn = () => {
                             disabled
                           >
                             <Clock className="w-4 h-4 mr-2" />
-                            Not Yet Available
+                            {t('checkIn.notYetAvailable')}
                           </Button>
                           <Button 
                             variant="outline" 
                             className="border-tennis-purple-200 text-tennis-purple-700 clickable-element"
                           >
-                            View Details
+                            {t('checkIn.viewDetails')}
                           </Button>
                         </>
                       )}
@@ -220,10 +222,10 @@ const CheckIn = () => {
             <Card className="court-card text-center p-12">
               <div className="max-w-md mx-auto">
                 <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No Upcoming Bookings</h3>
-                <p className="text-gray-600 mb-6">You don't have any upcoming tennis sessions. Book a court to get started!</p>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('checkIn.noUpcomingBookings')}</h3>
+                <p className="text-gray-600 mb-6">{t('checkIn.noBookingsDescription')}</p>
                 <Button className="tennis-button clickable-element">
-                  Book a Court
+                  {t('checkIn.bookACourt')}
                 </Button>
               </div>
             </Card>

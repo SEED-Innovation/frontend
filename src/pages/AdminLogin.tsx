@@ -9,6 +9,8 @@ import { PasswordInput } from '@/components/ui/password-input';
 import { toast } from 'sonner';
 import SeedLogo from '@/components/ui/seed-logo';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { useTranslation } from 'react-i18next';
+import LanguageToggler from '@/components/ui/language-toggler';
 
 const AdminLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -18,12 +20,13 @@ const AdminLogin = () => {
   });
   const navigate = useNavigate();
   const { login } = useAdminAuth();
+  const { t } = useTranslation('web');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.email || !formData.password) {
-      toast.error('Please fill in all fields');
+      toast.error(t('admin.login.pleaseFillAllFields'));
       return;
     }
 
@@ -32,13 +35,13 @@ const AdminLogin = () => {
     try {
       // Use real authentication from useAdminAuth hook
       await login(formData.email, formData.password);
-      toast.success('Welcome to SEED Admin Dashboard! 🎉');
+      toast.success(t('admin.login.welcomeToSeedAdmin'));
       navigate('/admin');
     } catch (err: unknown) {
       if (err instanceof Error) {
         toast.error(err.message);
       } else {
-        toast.error('Login failed. Please try again.');
+        toast.error(t('admin.login.loginFailed'));
       }
     } finally {
       setIsLoading(false);
@@ -47,6 +50,10 @@ const AdminLogin = () => {
 
   return (
     <div className="min-h-screen flex">
+      {/* Language Toggler - Fixed Position */}
+      <div className="fixed top-4 right-4 z-50">
+        <LanguageToggler />
+      </div>
       {/* Left Side - Brand & Graphics */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-purple-600 via-blue-500 to-teal-400 relative overflow-hidden">
         {/* Animated Background Shapes */}
@@ -136,25 +143,24 @@ const AdminLogin = () => {
             </div>
             
             <h1 className="text-5xl font-bold mb-6 leading-tight">
-              Welcome to the
+              {t('admin.login.welcomeToThe')}
               <span className="block bg-gradient-to-r from-yellow-300 to-pink-300 bg-clip-text text-transparent">
-                Admin Universe
+                {t('admin.login.adminUniverse')}
               </span>
             </h1>
             
             <p className="text-xl text-white/80 mb-8 leading-relaxed max-w-md">
-              SEED's core administrative powerhouse. 
-              Manage everything from one beautiful dashboard.
+              {t('admin.login.adminPowerhouse')}
             </p>
             
             <div className="flex items-center gap-4 text-white/70">
               <div className="flex items-center gap-2">
                 <Shield className="w-5 h-5" />
-                <span className="text-sm">Secure Access</span>
+                <span className="text-sm">{t('admin.login.secureAccess')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5" />
-                <span className="text-sm">Smart Dashboard</span>
+                <span className="text-sm">{t('admin.login.smartDashboard')}</span>
               </div>
             </div>
           </motion.div>
@@ -172,16 +178,16 @@ const AdminLogin = () => {
           {/* Mobile Logo */}
           <div className="lg:hidden text-center mb-8">
             <SeedLogo size="lg" className="mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-white">Admin Portal</h2>
+            <h2 className="text-2xl font-bold text-white">{t('admin.login.adminPortal')}</h2>
           </div>
 
           {/* Form Header */}
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-white mb-2 hidden lg:block">
-              Log in to SEED
+              {t('admin.login.logInToSeed')}
             </h2>
             <p className="text-slate-400">
-              Your email and password
+              {t('admin.login.yourEmailAndPassword')}
             </p>
           </div>
 
@@ -190,13 +196,13 @@ const AdminLogin = () => {
           {/* Email Field */}
           <div className="space-y-2">
             <Label htmlFor="email" className="text-sm font-medium text-slate-200">
-              Your email
+              {t('admin.login.yourEmail')}
             </Label>
             <div className="relative">
               <Input
                 id="email"
                 type="email"
-                placeholder="Enter your email address"
+                placeholder={t('admin.login.enterEmailAddress')}
                 value={formData.email}
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
                 className="h-12 w-full bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 focus:border-purple-500 focus:ring-purple-500/20 pr-10 transition-all duration-300"
@@ -211,11 +217,11 @@ const AdminLogin = () => {
             {/* Password Field */}
             <div className="space-y-2">
               <Label htmlFor="password" className="text-sm font-medium text-slate-200">
-                Password
+                {t('admin.password')}
               </Label>
               <PasswordInput
                 id="password"
-                placeholder="Enter your password"
+                placeholder={t('admin.login.enterPassword')}
                 value={formData.password}
                 onChange={(e) => setFormData({...formData, password: e.target.value})}
                 required
@@ -228,10 +234,10 @@ const AdminLogin = () => {
               <button
                 type="button"
                 className="text-sm text-purple-400 hover:text-purple-300 transition-colors duration-200"
-                onClick={() => toast.info('Contact your system administrator for password reset')}
+                onClick={() => toast.info(t('admin.login.contactAdminForReset'))}
                 disabled={isLoading}
               >
-                Forgot password?
+                {t('admin.login.forgotPassword')}
               </button>
             </div>
 
@@ -254,10 +260,10 @@ const AdminLogin = () => {
                       animate={{ rotate: 360 }}
                       transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                     />
-                    Signing in...
+                    {t('admin.login.signingIn')}
                   </div>
                 ) : (
-                  <span className="relative z-10">Sign in</span>
+                  <span className="relative z-10">{t('admin.login.signIn')}</span>
                 )}
               </Button>
             </motion.div>
@@ -270,7 +276,7 @@ const AdminLogin = () => {
               className="inline-flex items-center text-slate-400 hover:text-purple-400 text-sm transition-all duration-200 group"
             >
               <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform duration-200" />
-              Back to SEED Platform
+              {t('admin.login.backToSeedPlatform')}
             </Link>
           </div>
         </motion.div>

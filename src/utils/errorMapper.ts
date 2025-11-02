@@ -3,6 +3,7 @@
 // ================================
 
 import { toast } from "sonner";
+import i18n from '@/lib/i18n';
 
 export interface ApiError {
   errorId?: string;
@@ -66,7 +67,7 @@ export function handleApiError(err: any, defaultMessage?: string): void {
     }
     
     if (code.includes('already exists') || code.includes('already marked unavailable')) {
-      toast.info('This date is already blocked for this court.');
+      toast.info(i18n.t('errors.dateAlreadyBlocked'));
       return;
     }
     
@@ -78,34 +79,34 @@ export function handleApiError(err: any, defaultMessage?: string): void {
   switch (code) {
     // Booking conflicts
     case 'SLOT_ALREADY_BOOKED':
-      toast.warning('That time slot was just booked by someone else. Please choose another slot.');
+      toast.warning(i18n.t('errors.slotAlreadyBooked'));
       break;
       
     case 'COURT_UNAVAILABLE_THIS_DAY':
-      toast.warning('This court just became unavailable for this date. Please pick another date.');
+      toast.warning(i18n.t('errors.courtUnavailableThisDay'));
       break;
       
     // Blockout conflicts  
     case 'BLOCKOUT_CONFLICT_WITH_BOOKINGS':
-      toast.error('Cannot block this date: Existing bookings must be cancelled first.');
+      toast.error(i18n.t('errors.blockoutConflictWithBookings'));
       break;
       
     case 'UNAVAILABILITY_ALREADY_EXISTS':
-      toast.info('This date is already blocked for this court.');
+      toast.info(i18n.t('errors.dateAlreadyBlocked'));
       break;
       
     // Permission errors
     case 'FORBIDDEN':
-      toast.error('Access denied: You do not have permission to perform this action.');
+      toast.error(i18n.t('errors.accessDenied'));
       break;
       
     // Resource errors  
     case 'COURT_NOT_FOUND':
-      toast.error('Court not found. Please refresh and try again.');
+      toast.error(i18n.t('errors.courtNotFound'));
       break;
       
     case 'BOOKING_NOT_FOUND':
-      toast.error('Booking not found. It may have been cancelled or modified.');
+      toast.error(i18n.t('errors.bookingNotFound'));
       break;
       
     // Validation errors
@@ -117,28 +118,28 @@ export function handleApiError(err: any, defaultMessage?: string): void {
       
     // Date/time specific errors
     case 'DATE_IN_PAST':
-      toast.error('Cannot set unavailability for past dates.');
+      toast.error(i18n.t('errors.dateInPast'));
       break;
       
     case 'INVALID_DATE_FORMAT':
-      toast.error('Invalid date format. Please use the date picker.');
+      toast.error(i18n.t('errors.invalidDateFormat'));
       break;
       
     // Generic server errors
     case 'INTERNAL_SERVER_ERROR':
-      toast.error('Server error occurred. Please try again in a moment.');
+      toast.error(i18n.t('errors.serverError'));
       break;
       
     // Network/timeout errors
     default:
       if (err?.code === 'NETWORK_ERROR' || err?.message?.includes('timeout')) {
-        toast.error('Connection error. Please check your internet connection and try again.');
+        toast.error(i18n.t('errors.connectionError'));
       } else if (msg && msg.trim()) {
         // Show server message if available and meaningful
         toast.error(msg);
       } else {
         // Last resort: use provided default or generic message
-        toast.error(defaultMessage || 'An unexpected error occurred. Please try again.');
+        toast.error(defaultMessage || i18n.t('errors.unexpectedError'));
       }
   }
 }

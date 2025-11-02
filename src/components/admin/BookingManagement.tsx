@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 interface Booking {
   id: string;
@@ -28,6 +29,7 @@ interface Booking {
 }
 
 const BookingManagement = () => {
+  const { t } = useTranslation('web');
   const [bookings, setBookings] = useState<Booking[]>([
     {
       id: '1',
@@ -171,26 +173,26 @@ const BookingManagement = () => {
     >
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Booking Management</h1>
-          <p className="text-gray-600 mt-1">View and manage court bookings</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('admin.pages.bookingManagement.title')}</h1>
+          <p className="text-gray-600 mt-1">{t('admin.pages.bookingManagement.subtitle')}</p>
         </div>
         <Dialog>
           <DialogTrigger asChild>
             <Button className="flex items-center gap-2">
               <Plus className="w-4 h-4" />
-              Manual Booking
+              {t('admin.pages.bookingManagement.manualBooking')}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Create Manual Booking</DialogTitle>
+              <DialogTitle>{t('admin.pages.bookingManagement.createManualBooking')}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
                 <Label htmlFor="user">Select User</Label>
                 <Select onValueChange={(value) => setManualBooking({...manualBooking, userId: value})}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select user" />
+                    <SelectValue placeholder={t('admin.forms.placeholders.selectUser')} />
                   </SelectTrigger>
                   <SelectContent>
                     {users.map((user) => (
@@ -205,7 +207,7 @@ const BookingManagement = () => {
                 <Label htmlFor="court">Select Court</Label>
                 <Select onValueChange={(value) => setManualBooking({...manualBooking, courtId: value})}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select court" />
+                    <SelectValue placeholder={t('admin.forms.placeholders.selectCourt')} />
                   </SelectTrigger>
                   <SelectContent>
                     {courts.map((court) => (
@@ -217,7 +219,7 @@ const BookingManagement = () => {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="date">Date</Label>
+                <Label htmlFor="date">{t('admin.forms.labels.date')}</Label>
                 <Input
                   id="date"
                   type="date"
@@ -245,9 +247,7 @@ const BookingManagement = () => {
                   />
                 </div>
               </div>
-              <Button onClick={handleManualBooking} className="w-full">
-                Create Booking
-              </Button>
+              <Button onClick={handleManualBooking} className="w-full">{t('admin.forms.buttons.createBooking')}</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -263,7 +263,7 @@ const BookingManagement = () => {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="court-filter">Court</Label>
+              <Label htmlFor="court-filter">{t('admin.forms.labels.court')}</Label>
                 <Select onValueChange={setSelectedCourt}>
                   <SelectTrigger>
                     <SelectValue placeholder="All courts" />
@@ -366,9 +366,7 @@ const BookingManagement = () => {
                     onClick={() => handleCancelBooking(booking.id)}
                     className="flex items-center gap-1"
                   >
-                    <X className="w-4 h-4" />
-                    Cancel
-                  </Button>
+                    <X className="w-4 h-4" />{t('admin.common.cancel')}</Button>
                 )}
               </div>
             ))}

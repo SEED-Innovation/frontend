@@ -6,9 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import Navigation from '@/components/Navigation';
+import { useTranslation } from 'react-i18next';
 
 const Leaderboard = () => {
   const [timeframe, setTimeframe] = useState('monthly');
+  const { t } = useTranslation('web');
 
   const topPlayers = [
     {
@@ -114,16 +116,16 @@ const Leaderboard = () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Leaderboard</h1>
-            <p className="text-xl text-gray-600">See how you rank against the community</p>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">{t('leaderboard.title')}</h1>
+            <p className="text-xl text-gray-600">{t('leaderboard.subtitle')}</p>
           </div>
 
           {/* Time Filter */}
           <div className="flex justify-center mb-8">
             <Tabs value={timeframe} onValueChange={setTimeframe} className="w-auto">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="monthly">This Month</TabsTrigger>
-                <TabsTrigger value="alltime">All Time</TabsTrigger>
+                <TabsTrigger value="monthly">{t('leaderboard.thisMonth')}</TabsTrigger>
+                <TabsTrigger value="alltime">{t('leaderboard.allTime')}</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -145,7 +147,7 @@ const Leaderboard = () => {
                     </div>
                   </div>
                   <h3 className="font-bold text-gray-900">{topPlayers[1].name}</h3>
-                  <p className="text-gray-600">{topPlayers[1].points} pts</p>
+                  <p className="text-gray-600">{topPlayers[1].points} {t('leaderboard.points')}</p>
                   <div className={`${getPodiumHeight(2)} bg-gray-300 rounded-t-lg mt-4 flex items-end justify-center pb-2`}>
                     <span className="text-white font-bold text-2xl">2</span>
                   </div>
@@ -164,7 +166,7 @@ const Leaderboard = () => {
                     </div>
                   </div>
                   <h3 className="font-bold text-gray-900 text-lg">{topPlayers[0].name}</h3>
-                  <p className="text-gray-600 font-semibold">{topPlayers[0].points} pts</p>
+                  <p className="text-gray-600 font-semibold">{topPlayers[0].points} {t('leaderboard.points')}</p>
                   <div className={`${getPodiumHeight(1)} tennis-gradient rounded-t-lg mt-4 flex items-end justify-center pb-2`}>
                     <span className="text-white font-bold text-3xl">1</span>
                   </div>
@@ -183,7 +185,7 @@ const Leaderboard = () => {
                     </div>
                   </div>
                   <h3 className="font-bold text-gray-900">{topPlayers[2].name}</h3>
-                  <p className="text-gray-600">{topPlayers[2].points} pts</p>
+                  <p className="text-gray-600">{topPlayers[2].points} {t('leaderboard.points')}</p>
                   <div className={`${getPodiumHeight(3)} bg-orange-400 rounded-t-lg mt-4 flex items-end justify-center pb-2`}>
                     <span className="text-white font-bold text-2xl">3</span>
                   </div>
@@ -214,17 +216,17 @@ const Leaderboard = () => {
                   
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Win Rate</span>
+                      <span className="text-sm text-gray-600">{t('leaderboard.winRate')}</span>
                       <span className="font-semibold">{player.winRate}%</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Matches</span>
+                      <span className="text-sm text-gray-600">{t('leaderboard.matches')}</span>
                       <span className="font-semibold">{player.matchesPlayed}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Win Streak</span>
+                      <span className="text-sm text-gray-600">{t('leaderboard.winStreak')}</span>
                       <Badge className="bg-tennis-green-100 text-tennis-green-700">
-                        {player.streak} wins
+                        {player.streak} {t('leaderboard.wins')}
                       </Badge>
                     </div>
                   </div>
@@ -238,7 +240,7 @@ const Leaderboard = () => {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Trophy className="w-5 h-5 mr-2 text-tennis-purple-600" />
-                Full Rankings
+                {t('leaderboard.fullRankings')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -271,15 +273,15 @@ const Leaderboard = () => {
                         <h4 className={`font-semibold ${player.isCurrentUser ? 'text-tennis-purple-900' : 'text-gray-900'}`}>
                           {player.name}
                           {player.isCurrentUser && (
-                            <Badge className="ml-2 bg-tennis-purple-100 text-tennis-purple-700">You</Badge>
+                            <Badge className="ml-2 bg-tennis-purple-100 text-tennis-purple-700">{t('leaderboard.you')}</Badge>
                           )}
                         </h4>
                         <div className="flex items-center space-x-3 text-sm text-gray-600">
-                          <span>{player.points} pts</span>
+                          <span>{player.points} {t('leaderboard.points')}</span>
                           <span>•</span>
-                          <span>{player.winRate}% wins</span>
+                          <span>{player.winRate}% {t('leaderboard.wins')}</span>
                           <span>•</span>
-                          <span>{player.matchesPlayed} matches</span>
+                          <span>{player.matchesPlayed} {t('leaderboard.matches')}</span>
                         </div>
                       </div>
                     </div>
@@ -297,7 +299,7 @@ const Leaderboard = () => {
                       )}
                       
                       <Button variant="ghost" size="sm" className="text-tennis-purple-600">
-                        View Profile
+                        {t('leaderboard.viewProfile')}
                       </Button>
                     </div>
                   </div>
@@ -306,7 +308,7 @@ const Leaderboard = () => {
 
               <div className="text-center mt-6">
                 <Button variant="outline" className="border-tennis-purple-200 text-tennis-purple-700">
-                  Load More Players
+                  {t('leaderboard.loadMorePlayers')}
                 </Button>
               </div>
             </CardContent>

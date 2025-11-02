@@ -3,8 +3,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Shield } from 'lucide-react';
 import saudiFlag from '@/assets/saudi-flag.png';
+import { LanguageToggle } from '@/components/common/LanguageToggle';
+import { useTranslation } from 'react-i18next';
 
 const Footer = () => {
+  const { t } = useTranslation('web');
   return (
     <footer className="bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -25,29 +28,32 @@ const Footer = () => {
               />
             </div>
             <p className="text-gray-400 mb-4">
-              AI-powered tennis analytics platform that helps players improve their game through intelligent court monitoring and performance insights.
+              {t('landing.footer.description')}
             </p>
+            <div className="flex items-center space-x-4 mb-4">
+              <LanguageToggle variant="ghost" size="sm" />
+            </div>
             <div className="flex space-x-4">
-              <a href="https://www.seedco.sa/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">Privacy</a>
-              <a href="https://www.seedco.sa/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">Terms</a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">Support</a>
+              <a href="https://www.seedco.sa/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">{t('landing.footer.privacyPolicy')}</a>
+              <a href="https://www.seedco.sa/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">{t('landing.footer.termsOfService')}</a>
+              <a href="#" className="text-gray-400 hover:text-white transition-colors">{t('landing.footer.support')}</a>
             </div>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('landing.footer.product')}</h3>
             <ul className="space-y-2">
-              <li><Link to="/courts" className="text-gray-400 hover:text-white transition-colors">Find Courts</Link></li>
-              <li><Link to="/leaderboard" className="text-gray-400 hover:text-white transition-colors">Leaderboard</Link></li>
-              <li><Link to="/subscription" className="text-gray-400 hover:text-white transition-colors">Pricing</Link></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">FAQ</a></li>
+              <li><Link to="/courts" className="text-gray-400 hover:text-white transition-colors">{t('landing.footer.bookCourts')}</Link></li>
+              <li><Link to="/leaderboard" className="text-gray-400 hover:text-white transition-colors">{t('landing.footer.leaderboards')}</Link></li>
+              <li><Link to="/subscription" className="text-gray-400 hover:text-white transition-colors">{t('landing.footer.pricing')}</Link></li>
+              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">{t('ui.faq')}</a></li>
             </ul>
           </div>
 
           {/* Contact */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Contact</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('landing.footer.support')}</h3>
             <ul className="space-y-2 text-gray-400">
               <li>support@seed.com</li>
               <li>+1 (555) 123-4567</li>
@@ -61,14 +67,14 @@ const Footer = () => {
                 className="inline-flex items-center space-x-2 text-xs text-gray-500 hover:text-gray-400 transition-colors"
               >
                 <Shield className="w-3 h-3" />
-                <span>Admin Access</span>
+                <span>{t('landing.navigation.adminAccess')}</span>
               </Link>
             </div>
           </div>
         </div>
 
         <div className="mt-8 pt-8 border-t border-gray-800 text-center text-gray-400">
-          <p>&copy; 2025 SEED. All rights reserved.</p>
+          <p>{t('landing.footer.copyright')}</p>
         </div>
       </div>
     </footer>

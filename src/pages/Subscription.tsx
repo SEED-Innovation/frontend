@@ -7,8 +7,10 @@ import { CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 const Subscription = () => {
+  const { t } = useTranslation('web');
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -17,18 +19,18 @@ const Subscription = () => {
     setSelectedPlan(planId);
     setIsLoading(true);
     
-    toast.success('Processing subscription...');
+    toast.success(t('messages.info'));
     
     // Simulate payment process
     setTimeout(() => {
       setIsLoading(false);
       setShowSuccess(true);
-      toast.success('Subscription activated successfully!');
+      toast.success(t('messages.success'));
     }, 2000);
   };
 
   const handleGetStarted = () => {
-    toast.info('Redirecting to dashboard...');
+    toast.info(t('messages.info'));
     setTimeout(() => window.location.href = '/dashboard', 500);
   };
 
@@ -45,18 +47,18 @@ const Subscription = () => {
                   <CheckCircle className="w-12 h-12 text-tennis-green-600" />
                 </div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                  Welcome to SEED Premium!
+                  {t('subscription.welcomeToPremium')}
                 </h1>
                 <p className="text-xl text-gray-600 mb-8">
-                  Your subscription is now active. Start exploring all the premium features.
+                  {t('subscription.subscriptionActive')}
                 </p>
                 <div className="space-y-4">
                   <div className="p-4 bg-tennis-green-50 rounded-xl">
-                    <h3 className="font-semibold text-tennis-green-700 mb-2">What's next?</h3>
+                    <h3 className="font-semibold text-tennis-green-700 mb-2">{t('subscription.whatsNext')}</h3>
                     <ul className="text-sm text-tennis-green-600 space-y-1">
-                      <li>• Book your first AI-powered session</li>
-                      <li>• Explore advanced analytics features</li>
-                      <li>• Download unlimited match recordings</li>
+                      {(t('subscription.nextSteps', { returnObjects: true }) as string[]).map((step, index) => (
+                        <li key={index}>• {step}</li>
+                      ))}
                     </ul>
                   </div>
                 </div>
@@ -66,11 +68,11 @@ const Subscription = () => {
                     onClick={handleGetStarted}
                     className="tennis-button"
                   >
-                    Get Started
+                    {t('subscription.getStarted')}
                   </Button>
                   <Link to="/dashboard">
                     <Button variant="outline" className="btn-outline w-full sm:w-auto">
-                      Go to Dashboard
+                      {t('subscription.goToDashboard')}
                     </Button>
                   </Link>
                 </div>

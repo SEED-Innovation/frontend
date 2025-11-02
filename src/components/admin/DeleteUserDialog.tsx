@@ -142,9 +142,7 @@ export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
             onClick={handleClose}
             disabled={isDeleting}
             className="w-full sm:w-auto"
-          >
-            Cancel
-          </Button>
+          >{t('admin.common.cancel')}</Button>
           <Button
             variant="destructive"
             onClick={handleDelete}

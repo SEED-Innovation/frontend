@@ -5,8 +5,11 @@ import { Menu, X, User, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import saudiFlag from '@/assets/saudi-flag.png';
+import { LanguageToggle } from '@/components/common/LanguageToggle';
+import { useTranslation } from 'react-i18next';
 
 const Navigation = () => {
+  const { t } = useTranslation('web');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
@@ -23,22 +26,22 @@ const Navigation = () => {
   const isActive = (path: string) => location.pathname === path;
 
   const handleLogout = () => {
-    toast.success('Logged out successfully!');
+    toast.success(t('messages.loggedOutSuccessfully'));
     setTimeout(() => navigate('/'), 500);
   };
 
   const handleUpgrade = () => {
-    toast.info('Redirecting to subscription...');
+    toast.info(t('messages.redirectingToSubscription'));
     navigate('/subscription');
   };
 
   const navLinks = [
-    { path: '/dashboard', label: 'Dashboard' },
-    { path: '/courts', label: 'Book Courts' },
-    { path: '/checkin', label: 'Check-In' },
-    { path: '/recordings', label: 'Recordings' },
-    { path: '/leaderboard', label: 'Leaderboard' },
-    { path: '/challenges', label: 'Challenges' },
+    { path: '/dashboard', label: t('navigation.dashboard') },
+    { path: '/courts', label: t('navigation.courts') },
+    { path: '/checkin', label: t('navigation.checkIn') },
+    { path: '/recordings', label: t('navigation.recordings') },
+    { path: '/leaderboard', label: t('navigation.leaderboard') },
+    { path: '/challenges', label: t('navigation.challenges') },
   ];
 
   return (
@@ -93,17 +96,18 @@ const Navigation = () => {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
+            <LanguageToggle variant="ghost" size="sm" />
             <Link to="/profile">
               <Button variant="ghost" size="sm" className="text-gray-700 hover:text-tennis-purple-600 hover:bg-tennis-purple-50 transition-all duration-300">
                 <User className="w-4 h-4 mr-2" />
-                Profile
+                {t('navigation.profile')}
               </Button>
             </Link>
             <Button 
               onClick={handleUpgrade}
               className="tennis-button hover:scale-105 transition-all duration-300"
             >
-              Upgrade
+              {t('navigation.upgrade')}
             </Button>
             <Button 
               onClick={handleLogout}
@@ -145,10 +149,13 @@ const Navigation = () => {
                 </Link>
               ))}
               <div className="pt-4 border-t border-gray-200 space-y-2">
+                <div className="flex justify-center mb-3">
+                  <LanguageToggle variant="outline" size="sm" showText />
+                </div>
                 <Link to="/profile" onClick={() => setIsMenuOpen(false)}>
                   <Button variant="ghost" className="w-full justify-start hover:bg-tennis-purple-50">
                     <User className="w-4 h-4 mr-2" />
-                    Profile
+                    {t('navigation.profile')}
                   </Button>
                 </Link>
                 <Button 
@@ -158,7 +165,7 @@ const Navigation = () => {
                   }}
                   className="tennis-button w-full"
                 >
-                  Upgrade
+                  {t('navigation.upgrade')}
                 </Button>
                 <Button 
                   onClick={() => {
@@ -169,7 +176,7 @@ const Navigation = () => {
                   className="w-full justify-start text-red-600 hover:bg-red-50"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
-                  Logout
+                  {t('navigation.logout')}
                 </Button>
               </div>
             </div>

@@ -7,9 +7,11 @@ import { Badge } from '@/components/ui/badge';
 import Navigation from '@/components/Navigation';
 import VideoPlayer from '@/components/VideoPlayer';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 const Recordings = () => {
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
+  const { t } = useTranslation('web');
 
   const recordings = [
     {
@@ -68,14 +70,14 @@ const Recordings = () => {
   const handleDownload = (recording: any) => {
     if (recording.premium) {
       // Simulate download
-      toast.success(`Downloading ${recording.title}...`);
+      toast.success(t('recordings.downloading', { title: recording.title }));
     } else {
-      toast.error('Premium subscription required for downloads');
+      toast.error(t('recordings.premiumRequired'));
     }
   };
 
   const handleShare = (recording: any) => {
-    toast.success('Share link copied to clipboard!');
+    toast.success(t('recordings.shareLinkCopied'));
   };
 
   const handleViewVideo = (recording: any, e?: React.MouseEvent) => {
@@ -84,7 +86,7 @@ const Recordings = () => {
     }
     console.log('Viewing video:', recording.title);
     setSelectedVideo(recording);
-    toast.success(`Now viewing: ${recording.title}`);
+    toast.success(t('recordings.nowViewing', { title: recording.title }));
   };
 
   if (selectedVideo) {
@@ -100,7 +102,7 @@ const Recordings = () => {
                 onClick={() => setSelectedVideo(null)}
                 className="btn-outline clickable-element"
               >
-                ← Back to Recordings
+                {t('recordings.backToRecordings')}
               </Button>
             </div>
 
@@ -122,19 +124,19 @@ const Recordings = () => {
                     <h2 className="text-2xl font-bold text-gray-900 mb-4">{selectedVideo.title}</h2>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       <div>
-                        <span className="text-gray-600">Date:</span>
+                        <span className="text-gray-600">{t('recordings.date')}</span>
                         <p className="font-medium">{selectedVideo.date}</p>
                       </div>
                       <div>
-                        <span className="text-gray-600">Court:</span>
+                        <span className="text-gray-600">{t('recordings.court')}</span>
                         <p className="font-medium">{selectedVideo.court}</p>
                       </div>
                       <div>
-                        <span className="text-gray-600">Duration:</span>
+                        <span className="text-gray-600">{t('recordings.duration')}</span>
                         <p className="font-medium">{selectedVideo.duration}</p>
                       </div>
                       <div>
-                        <span className="text-gray-600">Score:</span>
+                        <span className="text-gray-600">{t('recordings.score')}</span>
                         <p className="font-medium text-tennis-green-700">{selectedVideo.score}</p>
                       </div>
                     </div>
@@ -148,7 +150,7 @@ const Recordings = () => {
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <TrendingUp className="w-5 h-5 mr-2 text-tennis-purple-600" />
-                      Performance Stats
+                      {t('recordings.performanceStats')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -156,28 +158,28 @@ const Recordings = () => {
                       <div className="text-3xl font-bold text-tennis-purple-700">
                         {selectedVideo.stats.serves}
                       </div>
-                      <div className="text-sm text-gray-600">Total Serves</div>
+                      <div className="text-sm text-gray-600">{t('recordings.totalServes')}</div>
                     </div>
                     
                     <div className="stats-card">
                       <div className="text-3xl font-bold text-tennis-green-700">
                         {selectedVideo.stats.serveAccuracy}%
                       </div>
-                      <div className="text-sm text-gray-600">Serve Accuracy</div>
+                      <div className="text-sm text-gray-600">{t('recordings.serveAccuracy')}</div>
                     </div>
                     
                     <div className="stats-card">
                       <div className="text-3xl font-bold text-blue-700">
                         {selectedVideo.stats.avgSpeed} mph
                       </div>
-                      <div className="text-sm text-gray-600">Avg Speed</div>
+                      <div className="text-sm text-gray-600">{t('recordings.avgSpeed')}</div>
                     </div>
                     
                     <div className="stats-card">
                       <div className="text-3xl font-bold text-yellow-700">
                         {selectedVideo.stats.winners}
                       </div>
-                      <div className="text-sm text-gray-600">Winners</div>
+                      <div className="text-sm text-gray-600">{t('recordings.winners')}</div>
                     </div>
                   </CardContent>
                 </Card>
@@ -187,23 +189,23 @@ const Recordings = () => {
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <Eye className="w-5 h-5 mr-2 text-tennis-purple-600" />
-                      AI Insights
+                      {t('recordings.aiInsights')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="p-3 bg-tennis-green-50 rounded-xl">
                       <p className="text-sm text-tennis-green-700 font-medium">
-                        Great serve consistency in this match!
+                        {t('recordings.greatServeConsistency')}
                       </p>
                     </div>
                     <div className="p-3 bg-tennis-purple-50 rounded-xl">
                       <p className="text-sm text-tennis-purple-700 font-medium">
-                        Consider working on backhand placement
+                        {t('recordings.considerBackhandPlacement')}
                       </p>
                     </div>
                     <div className="p-3 bg-blue-50 rounded-xl">
                       <p className="text-sm text-blue-700 font-medium">
-                        Excellent net play improvement
+                        {t('recordings.excellentNetPlay')}
                       </p>
                     </div>
                   </CardContent>
@@ -224,15 +226,15 @@ const Recordings = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Match Recordings</h1>
-            <p className="text-gray-600">Review your sessions with AI-powered analytics</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('recordings.title')}</h1>
+            <p className="text-gray-600">{t('recordings.subtitle')}</p>
           </div>
 
           <Tabs defaultValue="all" className="space-y-8">
             <TabsList className="grid w-full grid-cols-3 max-w-md">
-              <TabsTrigger value="all">All Videos</TabsTrigger>
-              <TabsTrigger value="matches">Matches</TabsTrigger>
-              <TabsTrigger value="practice">Practice</TabsTrigger>
+              <TabsTrigger value="all">{t('recordings.allVideos')}</TabsTrigger>
+              <TabsTrigger value="matches">{t('recordings.matches')}</TabsTrigger>
+              <TabsTrigger value="practice">{t('recordings.practice')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="all" className="space-y-6">
@@ -259,7 +261,7 @@ const Recordings = () => {
                       {/* Premium badge */}
                       {recording.premium && (
                         <Badge className="absolute top-3 left-3 bg-tennis-purple-600 text-white">
-                          Premium
+                          {t('recordings.premium')}
                         </Badge>
                       )}
                     </div>
@@ -278,7 +280,7 @@ const Recordings = () => {
                         </Badge>
                         <div className="flex items-center text-gray-600 text-sm">
                           <Eye className="w-4 h-4 mr-1" />
-                          AI Tracked
+                          {t('recordings.aiTracked')}
                         </div>
                       </div>
 
@@ -286,11 +288,11 @@ const Recordings = () => {
                       <div className="grid grid-cols-2 gap-2 mb-4 text-sm">
                         <div className="text-center p-2 bg-gray-50 rounded">
                           <div className="font-semibold text-tennis-purple-700">{recording.stats.serveAccuracy}%</div>
-                          <div className="text-gray-600 text-xs">Serve Accuracy</div>
+                          <div className="text-gray-600 text-xs">{t('recordings.serveAccuracy')}</div>
                         </div>
                         <div className="text-center p-2 bg-gray-50 rounded">
                           <div className="font-semibold text-tennis-purple-700">{recording.stats.avgSpeed} mph</div>
-                          <div className="text-gray-600 text-xs">Avg Speed</div>
+                          <div className="text-gray-600 text-xs">{t('recordings.avgSpeed')}</div>
                         </div>
                       </div>
 
@@ -301,7 +303,7 @@ const Recordings = () => {
                           onClick={(e) => handleViewVideo(recording, e)}
                         >
                           <Eye className="w-4 h-4 mr-1" />
-                          View
+                          {t('recordings.view')}
                         </Button>
                         <Button 
                           size="sm" 
@@ -334,13 +336,13 @@ const Recordings = () => {
 
             <TabsContent value="matches">
               <div className="text-center py-12">
-                <p className="text-gray-500">Showing matches only...</p>
+                <p className="text-gray-500">{t('recordings.showingMatchesOnly')}</p>
               </div>
             </TabsContent>
 
             <TabsContent value="practice">
               <div className="text-center py-12">
-                <p className="text-gray-500">Showing practice sessions only...</p>
+                <p className="text-gray-500">{t('recordings.showingPracticeOnly')}</p>
               </div>
             </TabsContent>
           </Tabs>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface SeedLogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
@@ -11,6 +12,7 @@ const SeedLogo: React.FC<SeedLogoProps> = ({
   variant = 'full',
   className = '' 
 }) => {
+  const { t } = useTranslation('web');
   const sizeClasses = {
     sm: 'h-8',
     md: 'h-12',
@@ -84,7 +86,7 @@ const SeedLogo: React.FC<SeedLogoProps> = ({
             }`}
             style={{ fontFamily: 'Poppins, sans-serif' }}
           >
-            See it. SEED it. Smash it.
+            {t('ui.seedTagline')}
           </span>
         )}
       </div>

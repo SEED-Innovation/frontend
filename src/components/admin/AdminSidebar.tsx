@@ -15,9 +15,10 @@ import {
 } from 'lucide-react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface SidebarItem {
-  title: string;
+  titleKey: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   badge?: string;
@@ -26,58 +27,58 @@ interface SidebarItem {
 
 const sidebarItems: SidebarItem[] = [
   {
-    title: 'Dashboard',
+    titleKey: 'admin.menu.dashboard',
     href: '/admin',
     icon: LayoutDashboard,
   },
   {
-    title: 'Admins',
+    titleKey: 'admin.menu.admins',
     href: '/admin/players',
     icon: Users,
     superAdminOnly: true,
   },
   {
-    title: 'Courts',
+    titleKey: 'admin.menu.courts',
     href: '/admin/courts',
     icon: MapPin,
   },
   {
-    title: 'Bookings',
+    titleKey: 'admin.menu.bookings',
     href: '/admin/bookings',
     icon: Calendar,
   },
   {
-    title: 'Sessions',
+    titleKey: 'admin.menu.sessions',
     href: '/admin/sessions',
     icon: Clock,
     superAdminOnly: true,
   },
   {
-    title: 'Cameras',
+    titleKey: 'admin.menu.cameras',
     href: '/admin/cameras',
     icon: Camera,
     superAdminOnly: true,
   },
   {
-    title: 'Payments',
+    titleKey: 'admin.menu.payments',
     href: '/admin/payments',
     icon: CreditCard,
     superAdminOnly: true,
   },
   {
-    title: 'Analytics',
+    titleKey: 'admin.menu.analytics',
     href: '/admin/analytics',
     icon: BarChart3,
     superAdminOnly: true,
   },
   {
-    title: 'Settings',
+    titleKey: 'admin.menu.settings',
     href: '/admin/settings',
     icon: Settings,
     superAdminOnly: true,
   },
   {
-    title: 'My Profile',
+    titleKey: 'admin.menu.myProfile',
     href: '/admin/profile',
     icon: Trophy,
   },
@@ -90,6 +91,7 @@ interface AdminSidebarProps {
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed }) => {
   const location = useLocation();
   const { user, hasPermission } = useAdminAuth();
+  const { t } = useTranslation('web');
 
   const filteredItems = sidebarItems.filter(item => {
     // If item is not restricted to super admin, show it to all admins
@@ -118,7 +120,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed }) => {
           {!collapsed && (
             <div>
               <h1 className="text-lg font-bold text-gray-900">SEED Admin</h1>
-              <p className="text-xs text-gray-500">Court Management</p>
+              <p className="text-xs text-gray-500">{t('admin.menu.courtManagement')}</p>
             </div>
           )}
         </motion.div>
@@ -176,7 +178,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed }) => {
 
                 {!collapsed && (
                   <>
-                    <span className="flex-1">{item.title}</span>
+                    <span className="flex-1">{t(item.titleKey)}</span>
                     {item.badge && (
                       <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
                         {item.badge}
@@ -187,7 +189,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed }) => {
 
                 {collapsed && (
                   <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
-                    {item.title}
+                    {t(item.titleKey)}
                     {item.badge && (
                       <span className="ml-2 bg-red-500 text-white text-xs px-1 py-0.5 rounded">
                         {item.badge}

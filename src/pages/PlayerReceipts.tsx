@@ -18,6 +18,7 @@ import {
   XCircle,
   FileX
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import {
   Table,
   TableBody,
@@ -32,6 +33,7 @@ import { ReceiptResponse, ReceiptStatus } from '@/types/receipt';
 import { CurrencyDisplay } from '@/components/ui/currency-display';
 
 const PlayerReceipts: React.FC = () => {
+  const { t } = useTranslation('web');
   const [receipts, setReceipts] = useState<ReceiptResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -152,8 +154,8 @@ const PlayerReceipts: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">My Receipts</h2>
-          <p className="text-gray-600">View and download your booking receipts</p>
+          <h2 className="text-2xl font-bold text-gray-900">{t('receipts.title')}</h2>
+          <p className="text-gray-600">{t('receipts.subtitle')}</p>
         </div>
         <Button onClick={loadMyReceipts} variant="outline">
           <RefreshCw className="w-4 h-4 mr-2" />
@@ -217,25 +219,25 @@ const PlayerReceipts: React.FC = () => {
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              <span className="ml-2">Loading your receipts...</span>
+              <span className="ml-2">{t('receipts.loading')}</span>
             </div>
           ) : filteredReceipts.length === 0 ? (
             <div className="text-center py-12">
               <Receipt className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-muted-foreground mb-2">No receipts found</h3>
-              <p className="text-sm text-muted-foreground">You don't have any receipts yet.</p>
+              <h3 className="text-lg font-medium text-muted-foreground mb-2">{t('receipts.noReceipts')}</h3>
+              <p className="text-sm text-muted-foreground">{t('receipts.noReceiptsDesc')}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Receipt #</TableHead>
-                    <TableHead>Court</TableHead>
-                    <TableHead>Date & Time</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t('receipts.receiptNumber')}</TableHead>
+                    <TableHead>{t('receipts.court')}</TableHead>
+                    <TableHead>{t('receipts.dateTime')}</TableHead>
+                    <TableHead>{t('receipts.amount')}</TableHead>
+                    <TableHead>{t('receipts.status')}</TableHead>
+                    <TableHead>{t('receipts.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

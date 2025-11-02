@@ -7,9 +7,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import StickerPeel from '../components/ui/StickerPeel'
 import AppStoreButton from '../components/ui/AppStoreButton';
+import { useTranslation } from 'react-i18next';
+import { LanguageToggle } from '@/components/common/LanguageToggle';
 import logo from '/lovable-uploads/d6e16ac6-604a-4a7a-9497-3476e49278a1.png'
 
 const Landing = () => {
+  const { t } = useTranslation('web');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const navigate = useNavigate();
@@ -22,112 +25,112 @@ const Landing = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-   
+
 
   const handleGetStarted = () => {
-    toast.info('Player app is mobile-only. This is the admin dashboard.');
+    toast.info(t('messages.info'));
     navigate('/admin-login');
   };
 
   const handleWatchDemo = () => {
-    toast.info('Experience the admin dashboard');
+    toast.info(t('messages.info'));
     navigate('/admin-login');
   };
 
   const handleSocialAuth = (provider: string) => {
-    toast.success(`Signing in with ${provider}...`);
+    toast.success(`${t('auth.signInWith')} ${provider}...`);
     setTimeout(() => navigate('/dashboard'), 1000);
   };
 
   const features = [
     {
       icon: Eye,
-      title: "Heatmaps",
-      description: "Visualize a player's positioning and activity on the court with detailed movement patterns"
+      title: t('landing.features.heatmaps.title'),
+      description: t('landing.features.heatmaps.description')
     },
     {
       icon: Zap,
-      title: "Speed Tracking",
-      description: "Monitor a player's pace during matches with real-time velocity measurements"
+      title: t('landing.features.speedTracking.title'),
+      description: t('landing.features.speedTracking.description')
     },
     {
       icon: Target,
-      title: "Performance Insights",
-      description: "Evaluate past performances to identify trends and patterns for strategic improvement"
+      title: t('landing.features.performanceInsights.title'),
+      description: t('landing.features.performanceInsights.description')
     },
     {
       icon: Trophy,
-      title: "Shot Analysis",
-      description: "Visualize shot accuracy on the court and discover new strategic patterns"
+      title: t('landing.features.shotAnalysis.title'),
+      description: t('landing.features.shotAnalysis.description')
     },
     {
       icon: Calendar,
-      title: "Smart Court Booking",
-      description: "Seamlessly book AI-enabled courts with integrated technology features"
+      title: t('landing.features.smartBooking.title'),
+      description: t('landing.features.smartBooking.description')
     },
     {
       icon: Users,
-      title: "Community Hub",
-      description: "Connect with fellow players, share highlights, and join challenges"
+      title: t('landing.features.communityHub.title'),
+      description: t('landing.features.communityHub.description')
     }
   ];
 
   const howItWorks = [
     {
       icon: Calendar,
-      title: "Check In",
-      description: "Register your session and get ready to unleash your potential"
+      title: t('landing.howItWorks.checkIn.title'),
+      description: t('landing.howItWorks.checkIn.description')
     },
     {
       icon: Play,
-      title: "Play",
-      description: "Step onto the court and let our AI capture every moment of brilliance"
+      title: t('landing.howItWorks.play.title'),
+      description: t('landing.howItWorks.play.description')
     },
     {
       icon: Trophy,
-      title: "Thrive!",
-      description: "Transform insights into action and watch your game reach new heights"
+      title: t('landing.howItWorks.thrive.title'),
+      description: t('landing.howItWorks.thrive.description')
     }
   ];
 
   const playerLevels = [
     {
-      level: "Beginner",
-      description: "Learn fundamentals with AI-guided feedback",
-      features: ["Basic shot tracking", "Technique tips", "Progress tracking"]
+      level: t('landing.playerLevels.beginner.title'),
+      description: t('landing.playerLevels.beginner.description'),
+      features: t('landing.playerLevels.beginner.features', { returnObjects: true }) as string[]
     },
     {
-      level: "Amateur",
-      description: "Improve consistency and strategy",
-      features: ["Advanced analytics", "Match insights", "Performance trends"]
+      level: t('landing.playerLevels.amateur.title'),
+      description: t('landing.playerLevels.amateur.description'),
+      features: t('landing.playerLevels.amateur.features', { returnObjects: true }) as string[]
     },
     {
-      level: "Professional",
-      description: "Elite-level analysis and optimization",
-      features: ["Pro-level metrics", "Competition analysis", "Custom coaching"]
+      level: t('landing.playerLevels.professional.title'),
+      description: t('landing.playerLevels.professional.description'),
+      features: t('landing.playerLevels.professional.features', { returnObjects: true }) as string[]
     }
   ];
 
   const benefits = [
     {
       icon: Video,
-      title: "Automated Video Recording",
-      description: "Every session automatically recorded and stored in the cloud"
+      title: t('landing.whatYouGet.automatedVideo.title'),
+      description: t('landing.whatYouGet.automatedVideo.description')
     },
     {
       icon: BarChart3,
-      title: "Detailed Statistics",
-      description: "Shot placement, speed, accuracy, and improvement tracking"
+      title: t('landing.whatYouGet.detailedStats.title'),
+      description: t('landing.whatYouGet.detailedStats.description')
     },
     {
       icon: Award,
-      title: "Achievements & Badges",
-      description: "Unlock rewards as you improve and reach new milestones"
+      title: t('landing.whatYouGet.achievements.title'),
+      description: t('landing.whatYouGet.achievements.description')
     },
     {
       icon: MessageSquare,
-      title: "Community Features",
-      description: "Share highlights, connect with players, and join challenges"
+      title: t('landing.whatYouGet.community.title'),
+      description: t('landing.whatYouGet.community.description')
     }
   ];
 
@@ -153,24 +156,24 @@ const Landing = () => {
   ];
 
   const stats = [
-    { number: "50K+", label: "Active Players" },
-    { number: "200+", label: "AI-Enabled Courts" },
-    { number: "2M+", label: "Matches Analyzed" },
-    { number: "98%", label: "Accuracy Rate" }
+    { number: "50K+", label: t('landing.stats.activePlayers') },
+    { number: "200+", label: t('landing.stats.aiEnabledCourts') },
+    { number: "2M+", label: t('landing.stats.matchesAnalyzed') },
+    { number: "98%", label: t('landing.stats.accuracyRate') }
   ];
 
   return (
     <div className="min-h-screen overflow-hidden">
-      
+
 
 
       {/* Enhanced Hero Section with Tennis Background */}
       <section className="relative min-h-screen flex items-center justify-center">
         {/* Tennis Background Image */}
         <div className="absolute inset-0">
-          <img 
+          <img
             src="/lovable-uploads/79b783b6-41ce-4e02-b743-ae78455d1827.png"
-            alt="Tennis Court"
+            alt={t('landing.hero.tennisCourtAlt')}
             className="w-full h-full object-cover"
           />
           {/* Gradient Overlay for Text Readability */}
@@ -178,46 +181,47 @@ const Landing = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
         </div>
 
-         {/* TENNIS BALL ANIMATION */}
+        {/* TENNIS BALL ANIMATION */}
 
-         
+
 
         <div className="relative z-10 text-center text-white px-4 max-w-7xl mx-auto">
           {/* Enhanced Navigation */}
-          <motion.nav 
+          <motion.nav
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             className={`absolute top-8 left-0 right-0 flex items-center justify-between px-4 sm:px-8 transition-all duration-300 ${scrolled ? 'bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl mx-4 sm:mx-8' : ''}`}
           >
             <Link to="/" className="flex items-center space-x-3">
-              <motion.img 
-                src="/lovable-uploads/d6e16ac6-604a-4a7a-9497-3476e49278a1.png" 
-                alt="SEED Logo" 
+              <motion.img
+                src="/lovable-uploads/d6e16ac6-604a-4a7a-9497-3476e49278a1.png"
+                alt={t('landing.hero.seedLogoAlt')}
                 className="h-10 w-auto"
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
               />
-              <span className="text-2xl font-bold hidden sm:block">INNOVATION</span>
+              <span className="text-2xl font-bold hidden sm:block">{t('landing.hero.innovation')}</span>
             </Link>
-            
+
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-8">
+              <LanguageToggle variant="ghost" size="sm" />
               <Link to="/admin-login">
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button 
+                  <Button
                     variant="ghost"
                     className="text-white/80 hover:text-white hover:bg-white/10 border border-white/30 transition-all duration-300"
                   >
-                    Admin Login
+                    {t('landing.navigation.adminLogin')}
                   </Button>
                 </motion.div>
               </Link>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button 
+                <Button
                   onClick={handleGetStarted}
                   className="bg-tennis-green-500 hover:bg-tennis-green-400 text-white font-semibold px-6 py-2 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg border-2 border-tennis-green-400"
                 >
-                  Get Started
+                  {t('landing.getStarted')}
                 </Button>
               </motion.div>
             </div>
@@ -237,29 +241,32 @@ const Landing = () => {
           {isMenuOpen && (
             <div className="lg:hidden absolute top-20 left-4 right-4 bg-black/90 backdrop-blur-xl border border-white/20 rounded-2xl p-6 animate-fade-in z-50">
               <div className="space-y-4">
+                <div className="flex justify-center mb-4">
+                  <LanguageToggle variant="outline" size="sm" showText />
+                </div>
                 <Link to="/courts" className="block text-white text-lg font-medium hover:text-tennis-green-400 transition-colors" onClick={() => setIsMenuOpen(false)}>
-                  Courts
+                  {t('landing.navigation.courts')}
                 </Link>
                 <Link to="/leaderboard" className="block text-white text-lg font-medium hover:text-tennis-green-400 transition-colors" onClick={() => setIsMenuOpen(false)}>
-                  Leaderboard
+                  {t('landing.navigation.leaderboard')}
                 </Link>
                 <Link to="/recordings" className="block text-white text-lg font-medium hover:text-tennis-green-400 transition-colors" onClick={() => setIsMenuOpen(false)}>
-                  Recordings
+                  {t('landing.navigation.recordings')}
                 </Link>
                 <Link to="/login" className="block text-white text-lg font-medium hover:text-tennis-green-400 transition-colors" onClick={() => setIsMenuOpen(false)}>
-                  Login
+                  {t('landing.navigation.login')}
                 </Link>
                 <Link to="/admin-login" className="block text-white text-lg font-medium hover:text-tennis-green-400 transition-colors" onClick={() => setIsMenuOpen(false)}>
-                  Admin Access
+                  {t('landing.navigation.adminAccess')}
                 </Link>
-                <Button 
+                <Button
                   onClick={() => {
                     setIsMenuOpen(false);
                     handleGetStarted();
                   }}
                   className="w-full bg-tennis-green-500 hover:bg-tennis-green-400 text-white font-semibold py-3 rounded-xl"
                 >
-                  Get Started
+                  {t('landing.getStarted')}
                 </Button>
               </div>
             </div>
@@ -267,7 +274,7 @@ const Landing = () => {
 
           {/* Hero Content */}
           <div className="pt-32 sm:pt-40">
-            <motion.h1 
+            <motion.h1
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
@@ -279,49 +286,49 @@ const Landing = () => {
                 transition={{ delay: 0.1, duration: 0.8 }}
                 className="text-lg sm:text-xl md:text-2xl text-white/80 mb-4 font-light"
               >
-                A NEW WAY OF
+                {t('landing.hero.newWayOf')}
               </motion.div>
-              <motion.span 
+              <motion.span
                 initial={{ opacity: 0, x: -50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
                 className="block"
               >
-                playing
+                {t('landing.hero.playing')}
               </motion.span>
-              <motion.span 
+              <motion.span
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.4, duration: 0.8 }}
                 className="block bg-gradient-to-r from-tennis-green-300 via-yellow-300 to-tennis-green-300 bg-clip-text text-transparent animate-glow"
               >
-                mastering
+                {t('landing.hero.mastering')}
               </motion.span>
-              <motion.span 
+              <motion.span
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.6, duration: 0.8 }}
                 className="block text-3xl sm:text-5xl md:text-6xl mt-4"
               >
-                analyzing
+                {t('landing.hero.analyzing')}
               </motion.span>
             </motion.h1>
-            
-            <motion.p 
+
+            <motion.p
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8, duration: 0.8 }}
               className="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-8 sm:mb-12 text-white/90 font-medium max-w-4xl mx-auto leading-relaxed px-4"
             >
-              <span className="text-2xl sm:text-3xl block mb-4">SPORTS</span>
-              <span>Unleash your A-Game! </span>
+              <span className="text-2xl sm:text-3xl block mb-4">{t('landing.hero.sports')}</span>
+              <span>{t('landing.hero.unleashGame')} </span>
               <motion.span
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 1.5, duration: 0.6 }}
                 className="inline-block font-bold text-tennis-green-400"
               >
-                See it.
+                {t('landing.hero.seeIt')}
               </motion.span>
               <span> </span>
               <motion.span
@@ -330,47 +337,47 @@ const Landing = () => {
                 transition={{ delay: 2.0, duration: 0.6 }}
                 className="inline-block font-black text-yellow-400"
               >
-                SEED
+                {t('landing.hero.seedIt')}
               </motion.span>
-              <span> it. </span>
+              <span> {t('landing.hero.it')} </span>
               <motion.span
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 2.5, duration: 0.6 }}
                 className="inline-block font-bold text-white"
               >
-                Smash it!
+                {t('landing.hero.smashIt')}
               </motion.span>
             </motion.p>
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center animate-fade-in mb-8 px-4" style={{ animationDelay: '0.4s' }}>
-              <Button 
+              <Button
                 onClick={handleGetStarted}
-                size="lg" 
+                size="lg"
                 className="w-full sm:w-auto bg-tennis-green-500 hover:bg-tennis-green-400 text-white font-bold px-8 sm:px-12 py-4 sm:py-6 text-lg sm:text-xl rounded-2xl shadow-2xl hover:scale-110 hover:shadow-tennis-green-500/50 transition-all duration-300 transform border-2 border-tennis-green-400 glow-button"
               >
-                Start Free Trial
+                {t('landing.hero.startFreeTrial')}
               </Button>
-              <Button 
+              <Button
                 onClick={handleWatchDemo}
-                size="lg" 
+                size="lg"
                 className="w-full sm:w-auto bg-white/10 backdrop-blur-md border-2 border-white/30 text-white hover:bg-white/20 hover:border-white/50 font-bold px-8 sm:px-12 py-4 sm:py-6 text-lg sm:text-xl rounded-2xl shadow-2xl hover:scale-110 transition-all duration-300 transform"
               >
                 <Trophy className="w-5 h-5 sm:w-6 sm:h-6 mr-3" />
-                Watch Demo
+                {t('landing.hero.watchDemo')}
               </Button>
             </div>
 
             {/* App Download Buttons - Below Hero CTA */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.8 }}
               className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-12 sm:mb-16 px-4"
             >
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <AppStoreButton 
+                <AppStoreButton
                   variant="playstore"
                   href="https://play.google.com/store/apps/details?id=com.devarch.tennis2&utm_source=emea_Med"
                   size="sm"
@@ -378,7 +385,7 @@ const Landing = () => {
                 />
               </motion.div>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <AppStoreButton 
+                <AppStoreButton
                   variant="appstore"
                   disabled={true}
                   size="sm"
@@ -411,13 +418,10 @@ const Landing = () => {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 sm:mb-20">
             <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-gray-900 mb-4 sm:mb-6">
-              Master In{' '}
-              <span className="bg-gradient-to-r from-tennis-purple-600 to-tennis-green-500 bg-clip-text text-transparent">
-                Three Steps!
-              </span>
+              {t('landing.howItWorks.title')}
             </h2>
             <p className="text-lg sm:text-2xl text-gray-600 max-w-4xl mx-auto font-medium text-center">
-              Unleash your potential with our revolutionary approach to tennis excellence
+              {t('landing.howItWorks.subtitle')}
             </p>
           </div>
 
@@ -445,20 +449,20 @@ const Landing = () => {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 sm:mb-20">
             <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-gray-900 mb-4 sm:mb-6">
-              See{' '}
+              {t('landing.aiVideo.see')}{' '}
               <span className="bg-gradient-to-r from-tennis-purple-600 to-tennis-green-500 bg-clip-text text-transparent">
-                AI in Action
+                {t('landing.aiVideo.aiInAction')}
               </span>
             </h2>
             <p className="text-lg sm:text-2xl text-gray-600 max-w-4xl mx-auto font-medium text-center">
-              Watch how our smart AI technology analyzes tennis matches in real-time
+              {t('landing.aiVideo.subtitle')}
             </p>
           </div>
 
           <div className="max-w-5xl mx-auto">
             <div className="relative rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-tennis-purple-100 to-tennis-green-100 p-4 sm:p-8">
               <div className="relative aspect-video rounded-2xl overflow-hidden bg-black">
-                <video 
+                <video
                   className="w-full h-full object-cover"
                   autoPlay
                   loop
@@ -467,14 +471,14 @@ const Landing = () => {
                   poster="/lovable-uploads/9b877c55-5518-40cb-ba2c-a68fccfbe495.png"
                 >
                   <source src="/seed-ia-video.mp4" type="video/mp4" />
-                  Your browser does not support the video tag.
+                  {t('landing.aiVideo.browserNotSupported')}
                 </video>
               </div>
               <div className="mt-6 sm:mt-8 text-center">
                 <p className="text-base sm:text-lg text-gray-700 font-medium mb-4">
-                  Experience the power of AI-driven tennis analysis
+                  {t('landing.aiVideo.description')}
                 </p>
-                
+
               </div>
             </div>
           </div>
@@ -488,13 +492,10 @@ const Landing = () => {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 sm:mb-20">
             <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-gray-900 mb-4 sm:mb-6">
-              Designed for{' '}
-              <span className="bg-gradient-to-r from-tennis-purple-600 to-tennis-green-500 bg-clip-text text-transparent">
-                All Levels
-              </span>
+              {t('landing.playerLevels.title')}
             </h2>
             <p className="text-lg sm:text-2xl text-gray-600 font-medium text-center max-w-4xl mx-auto">
-              Whether you're just starting or competing professionally
+              {t('landing.playerLevels.subtitle')}
             </p>
           </div>
 
@@ -527,39 +528,36 @@ const Landing = () => {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
           <h2 className="text-3xl sm:text-5xl md:text-6xl font-black mb-6 sm:mb-8">
-            Backed by{' '}
-            <span className="bg-gradient-to-r from-tennis-green-300 to-yellow-300 bg-clip-text text-transparent">
-              Advanced AI
-            </span>
+            {t('landing.aiTechnology.title')}
           </h2>
           <p className="text-lg sm:text-2xl mb-8 sm:mb-12 text-white/90 font-medium max-w-5xl mx-auto leading-relaxed text-center">
-            Our computer vision technology captures every detail of your game, providing insights that were previously only available to professional players.
+            {t('landing.aiTechnology.subtitle')}
           </p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12 mb-12 sm:mb-16 max-w-6xl mx-auto">
             <div className="text-center p-8 sm:p-10 bg-white/10 backdrop-blur-md rounded-3xl border border-white/20">
               <Eye className="w-16 h-16 sm:w-20 sm:h-20 text-tennis-green-300 mx-auto mb-6 sm:mb-8" />
-              <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Computer Vision</h3>
-              <p className="text-base sm:text-lg text-white/80 leading-relaxed">Advanced camera tracking for precise ball and player movement analysis</p>
+              <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">{t('landing.aiTechnology.computerVision.title')}</h3>
+              <p className="text-base sm:text-lg text-white/80 leading-relaxed">{t('landing.aiTechnology.computerVision.description')}</p>
             </div>
             <div className="text-center p-8 sm:p-10 bg-white/10 backdrop-blur-md rounded-3xl border border-white/20">
               <BarChart3 className="w-16 h-16 sm:w-20 sm:h-20 text-tennis-green-300 mx-auto mb-6 sm:mb-8" />
-              <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Real-time Processing</h3>
-              <p className="text-base sm:text-lg text-white/80 leading-relaxed">Instant analysis and feedback delivered within minutes of your session</p>
+              <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">{t('landing.aiTechnology.realTimeProcessing.title')}</h3>
+              <p className="text-base sm:text-lg text-white/80 leading-relaxed">{t('landing.aiTechnology.realTimeProcessing.description')}</p>
             </div>
             <div className="text-center p-8 sm:p-10 bg-white/10 backdrop-blur-md rounded-3xl border border-white/20">
               <Target className="w-16 h-16 sm:w-20 sm:h-20 text-tennis-green-300 mx-auto mb-6 sm:mb-8" />
-              <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Precision Analytics</h3>
-              <p className="text-base sm:text-lg text-white/80 leading-relaxed">Shot placement, speed, and accuracy measured with professional-grade precision</p>
+              <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">{t('landing.aiTechnology.precisionAnalytics.title')}</h3>
+              <p className="text-base sm:text-lg text-white/80 leading-relaxed">{t('landing.aiTechnology.precisionAnalytics.description')}</p>
             </div>
           </div>
-          
-          <Button 
+
+          <Button
             onClick={handleGetStarted}
-            size="lg" 
+            size="lg"
             className="bg-white text-tennis-purple-700 hover:bg-gray-100 font-bold px-8 sm:px-16 py-4 sm:py-6 text-lg sm:text-2xl rounded-2xl shadow-2xl hover:scale-110 transition-all duration-300 transform hover:shadow-white/50"
           >
-            Experience the Technology
+            {t('landing.aiTechnology.experienceTechnology')}
           </Button>
         </div>
       </section>
@@ -570,13 +568,10 @@ const Landing = () => {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 sm:mb-20">
             <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-gray-900 mb-4 sm:mb-6">
-              What{' '}
-              <span className="bg-gradient-to-r from-tennis-purple-600 to-tennis-green-500 bg-clip-text text-transparent">
-                You Get
-              </span>
+              {t('landing.whatYouGet.title')}
             </h2>
             <p className="text-lg sm:text-2xl text-gray-600 max-w-4xl mx-auto font-medium text-center">
-              Everything you need to elevate your tennis game
+              {t('landing.whatYouGet.subtitle')}
             </p>
           </div>
 
@@ -604,14 +599,10 @@ const Landing = () => {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 sm:mb-20">
             <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-gray-900 mb-4 sm:mb-6">
-              Unlock Your Game with{' '}
-              <span className="bg-gradient-to-r from-tennis-purple-600 to-tennis-green-500 bg-clip-text text-transparent">
-                SEED Insights
-              </span>
+              {t('landing.features.title')}
             </h2>
             <p className="text-lg sm:text-2xl text-gray-600 max-w-5xl mx-auto font-medium text-center leading-relaxed">
-              From grassroots to grand slams, SEED INNOVATION isn't just tracking tennis—we're rewriting how it's played, watched, and judged. 
-              Every serve, volley, and stroke is meticulously tracked to elevate player performance and deliver actionable insights that drive continuous improvement.
+              {t('landing.features.subtitle')}
             </p>
           </div>
 
@@ -643,13 +634,10 @@ const Landing = () => {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 sm:mb-20">
             <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-gray-900 mb-4 sm:mb-6">
-              Trusted by{' '}
-              <span className="bg-gradient-to-r from-tennis-purple-600 to-tennis-green-500 bg-clip-text text-transparent">
-                Champions
-              </span>
+              {t('landing.testimonials.title')}
             </h2>
             <p className="text-lg sm:text-2xl text-gray-600 font-medium text-center max-w-4xl mx-auto">
-              See what tennis professionals and enthusiasts are saying
+              {t('landing.testimonials.subtitle')}
             </p>
           </div>
 
@@ -696,14 +684,10 @@ const Landing = () => {
                 <Smartphone className="w-8 h-8 text-white" />
               </div>
               <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-gray-900 mb-6">
-                Get the{' '}
-                <span className="bg-gradient-to-r from-tennis-purple-600 to-tennis-green-500 bg-clip-text text-transparent">
-                  Mobile App
-                </span>
+                {t('landing.mobileApp.title')}
               </h2>
               <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                Experience SEED INNOVATION on the go. Track your performance, book courts, 
-                and access AI insights directly from your mobile device.
+                {t('landing.mobileApp.subtitle')}
               </p>
             </motion.div>
           </div>
@@ -723,18 +707,18 @@ const Landing = () => {
                     <Activity className="w-6 h-6 text-tennis-green-600" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Real-time Analytics</h3>
-                    <p className="text-gray-600">Access live match insights and performance metrics instantly on your phone.</p>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">{t('landing.mobileApp.realTimeAnalytics.title')}</h3>
+                    <p className="text-gray-600">{t('landing.mobileApp.realTimeAnalytics.description')}</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start space-x-4">
                   <div className="flex-shrink-0 w-12 h-12 bg-tennis-purple-100 rounded-xl flex items-center justify-center">
                     <Calendar className="w-6 h-6 text-tennis-purple-600" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Quick Booking</h3>
-                    <p className="text-gray-600">Book courts, manage sessions, and check availability with just a few taps.</p>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">{t('landing.mobileApp.quickBooking.title')}</h3>
+                    <p className="text-gray-600">{t('landing.mobileApp.quickBooking.description')}</p>
                   </div>
                 </div>
 
@@ -743,8 +727,8 @@ const Landing = () => {
                     <Video className="w-6 h-6 text-yellow-600" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Match Recordings</h3>
-                    <p className="text-gray-600">Review your games, share highlights, and track your progress over time.</p>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">{t('landing.mobileApp.matchRecordings.title')}</h3>
+                    <p className="text-gray-600">{t('landing.mobileApp.matchRecordings.description')}</p>
                   </div>
                 </div>
               </div>
@@ -760,16 +744,16 @@ const Landing = () => {
             >
               <div className="mb-8">
                 <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
-                  Download Now
+                  {t('landing.mobileApp.downloadNow')}
                 </h3>
                 <p className="text-gray-600 text-lg">
-                  Available on your favorite platform. Start your tennis revolution today!
+                  {t('landing.mobileApp.availableOn')}
                 </p>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <AppStoreButton 
+                  <AppStoreButton
                     variant="playstore"
                     href="https://play.google.com/store/apps/details?id=com.devarch.tennis2&utm_source=emea_Med"
                     size="lg"
@@ -777,7 +761,7 @@ const Landing = () => {
                   />
                 </motion.div>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <AppStoreButton 
+                  <AppStoreButton
                     variant="appstore"
                     disabled={true}
                     size="lg"
@@ -790,12 +774,12 @@ const Landing = () => {
                 <p className="text-sm text-gray-500">
                   <span className="inline-flex items-center">
                     <CheckCircle className="w-4 h-4 text-tennis-green-500 mr-1" />
-                    Free download
+                    {t('landing.mobileApp.freeDownload')}
                   </span>
                   <span className="mx-3">•</span>
                   <span className="inline-flex items-center">
                     <CheckCircle className="w-4 h-4 text-tennis-green-500 mr-1" />
-                    No credit card required
+                    {t('landing.mobileApp.noCreditCard')}
                   </span>
                 </p>
               </div>
@@ -811,18 +795,18 @@ const Landing = () => {
         </div>
         <div className="relative z-10 max-w-5xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-white mb-6 sm:mb-8">
-            Ready to Play Smarter?
+            {t('landing.cta.title')}
           </h2>
           <p className="text-lg sm:text-2xl text-white/90 mb-8 sm:mb-12 font-medium max-w-4xl mx-auto leading-relaxed text-center">
-            Unleash your A-Game with SEED INNOVATION's revolutionary AI-powered tennis analytics. Transform every serve, volley, and stroke into actionable insights.
+            {t('landing.cta.subtitle')}
           </p>
           <div className="flex justify-center">
-            <Button 
+            <Button
               onClick={handleGetStarted}
-              size="lg" 
+              size="lg"
               className="w-full sm:w-auto bg-white text-tennis-purple-700 hover:bg-gray-100 font-bold px-12 sm:px-16 py-4 sm:py-6 text-lg sm:text-2xl rounded-2xl shadow-2xl hover:scale-110 transition-all duration-300 transform hover:shadow-white/50"
             >
-              Start Your Journey
+              {t('landing.cta.startJourney')}
             </Button>
           </div>
         </div>
@@ -835,7 +819,7 @@ const Landing = () => {
           <div className="absolute top-0 left-0 w-96 h-96 bg-tennis-green-500/20 rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 right-0 w-96 h-96 bg-tennis-purple-500/20 rounded-full blur-3xl"></div>
         </div>
-        
+
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -845,10 +829,10 @@ const Landing = () => {
             className="text-center mb-16"
           >
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black mb-6 bg-gradient-to-r from-white via-tennis-green-300 to-white bg-clip-text text-transparent">
-              Get in Touch
+              {t('landing.contact.title')}
             </h2>
             <p className="text-xl sm:text-2xl text-white/80 max-w-3xl mx-auto leading-relaxed">
-              Ready to revolutionize your tennis game? Let's connect and explore how SEED can transform your athletic journey.
+              {t('landing.contact.subtitle')}
             </p>
           </motion.div>
 
@@ -861,55 +845,55 @@ const Landing = () => {
               viewport={{ once: true }}
               className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 sm:p-10"
             >
-              <h3 className="text-2xl font-bold text-white mb-8">Send us a message</h3>
+              <h3 className="text-2xl font-bold text-white mb-8">{t('landing.contact.sendMessage')}</h3>
               <div className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-white/80 text-sm font-medium mb-2">First Name</label>
+                    <label className="block text-white/80 text-sm font-medium mb-2">{t('landing.contact.firstName')}</label>
                     <input
                       type="text"
                       className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-tennis-green-500 focus:border-transparent transition-all"
-                      placeholder="John"
+                      placeholder={t('landing.contact.firstNamePlaceholder')}
                     />
                   </div>
                   <div>
-                    <label className="block text-white/80 text-sm font-medium mb-2">Last Name</label>
+                    <label className="block text-white/80 text-sm font-medium mb-2">{t('landing.contact.lastName')}</label>
                     <input
                       type="text"
                       className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-tennis-green-500 focus:border-transparent transition-all"
-                      placeholder="Doe"
+                      placeholder={t('landing.contact.lastNamePlaceholder')}
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-white/80 text-sm font-medium mb-2">Email</label>
+                  <label className="block text-white/80 text-sm font-medium mb-2">{t('landing.contact.email')}</label>
                   <input
                     type="email"
                     className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-tennis-green-500 focus:border-transparent transition-all"
-                    placeholder="john@example.com"
+                    placeholder={t('landing.contact.emailPlaceholder')}
                   />
                 </div>
                 <div>
-                  <label className="block text-white/80 text-sm font-medium mb-2">Subject</label>
+                  <label className="block text-white/80 text-sm font-medium mb-2">{t('landing.contact.subject')}</label>
                   <input
                     type="text"
                     className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-tennis-green-500 focus:border-transparent transition-all"
-                    placeholder="Partnership Inquiry"
+                    placeholder={t('landing.contact.subjectPlaceholder')}
                   />
                 </div>
                 <div>
-                  <label className="block text-white/80 text-sm font-medium mb-2">Message</label>
+                  <label className="block text-white/80 text-sm font-medium mb-2">{t('landing.contact.message')}</label>
                   <textarea
                     rows={5}
                     className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-tennis-green-500 focus:border-transparent transition-all resize-none"
-                    placeholder="Tell us about your needs..."
+                    placeholder={t('landing.contact.tellUsNeeds')}
                   ></textarea>
                 </div>
                 <Button
                   size="lg"
                   className="w-full bg-tennis-green-500 hover:bg-tennis-green-400 text-white font-bold py-4 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-tennis-green-500/30"
                 >
-                  Send Message
+                  {t('landing.contact.sendMessageBtn')}
                 </Button>
               </div>
             </motion.div>
@@ -924,11 +908,10 @@ const Landing = () => {
             >
               <div className="text-center lg:text-left">
                 <h3 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-                  Let's Build the Future of Tennis Together
+                  {t('landing.contact.buildFuture')}
                 </h3>
                 <p className="text-lg text-white/80 leading-relaxed mb-8">
-                  Whether you're a club owner, coach, or passionate player, we'd love to hear from you. 
-                  Discover how SEED's AI technology can elevate your tennis experience.
+                  {t('landing.contact.buildFutureDesc')}
                 </p>
               </div>
 
@@ -942,8 +925,8 @@ const Landing = () => {
                       <MessageSquare className="w-6 h-6 text-tennis-green-400" />
                     </div>
                     <div>
-                      <h4 className="text-lg font-bold text-white">General Inquiries</h4>
-                      <p className="text-white/70">info@seedinnovation.com</p>
+                      <h4 className="text-lg font-bold text-white">{t('landing.contact.generalInquiries')}</h4>
+                      <p className="text-white/70">{t('landing.contact.generalEmail')}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -957,8 +940,8 @@ const Landing = () => {
                       <Users className="w-6 h-6 text-tennis-purple-400" />
                     </div>
                     <div>
-                      <h4 className="text-lg font-bold text-white">Partnerships</h4>
-                      <p className="text-white/70">partners@seedinnovation.com</p>
+                      <h4 className="text-lg font-bold text-white">{t('landing.contact.partnerships')}</h4>
+                      <p className="text-white/70">{t('landing.contact.partnershipsEmail')}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -972,8 +955,8 @@ const Landing = () => {
                       <Award className="w-6 h-6 text-yellow-400" />
                     </div>
                     <div>
-                      <h4 className="text-lg font-bold text-white">Support</h4>
-                      <p className="text-white/70">support@seedinnovation.com</p>
+                      <h4 className="text-lg font-bold text-white">{t('landing.contact.support')}</h4>
+                      <p className="text-white/70">{t('landing.contact.supportEmail')}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -981,7 +964,7 @@ const Landing = () => {
 
               <div className="text-center lg:text-left pt-8">
                 <p className="text-white/60 text-sm">
-                  Response time: Within 24 hours • Available 24/7
+                  {t('landing.contact.responseTime')}
                 </p>
               </div>
             </motion.div>
@@ -995,28 +978,28 @@ const Landing = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 sm:gap-8">
             <div className="col-span-1 md:col-span-2">
               <Link to="/" className="flex items-center space-x-3 mb-4 sm:mb-6">
-                <img 
-                  src="/lovable-uploads/d6e16ac6-604a-4a7a-9497-3476e49278a1.png" 
-                  alt="SEED Logo" 
+                <img
+                  src="/lovable-uploads/d6e16ac6-604a-4a7a-9497-3476e49278a1.png"
+                  alt={t('landing.hero.seedLogoAlt')}
                   className="h-10 sm:h-12 w-auto"
                 />
                 <span className="text-xl sm:text-2xl font-bold">INNOVATION</span>
               </Link>
               <p className="text-gray-400 text-base sm:text-lg mb-4 sm:mb-6 max-w-md">
-                AI-powered tennis analytics platform helping players and coaches achieve excellence through data-driven insights.
+                {t('landing.footer.description')}
               </p>
-              
+
               {/* Mobile App Download */}
               <div className="mb-6">
-                <h4 className="text-white font-semibold mb-3">Download Mobile App</h4>
+                <h4 className="text-white font-semibold mb-3">{t('landing.footer.downloadMobileApp')}</h4>
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <AppStoreButton 
+                  <AppStoreButton
                     variant="playstore"
                     href="https://play.google.com/store/apps/details?id=com.devarch.tennis2&utm_source=emea_Med"
                     size="sm"
                     className="bg-gray-800 hover:bg-gray-700 border-gray-600 hover:border-gray-500"
                   />
-                  <AppStoreButton 
+                  <AppStoreButton
                     variant="appstore"
                     disabled={true}
                     size="sm"
@@ -1024,7 +1007,7 @@ const Landing = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="flex space-x-4">
                 <a
                   href="https://x.com/seed_innov"
@@ -1043,29 +1026,29 @@ const Landing = () => {
                   <span className="text-xs sm:text-sm">in</span>
                 </a>
               </div>
-              </div>
-              <div>
+            </div>
+            <div>
 
-              <h4 className="text-base sm:text-lg font-bold mb-3 sm:mb-4">Product</h4>
+              <h4 className="text-base sm:text-lg font-bold mb-3 sm:mb-4">{t('landing.footer.product')}</h4>
               <ul className="space-y-2 text-gray-400 text-sm sm:text-base">
-                <li><Link to="/courts" className="hover:text-white transition-colors">Book Courts</Link></li>
-                <li><Link to="/recordings" className="hover:text-white transition-colors">Match Analysis</Link></li>
-                <li><Link to="/leaderboard" className="hover:text-white transition-colors">Leaderboards</Link></li>
-                <li><Link to="/subscription" className="hover:text-white transition-colors">Pricing</Link></li>
+                <li><Link to="/courts" className="hover:text-white transition-colors">{t('landing.footer.bookCourts')}</Link></li>
+                <li><Link to="/recordings" className="hover:text-white transition-colors">{t('landing.footer.matchAnalysis')}</Link></li>
+                <li><Link to="/leaderboard" className="hover:text-white transition-colors">{t('landing.footer.leaderboards')}</Link></li>
+                <li><Link to="/subscription" className="hover:text-white transition-colors">{t('landing.footer.pricing')}</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-base sm:text-lg font-bold mb-3 sm:mb-4">Support</h4>
+              <h4 className="text-base sm:text-lg font-bold mb-3 sm:mb-4">{t('landing.footer.support')}</h4>
               <ul className="space-y-2 text-gray-400 text-sm sm:text-base">
-                <li><button onClick={() => toast.info('Help Center coming soon!')} className="hover:text-white transition-colors text-left">Help Center</button></li>
-                <li><button onClick={() => toast.info('Contact form coming soon!')} className="hover:text-white transition-colors text-left">Contact Us</button></li>
-                <li><button onClick={() => toast.info('Privacy policy coming soon!')} className="hover:text-white transition-colors text-left">Privacy Policy</button></li>
-                <li><button onClick={() => toast.info('Terms coming soon!')} className="hover:text-white transition-colors text-left">Terms of Service</button></li>
+                <li><button onClick={() => toast.info(t('landing.footer.helpCenterSoon'))} className="hover:text-white transition-colors text-left">{t('landing.footer.helpCenter')}</button></li>
+                <li><button onClick={() => toast.info(t('landing.footer.contactFormSoon'))} className="hover:text-white transition-colors text-left">{t('landing.footer.contactUs')}</button></li>
+                <li><button onClick={() => toast.info(t('landing.footer.privacySoon'))} className="hover:text-white transition-colors text-left">{t('landing.footer.privacyPolicy')}</button></li>
+                <li><button onClick={() => toast.info(t('landing.footer.termsSoon'))} className="hover:text-white transition-colors text-left">{t('landing.footer.termsOfService')}</button></li>
               </ul>
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 sm:mt-12 pt-6 sm:pt-8 text-center text-gray-400 text-sm sm:text-base">
-            <p>&copy; 2025 SEED INNOVATION. All rights reserved. Built for the future of tennis.</p>
+            <p>{t('landing.footer.copyright')}</p>
           </div>
         </div>
       </footer>

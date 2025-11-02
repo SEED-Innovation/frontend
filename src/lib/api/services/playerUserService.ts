@@ -93,7 +93,7 @@ export async function syncLanguagePreference(languageCode: 'en' | 'ar'): Promise
     
     // Also update enhanced storage if available
     try {
-      const { languageStorage } = await import('../storage');
+      const { languageStorage } = await import('../../storage');
       languageStorage.setLanguagePreference(languageCode);
     } catch (error) {
       console.debug('Enhanced storage not available:', error);
@@ -153,7 +153,7 @@ export async function initializeLanguagePreference(): Promise<LanguagePreference
       
       // Update enhanced storage if available
       try {
-        const { languageStorage } = await import('../storage');
+        const { languageStorage } = await import('../../storage');
         languageStorage.setLanguagePreference(backendPreference.languageCode);
       } catch (error) {
         console.debug('Enhanced storage not available:', error);

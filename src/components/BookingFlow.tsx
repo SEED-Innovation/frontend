@@ -8,6 +8,7 @@ import { useAvailability } from '@/hooks/useAvailability';
 import { handleApiError, isErrorCode } from '@/utils/errorMapper';
 import { bookingService } from '@/services/bookingService';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 interface Court {
   id: number;
@@ -27,6 +28,7 @@ interface BookingFlowProps {
 }
 
 const BookingFlow: React.FC<BookingFlowProps> = ({ onBookingComplete }) => {
+  const { t } = useTranslation('web');
   const [step, setStep] = useState<'courts' | 'details' | 'booking' | 'payment'>('courts');
   const [selectedCourt, setSelectedCourt] = useState<Court | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -137,8 +139,8 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ onBookingComplete }) => {
     return (
       <div className="space-y-6">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Find Your Perfect Court</h2>
-          <p className="text-gray-600">AI-enabled courts with advanced tracking technology</p>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">{t('booking.findPerfectCourt')}</h2>
+          <p className="text-gray-600">{t('booking.aiEnabledCourts')}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -190,7 +192,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ onBookingComplete }) => {
                 </div>
 
                 <Button className="w-full tennis-button glow-button">
-                  Select Court
+                  {t('ui.selectCourt')}
                 </Button>
               </CardContent>
             </Card>
@@ -205,7 +207,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ onBookingComplete }) => {
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="flex items-center justify-between mb-6">
           <Button variant="outline" onClick={() => setStep('courts')}>
-            ← Back to Courts
+            {t('ui.backToCourts')}
           </Button>
           <h2 className="text-3xl font-bold text-gray-900">{selectedCourt.name}</h2>
         </div>
@@ -222,7 +224,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ onBookingComplete }) => {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Camera className="w-5 h-5 mr-2 text-tennis-purple-600" />
-                  AI Technology Features
+                  {t('ui.aiTechnologyFeatures')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -243,7 +245,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ onBookingComplete }) => {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Clock className="w-5 h-5 mr-2" />
-                  Available Time Slots
+                  {t('ui.availableTimeSlots')}
                   {availabilityLoading && <RefreshCw className="w-4 h-4 ml-2 animate-spin" />}
                 </CardTitle>
               </CardHeader>
@@ -257,16 +259,16 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ onBookingComplete }) => {
                 ) : availabilityError ? (
                   <div className="text-center py-8">
                     <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                    <p className="text-gray-600 mb-4">Failed to load availability</p>
+                    <p className="text-gray-600 mb-4">{t('booking.failedToLoad')}</p>
                     <Button onClick={() => refetchAvailability()} variant="outline">
-                      Try Again
+                      {t('booking.tryAgain')}
                     </Button>
                   </div>
                 ) : !availabilityData || availabilityData.availableCount === 0 ? (
                   <div className="text-center py-8">
                     <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-600">
-                      {availabilityData?.message || "No available slots for this date"}
+                      {availabilityData?.message || "                      t('ui.noAvailableSlots')"}
                     </p>
                   </div>
                 ) : (
@@ -292,7 +294,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ onBookingComplete }) => {
 
                 {selectedSlots.length > 0 && (
                   <div className="mt-6 p-4 bg-tennis-green-50 rounded-xl">
-                    <h4 className="font-semibold text-tennis-green-700 mb-2">Selected Slots:</h4>
+                    <h4 className="font-semibold text-tennis-green-700 mb-2">{t('booking.selectedSlots')}</h4>
                     <div className="flex flex-wrap gap-2">
                       {selectedSlots.map((slot) => (
                         <Badge key={slot} className="bg-tennis-green-100 text-tennis-green-700">
@@ -301,7 +303,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ onBookingComplete }) => {
                       ))}
                     </div>
                     <div className="mt-3 text-xl font-bold text-tennis-green-700">
-                      Total: ${selectedSlots.length * selectedCourt.pricePerHour}
+                      {t('ui.total')}: ${selectedSlots.length * selectedCourt.pricePerHour}
                     </div>
                   </div>
                 )}
@@ -310,7 +312,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ onBookingComplete }) => {
 
             <Card className="premium-card">
               <CardHeader>
-                <CardTitle>Amenities</CardTitle>
+                <CardTitle>{t('booking.amenities')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-3">
@@ -334,10 +336,10 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ onBookingComplete }) => {
               {isBooking ? (
                 <>
                   <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  Booking...
+                  {t('ui.booking')}
                 </>
               ) : (
-                `Book Session (${selectedSlots.length} hour${selectedSlots.length !== 1 ? 's' : ''})`
+                `${t('ui.bookSession')} (${selectedSlots.length} ${selectedSlots.length === 1 ? t('ui.hour') : t('ui.hours')})`
               )}
             </Button>
           </div>
