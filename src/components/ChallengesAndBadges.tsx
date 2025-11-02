@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { Trophy, Target, Clock, Star, Lock, CheckCircle, Zap } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -33,6 +34,7 @@ interface ChallengesAndBadgesProps {
 }
 
 const ChallengesAndBadges: React.FC<ChallengesAndBadgesProps> = ({ onJoinChallenge }) => {
+  const { t } = useTranslation('web');
   const [activeTab, setActiveTab] = useState<'challenges' | 'badges'>('challenges');
 
   const challenges: Challenge[] = [
@@ -128,8 +130,8 @@ const ChallengesAndBadges: React.FC<ChallengesAndBadgesProps> = ({ onJoinChallen
   return (
     <div className="max-w-6xl mx-auto">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Challenges & Achievements</h2>
-        <p className="text-gray-600">Level up your game and earn rewards</p>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">{t('challenges.title')}</h2>
+        <p className="text-gray-600">{t('challenges.subtitle')}</p>
       </div>
 
       {/* Tab Navigation */}
@@ -183,7 +185,7 @@ const ChallengesAndBadges: React.FC<ChallengesAndBadgesProps> = ({ onJoinChallen
               <CardContent className="space-y-4">
                 <div>
                   <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-600">Progress</span>
+                    <span className="text-gray-600">{t('challenges.progress')}</span>
                     <span className="font-medium">
                       {challenge.current}/{challenge.target}
                     </span>
@@ -208,7 +210,7 @@ const ChallengesAndBadges: React.FC<ChallengesAndBadgesProps> = ({ onJoinChallen
                 {challenge.isJoined ? (
                   <div className="flex items-center justify-center p-3 bg-tennis-green-50 rounded-xl">
                     <CheckCircle className="w-5 h-5 text-tennis-green-600 mr-2" />
-                    <span className="text-tennis-green-700 font-medium">Joined</span>
+                    <span className="text-tennis-green-700 font-medium">{t('challenges.joined')}</span>
                   </div>
                 ) : (
                   <Button 

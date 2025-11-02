@@ -1,12 +1,14 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Camera, Wifi, AlertTriangle, CheckCircle, Settings, Plus, Wrench } from 'lucide-react';
 import { toast } from 'sonner';
 
 const CourtInstallations = () => {
+  const { t } = useTranslation('web');
   const [selectedCourt, setSelectedCourt] = useState<any>(null);
 
   // Mock court installation data
@@ -95,8 +97,8 @@ const CourtInstallations = () => {
       {/* Header with Add Installation Button */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Court Installations</h2>
-          <p className="text-gray-600">Monitor and manage court camera installations</p>
+          <h2 className="text-2xl font-bold text-gray-900">{t('admin.courtInstallations')}</h2>
+          <p className="text-gray-600">{t('admin.monitorManage')}</p>
         </div>
         <Button onClick={handleAddInstallation} className="tennis-button">
           <Plus className="w-4 h-4 mr-2" />

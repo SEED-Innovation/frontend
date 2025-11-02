@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,6 +33,7 @@ export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
   user,
   onSuccess
 }) => {
+  const { t } = useTranslation('admin');
   const [confirmText, setConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -77,9 +79,9 @@ export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
               <AlertTriangle className="h-5 w-5 text-red-600" />
             </div>
             <div>
-              <DialogTitle className="text-red-900">Delete User Account</DialogTitle>
+              <DialogTitle className="text-red-900">{t('userManagement.deleteUserTitle')}</DialogTitle>
               <DialogDescription className="text-red-700">
-                This action cannot be undone
+                {t('userManagement.deleteConfirmation')}
               </DialogDescription>
             </div>
           </div>
@@ -94,8 +96,8 @@ export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
                   You are about to permanently delete:
                 </p>
                 <div className="text-sm text-red-800">
-                  <p><strong>Name:</strong> {displayName}</p>
-                  <p><strong>Email:</strong> {user.email}</p>
+                  <p><strong>{t('userManagement.name')}:</strong> {displayName}</p>
+                  <p><strong>{t('userManagement.email')}:</strong> {user.email}</p>
                 </div>
               </div>
             </div>
@@ -116,7 +118,7 @@ export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
 
           <div className="space-y-2">
             <Label htmlFor="confirm-delete" className="text-sm font-medium">
-              Type <span className="font-mono bg-gray-100 px-1 rounded">DELETE</span> to confirm:
+              {t('userManagement.typeDelete')}
             </Label>
             <Input
               id="confirm-delete"
@@ -129,9 +131,7 @@ export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
 
           <div className="rounded-lg bg-amber-50 p-3 border border-amber-200">
             <p className="text-xs text-amber-800">
-              <strong>Note:</strong> This action complies with data protection regulations 
-              and user rights to account deletion. The user will be immediately logged out 
-              from all devices.
+              <strong>Note:</strong> {t('userManagement.dataProtectionNote')}
             </p>
           </div>
         </div>

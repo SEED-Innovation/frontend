@@ -3,12 +3,7 @@
  * Handles all admin-specific user operations
  */
 
-const authHeaders = () => ({
-  'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-  'Content-Type': 'application/json'
-});
-
-const BASE_URL = import.meta.env.VITE_API_URL;
+import { apiClient } from '../client';
 
 // ================================
 // REQUEST TYPES
@@ -73,70 +68,54 @@ export interface AuditEntry {
 // ================================
 
 export async function createAdmin(data: CreateAdminRequest): Promise<CreateAdminResponse> {
-  const response = await fetch(`${BASE_URL}/admin/users/create-admin`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify({
+  try {
+    return await apiClient.post<CreateAdminResponse>('/admin/users/create-admin', {
       ...data,
       returnPlainPassword: data.returnPlainPassword ?? false,
       requirePasswordResetOnFirstLogin: false, // Always create confirmed/permanent
       markEmailVerified: true
-    })
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    
-    if (response.status === 409) {
+    });
+  } catch (error: any) {
+    if (error.status === 409) {
       throw new Error('Email or phone already in use.');
     }
-    if (response.status === 400) {
-      throw new Error(error.message || 'Password does not meet complexity requirements');
+    if (error.status === 400) {
+      throw new Error(error.data?.message || 'Password does not meet complexity requirements');
     }
-    if (response.status === 429) {
+    if (error.status === 429) {
       throw new Error('Rate limit exceeded. Please try again later.');
     }
     
-    throw new Error(error.message || 'Failed to create admin');
+    throw new Error(error.data?.message || 'Failed to create admin');
   }
-
-  return response.json();
 }
 
 export async function resetUserPassword(
   userId: number,
   data: ResetPasswordRequest
 ): Promise<ResetPasswordResponse> {
-  const response = await fetch(`${BASE_URL}/admin/users/reset-password/${userId}`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify({
+  try {
+    return await apiClient.post<ResetPasswordResponse>(`/admin/users/reset-password/${userId}`, {
       ...data,
       requirePasswordResetOnFirstLogin: data.requirePasswordResetOnFirstLogin ?? false,
       returnPlainPassword: data.returnPlainPassword ?? false
-    })
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    
-    if (response.status === 409) {
+    });
+  } catch (error: any) {
+    if (error.status === 409) {
       throw new Error('Enable user before resetting password.');
     }
-    if (response.status === 400) {
-      throw new Error(error.message || 'Password does not meet complexity requirements');
+    if (error.status === 400) {
+      throw new Error(error.data?.message || 'Password does not meet complexity requirements');
     }
-    if (response.status === 404) {
+    if (error.status === 404) {
       throw new Error('User not found');
     }
-    if (response.status === 429) {
+    if (error.status === 429) {
       throw new Error('Rate limit exceeded. Please try again later.');
     }
     
-    throw new Error(error.message || 'Failed to reset password');
+    throw new Error(error.data?.message || 'Failed to reset password');
   }
-
-  return response.json();
 }
 
 export async function updateUserStatus(
