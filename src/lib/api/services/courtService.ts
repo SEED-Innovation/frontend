@@ -88,6 +88,21 @@ export interface UpdateCourtUnavailabilityRequest {
     date: string; // Format: "YYYY-MM-DD"
 }
 
+export interface CourtAvailabilityRequest {
+    courtId: number;
+    date: string; // Format: "YYYY-MM-DD"
+    durationMinutes: number;
+}
+
+export interface CourtAvailabilityResponse {
+    availableSlots: Array<{
+        startTime: string;
+        endTime: string;
+        available: boolean;
+    }>;
+    totalAvailableSlots: number;
+}
+
 class CourtService {
     private baseUrl = `${import.meta.env.VITE_API_URL}/admin/courts`;
 
@@ -719,6 +734,34 @@ class CourtService {
             }
             throw new Error(errorMessage);
         }
+    }
+
+    /**
+     * Check court availability for booking (requires authentication)
+     */
+    async checkAvailability(requestData: CourtAvailabilityRequest): Promise<CourtAvailabilityResponse> {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+        const response = await fetch(`${apiUrl}/courts/availability`, {
+            method: 'POST',
+            headers: this.getAuthHeaders(),
+            body: JSON.stringify(requestData)
+        });
+
+        if (!response.ok) {
+            // Try to extract error message from backend response
+            let errorMessage = `Failed to check court availability: ${response.statusText}`;
+            try {
+                const errorData = await response.text();
+                if (errorData) {
+                    errorMessage = errorData;
+                }
+            } catch (e) {
+                // If parsing fails, use the default message
+            }
+            throw new Error(errorMessage);
+        }
+
+        return response.json();
     }
 }
 

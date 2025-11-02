@@ -229,5 +229,131 @@ export default {
     		}
     	}
     },
-	plugins: [require("tailwindcss-animate")],
+	plugins: [
+		require("tailwindcss-animate"),
+		// RTL Support Plugin
+		function({ addUtilities, addComponents, theme }) {
+			// RTL Utility Classes
+			addUtilities({
+				// Direction utilities
+				'.rtl': {
+					direction: 'rtl',
+				},
+				'.ltr': {
+					direction: 'ltr',
+				},
+				
+				// RTL-safe margins
+				'.ms-0': { 'margin-inline-start': '0' },
+				'.ms-1': { 'margin-inline-start': '0.25rem' },
+				'.ms-2': { 'margin-inline-start': '0.5rem' },
+				'.ms-3': { 'margin-inline-start': '0.75rem' },
+				'.ms-4': { 'margin-inline-start': '1rem' },
+				'.ms-5': { 'margin-inline-start': '1.25rem' },
+				'.ms-6': { 'margin-inline-start': '1.5rem' },
+				'.ms-8': { 'margin-inline-start': '2rem' },
+				'.ms-10': { 'margin-inline-start': '2.5rem' },
+				'.ms-12': { 'margin-inline-start': '3rem' },
+				'.ms-auto': { 'margin-inline-start': 'auto' },
+				
+				'.me-0': { 'margin-inline-end': '0' },
+				'.me-1': { 'margin-inline-end': '0.25rem' },
+				'.me-2': { 'margin-inline-end': '0.5rem' },
+				'.me-3': { 'margin-inline-end': '0.75rem' },
+				'.me-4': { 'margin-inline-end': '1rem' },
+				'.me-5': { 'margin-inline-end': '1.25rem' },
+				'.me-6': { 'margin-inline-end': '1.5rem' },
+				'.me-8': { 'margin-inline-end': '2rem' },
+				'.me-10': { 'margin-inline-end': '2.5rem' },
+				'.me-12': { 'margin-inline-end': '3rem' },
+				'.me-auto': { 'margin-inline-end': 'auto' },
+				
+				// RTL-safe padding
+				'.ps-0': { 'padding-inline-start': '0' },
+				'.ps-1': { 'padding-inline-start': '0.25rem' },
+				'.ps-2': { 'padding-inline-start': '0.5rem' },
+				'.ps-3': { 'padding-inline-start': '0.75rem' },
+				'.ps-4': { 'padding-inline-start': '1rem' },
+				'.ps-5': { 'padding-inline-start': '1.25rem' },
+				'.ps-6': { 'padding-inline-start': '1.5rem' },
+				'.ps-8': { 'padding-inline-start': '2rem' },
+				'.ps-10': { 'padding-inline-start': '2.5rem' },
+				'.ps-12': { 'padding-inline-start': '3rem' },
+				
+				'.pe-0': { 'padding-inline-end': '0' },
+				'.pe-1': { 'padding-inline-end': '0.25rem' },
+				'.pe-2': { 'padding-inline-end': '0.5rem' },
+				'.pe-3': { 'padding-inline-end': '0.75rem' },
+				'.pe-4': { 'padding-inline-end': '1rem' },
+				'.pe-5': { 'padding-inline-end': '1.25rem' },
+				'.pe-6': { 'padding-inline-end': '1.5rem' },
+				'.pe-8': { 'padding-inline-end': '2rem' },
+				'.pe-10': { 'padding-inline-end': '2.5rem' },
+				'.pe-12': { 'padding-inline-end': '3rem' },
+				
+				// Text alignment
+				'.text-start': { 'text-align': 'start' },
+				'.text-end': { 'text-align': 'end' },
+				
+				// Border radius for RTL
+				'.rounded-s': { 'border-start-start-radius': '0.25rem', 'border-end-start-radius': '0.25rem' },
+				'.rounded-e': { 'border-start-end-radius': '0.25rem', 'border-end-end-radius': '0.25rem' },
+				'.rounded-s-lg': { 'border-start-start-radius': '0.5rem', 'border-end-start-radius': '0.5rem' },
+				'.rounded-e-lg': { 'border-start-end-radius': '0.5rem', 'border-end-end-radius': '0.5rem' },
+				
+				// Float utilities
+				'.float-start': { float: 'inline-start' },
+				'.float-end': { float: 'inline-end' },
+				
+				// Transform utilities for RTL
+				'.rtl-flip': {
+					transform: 'scaleX(-1)',
+				},
+				'.rtl-flip-y': {
+					transform: 'scaleY(-1)',
+				},
+				
+				// Position utilities
+				'.start-0': { 'inset-inline-start': '0' },
+				'.start-1': { 'inset-inline-start': '0.25rem' },
+				'.start-2': { 'inset-inline-start': '0.5rem' },
+				'.start-4': { 'inset-inline-start': '1rem' },
+				'.start-auto': { 'inset-inline-start': 'auto' },
+				
+				'.end-0': { 'inset-inline-end': '0' },
+				'.end-1': { 'inset-inline-end': '0.25rem' },
+				'.end-2': { 'inset-inline-end': '0.5rem' },
+				'.end-4': { 'inset-inline-end': '1rem' },
+				'.end-auto': { 'inset-inline-end': 'auto' },
+			});
+			
+			// RTL Component Classes
+			addComponents({
+				'.rtl-container': {
+					'&.rtl': {
+						direction: 'rtl',
+						'text-align': 'right',
+					},
+					'&.ltr': {
+						direction: 'ltr',
+						'text-align': 'left',
+					},
+				},
+				
+				'.rtl-flex': {
+					display: 'flex',
+					'&.rtl': {
+						'flex-direction': 'row-reverse',
+					},
+				},
+				
+				'.rtl-grid': {
+					display: 'grid',
+					'&.rtl': {
+						direction: 'rtl',
+					},
+				},
+			});
+		}
+	],
 } satisfies Config;

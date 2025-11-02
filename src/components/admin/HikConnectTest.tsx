@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +9,7 @@ import { cameraService } from '@/services/cameraService';
 import { Loader2, Cloud, CheckCircle, XCircle } from 'lucide-react';
 
 export default function HikConnectTest() {
+  const { t } = useTranslation('admin');
   const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [cameras, setCameras] = useState<any[]>([]);
@@ -133,12 +135,12 @@ export default function HikConnectTest() {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Cloud className="w-5 h-5" />
-            <span>Hik-Connect Integration Test</span>
+            <span>{t('hikConnect.title')}</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="username">Username/Email</Label>
+            <Label htmlFor="username">{t('hikConnect.username')}</Label>
             <Input
               id="username"
               type="email"
@@ -149,7 +151,7 @@ export default function HikConnectTest() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t('hikConnect.password')}</Label>
             <Input
               id="password"
               type="password"
