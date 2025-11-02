@@ -3,6 +3,8 @@
  * API service for player user operations including language preferences
  */
 
+import { apiClient } from '../client';
+
 export interface LanguagePreferenceResponse {
   languageCode: string;
   displayName: string;
@@ -35,43 +37,20 @@ export interface UserProfile {
   guest: boolean;
 }
 
-const authHeaders = () => ({
-  'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-  'Content-Type': 'application/json'
-});
-
-const BASE_URL = import.meta.env.VITE_API_URL || '';
 const USERS_ENDPOINT = '/users';
 
 /**
  * Get current user profile
  */
 export async function getCurrentUser(): Promise<UserProfile> {
-  const response = await fetch(`${BASE_URL}${USERS_ENDPOINT}/me`, {
-    method: 'GET',
-    headers: authHeaders(),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to get current user: ${response.statusText}`);
-  }
-
-  return response.json();
+  return apiClient.get<UserProfile>(`${USERS_ENDPOINT}/me`);
 }
 
 /**
  * Update user profile
  */
 export async function updateUserProfile(profileData: Partial<UserProfile>): Promise<void> {
-  const response = await fetch(`${BASE_URL}${USERS_ENDPOINT}/me`, {
-    method: 'PATCH',
-    headers: authHeaders(),
-    body: JSON.stringify(profileData),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to update user profile: ${response.statusText}`);
-  }
+  return apiClient.patch<void>(`${USERS_ENDPOINT}/me`, profileData);
 }
 
 /**
@@ -81,36 +60,14 @@ export async function uploadProfilePicture(file: File): Promise<UserProfile> {
   const formData = new FormData();
   formData.append('file', file);
 
-  const response = await fetch(`${BASE_URL}${USERS_ENDPOINT}/profile-picture`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-      // Don't set Content-Type for FormData, let browser set it with boundary
-    },
-    body: formData,
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to upload profile picture: ${response.statusText}`);
-  }
-
-  return response.json();
+  return apiClient.postFormData<UserProfile>(`${USERS_ENDPOINT}/profile-picture`, formData);
 }
 
 /**
  * Get user's language preference
  */
 export async function getLanguagePreference(): Promise<LanguagePreferenceResponse> {
-  const response = await fetch(`${BASE_URL}${USERS_ENDPOINT}/language-preference`, {
-    method: 'GET',
-    headers: authHeaders(),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to get language preference: ${response.statusText}`);
-  }
-
-  return response.json();
+  return apiClient.get<LanguagePreferenceResponse>(`${USERS_ENDPOINT}/language-preference`);
 }
 
 /**
@@ -119,17 +76,7 @@ export async function getLanguagePreference(): Promise<LanguagePreferenceRespons
 export async function updateLanguagePreference(
   request: LanguagePreferenceRequest
 ): Promise<LanguagePreferenceResponse> {
-  const response = await fetch(`${BASE_URL}${USERS_ENDPOINT}/language-preference`, {
-    method: 'PUT',
-    headers: authHeaders(),
-    body: JSON.stringify(request),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to update language preference: ${response.statusText}`);
-  }
-
-  return response.json();
+  return apiClient.put<LanguagePreferenceResponse>(`${USERS_ENDPOINT}/language-preference`, request);
 }
 
 /**
