@@ -238,24 +238,12 @@ const loadCourts = async () => {
         
         setSlotsLoading(true);
         try {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-            const response = await fetch(`${apiUrl}/courts/availability`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    courtId: formData.courtId,
-                    date: format(formData.date, 'yyyy-MM-dd'),
-                    durationMinutes: formData.duration
-                })
+            const data = await courtService.checkAvailability({
+                courtId: formData.courtId,
+                date: format(formData.date, 'yyyy-MM-dd'),
+                durationMinutes: formData.duration
             });
             
-            if (!response.ok) {
-                throw new Error(`Failed to load available slots: ${response.status} ${response.statusText}`);
-            }
-            
-            const data = await response.json();
             console.log('✅ Slot availability response:', data);
             setAvailableSlots(data.availableSlots || []);
         } catch (error) {
