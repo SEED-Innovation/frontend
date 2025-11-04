@@ -176,7 +176,9 @@
     "challenges": "التحديات",
     "upgrade": "ترقية",
     "logout": "تسجيل الخروج",
-    "adminLogin": "دخول الإدارة"
+    "adminLogin": "دخول الإدارة",
+    "login": "تسجيل الدخول",
+    "adminAccess": "الوصول للإدارة"
   },
   "challenges": {
     "title": "التحديات والإنجازات",

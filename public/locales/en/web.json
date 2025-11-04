@@ -862,7 +862,12 @@
       }
     },
     "navigation": {
-      "adminLogin": "Admin Login"
+      "adminLogin": "Admin Login",
+      "courts": "Courts",
+      "leaderboard": "Leaderboard", 
+      "recordings": "Recordings",
+      "login": "Login",
+      "adminAccess": "Admin Access"
     },
     "testimonials": {
       "title": "Trusted by Champions",
@@ -936,20 +941,6 @@
       "contactFormSoon": "Contact form coming soon!",
       "privacySoon": "Privacy policy coming soon!",
       "termsSoon": "Terms coming soon!"
-    },
-    "features": {
-      "booking": {
-        "title": "Easy Booking",
-        "description": "Book tennis courts with just a few clicks"
-      },
-      "tracking": {
-        "title": "Game Tracking",
-        "description": "Track your games and monitor your progress"
-      },
-      "community": {
-        "title": "Tennis Community",
-        "description": "Connect with other tennis players"
-      }
     }
   },
   "session": {
