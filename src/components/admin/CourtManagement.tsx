@@ -16,6 +16,8 @@ import { toast } from 'sonner';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { courtService, CreateCourtRequest, UpdateCourtRequest, SetCourtAvailabilityRequest, SetBulkCourtAvailabilityRequest, AdminCourtAvailabilityResponse } from '@/lib/api/services/courtService';
 import { Court, SportType } from '@/types/court';
+import { getLocalizedCourtTitle, courtMatchesSearch } from '@/utils/courtLocalization';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useCourtsPaged } from '@/lib/hooks/useCourtsPaged';
 import { USE_PAGINATED_COURTS } from '@/lib/config/flags';
 import { PaginationBar } from '@/components/common/PaginationBar';
@@ -40,6 +42,7 @@ import { useTranslation } from 'react-i18next';
 const CourtManagement = () => {
   const { user, hasPermission } = useAdminAuth();
   const { t } = useTranslation('web');
+  const { language } = useLanguage();
 
   // Pagination state
   const [page, setPage] = useState(0);
@@ -420,11 +423,7 @@ const CourtManagement = () => {
 
     // Search term filter
     if (filters.searchTerm) {
-      const searchLower = filters.searchTerm.toLowerCase();
-      const matchesSearch =
-        (court.name?.toLowerCase() || '').includes(searchLower) ||
-        (court.type?.toLowerCase() || '').includes(searchLower) ||
-        (court.location?.toLowerCase() || '').includes(searchLower) ||
+      const matchesSearch = courtMatchesSearch(court, filters.searchTerm, language) ||
         (court.manager?.name?.toLowerCase() || '').includes(searchLower);
       if (!matchesSearch) return false;
     }
@@ -1159,7 +1158,7 @@ const CourtManagement = () => {
                     </div>
 
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                      <CardTitle className="text-lg">{court.name}</CardTitle>
+                      <CardTitle className="text-lg">{getLocalizedCourtTitle(court, language)}</CardTitle>
                       <Badge
                         variant="secondary"
                         className="text-xs"

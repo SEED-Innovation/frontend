@@ -12,6 +12,8 @@ export interface CreateCourtRequest {
     amenities: string[];
     imageUrl?: string;
     description?: string;
+    titleAr?: string;
+    descriptionAr?: string;
     latitude?: number;
     longitude?: number;
     manager_id?: number | null;
@@ -26,6 +28,8 @@ export interface UpdateCourtRequest {
     hasSeedSystem?: boolean;
     amenities?: string[];
     description?: string;
+    titleAr?: string;
+    descriptionAr?: string;
     latitude?: number;
     longitude?: number;
     imageUrl?: string | null;

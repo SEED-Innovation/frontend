@@ -64,6 +64,8 @@ export default function EnhancedCourtForm({
     amenities: [],
     imageUrl: '',
     description: '',
+    titleAr: '',
+    descriptionAr: '',
     latitude: undefined,
     longitude: undefined,
     managerId: ''
@@ -205,6 +207,8 @@ export default function EnhancedCourtForm({
       hasSeedSystem: formData.hasSeedSystem,
       amenities: formData.amenities,
       description: formData.description || undefined,
+      titleAr: formData.titleAr || undefined,
+      descriptionAr: formData.descriptionAr || undefined,
       latitude: formData.latitude,
       longitude: formData.longitude,
       manager_id: formData.managerId && formData.managerId !== 'none' 
@@ -233,6 +237,8 @@ export default function EnhancedCourtForm({
         amenities: [],
         imageUrl: '',
         description: '',
+        titleAr: '',
+        descriptionAr: '',
         latitude: undefined,
         longitude: undefined,
         managerId: ''
@@ -561,7 +567,7 @@ export default function EnhancedCourtForm({
 
               {/* Description */}
               <div>
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">Description (English)</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
@@ -575,6 +581,45 @@ export default function EnhancedCourtForm({
                 />
                 <p className="text-sm text-muted-foreground mt-1">
                   {formData.description?.length || 0}/500
+                </p>
+              </div>
+
+              {/* Arabic Title */}
+              <div>
+                <Label htmlFor="titleAr">Title (Arabic)</Label>
+                <Input
+                  id="titleAr"
+                  value={formData.titleAr}
+                  onChange={(e) => {
+                    if (e.target.value.length <= 255) {
+                      handleInputChange('titleAr', e.target.value);
+                    }
+                  }}
+                  placeholder="اسم الملعب بالعربية"
+                  dir="rtl"
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  {formData.titleAr?.length || 0}/255
+                </p>
+              </div>
+
+              {/* Arabic Description */}
+              <div>
+                <Label htmlFor="descriptionAr">Description (Arabic)</Label>
+                <Textarea
+                  id="descriptionAr"
+                  value={formData.descriptionAr}
+                  onChange={(e) => {
+                    if (e.target.value.length <= 500) {
+                      handleInputChange('descriptionAr', e.target.value);
+                    }
+                  }}
+                  placeholder="وصف الملعب بالعربية"
+                  rows={3}
+                  dir="rtl"
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  {formData.descriptionAr?.length || 0}/500
                 </p>
               </div>
 

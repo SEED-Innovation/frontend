@@ -13,6 +13,8 @@ export interface Court {
   amenities?: string[];
   techFeatures?: string[];
   description?: string | null;
+  titleAr?: string | null;
+  descriptionAr?: string | null;
   managerId?: number | null;
   manager?: { name?: string; email?: string; profilePictureUrl?: string } | null; // present for SUPER_ADMIN
   status?: 'AVAILABLE' | 'UNAVAILABLE';
