@@ -387,9 +387,9 @@ const Landing = () => {
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <AppStoreButton
                   variant="appstore"
-                  disabled={true}
+                  href="https://apps.apple.com/app/seed-%D8%B3%D9%8A%D9%8A%D8%AF/id6754299638"
                   size="sm"
-                  className="bg-black/50 backdrop-blur-md border border-white/20 transition-all duration-300"
+                  className="bg-black/50 backdrop-blur-md border border-white/20 hover:bg-black/70 hover:border-white/30 transition-all duration-300"
                 />
               </motion.div>
             </motion.div>
@@ -763,7 +763,7 @@ const Landing = () => {
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <AppStoreButton
                     variant="appstore"
-                    disabled={true}
+                    href="https://apps.apple.com/app/seed-%D8%B3%D9%8A%D9%8A%D8%AF/id6754299638"
                     size="lg"
                     className="w-full sm:w-auto"
                   />
@@ -1001,9 +1001,9 @@ const Landing = () => {
                   />
                   <AppStoreButton
                     variant="appstore"
-                    disabled={true}
+                    href="https://apps.apple.com/app/seed-%D8%B3%D9%8A%D9%8A%D8%AF/id6754299638"
                     size="sm"
-                    className="bg-gray-800 border-gray-600"
+                    className="bg-gray-800 hover:bg-gray-700 border-gray-600 hover:border-gray-500"
                   />
                 </div>
               </div>
