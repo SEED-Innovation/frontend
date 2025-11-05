@@ -40,7 +40,7 @@ export const notificationService = {
    */
   async getPromotionalStats(): Promise<{ data: NotificationStats }> {
     const response = await apiClient.get('/api/notifications/admin/promotional-stats');
-    return response.data;
+    return response;
   },
 
   /**
@@ -48,7 +48,7 @@ export const notificationService = {
    */
   async sendPromotionalNotification(request: PromotionalNotificationRequest): Promise<{ data: PromotionalNotificationResponse }> {
     const response = await apiClient.post('/api/notifications/admin/send-promotional', request);
-    return response.data;
+    return response;
   },
 
   /**
@@ -56,6 +56,6 @@ export const notificationService = {
    */
   async testPromotionalNotification(request: TestPromotionalNotificationRequest): Promise<{ data: any }> {
     const response = await apiClient.post('/api/notifications/admin/test-promotional', request);
-    return response.data;
+    return response;
   }
 };

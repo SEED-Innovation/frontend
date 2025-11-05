@@ -104,7 +104,6 @@ const NotificationManagement: React.FC = () => {
       };
 
       const response = await notificationService.sendPromotionalNotification(request);
-      console.log('Notification response:', response);
       setLastResult(response.data);
       
       toast({
@@ -126,12 +125,6 @@ const NotificationManagement: React.FC = () => {
       
     } catch (error: any) {
       console.error('Failed to send notification:', error);
-      console.error('Error structure:', {
-        message: error.message,
-        data: error.data,
-        status: error.status,
-        response: error.response
-      });
       toast({
         title: 'Error',
         description: error.message || error.data?.message || 'Failed to send notification',
