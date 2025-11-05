@@ -29,9 +29,7 @@ import { notificationService, NotificationStats, PromotionalNotificationResponse
 interface NotificationForm {
   title: string;
   body: string;
-  targetType: 'ALL' | 'BY_LANGUAGE' | 'SPECIFIC_USERS';
-  targetLanguage?: string;
-  targetUserIds?: string[];
+  targetType: 'ALL';
   language: string;
   customData?: { [key: string]: any };
   scheduledAt?: string;
@@ -101,8 +99,6 @@ const NotificationManagement: React.FC = () => {
         body: form.body,
         targetType: form.targetType,
         language: form.language,
-        targetLanguage: form.targetType === 'BY_LANGUAGE' ? form.targetLanguage : undefined,
-        targetUserIds: form.targetType === 'SPECIFIC_USERS' ? form.targetUserIds : undefined,
         customData: form.customData,
         scheduledAt: form.scheduledAt
       };
@@ -179,17 +175,7 @@ const NotificationManagement: React.FC = () => {
   };
 
   const getTargetDescription = () => {
-    switch (form.targetType) {
-      case 'ALL':
-        return `All ${stats?.totalActiveDevices || 0} active users`;
-      case 'BY_LANGUAGE':
-        const langCount = form.targetLanguage ? stats?.devicesByLanguage[form.targetLanguage] || 0 : 0;
-        return `${langCount} users with ${form.targetLanguage === 'ar' ? 'Arabic' : 'English'} language`;
-      case 'SPECIFIC_USERS':
-        return `${form.targetUserIds?.length || 0} specific users`;
-      default:
-        return 'No target selected';
-    }
+    return `All ${stats?.totalActiveDevices || 0} active users`;
   };
 
   return (
@@ -279,8 +265,7 @@ const NotificationManagement: React.FC = () => {
         </Card>
       </div>
 
-export default NotificationManagement;      {
-/* Main Content */}
+      {/* Main Content */}
       <Tabs defaultValue="broadcast" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="broadcast">Broadcast Notification</TabsTrigger>
@@ -347,53 +332,6 @@ export default NotificationManagement;      {
                 </div>
 
                 <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="targetType">Target Audience</Label>
-                    <Select value={form.targetType} onValueChange={(value: any) => setForm({ ...form, targetType: value })}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ALL">All Users</SelectItem>
-                        <SelectItem value="BY_LANGUAGE">By Language</SelectItem>
-                        <SelectItem value="SPECIFIC_USERS">Specific Users</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {form.targetType === 'BY_LANGUAGE' && (
-                    <div>
-                      <Label htmlFor="targetLanguage">Target Language</Label>
-                      <Select value={form.targetLanguage} onValueChange={(value) => setForm({ ...form, targetLanguage: value })}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select language" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="en">English Users</SelectItem>
-                          <SelectItem value="ar">Arabic Users</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-
-                  {form.targetType === 'SPECIFIC_USERS' && (
-                    <div>
-                      <Label htmlFor="targetUsers">Target User IDs</Label>
-                      <Textarea
-                        id="targetUsers"
-                        placeholder="Enter user IDs separated by commas..."
-                        onChange={(e) => {
-                          const userIds = e.target.value.split(',').map(id => id.trim()).filter(id => id);
-                          setForm({ ...form, targetUserIds: userIds });
-                        }}
-                        rows={3}
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Enter user IDs separated by commas (max 1000 users)
-                      </p>
-                    </div>
-                  )}
-
                   {/* Target Summary */}
                   <Alert>
                     <Target className="h-4 w-4" />
