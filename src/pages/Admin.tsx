@@ -15,6 +15,7 @@ import SystemAnalytics from '@/components/admin/SystemAnalytics';
 import AdminSettings from '@/components/admin/AdminSettings';
 import AdminProfile from '@/components/admin/AdminProfile';
 import CameraManagement from '@/components/admin/CameraManagement';
+import NotificationManagement from '@/components/admin/NotificationManagement';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import AdminBooking from '@/components/admin/AdminBooking';
 
@@ -63,6 +64,7 @@ const Admin = () => {
             <Route path="/payments" element={<PaymentManagement />} />
             <Route path="/analytics" element={<SystemAnalytics />} />
             <Route path="/cameras" element={<CameraManagement />} />
+            <Route path="/notifications" element={<NotificationManagement />} />
             <Route path="/settings" element={<AdminSettings />} />
             <Route path="/profile" element={<AdminProfile />} />
             <Route path="/reports" element={<ReportsAnalytics />} />

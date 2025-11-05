@@ -11,7 +11,8 @@ import {
   Trophy,
   Clock,
   MapPin,
-  Camera
+  Camera,
+  Bell
 } from 'lucide-react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { cn } from '@/lib/utils';
@@ -57,6 +58,12 @@ const sidebarItems: SidebarItem[] = [
     titleKey: 'admin.menu.cameras',
     href: '/admin/cameras',
     icon: Camera,
+    superAdminOnly: true,
+  },
+  {
+    titleKey: 'admin.menu.notifications',
+    href: '/admin/notifications',
+    icon: Bell,
     superAdminOnly: true,
   },
   {
