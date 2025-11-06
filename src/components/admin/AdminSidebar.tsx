@@ -12,7 +12,8 @@ import {
   Clock,
   MapPin,
   Camera,
-  Bell
+  Bell,
+  Building
 } from 'lucide-react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { cn } from '@/lib/utils';
@@ -39,9 +40,14 @@ const sidebarItems: SidebarItem[] = [
     superAdminOnly: true,
   },
   {
+    titleKey: 'admin.menu.facilities',
+    href: '/admin/facilities',
+    icon: Building,
+  },
+  {
     titleKey: 'admin.menu.courts',
     href: '/admin/courts',
-    icon: MapPin,
+    icon: Trophy,
   },
   {
     titleKey: 'admin.menu.bookings',

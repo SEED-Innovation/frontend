@@ -189,7 +189,6 @@ const loadCourts = async () => {
             name: court.name,
             location: court.location,
             type: court.type,
-            hourlyFee: court.hourlyFee,
             hasSeedSystem: court.hasSeedSystem,
             imageUrl: court.imageUrl || '',
             amenities: court.amenities || [],
@@ -816,7 +815,7 @@ const loadCourts = async () => {
                                                             <div className="flex-1 min-w-0">
                                                                 <div className="font-medium truncate">{court.name}</div>
                                                                 <div className="text-xs text-gray-500 truncate flex items-center gap-1">
-                                                                    {court.location} - <CurrencyDisplay amount={court.hourlyFee} size="sm" showSymbol />/hr
+                                                                    {court.location} - <CurrencyDisplay amount={court.facility?.hourlyFee || 0} size="sm" showSymbol />/hr
                                                                 </div>
                                                             </div>
                                                         </div>

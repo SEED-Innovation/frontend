@@ -1,27 +1,25 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Edit, Trash2, Settings, Calendar, DollarSign, Loader2, Search, Filter, X, RefreshCw, Percent, TagIcon } from 'lucide-react';
+import { Plus, Edit, Trash2, Settings, Calendar, Loader2, Search, Filter, X, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
-import { courtService, CreateCourtRequest, UpdateCourtRequest, SetCourtAvailabilityRequest, SetBulkCourtAvailabilityRequest, AdminCourtAvailabilityResponse } from '@/lib/api/services/courtService';
+import { courtService, CreateCourtRequest, UpdateCourtRequest, SetBulkCourtAvailabilityRequest } from '@/lib/api/services/courtService';
 import { Court, SportType } from '@/types/court';
 import { getLocalizedCourtTitle, courtMatchesSearch } from '@/utils/courtLocalization';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCourtsPaged } from '@/lib/hooks/useCourtsPaged';
 import { USE_PAGINATED_COURTS } from '@/lib/config/flags';
 import { PaginationBar } from '@/components/common/PaginationBar';
-import { adminService } from '@/services/adminService';
 import { userService } from '@/services/userService';
 import { AdminUser } from '@/types/admin';
 import EnhancedCourtForm from './EnhancedCourtForm';
@@ -30,12 +28,9 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-// Import new components
 import { AvailabilityTable } from './availability/AvailabilityTable';
 import { UnavailabilityTable } from './unavailability/UnavailabilityTable';
 import { UnavailabilityForm } from './unavailability/UnavailabilityForm';
-import { DiscountModal } from './DiscountModal';
 import { CurrencyDisplay } from '@/components/ui/currency-display';
 import { useTranslation } from 'react-i18next';
 
@@ -56,26 +51,11 @@ const CourtManagement = () => {
   const [admins, setAdmins] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [adminsLoading, setAdminsLoading] = useState(false);
-  const [managerComboboxOpen, setManagerComboboxOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingCourt, setEditingCourt] = useState<Court | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [courtToDelete, setCourtToDelete] = useState<Court | null>(null);
-  const [discountModalOpen, setDiscountModalOpen] = useState(false);
-  const [discountCourt, setDiscountCourt] = useState<Court | null>(null);
-  const [removeDiscountDialogOpen, setRemoveDiscountDialogOpen] = useState(false);
-  const [courtToRemoveDiscount, setCourtToRemoveDiscount] = useState<Court | null>(null);
-
-  const [newCourt, setNewCourt] = useState<CreateCourtRequest & { managerId?: string }>({
-    name: '',
-    type: '',
-    location: '',
-    hourlyFee: 0,
-    hasSeedSystem: false,
-    amenities: [],
-    managerId: ''
-  });
 
   const [availabilityData, setAvailabilityData] = useState({
     courtId: 0,
@@ -87,13 +67,6 @@ const CourtManagement = () => {
   });
   const [courtSearchOpen, setCourtSearchOpen] = useState(false);
   const [courtSearchValue, setCourtSearchValue] = useState("");
-
-  // Location filter state
-  const [locationSearchOpen, setLocationSearchOpen] = useState(false);
-  const [locationSearchValue, setLocationSearchValue] = useState("");
-  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
-  const [customLocationInput, setCustomLocationInput] = useState("");
-  const [showCustomLocationInput, setShowCustomLocationInput] = useState(false);
 
   // Advanced filtering state
   const [filters, setFilters] = useState({
@@ -108,24 +81,11 @@ const CourtManagement = () => {
 
   // Sport type filter state
   const [selectedSportType, setSelectedSportType] = useState<SportType | 'ALL'>('ALL');
-
-  // Manager filter state
-  const [managerSearchOpen, setManagerSearchOpen] = useState(false);
-  const [managerSearchValue, setManagerSearchValue] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
   // Get current courts data based on feature flag
   const currentCourts = USE_PAGINATED_COURTS ? (pagedData?.courts || []) : courts;
   const isCurrentlyLoading = USE_PAGINATED_COURTS ? pagedLoading : loading;
-
-  // Debug logging
-  console.log('DEBUG CourtManagement:', {
-    USE_PAGINATED_COURTS,
-    pagedData,
-    currentCourts: currentCourts.length,
-    page,
-    pageSize
-  });
 
   // Fetch courts on component mount - only if not using paginated API
   useEffect(() => {
@@ -207,66 +167,6 @@ const CourtManagement = () => {
     }
   };
 
-  const handleDiscountCourt = (court: Court) => {
-    setDiscountCourt(court);
-    setDiscountModalOpen(true);
-  };
-
-  const handleRemoveDiscount = async (court: Court) => {
-    try {
-      const updatedCourt = await courtService.removeDiscount(court.id);
-
-      setCourts(prev => prev.map(c =>
-        c.id === court.id ? updatedCourt : c
-      ));
-
-      toast.success(`Discount removed from ${court.name}`);
-    } catch (error: any) {
-      console.error('Error removing discount:', error);
-
-      // Handle specific case where no discount exists
-      if (error.message?.includes('No discount') || error.message?.includes('not found')) {
-        toast.error("No discount currently applied to this court");
-      } else {
-        toast.error(error.message || "Failed to remove discount. Please try again.");
-      }
-    }
-  };
-
-  const confirmRemoveDiscount = async () => {
-    if (!courtToRemoveDiscount) return;
-
-    try {
-      const updatedCourt = await courtService.removeDiscount(courtToRemoveDiscount.id);
-
-      // Update the court in local state
-      setCourts(courts.map(court =>
-        court.id === courtToRemoveDiscount.id ? updatedCourt : court
-      ));
-
-      toast.success('Discount removed successfully');
-      setRemoveDiscountDialogOpen(false);
-      setCourtToRemoveDiscount(null);
-    } catch (error) {
-      console.error('Error removing discount:', error);
-      toast.error('Failed to remove discount');
-    }
-  };
-
-  const handleCourtUpdated = (updatedCourt: Court) => {
-    if (USE_PAGINATED_COURTS) {
-      // Refetch paginated data
-      refetchPaged();
-    } else {
-      // Update the court in the local state
-      setCourts(prevCourts =>
-        prevCourts.map(court =>
-          court.id === updatedCourt.id ? updatedCourt : court
-        )
-      );
-    }
-  };
-
   const handleUpdateCourt = async (courtData: UpdateCourtRequest, imageFile?: File): Promise<boolean> => {
     if (!editingCourt) return false;
 
@@ -297,18 +197,7 @@ const CourtManagement = () => {
 
     // ADMIN can manage courts assigned to them
     if (user?.role === 'ADMIN') {
-      console.log('Checking ADMIN permissions for court:', {
-        courtId: court.id,
-        courtManagerId: court.managerId,
-        userId: user.id,
-        userRole: user.role,
-        managerIdType: typeof court.managerId,
-        userIdType: typeof user.id
-      });
-
-      // For now, let ADMIN manage all courts to test
-      console.log('ADMIN can manage court - testing all courts');
-      return true;
+      return true; // For now, let ADMIN manage all courts
     }
 
     return false;
@@ -398,22 +287,6 @@ const CourtManagement = () => {
     }
   };
 
-  const getStatusColor = (status?: string) => {
-    switch (status) {
-      case 'AVAILABLE': return 'bg-green-100 text-green-800';
-      case 'UNAVAILABLE': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusDisplay = (status?: string) => {
-    switch (status) {
-      case 'AVAILABLE': return 'Available';
-      case 'UNAVAILABLE': return 'Unavailable';
-      default: return 'Unknown';
-    }
-  };
-
   // Advanced filtering logic
   const filteredCourts = currentCourts.filter((court) => {
     // Sport type filter
@@ -423,6 +296,7 @@ const CourtManagement = () => {
 
     // Search term filter
     if (filters.searchTerm) {
+      const searchLower = filters.searchTerm.toLowerCase();
       const matchesSearch = courtMatchesSearch(court, filters.searchTerm, language) ||
         (court.manager?.name?.toLowerCase() || '').includes(searchLower);
       if (!matchesSearch) return false;
@@ -436,16 +310,12 @@ const CourtManagement = () => {
     // Type filter
     if (filters.type && filters.type !== 'all-types' && court.type !== filters.type) return false;
 
-    // Location filter
-    if (selectedLocations.length > 0 && !selectedLocations.includes('all-locations')) {
-      if (!selectedLocations.includes(court.location || '')) return false;
-    }
-
     // Status filter
     if (filters.status && filters.status !== 'all-status' && court.status !== filters.status) return false;
 
-    // Price range filter
-    if ((court.hourlyFee || 0) < filters.priceRange[0] || (court.hourlyFee || 0) > filters.priceRange[1]) return false;
+    // Price range filter (using facility pricing)
+    const courtHourlyFee = court.facility?.hourlyFee || 0;
+    if (courtHourlyFee < filters.priceRange[0] || courtHourlyFee > filters.priceRange[1]) return false;
 
     // Seed system filter
     if (filters.hasSeedSystem !== '' && filters.hasSeedSystem !== 'all-courts') {
@@ -460,7 +330,7 @@ const CourtManagement = () => {
   const uniqueTypes = [...new Set(currentCourts.map(court => court.type))].filter(Boolean);
   const uniqueLocations = [...new Set(currentCourts.map(court => court.location))].filter(Boolean);
   const uniqueManagers = [...new Set(currentCourts.map(court => court.manager?.name).filter(Boolean))];
-  const maxPrice = Math.max(...currentCourts.map(court => court.hourlyFee || 0), 300);
+  const maxPrice = Math.max(...currentCourts.map(court => court.facility?.hourlyFee || 0), 300);
 
   // Clear all filters
   const clearFilters = () => {
@@ -473,7 +343,6 @@ const CourtManagement = () => {
       priceRange: [0, maxPrice],
       hasSeedSystem: 'all-courts',
     });
-    setSelectedLocations([]);
   };
 
   // Check if any filters are active
@@ -481,36 +350,9 @@ const CourtManagement = () => {
     filters.searchTerm !== '' ||
     (filters.manager !== '' && filters.manager !== 'all-managers') ||
     (filters.type !== '' && filters.type !== 'all-types') ||
-    selectedLocations.length > 0 ||
     (filters.status !== '' && filters.status !== 'all-status') ||
     (filters.hasSeedSystem !== '' && filters.hasSeedSystem !== 'all-courts') ||
     filters.priceRange[0] !== 0 || filters.priceRange[1] !== maxPrice;
-
-  // Location filter handlers
-  const handleLocationSelect = (location: string) => {
-    if (location === 'all-locations') {
-      setSelectedLocations([]);
-    } else {
-      setSelectedLocations(prev =>
-        prev.includes(location)
-          ? prev.filter(loc => loc !== location)
-          : [...prev, location]
-      );
-    }
-  };
-
-  const handleAddCustomLocation = () => {
-    if (customLocationInput.trim() && !uniqueLocations.includes(customLocationInput.trim())) {
-      const newLocation = customLocationInput.trim();
-      setSelectedLocations(prev => [...prev, newLocation]);
-      setCustomLocationInput("");
-      setShowCustomLocationInput(false);
-    }
-  };
-
-  const removeLocationFilter = (locationToRemove: string) => {
-    setSelectedLocations(prev => prev.filter(loc => loc !== locationToRemove));
-  };
 
   return (
     <motion.div
@@ -556,101 +398,48 @@ const CourtManagement = () => {
             </>
           )}
         </div>
-
-        {/* Edit Court Dialog */}
-        <EditCourtForm
-          open={editDialogOpen}
-          onOpenChange={setEditDialogOpen}
-          court={editingCourt}
-          onSubmit={handleUpdateCourt}
-          admins={admins}
-          adminsLoading={adminsLoading}
-        />
-
-        {/* Delete Confirmation Dialog */}
-        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Confirm Delete</DialogTitle>
-            </DialogHeader>
-            {courtToDelete && (
-              <div className="space-y-4">
-                <p className="text-gray-600">
-                  Are you sure you want to delete <strong>{courtToDelete.name}</strong>?
-                  This action cannot be undone and will remove all related data.
-                </p>
-                <div className="flex gap-2">
-                  <Button
-                    variant="destructive"
-                    onClick={() => handleDeleteCourt(courtToDelete.id)}
-                    className="flex-1"
-                  >
-                    Delete Court
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setDeleteDialogOpen(false)}
-                    className="flex-1"
-                  >{t('admin.common.cancel')}</Button>
-                </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
-
-        {/* Remove Discount Confirmation Dialog */}
-        <Dialog open={removeDiscountDialogOpen} onOpenChange={setRemoveDiscountDialogOpen}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Remove Discount</DialogTitle>
-            </DialogHeader>
-            {courtToRemoveDiscount && (
-              <div className="space-y-4">
-                <p className="text-gray-600">
-                  Are you sure you want to remove the discount from <strong>{courtToRemoveDiscount.name}</strong>?
-                </p>
-                <div className="bg-muted/50 p-3 rounded-lg">
-                  <div className="text-sm text-muted-foreground mb-1">Current pricing:</div>
-                  <div className="flex items-center gap-2">
-                    <div className="line-through text-muted-foreground text-sm">
-                      <CurrencyDisplay amount={courtToRemoveDiscount.hourlyFee || 0} size="sm" />
-                    </div>
-                    <span className="text-muted-foreground">→</span>
-                    <div className="text-primary font-semibold">
-                      <CurrencyDisplay
-                        amount={courtToRemoveDiscount.isPercentage
-                          ? Math.max(0, (courtToRemoveDiscount.hourlyFee || 0) * (1 - (courtToRemoveDiscount.discountAmount || 0) / 100))
-                          : Math.max(0, (courtToRemoveDiscount.hourlyFee || 0) - (courtToRemoveDiscount.discountAmount || 0))
-                        }
-                        size="md"
-                      />
-                    </div>
-                  </div>
-                  <div className="text-sm text-muted-foreground mt-2">
-                    After removal: <span className="font-medium text-foreground">
-                      <CurrencyDisplay amount={courtToRemoveDiscount.hourlyFee || 0} size="sm" />
-                    </span>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="destructive"
-                    onClick={confirmRemoveDiscount}
-                    className="flex-1"
-                  >
-                    Remove Discount
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setRemoveDiscountDialogOpen(false)}
-                    className="flex-1"
-                  >{t('admin.common.cancel')}</Button>
-                </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
       </div>
+
+      {/* Edit Court Dialog */}
+      <EditCourtForm
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        court={editingCourt}
+        onSubmit={handleUpdateCourt}
+        admins={admins}
+        adminsLoading={adminsLoading}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Delete</DialogTitle>
+          </DialogHeader>
+          {courtToDelete && (
+            <div className="space-y-4">
+              <p className="text-gray-600">
+                Are you sure you want to delete <strong>{courtToDelete.name}</strong>?
+                This action cannot be undone and will remove all related data.
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="destructive"
+                  onClick={() => handleDeleteCourt(courtToDelete.id)}
+                  className="flex-1"
+                >
+                  Delete Court
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setDeleteDialogOpen(false)}
+                  className="flex-1"
+                >{t('admin.common.cancel')}</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Tabs defaultValue="courts" className="space-y-6">
         <TabsList className={`grid w-full p-2 bg-gradient-to-r from-admin-surface to-admin-secondary border-2 border-border rounded-xl h-16 ${(hasPermission('SUPER_ADMIN') || hasPermission('ADMIN')) ? 'grid-cols-3' : 'grid-cols-1'}`}>
@@ -722,11 +511,6 @@ const CourtManagement = () => {
               </Button>
             </div>
             <div className="text-sm text-muted-foreground">
-              {USE_PAGINATED_COURTS /*&& (
-                <div className="mb-2 p-2 bg-blue-50 text-blue-700 rounded-md text-xs">
-                  Courts loaded in pages of {pageSize}
-                </div>
-              )*/}
               {selectedSportType === 'ALL'
                 ? `Showing all ${USE_PAGINATED_COURTS ? (pagedData?.totalElements || 0) : currentCourts.length} courts`
                 : `Showing ${currentCourts.filter(court => court.sportType === selectedSportType).length} ${selectedSportType.toLowerCase()} courts`
@@ -760,7 +544,6 @@ const CourtManagement = () => {
                       filters.searchTerm !== '',
                       filters.manager !== '' && filters.manager !== 'all-managers',
                       filters.type !== '' && filters.type !== 'all-types',
-                      selectedLocations.length > 0,
                       filters.status !== '' && filters.status !== 'all-status',
                       filters.hasSeedSystem !== '' && filters.hasSeedSystem !== 'all-courts',
                       filters.priceRange[0] !== 0 || filters.priceRange[1] !== maxPrice
@@ -789,79 +572,25 @@ const CourtManagement = () => {
                 className="bg-muted/30 rounded-lg p-6 space-y-4"
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                  {/* Manager Filter - First */}
+                  {/* Manager Filter */}
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Manager</Label>
-                    <Popover open={managerSearchOpen} onOpenChange={setManagerSearchOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          aria-expanded={managerSearchOpen}
-                          className="w-full justify-between"
-                        >
-                          {filters.manager === '' || filters.manager === 'all-managers'
-                            ? "All Managers"
-                            : filters.manager}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-full p-0">
-                        <Command>
-                          <CommandInput
-                            placeholder="Search managers..."
-                            value={managerSearchValue}
-                            onValueChange={setManagerSearchValue}
-                          />
-                          <CommandList>
-                            <CommandEmpty>No manager found.</CommandEmpty>
-                            <CommandGroup>
-                              <CommandItem
-                                value="all-managers"
-                                onSelect={() => {
-                                  setFilters(prev => ({ ...prev, manager: '' }));
-                                  setManagerSearchOpen(false);
-                                  setManagerSearchValue("");
-                                }}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    filters.manager === '' || filters.manager === 'all-managers' ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                                All Managers
-                              </CommandItem>
-                              {uniqueManagers
-                                .filter((managerName) => {
-                                  return managerName.toLowerCase().includes(managerSearchValue.toLowerCase());
-                                })
-                                .map((managerName) => {
-                                  return (
-                                    <CommandItem
-                                      key={managerName}
-                                      value={managerName}
-                                      onSelect={() => {
-                                        setFilters(prev => ({ ...prev, manager: managerName }));
-                                        setManagerSearchOpen(false);
-                                        setManagerSearchValue("");
-                                      }}
-                                    >
-                                      <Check
-                                        className={cn(
-                                          "mr-2 h-4 w-4",
-                                          filters.manager === managerName ? "opacity-100" : "opacity-0"
-                                        )}
-                                      />
-                                      {managerName}
-                                    </CommandItem>
-                                  );
-                                })}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
+                    <Select
+                      value={filters.manager}
+                      onValueChange={(value) => setFilters(prev => ({ ...prev, manager: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Managers" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all-managers">All Managers</SelectItem>
+                        {uniqueManagers.map((managerName) => (
+                          <SelectItem key={managerName} value={managerName}>
+                            {managerName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {/* Type Filter */}
@@ -887,168 +616,28 @@ const CourtManagement = () => {
 
                   {/* Location Filter */}
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">{t('admin.forms.labels.location')}</Label>
-                    <Popover open={locationSearchOpen} onOpenChange={setLocationSearchOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          aria-expanded={locationSearchOpen}
-                          className="w-full justify-between"
-                        >
-                          {selectedLocations.length === 0
-                            ? "All Locations"
-                            : selectedLocations.length === 1
-                              ? selectedLocations[0]
-                              : `${selectedLocations.length} locations selected`}
-                          <div className="flex items-center gap-1">
-                            {selectedLocations.length > 0 && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedLocations([]);
-                                }}
-                              >
-                                <X className="h-3 w-3" />
-                              </Button>
-                            )}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </div>
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-full p-0">
-                        <Command>
-                          <CommandInput
-                            placeholder="Search locations..."
-                            value={locationSearchValue}
-                            onValueChange={setLocationSearchValue}
-                          />
-                          <CommandList>
-                            <CommandEmpty>
-                              <div className="p-2 space-y-2">
-                                <p className="text-sm text-muted-foreground">No location found.</p>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setShowCustomLocationInput(true)}
-                                  className="w-full"
-                                >
-                                  <Plus className="w-3 h-3 mr-1" />
-                                  Add Custom Location
-                                </Button>
-                              </div>
-                            </CommandEmpty>
-                            <CommandGroup>
-                              <CommandItem
-                                value="all-locations"
-                                onSelect={() => handleLocationSelect('all-locations')}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    selectedLocations.length === 0 ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                                All Locations
-                              </CommandItem>
-                              {uniqueLocations
-                                .filter((location) =>
-                                  location.toLowerCase().includes(locationSearchValue.toLowerCase())
-                                )
-                                .map((location) => (
-                                  <CommandItem
-                                    key={location}
-                                    value={location}
-                                    onSelect={() => handleLocationSelect(location)}
-                                  >
-                                    <Check
-                                      className={cn(
-                                        "mr-2 h-4 w-4",
-                                        selectedLocations.includes(location) ? "opacity-100" : "opacity-0"
-                                      )}
-                                    />
-                                    {location}
-                                  </CommandItem>
-                                ))}
-                              <CommandItem
-                                value="add-custom"
-                                onSelect={() => setShowCustomLocationInput(true)}
-                                className="border-t"
-                              >
-                                <Plus className="mr-2 h-4 w-4" />
-                                Add Custom Location
-                              </CommandItem>
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-
-                    {/* Custom Location Input */}
-                    {showCustomLocationInput && (
-                      <div className="flex gap-2 mt-2">
-                        <Input
-                          placeholder="Enter location name..."
-                          value={customLocationInput}
-                          onChange={(e) => setCustomLocationInput(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              handleAddCustomLocation();
-                            }
-                            if (e.key === 'Escape') {
-                              setShowCustomLocationInput(false);
-                              setCustomLocationInput("");
-                            }
-                          }}
-                          className="flex-1"
-                          autoFocus
-                        />
-                        <Button
-                          size="sm"
-                          onClick={handleAddCustomLocation}
-                          disabled={!customLocationInput.trim()}
-                        >{t('admin.common.add')}</Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setShowCustomLocationInput(false);
-                            setCustomLocationInput("");
-                          }}
-                        >{t('admin.common.cancel')}</Button>
-                      </div>
-                    )}
-
-                    {/* Selected Locations Tags */}
-                    {selectedLocations.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {selectedLocations.map((location) => (
-                          <Badge
-                            key={location}
-                            variant="secondary"
-                            className="text-xs flex items-center gap-1"
-                          >
+                    <Label className="text-sm font-medium">Location</Label>
+                    <Select
+                      value={filters.location}
+                      onValueChange={(value) => setFilters(prev => ({ ...prev, location: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Locations" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all-locations">All Locations</SelectItem>
+                        {uniqueLocations.map((location) => (
+                          <SelectItem key={location} value={location}>
                             {location}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-3 w-3 p-0 hover:bg-destructive hover:text-destructive-foreground"
-                              onClick={() => removeLocationFilter(location)}
-                            >
-                              <X className="h-2 w-2" />
-                            </Button>
-                          </Badge>
+                          </SelectItem>
                         ))}
-                      </div>
-                    )}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {/* Status Filter */}
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">{t('admin.forms.labels.status')}</Label>
+                    <Label className="text-sm font-medium">Status</Label>
                     <Select
                       value={filters.status}
                       onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}
@@ -1203,67 +792,21 @@ const CourtManagement = () => {
                         </div>
                       )}
 
-                      {/* Pricing & Discount Section */}
+                      {/* Pricing Section - Shows facility pricing */}
                       <div className="p-3 rounded-lg bg-gradient-to-r from-primary/5 to-accent/5 border">
                         <div className="flex items-start justify-between gap-3">
-                          {/* Left side - Pricing info */}
                           <div className="flex-1">
                             <span className="text-sm font-medium text-muted-foreground mb-2 block">Pricing</span>
                             <div className="flex items-center gap-2">
-                              {(court.discountAmount != null && court.discountAmount > 0 && court.hourlyFee) ? (
-                                <>
-                                  <div className="line-through text-muted-foreground text-sm">
-                                    <CurrencyDisplay amount={court.hourlyFee || 0} size="sm" />
-                                  </div>
-                                  <span className="text-muted-foreground">→</span>
-                                  <div className="text-primary font-semibold">
-                                    <CurrencyDisplay
-                                      amount={court.isPercentage
-                                        ? Math.max(0, (court.hourlyFee || 0) * (1 - (court.discountAmount || 0) / 100))
-                                        : Math.max(0, (court.hourlyFee || 0) - (court.discountAmount || 0))
-                                      }
-                                      size="md"
-                                    />
-                                  </div>
-                                </>
-                              ) : (
-                                <div className="font-semibold">
-                                  <CurrencyDisplay amount={court.hourlyFee || 0} size="md" />
-                                </div>
-                              )}
+                              <div className="font-semibold">
+                                <CurrencyDisplay amount={court.facility?.hourlyFee || 0} size="md" />
+                              </div>
+                              <span className="text-xs text-muted-foreground">(from facility)</span>
                             </div>
-                            {(court.discountAmount != null && court.discountAmount > 0) && (
-                              <Badge variant="secondary" className="text-xs mt-2 animate-fade-in">
-                                {court.isPercentage ? `-${court.discountAmount}%` : `-${court.discountAmount} SAR`}
-                              </Badge>
-                            )}
                           </div>
-
-                          {/* Right side - Discount controls */}
-                          {canManageCourt(court) && (
-                            <div className="flex flex-col gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-8 text-xs px-3 py-1 whitespace-nowrap bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 text-blue-700 hover:from-blue-100 hover:to-indigo-100 hover:border-blue-300 hover:text-blue-800 transition-all duration-200 hover-scale"
-                                onClick={() => handleDiscountCourt(court)}
-                              >
-                                <TagIcon className="w-3 h-3 mr-1" />
-                                {(court.discountAmount != null && court.discountAmount > 0) ? 'Edit Discount' : 'Add Discount'}
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-8 text-xs px-3 py-1 whitespace-nowrap bg-gradient-to-r from-red-50 to-rose-50 border-red-200 text-red-700 hover:from-red-100 hover:to-rose-100 hover:border-red-300 hover:text-red-800 transition-all duration-200 hover-scale"
-                                onClick={() => handleRemoveDiscount(court)}
-                              >
-                                <X className="w-3 h-3 mr-1" />
-                                Remove Discount
-                              </Button>
-                            </div>
-                          )}
                         </div>
                       </div>
+                      
                       <div className="flex gap-2 pt-2">
                         {canManageCourt(court) && (
                           <Button
@@ -1272,7 +815,8 @@ const CourtManagement = () => {
                             className="flex-1"
                             onClick={() => handleEditCourt(court)}
                           >
-                            <Edit className="w-4 h-4 mr-1" />{t('admin.common.edit')}</Button>
+                            <Edit className="w-4 h-4 mr-1" />{t('admin.common.edit')}
+                          </Button>
                         )}
                         {canManageCourt(court) && (
                           <Button
@@ -1281,7 +825,8 @@ const CourtManagement = () => {
                             className="flex-1 text-red-600 hover:text-red-700"
                             onClick={() => confirmDeleteCourt(court)}
                           >
-                            <Trash2 className="w-4 h-4 mr-1" />{t('admin.common.delete')}</Button>
+                            <Trash2 className="w-4 h-4 mr-1" />{t('admin.common.delete')}
+                          </Button>
                         )}
                       </div>
                     </CardContent>
@@ -1310,7 +855,6 @@ const CourtManagement = () => {
 
         {(hasPermission('SUPER_ADMIN') || hasPermission('ADMIN')) && (
           <TabsContent value="availability" className="space-y-6">
-            {/* Keep existing availability form */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -1339,7 +883,7 @@ const CourtManagement = () => {
                       <PopoverContent className="w-full p-0">
                         <Command>
                           <CommandInput
-                            placeholder={t('admin.forms.placeholders.searchCourtsByName')}
+                            placeholder="Search courts by name..."
                             value={courtSearchValue}
                             onValueChange={setCourtSearchValue}
                           />
@@ -1405,7 +949,7 @@ const CourtManagement = () => {
                             ...availabilityData,
                             daysOfWeek: []
                           })}
-                        >{t('admin.forms.buttons.clearAll')}</Button>
+                        >Clear All</Button>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2 mt-2">
@@ -1490,59 +1034,23 @@ const CourtManagement = () => {
                   </div>
                 </div>
 
-                {/* Date Range Info */}
-                {(availabilityData.startDate || availabilityData.endDate) && (
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-center gap-2 text-blue-800">
-                      <Calendar className="w-4 h-4" />
-                      <span className="font-medium">Date Range Schedule</span>
-                    </div>
-                    <p className="text-sm text-blue-700 mt-1">
-                      {availabilityData.startDate && availabilityData.endDate
-                        ? `This availability will apply from ${availabilityData.startDate} to ${availabilityData.endDate}`
-                        : availabilityData.startDate
-                          ? `This availability will apply only on ${availabilityData.startDate}`
-                          : 'Please set a start date for date-specific availability'
-                      }
-                    </p>
-                  </div>
-                )}
-
                 <Button onClick={handleSetAvailability} className="w-full">
-                  Set Availability for Selected Days
+                  Set Availability
                 </Button>
               </CardContent>
             </Card>
 
-            {/* New Availability Table */}
             <AvailabilityTable />
           </TabsContent>
         )}
 
         {(hasPermission('SUPER_ADMIN') || hasPermission('ADMIN')) && (
           <TabsContent value="unavailability" className="space-y-6">
-            {/* Unavailability Form */}
             <UnavailabilityForm />
-
-            {/* Unavailability Table */}
             <UnavailabilityTable />
           </TabsContent>
         )}
-
       </Tabs>
-
-      {/* Discount Modal */}
-      {discountCourt && (
-        <DiscountModal
-          court={discountCourt}
-          isOpen={discountModalOpen}
-          onClose={() => {
-            setDiscountModalOpen(false);
-            setDiscountCourt(null);
-          }}
-          onCourtUpdated={handleCourtUpdated}
-        />
-      )}
     </motion.div>
   );
 };

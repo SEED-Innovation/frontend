@@ -4,34 +4,20 @@ import { apiClient } from '../client';
 
 export interface CreateCourtRequest {
     name: string;
-    location: string;
+    facilityId: number;
     type: string | null;
     sportType?: SportType;
-    hourlyFee: number;
     hasSeedSystem: boolean;
-    amenities: string[];
     imageUrl?: string;
-    description?: string;
-    titleAr?: string;
-    descriptionAr?: string;
-    latitude?: number;
-    longitude?: number;
     manager_id?: number | null;
 }
 
 export interface UpdateCourtRequest {
     name?: string;
-    location?: string;
+    facilityId?: number;
     type?: string | null;
     sportType?: SportType;
-    hourlyFee?: number;
     hasSeedSystem?: boolean;
-    amenities?: string[];
-    description?: string;
-    titleAr?: string;
-    descriptionAr?: string;
-    latitude?: number;
-    longitude?: number;
     imageUrl?: string | null;
     manager_id?: number | null;
 }
@@ -161,10 +147,9 @@ class CourtService {
             };
 
             appendIf("name", courtData.name);
-            appendIf("location", courtData.location);
+            appendIf("facilityId", courtData.facilityId);
             appendIf("type", courtData.type);
             appendIf("sportType", courtData.sportType);
-            appendIf("hourlyFee", courtData.hourlyFee);
             appendIf("hasSeedSystem", courtData.hasSeedSystem);
             appendIf("description", courtData.description);
             appendIf("latitude", courtData.latitude);
@@ -207,10 +192,9 @@ class CourtService {
             };
 
             appendIf("name", data.name);
-            appendIf("location", data.location);
+            appendIf("facilityId", data.facilityId);
             appendIf("type", data.type);
             appendIf("sportType", data.sportType);
-            appendIf("hourlyFee", data.hourlyFee);
             appendIf("hasSeedSystem", data.hasSeedSystem);
             appendIf("description", data.description);
             appendIf("latitude", data.latitude);
@@ -243,40 +227,7 @@ class CourtService {
         return apiClient.delete<void>(`${this.baseUrl}/${String(courtId)}`);
     }
 
-    /**
-     * Update court fee
-     */
-    async updateCourtFee(courtId: string | number, newHourlyFee: number): Promise<Court> {
-        return apiClient.put<Court>(`${this.baseUrl}/${String(courtId)}/fee?newHourlyFee=${newHourlyFee}`);
-    }
 
-    /**
-     * Apply discount to court
-     */
-    async applyDiscount(courtId: string | number, discountAmount: number, isPercentage: boolean): Promise<Court> {
-        try {
-            return await apiClient.put<Court>(`${this.baseUrl}/${String(courtId)}/discount?discountAmount=${discountAmount}&isPercentage=${isPercentage}`);
-        } catch (error: any) {
-            // Handle specific error cases for better UX
-            if (error.status === 400) {
-                if (isPercentage && discountAmount >= 100) {
-                    throw new Error('100% discount is not allowed. Maximum discount is 99%.');
-                } else if (!isPercentage && discountAmount >= 1000) {
-                    throw new Error('Discount amount is too high. Please enter a reasonable amount.');
-                } else {
-                    throw new Error('Invalid discount amount. Please check your input.');
-                }
-            }
-            throw error;
-        }
-    }
-
-    /**
-     * Remove discount from court
-     */
-    async removeDiscount(courtId: string | number): Promise<Court> {
-        return apiClient.delete<Court>(`${this.baseUrl}/${String(courtId)}/discount`);
-    }
 
     /**
      * Get courts for a specific admin

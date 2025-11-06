@@ -16,7 +16,8 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
-
+import { facilityService } from '@/lib/api/services/facilityService';
+import { Facility } from '@/types/facility';
 import { AdminUser } from '@/types/admin';
 
 interface EditCourtFormProps {
@@ -28,10 +29,7 @@ interface EditCourtFormProps {
   adminsLoading: boolean;
 }
 
-const AMENITIES_OPTIONS = [
-  'LIGHTS', 'SHOWERS', 'LOCKERS', 'PARKING', 'CAFE', 'SHOP',
-  'WIFI', 'AC', 'SOUND_SYSTEM', 'SEATING', 'WATER_FOUNTAIN'
-];
+
 
 const SPORT_TYPES = [
   { value: 'TENNIS', label: 'Tennis' },
@@ -65,25 +63,31 @@ export default function EditCourtForm({
   
   const [formData, setFormData] = useState<UpdateCourtRequest & { managerId?: string }>({
     name: '',
-    location: '',
+    facilityId: undefined,
     type: undefined,
     sportType: undefined,
     hourlyFee: undefined,
     hasSeedSystem: undefined,
-    amenities: [],
-    description: '',
-    titleAr: '',
-    descriptionAr: '',
-    latitude: undefined,
-    longitude: undefined,
     managerId: undefined
   });
+
+  const [facilities, setFacilities] = useState<Facility[]>([]);
+  const [facilitiesLoading, setFacilitiesLoading] = useState(false);
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [managerSearchOpen, setManagerSearchOpen] = useState(false);
   const [managerSearchValue, setManagerSearchValue] = useState("");
+  const [facilitySearchOpen, setFacilitySearchOpen] = useState(false);
+  const [facilitySearchValue, setFacilitySearchValue] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Fetch facilities when dialog opens
+  useEffect(() => {
+    if (open) {
+      fetchFacilities();
+    }
+  }, [open]);
 
   // Initialize form data when court changes
   useEffect(() => {
@@ -93,23 +97,34 @@ export default function EditCourtForm({
       
       setFormData({
         name: court.name,
-        location: court.location,
+        facilityId: court.facilityId,
         type: court.type as CourtType,
         sportType: court.sportType,
         hourlyFee: court.hourlyFee,
         hasSeedSystem: court.hasSeedSystem,
-        amenities: [...court.amenities],
-        description: court.description || '',
-        titleAr: court.titleAr || '',
-        descriptionAr: court.descriptionAr || '',
-        latitude: court.latitude,
-        longitude: court.longitude,
         managerId: currentManagerName
       });
       setImagePreview(court.imageUrl || null);
       setSelectedImageFile(null);
     }
   }, [court, open, admins]);
+
+  const fetchFacilities = async () => {
+    try {
+      setFacilitiesLoading(true);
+      const fetchedFacilities = await facilityService.getAllFacilities();
+      setFacilities(fetchedFacilities);
+    } catch (error) {
+      console.error('Error fetching facilities:', error);
+      toast({ 
+        title: "Error", 
+        description: "Failed to load facilities",
+        variant: "destructive"
+      });
+    } finally {
+      setFacilitiesLoading(false);
+    }
+  };
 
   const handleInputChange = (field: keyof typeof formData, value: any) => {
     setFormData(prev => {
@@ -127,14 +142,7 @@ export default function EditCourtForm({
     });
   };
 
-  const handleAmenityToggle = (amenity: string) => {
-    setFormData(prev => ({
-      ...prev,
-      amenities: prev.amenities?.includes(amenity)
-        ? prev.amenities.filter(a => a !== amenity)
-        : [...(prev.amenities || []), amenity]
-    }));
-  };
+
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -188,7 +196,7 @@ export default function EditCourtForm({
     return !!(
       formData.name?.trim() &&
       isValidType &&
-      formData.location?.trim() &&
+      formData.facilityId &&
       (formData.hourlyFee === undefined || formData.hourlyFee > 0)
     );
   };
@@ -212,8 +220,8 @@ export default function EditCourtForm({
       if (formData.name && formData.name !== court?.name) {
         submitData.name = formData.name;
       }
-      if (formData.location && formData.location !== court?.location) {
-        submitData.location = formData.location;
+      if (formData.facilityId && formData.facilityId !== court?.facilityId) {
+        submitData.facilityId = formData.facilityId;
       }
       // Handle sport type and court type together
       const sport = formData.sportType || 'TENNIS';
@@ -229,24 +237,6 @@ export default function EditCourtForm({
       }
       if (formData.hasSeedSystem !== undefined && formData.hasSeedSystem !== court?.hasSeedSystem) {
         submitData.hasSeedSystem = formData.hasSeedSystem;
-      }
-      if (formData.amenities && JSON.stringify(formData.amenities.sort()) !== JSON.stringify((court?.amenities || []).sort())) {
-        submitData.amenities = formData.amenities;
-      }
-      if (formData.description !== court?.description) {
-        submitData.description = formData.description || undefined;
-      }
-      if (formData.titleAr !== court?.titleAr) {
-        submitData.titleAr = formData.titleAr || undefined;
-      }
-      if (formData.descriptionAr !== court?.descriptionAr) {
-        submitData.descriptionAr = formData.descriptionAr || undefined;
-      }
-      if (formData.latitude !== court?.latitude) {
-        submitData.latitude = formData.latitude;
-      }
-      if (formData.longitude !== court?.longitude) {
-        submitData.longitude = formData.longitude;
       }
 
       // Handle manager assignment (SUPER_ADMIN only)
@@ -379,6 +369,75 @@ export default function EditCourtForm({
                     Court type will be automatically set to PADEL by the backend
                   </p>
                 )}
+              </div>
+
+              <div>
+                <Label htmlFor="facility">Facility *</Label>
+                <Popover open={facilitySearchOpen} onOpenChange={setFacilitySearchOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={facilitySearchOpen}
+                      className="w-full justify-between"
+                      disabled={facilitiesLoading}
+                    >
+                      {facilitiesLoading ? "Loading facilities..." : 
+                       formData.facilityId === 0 || !formData.facilityId
+                        ? "Select facility"
+                        : facilities.find(f => f.id === formData.facilityId)?.name || "Select facility"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0">
+                    <Command>
+                      <CommandInput
+                        placeholder="Search facilities..."
+                        value={facilitySearchValue}
+                        onValueChange={setFacilitySearchValue}
+                      />
+                      <CommandList>
+                        <CommandEmpty>
+                          <div className="p-2">
+                            <p className="text-sm text-muted-foreground">
+                              {facilitiesLoading ? "Loading facilities..." : "No facility found."}
+                            </p>
+                          </div>
+                        </CommandEmpty>
+                        <CommandGroup>
+                          {facilities
+                            .filter((facility) => {
+                              const searchTerm = facilitySearchValue.toLowerCase();
+                              return (facility.name?.toLowerCase() || '').includes(searchTerm) || 
+                                     (facility.location?.toLowerCase() || '').includes(searchTerm);
+                            })
+                            .map((facility) => (
+                              <CommandItem
+                                key={facility.id}
+                                value={facility.name}
+                                onSelect={() => {
+                                  handleInputChange('facilityId', facility.id);
+                                  setFacilitySearchOpen(false);
+                                  setFacilitySearchValue("");
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    formData.facilityId === facility.id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                <div className="flex flex-col">
+                                  <span>{facility.name}</span>
+                                  <span className="text-xs text-muted-foreground">{facility.location}</span>
+                                </div>
+                              </CommandItem>
+                            ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <div>
@@ -515,126 +574,12 @@ export default function EditCourtForm({
             )}
           </div>
 
-          {/* Right Column - Location & Details */}
+          {/* Right Column - Image Upload & Facility Info */}
           <div className="space-y-6">
-            {/* Location */}
+            {/* Image Upload */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Location</h3>
+              <h3 className="text-lg font-semibold">Court Image</h3>
               
-              <div>
-                <Label htmlFor="location">Address *</Label>
-                <Input
-                  id="location"
-                  value={formData.location || ''}
-                  onChange={(e) => handleInputChange('location', e.target.value)}
-                  placeholder="King Abdulaziz Rd, Jeddah, SA"
-                />
-              </div>
-
-              {/* Manual Coordinates */}
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label htmlFor="latitude">Latitude</Label>
-                  <Input
-                    id="latitude"
-                    type="number"
-                    step="0.000001"
-                    min="-90"
-                    max="90"
-                    value={formData.latitude || ''}
-                    onChange={(e) => handleInputChange('latitude', Number(e.target.value))}
-                    placeholder="21.485800"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="longitude">Longitude</Label>
-                  <Input
-                    id="longitude"
-                    type="number"
-                    step="0.000001"
-                    min="-180"
-                    max="180"
-                    value={formData.longitude || ''}
-                    onChange={(e) => handleInputChange('longitude', Number(e.target.value))}
-                    placeholder="39.192500"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Details */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Details</h3>
-              
-              {/* Amenities */}
-              <div>
-                <Label>Amenities</Label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {AMENITIES_OPTIONS.map(amenity => (
-                    <Badge
-                      key={amenity}
-                      variant={formData.amenities?.includes(amenity) ? "default" : "outline"}
-                      className="cursor-pointer"
-                      onClick={() => handleAmenityToggle(amenity)}
-                    >
-                      {amenity.replace('_', ' ')}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              {/* Description */}
-              <div>
-                <Label htmlFor="description">Description (English)</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description || ''}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
-                  placeholder="Additional details about the court..."
-                  maxLength={500}
-                  rows={3}
-                />
-                <p className="text-sm text-muted-foreground mt-1">
-                  {(formData.description || '').length}/500 characters
-                </p>
-              </div>
-
-              {/* Arabic Title */}
-              <div>
-                <Label htmlFor="titleAr">Title (Arabic)</Label>
-                <Input
-                  id="titleAr"
-                  value={formData.titleAr || ''}
-                  onChange={(e) => handleInputChange('titleAr', e.target.value)}
-                  placeholder="اسم الملعب بالعربية"
-                  maxLength={255}
-                  dir="rtl"
-                />
-                <p className="text-sm text-muted-foreground mt-1">
-                  {(formData.titleAr || '').length}/255 characters
-                </p>
-              </div>
-
-              {/* Arabic Description */}
-              <div>
-                <Label htmlFor="descriptionAr">Description (Arabic)</Label>
-                <Textarea
-                  id="descriptionAr"
-                  value={formData.descriptionAr || ''}
-                  onChange={(e) => handleInputChange('descriptionAr', e.target.value)}
-                  placeholder="وصف الملعب بالعربية"
-                  maxLength={500}
-                  rows={3}
-                  dir="rtl"
-                />
-                <p className="text-sm text-muted-foreground mt-1">
-                  {(formData.descriptionAr || '').length}/500 characters
-                </p>
-              </div>
-
-              {/* Image Upload */}
               <div>
                 <Label htmlFor="editImageFile">Court Image</Label>
                 <div className="mt-2">
@@ -678,6 +623,42 @@ export default function EditCourtForm({
                 </div>
               </div>
             </div>
+
+            {/* Facility Info Display */}
+            {formData.facilityId && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Selected Facility</h3>
+                {(() => {
+                  const selectedFacility = facilities.find(f => f.id === formData.facilityId);
+                  return selectedFacility ? (
+                    <div className="p-4 bg-muted/30 rounded-lg">
+                      <h4 className="font-medium">{selectedFacility.name}</h4>
+                      <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                        <span>📍</span>
+                        {selectedFacility.location}
+                      </p>
+                      {selectedFacility.description && (
+                        <p className="text-sm text-muted-foreground mt-2">
+                          {selectedFacility.description}
+                        </p>
+                      )}
+                      {selectedFacility.amenities && selectedFacility.amenities.length > 0 && (
+                        <div className="mt-2">
+                          <p className="text-xs font-medium text-muted-foreground mb-1">Facility Amenities:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {selectedFacility.amenities.map(amenity => (
+                              <Badge key={amenity} variant="secondary" className="text-xs">
+                                {amenity.replace('_', ' ')}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : null;
+                })()}
+              </div>
+            )}
           </div>
         </div>
 

@@ -107,7 +107,8 @@ const BookingCard: React.FC<BookingCardProps> = ({
 
     const getTotalPrice = () => {
         const duration = getBookingDuration();
-        return duration * booking.court.hourlyFee;
+        const hourlyFee = booking.court.facility?.hourlyFee || 0;
+        return duration * hourlyFee;
     };
 
     const canApprove = () => booking.status === 'PENDING';
@@ -202,7 +203,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
             
             <div className="flex items-center text-sm text-gray-600">
                 <DollarSign className="w-4 h-4 mr-1" />
-                <span>{formatPrice(booking.court.hourlyFee)}/hour</span>
+                <span>{formatPrice(booking.court.facility?.hourlyFee || 0)}/hour</span>
             </div>
         </div>
     );

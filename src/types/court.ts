@@ -4,10 +4,18 @@ export type CourtType = 'HARD' | 'CLAY' | 'GRASS' | 'CARPET' | 'ACRYLIC' | 'PADE
 export interface Court {
   id: number;                 // unify id type (number)
   name: string;
-  location?: string | null;
+  facilityId?: number | null; // Reference to facility
+  facilityName?: string | null; // For convenience
+  location?: string | null;   // From facility
   sportType: SportType;
   type: CourtType;            // null for PADEL
-  hourlyFee?: number | null;
+  // hourlyFee moved to facility level
+  facility?: {
+    id: number;
+    name: string;
+    hourlyFee: number;
+    location?: string;
+  } | null;
   hasSeedSystem?: boolean;
   imageUrl?: string | null;
   amenities?: string[];
@@ -20,12 +28,12 @@ export interface Court {
   status?: 'AVAILABLE' | 'UNAVAILABLE';
   // Legacy fields for backward compatibility
   openingTimes?: string;
-  rating?: number;
-  totalRatings?: number;
-  distanceInMeters?: number;
-  formattedDistance?: string;
-  latitude?: number;
-  longitude?: number;
+  rating?: number;           // From facility
+  totalRatings?: number;     // From facility
+  distanceInMeters?: number; // From facility
+  formattedDistance?: string; // From facility
+  latitude?: number;         // From facility
+  longitude?: number;        // From facility
   // Discount fields
   discountAmount?: number;
   isPercentage?: boolean;

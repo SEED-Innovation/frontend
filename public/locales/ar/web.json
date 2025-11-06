@@ -203,6 +203,7 @@
     "menu": {
       "dashboard": "لوحة التحكم",
       "admins": "المديرين",
+      "facilities": "المرافق",
       "courts": "الملاعب",
       "bookings": "الحجوزات",
       "sessions": "الجلسات",

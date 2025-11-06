@@ -7,6 +7,7 @@ import AdminHeader from '@/components/admin/AdminHeader';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import UserManagement from '@/components/admin/UserManagement';
 import CourtManagement from '@/components/admin/CourtManagement';
+import FacilityManagement from '@/components/admin/FacilityManagement';
 import BookingManagement from '@/components/admin/BookingManagement';
 import PaymentManagement from '@/components/admin/PaymentManagement';
 import ReportsAnalytics from '@/components/admin/ReportsAnalytics';
@@ -57,6 +58,7 @@ const Admin = () => {
             <Route path="/users" element={<UserManagement />} />
             <Route path="/users/:id" element={<div>User Profile - ID: {window.location.pathname.split('/').pop()}</div>} />
             <Route path="/players" element={<UserManagement />} />
+            <Route path="/facilities" element={<FacilityManagement />} />
             <Route path="/courts" element={<CourtManagement />} />
             {/* <Route path="/bookings" element={<BookingManagement />} /> */}
             <Route path="/bookings" element={<AdminBooking />} />
