@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, RefreshCw, Search, Download, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SearchInput } from '../common/SearchInput';
 import { ExportCsvButton } from '../common/ExportCsvButton';
 import { UnavailabilityRow } from '@/lib/api/admin/types';
@@ -25,6 +26,9 @@ interface UnavailabilityToolbarProps {
 export const UnavailabilityToolbar: React.FC<UnavailabilityToolbarProps> = ({
   searchTerm,
   onSearchChange,
+  facilityFilter,
+  onFacilityFilterChange,
+  facilities,
   selectedIds,
   onBulkDelete,
   filteredData,
@@ -70,6 +74,20 @@ export const UnavailabilityToolbar: React.FC<UnavailabilityToolbarProps> = ({
               className="w-64 pl-10 premium-input"
             />
           </div>
+          
+          <Select value={facilityFilter} onValueChange={onFacilityFilterChange}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="All Facilities" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Facilities</SelectItem>
+              {facilities.map((facility) => (
+                <SelectItem key={facility} value={facility}>
+                  {facility}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-muted-foreground" />

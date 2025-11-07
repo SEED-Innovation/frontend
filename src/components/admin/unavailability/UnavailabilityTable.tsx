@@ -35,6 +35,7 @@ export const UnavailabilityTable: React.FC = () => {
   
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
+  const [facilityFilter, setFacilityFilter] = useState<string>('ALL');
 
   // Load data
   useEffect(() => {
@@ -98,6 +99,11 @@ export const UnavailabilityTable: React.FC = () => {
       );
     }
 
+    // Apply facility filter
+    if (facilityFilter !== 'ALL') {
+      filtered = filtered.filter(item => item.facilityName === facilityFilter);
+    }
+
     // Apply sorting
     filtered.sort((a, b) => {
       let aValue: string | number;
@@ -126,7 +132,15 @@ export const UnavailabilityTable: React.FC = () => {
     });
 
     return filtered;
-  }, [data, searchTerm, sortField, sortDirection]);
+  }, [data, searchTerm, facilityFilter, sortField, sortDirection]);
+
+  // Get unique facilities for filter
+  const uniqueFacilities = useMemo(() => {
+    const facilities = data
+      .map(item => item.facilityName)
+      .filter((name): name is string => !!name);
+    return Array.from(new Set(facilities)).sort();
+  }, [data]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -298,6 +312,9 @@ export const UnavailabilityTable: React.FC = () => {
       <UnavailabilityToolbar
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
+        facilityFilter={facilityFilter}
+        onFacilityFilterChange={setFacilityFilter}
+        facilities={uniqueFacilities}
         selectedIds={selectedIds}
         onBulkDelete={handleBulkDelete}
         filteredData={filteredAndSortedData}
