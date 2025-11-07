@@ -40,10 +40,13 @@ import { useToast } from '@/hooks/use-toast';
 import { BookingResponse, CreateBookingRequest, CourtResponse } from '@/types/booking';
 import { UserResponse } from '@/types/user';
 import { AdminManualBookingRequest, ManualBookingResponse } from '@/types/receipt';
+import { PaymentLinkDTO, CreatePaymentLinkRequest } from '@/types/paymentLink';
 import { bookingService, courtService, userService, receiptService } from '@/services';
+import { paymentLinkService } from '@/services/paymentLinkService';
 import { cn } from '@/lib/utils';
 import UserSearchInput from './UserSearchInput';
 import PrintReceiptDialog from './PrintReceiptDialog';
+import PaymentLinkSuccessDialog from './PaymentLinkSuccessDialog';
 
 interface ManualBookingFormProps {
     onBookingCreated: (booking: BookingResponse, receipt?: any) => void;
@@ -62,6 +65,10 @@ interface BookingFormData {
     paymentMethod: 'CASH' | 'TAP_TO_MANAGER' | 'PENDING' | '';
     sendReceiptEmail: boolean;
     customerEmail: string;
+    // Payment link specific fields
+    bookingMode: 'IMMEDIATE' | 'PAYMENT_LINK';
+    phoneNumber: string;
+    recordingAddon: boolean;
 }
 
 interface TimeSlot {
@@ -98,6 +105,9 @@ const ManualBookingForm: React.FC<ManualBookingFormProps> = ({
         notes: '',
         paymentMethod: '',
         sendReceiptEmail: true,
+        bookingMode: 'IMMEDIATE',
+        phoneNumber: '',
+        recordingAddon: false,
         customerEmail: ''
     });
     
@@ -109,6 +119,8 @@ const ManualBookingForm: React.FC<ManualBookingFormProps> = ({
     const [selectedUser, setSelectedUser] = useState<UserResponse | null>(null);
     const [receiptData, setReceiptData] = useState<any>(null);
     const [showPrintDialog, setShowPrintDialog] = useState(false);
+    const [paymentLinkData, setPaymentLinkData] = useState<PaymentLinkDTO | null>(null);
+    const [showPaymentLinkDialog, setShowPaymentLinkDialog] = useState(false);
     const { toast } = useToast();
 
     // ================================
@@ -275,13 +287,97 @@ const loadCourts = async () => {
         }
     };
 
+    const handlePaymentLinkCreation = async () => {
+        try {
+            if (!formData.selectedSlot) {
+                throw new Error('No time slot selected');
+            }
+
+            // Extract start and end times
+            let startTimeString = '';
+            let endTimeString = '';
+            
+            if (formData.selectedSlot.startTime && typeof formData.selectedSlot.startTime === 'string') {
+                startTimeString = formData.selectedSlot.startTime.substring(0, 5); // HH:mm
+            } else if (formData.selectedSlot.formattedTimeRange) {
+                const timeMatch = formData.selectedSlot.formattedTimeRange.match(/^(\d{2}:\d{2})-(\d{2}:\d{2})/);
+                if (timeMatch) {
+                    startTimeString = timeMatch[1];
+                    endTimeString = timeMatch[2];
+                }
+            }
+
+            if (!startTimeString) {
+                throw new Error('Unable to parse start time');
+            }
+
+            // Calculate end time if not extracted
+            if (!endTimeString && formData.selectedSlot.endTime) {
+                endTimeString = formData.selectedSlot.endTime.substring(0, 5);
+            } else if (!endTimeString && formData.duration) {
+                const [hours, minutes] = startTimeString.split(':').map(Number);
+                const totalMinutes = hours * 60 + minutes + formData.duration;
+                const endHours = Math.floor(totalMinutes / 60);
+                const endMins = totalMinutes % 60;
+                endTimeString = `${String(endHours).padStart(2, '0')}:${String(endMins).padStart(2, '0')}`;
+            }
+
+            // Format date
+            const year = formData.date!.getFullYear();
+            const month = String(formData.date!.getMonth() + 1).padStart(2, '0');
+            const day = String(formData.date!.getDate()).padStart(2, '0');
+            const localDateString = `${year}-${month}-${day}`;
+
+            const paymentLinkRequest: CreatePaymentLinkRequest = {
+                courtId: formData.courtId!,
+                bookingDate: localDateString,
+                startTime: startTimeString,
+                endTime: endTimeString,
+                recordingAddon: formData.recordingAddon,
+                phoneNumber: formData.phoneNumber || undefined,
+                existingUserId: formData.userId || undefined
+            };
+
+            console.log('🔗 Creating payment link:', paymentLinkRequest);
+
+            const paymentLink = await paymentLinkService.createPaymentLink(paymentLinkRequest);
+            
+            console.log('✅ Payment link created:', paymentLink);
+
+            setPaymentLinkData(paymentLink);
+            setSuccess('Payment link created successfully!');
+            
+            toast({
+                title: 'Payment Link Created',
+                description: 'Payment link has been generated successfully',
+            });
+
+            // Show payment link dialog
+            setShowPaymentLinkDialog(true);
+
+        } catch (error) {
+            console.error('❌ Failed to create payment link:', error);
+            
+            if (error instanceof Error) {
+                setErrors({ submit: error.message });
+            } else {
+                setErrors({ submit: 'Failed to create payment link. Please try again.' });
+            }
+            
+            toast({
+                title: 'Error',
+                description: 'Failed to create payment link',
+                variant: 'destructive'
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const validateForm = (): boolean => {
         const newErrors: Record<string, string> = {};
 
-        if (!formData.userId) {
-            newErrors.userId = 'Please select a user';
-        }
-
+        // Common validations for both modes
         if (!formData.courtId) {
             newErrors.courtId = 'Please select a court';
         }
@@ -298,16 +394,34 @@ const loadCourts = async () => {
             newErrors.selectedSlot = 'Please select a time slot';
         }
 
-        if (!formData.matchType) {
-            newErrors.matchType = 'Please select match type';
-        }
+        // Payment link mode validations
+        if (formData.bookingMode === 'PAYMENT_LINK') {
+            // Either phone number or existing user must be provided
+            if (!formData.phoneNumber && !formData.userId) {
+                newErrors.userId = 'Please provide a phone number or select an existing user';
+            }
+            
+            // Validate phone number format if provided
+            if (formData.phoneNumber && !formData.phoneNumber.match(/^\+?[1-9]\d{1,14}$/)) {
+                newErrors.phoneNumber = 'Please enter a valid phone number';
+            }
+        } else {
+            // Immediate booking mode validations
+            if (!formData.userId) {
+                newErrors.userId = 'Please select a user';
+            }
 
-        if (!formData.paymentMethod) {
-            newErrors.paymentMethod = 'Please select payment method';
-        }
+            if (!formData.matchType) {
+                newErrors.matchType = 'Please select match type';
+            }
 
-        if (formData.sendReceiptEmail && !formData.customerEmail) {
-            newErrors.customerEmail = 'Email is required when receipt email is enabled';
+            if (!formData.paymentMethod) {
+                newErrors.paymentMethod = 'Please select payment method';
+            }
+
+            if (formData.sendReceiptEmail && !formData.customerEmail) {
+                newErrors.customerEmail = 'Email is required when receipt email is enabled';
+            }
         }
 
         // Check if date is in the past
@@ -344,6 +458,12 @@ const loadCourts = async () => {
         setIsLoading(true);
         setErrors({});
         setSuccess('');
+
+        // Route to payment link creation if in payment link mode
+        if (formData.bookingMode === 'PAYMENT_LINK') {
+            await handlePaymentLinkCreation();
+            return;
+        }
 
         try {
             // Extract time from the selected slot more safely
@@ -497,7 +617,10 @@ const loadCourts = async () => {
             notes: '',
             paymentMethod: '',
             sendReceiptEmail: true,
-            customerEmail: ''
+            customerEmail: '',
+            bookingMode: 'IMMEDIATE',
+            phoneNumber: '',
+            recordingAddon: false
         });
         setSelectedUser(null);
         setAvailableSlots([]);
@@ -505,6 +628,8 @@ const loadCourts = async () => {
         setSuccess('');
         setReceiptData(null);
         setShowPrintDialog(false);
+        setPaymentLinkData(null);
+        setShowPaymentLinkDialog(false);
         setUserSearchTerm('');
         setCourtSearchTerm('');
     };
@@ -673,13 +798,135 @@ const loadCourts = async () => {
 
                 <div className="flex-1 overflow-y-auto px-1">
                     <form onSubmit={handleSubmit} className="space-y-8">
+                        {/* Booking Mode Toggle */}
+                        <div className="bg-muted/50 p-4 rounded-lg border border-border">
+                            <Label className="text-sm font-semibold mb-3 block">Booking Type</Label>
+                            <div className="grid grid-cols-2 gap-3">
+                                <Button
+                                    type="button"
+                                    variant={formData.bookingMode === 'IMMEDIATE' ? 'default' : 'outline'}
+                                    className="w-full"
+                                    onClick={() => handleInputChange('bookingMode', 'IMMEDIATE')}
+                                >
+                                    <CheckCircle className="w-4 h-4 mr-2" />
+                                    Create Booking Now
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant={formData.bookingMode === 'PAYMENT_LINK' ? 'default' : 'outline'}
+                                    className="w-full"
+                                    onClick={() => handleInputChange('bookingMode', 'PAYMENT_LINK')}
+                                >
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    Create Payment Link
+                                </Button>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-2">
+                                {formData.bookingMode === 'IMMEDIATE' 
+                                    ? 'Create a confirmed booking immediately with payment collected in person'
+                                    : 'Generate a payment link to send to customer for online payment'}
+                            </p>
+                        </div>
+
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            {/* User Selection */}
+                            {/* User Selection / Phone Number */}
                             <div className="lg:col-span-2">
-                            {renderFormField(
-                                t('manualBooking.selectUser'),
-                                'userId',
-                                <div className="space-y-2">
+                            {formData.bookingMode === 'PAYMENT_LINK' ? (
+                                <div className="space-y-4">
+                                    <Label className="text-sm font-semibold">Customer Information</Label>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="phoneNumber">Phone Number (for new customer)</Label>
+                                            <Input
+                                                id="phoneNumber"
+                                                placeholder="+966501234567"
+                                                value={formData.phoneNumber}
+                                                onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                                                disabled={!!formData.userId}
+                                            />
+                                            {errors.phoneNumber && (
+                                                <p className="text-sm text-destructive">{errors.phoneNumber}</p>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center justify-center">
+                                            <span className="text-sm text-muted-foreground">OR</span>
+                                        </div>
+                                    </div>
+                                    {renderFormField(
+                                        'Select Existing User',
+                                        'userId',
+                                        <div className="space-y-2">
+                                            <Input
+                                                placeholder="Search for a user by name or email..."
+                                                value={userSearchTerm}
+                                                onChange={(e) => setUserSearchTerm(e.target.value)}
+                                                disabled={usersLoading || !!formData.phoneNumber}
+                                            />
+                                            <Select
+                                                value={formData.userId?.toString() || ''}
+                                                onValueChange={(value) => {
+                                                    const userId = parseInt(value);
+                                                    const user = users.find(u => u.id === userId);
+                                                    if (user) {
+                                                        handleUserSelect(user);
+                                                    }
+                                                }}
+                                                disabled={usersLoading || !!formData.phoneNumber}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue 
+                                                        placeholder={
+                                                            usersLoading ? 'Loading users...' : 
+                                                            selectedUser ? `${selectedUser.fullName} (${selectedUser.email})` :
+                                                            'Choose a user'
+                                                        } 
+                                                    />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {filteredUsers.length === 0 ? (
+                                                        <SelectItem value="no-users" disabled>
+                                                            {usersLoading ? "Loading..." : `No users found ${userSearchTerm ? `for "${userSearchTerm}"` : ''}`}
+                                                        </SelectItem>
+                                                    ) : (
+                                                        filteredUsers.map((user) => (
+                                                            <SelectItem key={user.id} value={user.id.toString()}>
+                                                                <div className="flex items-center space-x-3">
+                                                                    <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                                                                        {user.profilePictureUrl ? (
+                                                                            <img 
+                                                                                src={user.profilePictureUrl} 
+                                                                                alt={`${user.fullName || 'User'} profile`}
+                                                                                className="h-full w-full object-cover"
+                                                                            />
+                                                                        ) : null}
+                                                                        <div className={`w-full h-full bg-muted rounded-full flex items-center justify-center fallback-icon ${user.profilePictureUrl ? 'hidden' : ''}`}>
+                                                                            <User className="w-4 h-4 text-gray-400" />
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex flex-col flex-1 min-w-0">
+                                                                        <span className="font-medium truncate">{user.fullName}</span>
+                                                                        <span className="text-xs text-gray-500 truncate">{user.email}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                            {selectedUser && (
+                                                <div className="p-2 bg-blue-50 rounded border text-sm">
+                                                    <strong>Selected:</strong> {selectedUser.fullName} ({selectedUser.email})
+                                                </div>
+                                            )}
+                                        </div>,
+                                        false
+                                    )}
+                                </div>
+                            ) : (
+                                renderFormField(
+                                    t('manualBooking.selectUser'),
+                                    'userId',
+                                    <div className="space-y-2">
                                     {/* Search Input */}
                                     <Input
                                         placeholder="Search for a user by name or email..."
@@ -757,8 +1004,10 @@ const loadCourts = async () => {
                                         </div>
                                     )}
                                 </div>
-                            )}
+                            )
+                        )}
                         </div>
+                        
                         {/* Court Selection */}
                         <div className="md:col-span-2">
                             {renderFormField(
@@ -956,11 +1205,37 @@ const loadCourts = async () => {
                             </div>
                         )}
 
-                        {/* Payment Method */}
-                        <div>
-                            {renderFormField(
-                                t('manualBooking.selectPaymentMethod'),
-                                'paymentMethod',
+                        {/* Recording Addon (Payment Link Mode Only) */}
+                        {formData.bookingMode === 'PAYMENT_LINK' && (
+                            <div className="lg:col-span-2">
+                                <div className="bg-muted/30 p-4 rounded-lg border border-border">
+                                    <div className="flex items-center space-x-3">
+                                        <input
+                                            type="checkbox"
+                                            id="recordingAddon"
+                                            checked={formData.recordingAddon}
+                                            onChange={(e) => handleInputChange('recordingAddon', e.target.checked)}
+                                            className="rounded border-gray-300 h-5 w-5"
+                                        />
+                                        <div className="flex-1">
+                                            <label htmlFor="recordingAddon" className="text-sm font-semibold cursor-pointer">
+                                                Add Recording Service
+                                            </label>
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                Include professional court recording service with this booking
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Payment Method (Immediate Booking Only) */}
+                        {formData.bookingMode === 'IMMEDIATE' && (
+                            <div>
+                                {renderFormField(
+                                    t('manualBooking.selectPaymentMethod'),
+                                    'paymentMethod',
                                 <Select
                                     value={formData.paymentMethod}
                                     onValueChange={(value) => handleInputChange('paymentMethod', value)}
@@ -989,11 +1264,13 @@ const loadCourts = async () => {
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
-                            )}
-                        </div>
+                                )}
+                            </div>
+                        )}
 
-                        {/* Receipt Email Options */}
-                        <div>
+                        {/* Receipt Email Options (Immediate Booking Only) */}
+                        {formData.bookingMode === 'IMMEDIATE' && (
+                            <div>
                             {renderFormField(
                                 t('manualBooking.receiptEmail'),
                                 'sendReceiptEmail',
@@ -1021,7 +1298,8 @@ const loadCourts = async () => {
                                 </div>,
                                 false
                             )}
-                        </div>
+                            </div>
+                        )}
 
                         {/* Notes */}
                         <div className="md:col-span-2">
@@ -1063,12 +1341,12 @@ const loadCourts = async () => {
                         {isLoading ? (
                             <>
                                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                {t('manualBooking.creating')}
+                                {formData.bookingMode === 'PAYMENT_LINK' ? 'Creating Link...' : t('manualBooking.creating')}
                             </>
                         ) : (
                             <>
                                 <Plus className="w-4 h-4 mr-2" />
-                                {t('manualBooking.createBooking')}
+                                {formData.bookingMode === 'PAYMENT_LINK' ? 'Create Payment Link' : t('manualBooking.createBooking')}
                             </>
                         )}
                     </Button>
@@ -1081,6 +1359,18 @@ const loadCourts = async () => {
                     isOpen={showPrintDialog}
                     onClose={() => setShowPrintDialog(false)}
                     receiptData={receiptData}
+                />
+            )}
+            
+            {/* Payment Link Success Dialog */}
+            {paymentLinkData && (
+                <PaymentLinkSuccessDialog
+                    isOpen={showPaymentLinkDialog}
+                    onClose={() => {
+                        setShowPaymentLinkDialog(false);
+                        handleClose();
+                    }}
+                    paymentLink={paymentLinkData}
                 />
             )}
         </Dialog>

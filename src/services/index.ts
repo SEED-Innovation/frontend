@@ -2,6 +2,7 @@ export { bookingService } from './bookingService';
 export { userService } from './userService';
 export { adminService } from './adminService';
 export { receiptService } from './receiptService';
+export { paymentLinkService } from './paymentLinkService';
 
 // Import the existing court service correctly
 export { courtService } from '../lib/api/services/courtService';

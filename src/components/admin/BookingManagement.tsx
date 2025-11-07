@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, User, Check, X, Plus, Filter } from 'lucide-react';
+import { Calendar, Clock, User, Check, X, Plus, Filter, Link as LinkIcon, Eye, ExternalLink } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,10 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { PaymentLinkDTO, PaymentLinkStatus } from '@/types/paymentLink';
+import { paymentLinkService } from '@/services/paymentLinkService';
+import ManualBookingForm from './ManualBookingForm';
+import { format } from 'date-fns';
 
 interface Booking {
   id: string;
@@ -61,6 +65,11 @@ const BookingManagement = () => {
     }
   ]);
 
+  const [paymentLinks, setPaymentLinks] = useState<PaymentLinkDTO[]>([]);
+  const [paymentLinksLoading, setPaymentLinksLoading] = useState(false);
+  const [selectedPaymentLink, setSelectedPaymentLink] = useState<PaymentLinkDTO | null>(null);
+  const [showPaymentLinkDetails, setShowPaymentLinkDetails] = useState(false);
+
   const [dateRange, setDateRange] = useState({
     start: '',
     end: ''
@@ -85,6 +94,24 @@ const BookingManagement = () => {
     { id: 'user-1', name: 'Ahmed Ali', email: 'ahmed@example.com' },
     { id: 'user-2', name: 'Sara Mohammed', email: 'sara@example.com' }
   ];
+
+  // Load payment links on component mount
+  useEffect(() => {
+    loadPaymentLinks();
+  }, []);
+
+  const loadPaymentLinks = async () => {
+    setPaymentLinksLoading(true);
+    try {
+      const links = await paymentLinkService.getAllPaymentLinks();
+      setPaymentLinks(links);
+    } catch (error) {
+      console.error('Failed to load payment links:', error);
+      toast.error('Failed to load payment links');
+    } finally {
+      setPaymentLinksLoading(false);
+    }
+  };
 
   const handleApproveBooking = (bookingId: string) => {
     setBookings(bookings.map(booking => 
@@ -160,6 +187,32 @@ const BookingManagement = () => {
     }
   };
 
+  const getPaymentLinkStatusColor = (status: PaymentLinkStatus) => {
+    switch (status) {
+      case PaymentLinkStatus.ACTIVE: return 'bg-blue-100 text-blue-800';
+      case PaymentLinkStatus.PAID: return 'bg-green-100 text-green-800';
+      case PaymentLinkStatus.EXPIRED: return 'bg-gray-100 text-gray-800';
+      case PaymentLinkStatus.CANCELLED: return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const handleViewPaymentLink = async (linkId: string) => {
+    try {
+      const link = await paymentLinkService.getPaymentLink(linkId);
+      setSelectedPaymentLink(link);
+      setShowPaymentLinkDetails(true);
+    } catch (error) {
+      console.error('Failed to fetch payment link:', error);
+      toast.error('Failed to load payment link details');
+    }
+  };
+
+  const handlePaymentLinkCreated = () => {
+    // Reload payment links after creation
+    loadPaymentLinks();
+  };
+
   const filteredBookings = selectedCourt && selectedCourt !== "all"
     ? bookings.filter(booking => booking.courtId === selectedCourt)
     : bookings;
@@ -176,81 +229,17 @@ const BookingManagement = () => {
           <h1 className="text-3xl font-bold text-gray-900">{t('admin.pages.bookingManagement.title')}</h1>
           <p className="text-gray-600 mt-1">{t('admin.pages.bookingManagement.subtitle')}</p>
         </div>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
-              <Plus className="w-4 h-4" />
-              {t('admin.pages.bookingManagement.manualBooking')}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>{t('admin.pages.bookingManagement.createManualBooking')}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="user">Select User</Label>
-                <Select onValueChange={(value) => setManualBooking({...manualBooking, userId: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('admin.forms.placeholders.selectUser')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {users.map((user) => (
-                      <SelectItem key={user.id} value={user.id}>
-                        {user.name} - {user.email}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="court">Select Court</Label>
-                <Select onValueChange={(value) => setManualBooking({...manualBooking, courtId: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('admin.forms.placeholders.selectCourt')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {courts.map((court) => (
-                      <SelectItem key={court.id} value={court.id}>
-                        {court.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="date">{t('admin.forms.labels.date')}</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={manualBooking.date}
-                  onChange={(e) => setManualBooking({...manualBooking, date: e.target.value})}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label htmlFor="startTime">Start Time</Label>
-                  <Input
-                    id="startTime"
-                    type="time"
-                    value={manualBooking.startTime}
-                    onChange={(e) => setManualBooking({...manualBooking, startTime: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="endTime">End Time</Label>
-                  <Input
-                    id="endTime"
-                    type="time"
-                    value={manualBooking.endTime}
-                    onChange={(e) => setManualBooking({...manualBooking, endTime: e.target.value})}
-                  />
-                </div>
-              </div>
-              <Button onClick={handleManualBooking} className="w-full">{t('admin.forms.buttons.createBooking')}</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <div className="flex gap-2">
+          <ManualBookingForm 
+            onBookingCreated={handlePaymentLinkCreated}
+            triggerButton={
+              <Button className="flex items-center gap-2">
+                <Plus className="w-4 h-4" />
+                {t('admin.pages.bookingManagement.manualBooking')}
+              </Button>
+            }
+          />
+        </div>
       </div>
 
       <Card>
@@ -300,79 +289,282 @@ const BookingManagement = () => {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Bookings</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {filteredBookings.map((booking) => (
-              <div key={booking.id} className="border rounded-lg p-4 space-y-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-medium">{booking.courtName}</h3>
-                    <p className="text-sm text-gray-600">{booking.userName} - {booking.userEmail}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Badge className={getStatusColor(booking.status)}>
-                      {booking.status}
-                    </Badge>
-                    <Badge className={getPaymentStatusColor(booking.paymentStatus)}>
-                      {booking.paymentStatus}
-                    </Badge>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-3 gap-4 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-gray-500" />
-                    <span>{booking.date}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-gray-500" />
-                    <span>{booking.startTime} - {booking.endTime}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{booking.amount} SAR</span>
-                  </div>
-                </div>
+      <Tabs defaultValue="bookings" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="bookings">Bookings</TabsTrigger>
+          <TabsTrigger value="payment-links">
+            Payment Links
+            {paymentLinks.length > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {paymentLinks.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
 
-                {booking.status === 'pending' && (
-                  <div className="flex gap-2">
-                    <Button 
-                      size="sm" 
-                      onClick={() => handleApproveBooking(booking.id)}
-                      className="flex items-center gap-1"
-                    >
-                      <Check className="w-4 h-4" />
-                      Approve
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="destructive" 
-                      onClick={() => handleRejectBooking(booking.id)}
-                      className="flex items-center gap-1"
-                    >
-                      <X className="w-4 h-4" />
-                      Reject
-                    </Button>
-                  </div>
-                )}
+        <TabsContent value="bookings">
+          <Card>
+            <CardHeader>
+              <CardTitle>Bookings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {filteredBookings.map((booking) => (
+                  <div key={booking.id} className="border rounded-lg p-4 space-y-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-medium">{booking.courtName}</h3>
+                        <p className="text-sm text-gray-600">{booking.userName} - {booking.userEmail}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Badge className={getStatusColor(booking.status)}>
+                          {booking.status}
+                        </Badge>
+                        <Badge className={getPaymentStatusColor(booking.paymentStatus)}>
+                          {booking.paymentStatus}
+                        </Badge>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-gray-500" />
+                        <span>{booking.date}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-gray-500" />
+                        <span>{booking.startTime} - {booking.endTime}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{booking.amount} SAR</span>
+                      </div>
+                    </div>
 
-                {(booking.status === 'approved' || booking.status === 'pending') && (
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    onClick={() => handleCancelBooking(booking.id)}
-                    className="flex items-center gap-1"
-                  >
-                    <X className="w-4 h-4" />{t('admin.common.cancel')}</Button>
-                )}
+                    {booking.status === 'pending' && (
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleApproveBooking(booking.id)}
+                          className="flex items-center gap-1"
+                        >
+                          <Check className="w-4 h-4" />
+                          Approve
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="destructive" 
+                          onClick={() => handleRejectBooking(booking.id)}
+                          className="flex items-center gap-1"
+                        >
+                          <X className="w-4 h-4" />
+                          Reject
+                        </Button>
+                      </div>
+                    )}
+
+                    {(booking.status === 'approved' || booking.status === 'pending') && (
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => handleCancelBooking(booking.id)}
+                        className="flex items-center gap-1"
+                      >
+                        <X className="w-4 h-4" />{t('admin.common.cancel')}</Button>
+                    )}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="payment-links">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <LinkIcon className="w-5 h-5" />
+                Payment Links
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {paymentLinksLoading ? (
+                <div className="text-center py-8 text-gray-500">Loading payment links...</div>
+              ) : paymentLinks.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No payment links created yet. Create one using the "Create Booking / Payment Link" button above.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {paymentLinks.map((link) => (
+                    <div key={link.id} className="border rounded-lg p-4 space-y-3">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-medium">{link.courtName}</h3>
+                          <p className="text-sm text-gray-600">{link.facilityName}</p>
+                          {link.phoneNumber && (
+                            <p className="text-sm text-gray-500">Phone: {link.phoneNumber}</p>
+                          )}
+                        </div>
+                        <Badge className={getPaymentLinkStatusColor(link.status)}>
+                          {link.status}
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-4 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-gray-500" />
+                          <span>{format(new Date(link.bookingDate), 'MMM dd, yyyy')}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-gray-500" />
+                          <span>{link.startTime} - {link.endTime}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{link.totalAmount} SAR</span>
+                        </div>
+                      </div>
+
+                      {link.recordingAddon && (
+                        <div className="text-sm text-blue-600">
+                          📹 Recording addon included (+{link.recordingAddonPrice} SAR)
+                        </div>
+                      )}
+
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleViewPaymentLink(link.id)}
+                          className="flex items-center gap-1"
+                        >
+                          <Eye className="w-4 h-4" />
+                          View Details
+                        </Button>
+                        {link.status === PaymentLinkStatus.ACTIVE && link.whatsAppTemplate && (
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => {
+                              const whatsappLink = paymentLinkService.generateWhatsAppWebLink(
+                                link.whatsAppTemplate.formattedMessage
+                              );
+                              window.open(whatsappLink, '_blank');
+                            }}
+                            className="flex items-center gap-1"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                            Share via WhatsApp
+                          </Button>
+                        )}
+                      </div>
+
+                      {link.status === PaymentLinkStatus.ACTIVE && (
+                        <div className="text-xs text-gray-500">
+                          Expires: {format(new Date(link.expiresAt), 'MMM dd, yyyy HH:mm')}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Payment Link Details Dialog */}
+      <Dialog open={showPaymentLinkDetails} onOpenChange={setShowPaymentLinkDetails}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Payment Link Details</DialogTitle>
+          </DialogHeader>
+          {selectedPaymentLink && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm text-gray-500">Link ID</Label>
+                  <p className="font-mono text-sm">{selectedPaymentLink.id}</p>
+                </div>
+                <div>
+                  <Label className="text-sm text-gray-500">Status</Label>
+                  <Badge className={getPaymentLinkStatusColor(selectedPaymentLink.status)}>
+                    {selectedPaymentLink.status}
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <h4 className="font-semibold mb-2">Booking Details</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm text-gray-500">Court</Label>
+                    <p>{selectedPaymentLink.courtName}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-gray-500">Facility</Label>
+                    <p>{selectedPaymentLink.facilityName}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-gray-500">Date</Label>
+                    <p>{format(new Date(selectedPaymentLink.bookingDate), 'MMMM dd, yyyy')}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-gray-500">Time</Label>
+                    <p>{selectedPaymentLink.startTime} - {selectedPaymentLink.endTime}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <h4 className="font-semibold mb-2">Pricing</h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Court Price</span>
+                    <span>{selectedPaymentLink.courtPrice} SAR</span>
+                  </div>
+                  {selectedPaymentLink.recordingAddon && (
+                    <div className="flex justify-between">
+                      <span>Recording Addon</span>
+                      <span>{selectedPaymentLink.recordingAddonPrice} SAR</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between font-bold border-t pt-2">
+                    <span>Total Amount</span>
+                    <span>{selectedPaymentLink.totalAmount} SAR</span>
+                  </div>
+                </div>
+              </div>
+
+              {selectedPaymentLink.phoneNumber && (
+                <div className="border-t pt-4">
+                  <Label className="text-sm text-gray-500">Customer Phone</Label>
+                  <p>{selectedPaymentLink.phoneNumber}</p>
+                </div>
+              )}
+
+              <div className="border-t pt-4">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <Label className="text-sm text-gray-500">Created At</Label>
+                    <p>{format(new Date(selectedPaymentLink.createdAt), 'MMM dd, yyyy HH:mm')}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-gray-500">Expires At</Label>
+                    <p>{format(new Date(selectedPaymentLink.expiresAt), 'MMM dd, yyyy HH:mm')}</p>
+                  </div>
+                </div>
+              </div>
+
+              {selectedPaymentLink.edfaPayTransactionId && (
+                <div className="border-t pt-4">
+                  <Label className="text-sm text-gray-500">Transaction ID</Label>
+                  <p className="font-mono text-sm">{selectedPaymentLink.edfaPayTransactionId}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 };
