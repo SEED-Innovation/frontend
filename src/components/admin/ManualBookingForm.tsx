@@ -186,10 +186,18 @@ const loadFacilities = async () => {
 useEffect(() => {
     if (isOpen) {
         loadFacilities();
-        loadCourts();
+        loadCourts(); // Load all courts initially
         loadUsers();
     }
 }, [isOpen]);
+
+// Reload courts when facility changes
+useEffect(() => {
+    if (formData.facilityId) {
+        console.log('🔄 Facility changed, reloading courts for facility:', formData.facilityId);
+        loadCourts(formData.facilityId);
+    }
+}, [formData.facilityId]);
 
 // Filter users based on search term
 const filteredUsers = users.filter(user => {
@@ -210,20 +218,14 @@ const filteredFacilities = facilities.filter(facility => {
     return nameMatch || locationMatch;
 });
 
-// Filter courts based on search term AND selected facility
+// Filter courts based on search term only (facility filtering is done on backend)
 const filteredCourts = courts.filter(court => {
-    // First filter by facility if one is selected
-    if (formData.facilityId && court.facility?.id !== formData.facilityId) {
-        return false;
-    }
-    
-    // Then filter by search term
+    // Filter by search term
     if (!courtSearchTerm.trim()) return true;
     const searchLower = courtSearchTerm.toLowerCase();
     const nameMatch = (court.name?.toLowerCase() || '').includes(searchLower);
     const locationMatch = (court.location?.toLowerCase() || '').includes(searchLower);
     const typeMatch = (court.type?.toLowerCase() || '').includes(searchLower);
-    console.log('🔍 Court search:', { searchTerm: courtSearchTerm, court: court.name, nameMatch, locationMatch, typeMatch });
     return nameMatch || locationMatch || typeMatch;
 });
     
@@ -231,10 +233,21 @@ const filteredCourts = courts.filter(court => {
     // 🔧 DATA LOADING
     // ================================
     
-const loadCourts = async () => {
+const loadCourts = async (facilityId?: number) => {
     setCourtsLoading(true);
     try {
-        const response = await courtService.getAllCourts();
+        let response;
+        if (facilityId) {
+            // Load courts for specific facility
+            console.log('🏟️ Loading courts for facility:', facilityId);
+            response = await courtService.getCourtsByFacility(facilityId);
+        } else {
+            // Load all courts for current user (role-based)
+            console.log('🏟️ Loading all courts for current user');
+            response = await courtService.getMyCourts();
+        }
+        
+        console.log('🏟️ Raw courts from API:', response);
         
         // Convert Court[] to CourtResponse[]
         const convertedCourts: CourtResponse[] = response.map((court) => ({
@@ -262,9 +275,16 @@ const loadCourts = async () => {
             } : undefined
         }));
         
+        console.log('✅ Converted courts with facility info:', convertedCourts.map(c => ({
+            id: c.id,
+            name: c.name,
+            facilityId: c.facility?.id,
+            facilityName: c.facility?.name
+        })));
+        
         setCourts(convertedCourts);
     } catch (error) {
-        console.error('Failed to load courts:', error);
+        console.error('❌ Failed to load courts:', error);
         setErrors({ courts: 'Failed to load courts' });
     } finally {
         setCourtsLoading(false);
@@ -276,6 +296,8 @@ const loadCourts = async () => {
     // ================================
     
     const handleInputChange = (field: keyof BookingFormData, value: any) => {
+        console.log(`📝 Form field changed: ${field} =`, value);
+        
         setFormData(prev => ({ ...prev, [field]: value }));
         
         // Clear field error when user starts typing
@@ -285,8 +307,10 @@ const loadCourts = async () => {
         
         // Reset court when facility changes
         if (field === 'facilityId') {
+            console.log('🏢 Facility changed, resetting court selection. New facilityId:', value);
             setFormData(prev => ({ ...prev, courtId: null, selectedSlot: null }));
             setAvailableSlots([]);
+            // Courts will be reloaded by the useEffect watching formData.facilityId
         }
         
         // Reset slots when court, date, or duration changes

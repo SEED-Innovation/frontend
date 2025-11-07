@@ -49,8 +49,13 @@ export interface AdminFacilityPageResponse {
 }
 
 export interface CreateFacilityRequest {
+  // Required fields (matching backend @NotBlank and @Column(nullable = false))
   name: string;
   location: string;
+  hourlyFee: number;
+  seedRecordingFee: number;
+  
+  // Optional fields
   description?: string;
   nameAr?: string;
   descriptionAr?: string;
@@ -63,12 +68,11 @@ export interface CreateFacilityRequest {
   techFeatures?: string[];
   imageUrl?: string;
   managerId?: number;
-  // Pricing fields
-  hourlyFee?: number;
+  
+  // Optional pricing fields with defaults
   discountAmount?: number;
   discountPercentage?: number;
   isPercentageDiscount?: boolean;
-  seedRecordingFee?: number;
 }
 
 export interface UpdateFacilityRequest {

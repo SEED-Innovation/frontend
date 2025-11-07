@@ -282,6 +282,27 @@ const FacilityManagement = () => {
   };
 
   const handleCreateFacility = async () => {
+    // Validate required fields
+    if (!newFacility.name || newFacility.name.trim() === '') {
+      toast.error('Facility name is required');
+      return;
+    }
+    
+    if (!newFacility.location || newFacility.location.trim() === '') {
+      toast.error('Location is required');
+      return;
+    }
+    
+    if (newFacility.hourlyFee === undefined || newFacility.hourlyFee < 0) {
+      toast.error('Hourly fee is required and must be a positive number');
+      return;
+    }
+    
+    if (newFacility.seedRecordingFee === undefined || newFacility.seedRecordingFee < 0) {
+      toast.error('SEED recording fee is required and must be a positive number');
+      return;
+    }
+    
     try {
       let createdFacility;
       if (createSelectedImageFile) {
@@ -339,6 +360,27 @@ const FacilityManagement = () => {
 
   const handleUpdateFacility = async () => {
     if (!editingFacility) return;
+
+    // Validate required fields
+    if (!editingFacility.name || editingFacility.name.trim() === '') {
+      toast.error('Facility name is required');
+      return;
+    }
+    
+    if (!editingFacility.location || editingFacility.location.trim() === '') {
+      toast.error('Location is required');
+      return;
+    }
+    
+    if (editingFacility.hourlyFee === undefined || editingFacility.hourlyFee < 0) {
+      toast.error('Hourly fee is required and must be a positive number');
+      return;
+    }
+    
+    if (editingFacility.seedRecordingFee === undefined || editingFacility.seedRecordingFee < 0) {
+      toast.error('SEED recording fee is required and must be a positive number');
+      return;
+    }
 
     try {
       const updateData: UpdateFacilityRequest = {
@@ -997,30 +1039,56 @@ const FacilityManagement = () => {
               <h3 className="text-lg font-semibold">Basic Information</h3>
               
               <div>
-                <Label htmlFor="name">Facility Name</Label>
+                <Label htmlFor="name">
+                  Facility Name <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="name"
                   value={newFacility.name}
                   onChange={(e) => setNewFacility({ ...newFacility, name: e.target.value })}
                   placeholder="Enter facility name"
+                  required
                 />
               </div>
               <div>
-                <Label htmlFor="location">Location</Label>
+                <Label htmlFor="location">
+                  Location <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="location"
                   value={newFacility.location}
                   onChange={(e) => setNewFacility({ ...newFacility, location: e.target.value })}
                   placeholder="Enter facility location"
+                  required
                 />
               </div>
               <div>
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">Description (Optional)</Label>
                 <Input
                   id="description"
                   value={newFacility.description}
                   onChange={(e) => setNewFacility({ ...newFacility, description: e.target.value })}
                   placeholder="Enter facility description"
+                />
+              </div>
+              <div>
+                <Label htmlFor="nameAr">Arabic Name (Optional)</Label>
+                <Input
+                  id="nameAr"
+                  value={newFacility.nameAr || ''}
+                  onChange={(e) => setNewFacility({ ...newFacility, nameAr: e.target.value })}
+                  placeholder="أدخل اسم المنشأة بالعربية"
+                  dir="rtl"
+                />
+              </div>
+              <div>
+                <Label htmlFor="descriptionAr">Arabic Description (Optional)</Label>
+                <Input
+                  id="descriptionAr"
+                  value={newFacility.descriptionAr || ''}
+                  onChange={(e) => setNewFacility({ ...newFacility, descriptionAr: e.target.value })}
+                  placeholder="أدخل وصف المنشأة بالعربية"
+                  dir="rtl"
                 />
               </div>
               <div className="space-y-2">
@@ -1104,7 +1172,9 @@ const FacilityManagement = () => {
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="hourlyFee">Hourly Fee (SAR)</Label>
+                  <Label htmlFor="hourlyFee">
+                    Hourly Fee (SAR) <span className="text-red-500">*</span>
+                  </Label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">﷼</span>
                     <Input
@@ -1116,11 +1186,14 @@ const FacilityManagement = () => {
                       onChange={(e) => setNewFacility({ ...newFacility, hourlyFee: parseFloat(e.target.value) || 0 })}
                       placeholder="0.00"
                       className="pl-8"
+                      required
                     />
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="seedRecordingFee">SEED Recording Fee (SAR)</Label>
+                  <Label htmlFor="seedRecordingFee">
+                    SEED Recording Fee (SAR) <span className="text-red-500">*</span>
+                  </Label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">﷼</span>
                     <Input
@@ -1131,6 +1204,7 @@ const FacilityManagement = () => {
                       value={newFacility.seedRecordingFee}
                       onChange={(e) => setNewFacility({ ...newFacility, seedRecordingFee: parseFloat(e.target.value) || 40 })}
                       placeholder="40.00"
+                      required
                       className="pl-8"
                     />
                   </div>
@@ -1139,8 +1213,31 @@ const FacilityManagement = () => {
 
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4" />
+                  GPS Coordinates (Optional)
+                </Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    type="number"
+                    step="any"
+                    placeholder="Latitude (e.g., 24.7136)"
+                    value={newFacility.latitude || ''}
+                    onChange={(e) => setNewFacility({ ...newFacility, latitude: e.target.value ? parseFloat(e.target.value) : undefined })}
+                  />
+                  <Input
+                    type="number"
+                    step="any"
+                    placeholder="Longitude (e.g., 46.6753)"
+                    value={newFacility.longitude || ''}
+                    onChange={(e) => setNewFacility({ ...newFacility, longitude: e.target.value ? parseFloat(e.target.value) : undefined })}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
                   <LinkIcon className="w-4 h-4" />
-                  Map Links
+                  Map Links (Optional)
                 </Label>
                 <div className="space-y-2">
                   <Input
@@ -1310,30 +1407,56 @@ const FacilityManagement = () => {
                 <h3 className="text-lg font-semibold">Basic Information</h3>
                 
                 <div>
-                  <Label htmlFor="edit-name">Facility Name</Label>
+                  <Label htmlFor="edit-name">
+                    Facility Name <span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     id="edit-name"
                     value={editingFacility.name}
                     onChange={(e) => setEditingFacility({ ...editingFacility, name: e.target.value })}
                     placeholder="Enter facility name"
+                    required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="edit-location">Location</Label>
+                  <Label htmlFor="edit-location">
+                    Location <span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     id="edit-location"
                     value={editingFacility.location}
                     onChange={(e) => setEditingFacility({ ...editingFacility, location: e.target.value })}
                     placeholder="Enter facility location"
+                    required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="edit-description">Description</Label>
+                  <Label htmlFor="edit-description">Description (Optional)</Label>
                   <Input
                     id="edit-description"
                     value={editingFacility.description || ''}
                     onChange={(e) => setEditingFacility({ ...editingFacility, description: e.target.value })}
                     placeholder="Enter facility description"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-nameAr">Arabic Name (Optional)</Label>
+                  <Input
+                    id="edit-nameAr"
+                    value={editingFacility.nameAr || ''}
+                    onChange={(e) => setEditingFacility({ ...editingFacility, nameAr: e.target.value })}
+                    placeholder="أدخل اسم المنشأة بالعربية"
+                    dir="rtl"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-descriptionAr">Arabic Description (Optional)</Label>
+                  <Input
+                    id="edit-descriptionAr"
+                    value={editingFacility.descriptionAr || ''}
+                    onChange={(e) => setEditingFacility({ ...editingFacility, descriptionAr: e.target.value })}
+                    placeholder="أدخل وصف المنشأة بالعربية"
+                    dir="rtl"
                   />
                 </div>
                 <div className="space-y-2">
@@ -1417,7 +1540,9 @@ const FacilityManagement = () => {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="edit-hourlyFee">Hourly Fee (SAR)</Label>
+                    <Label htmlFor="edit-hourlyFee">
+                      Hourly Fee (SAR) <span className="text-red-500">*</span>
+                    </Label>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">﷼</span>
                       <Input
@@ -1429,11 +1554,14 @@ const FacilityManagement = () => {
                         onChange={(e) => setEditingFacility({ ...editingFacility, hourlyFee: parseFloat(e.target.value) || 0 })}
                         placeholder="0.00"
                         className="pl-8"
+                        required
                       />
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="edit-seedRecordingFee">SEED Recording Fee (SAR)</Label>
+                    <Label htmlFor="edit-seedRecordingFee">
+                      SEED Recording Fee (SAR) <span className="text-red-500">*</span>
+                    </Label>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">﷼</span>
                       <Input
@@ -1445,6 +1573,7 @@ const FacilityManagement = () => {
                         onChange={(e) => setEditingFacility({ ...editingFacility, seedRecordingFee: parseFloat(e.target.value) || 40 })}
                         placeholder="40.00"
                         className="pl-8"
+                        required
                       />
                     </div>
                   </div>

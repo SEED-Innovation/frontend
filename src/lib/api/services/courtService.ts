@@ -98,8 +98,8 @@ class CourtService {
     private baseUrl = '/admin/courts';
 
     /**
-     * Get all courts - role-based filtering happens on backend
-     * SUPER_ADMIN sees all courts, ADMIN sees only managed courts
+     * Get all courts - SUPER_ADMIN only
+     * For role-based access, use getMyCourts() instead
      */
     async getAllCourts(sportType?: SportType): Promise<Court[]> {
         const params = new URLSearchParams();
@@ -109,6 +109,27 @@ class CourtService {
         
         const endpoint = params.toString() ? `${this.baseUrl}?${params}` : this.baseUrl;
         return apiClient.get<Court[]>(endpoint);
+    }
+
+    /**
+     * Get courts for current user (role-based filtering)
+     * SUPER_ADMIN sees all courts, ADMIN sees only their facility's courts
+     */
+    async getMyCourts(sportType?: SportType): Promise<Court[]> {
+        const params = new URLSearchParams();
+        if (sportType) {
+            params.append('sportType', sportType);
+        }
+        
+        const endpoint = params.toString() ? `${this.baseUrl}/my-courts?${params}` : `${this.baseUrl}/my-courts`;
+        return apiClient.get<Court[]>(endpoint);
+    }
+
+    /**
+     * Get courts by facility ID
+     */
+    async getCourtsByFacility(facilityId: number): Promise<Court[]> {
+        return apiClient.get<Court[]>(`${this.baseUrl}/facility/${facilityId}`);
     }
 
     /**
