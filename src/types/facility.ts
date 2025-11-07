@@ -13,6 +13,8 @@ export interface Facility {
   openingTimes?: OpeningTimes | null;
   latitude?: number | null;
   longitude?: number | null;
+  locationAndroid?: string | null;
+  locationIos?: string | null;
   averageRating?: number | null;
   totalRatings?: number | null;
   amenities?: string[];
@@ -55,6 +57,8 @@ export interface CreateFacilityRequest {
   openingTimes?: OpeningTimes;
   latitude?: number;
   longitude?: number;
+  locationAndroid?: string;
+  locationIos?: string;
   amenities?: string[];
   techFeatures?: string[];
   imageUrl?: string;
@@ -76,6 +80,8 @@ export interface UpdateFacilityRequest {
   openingTimes?: OpeningTimes;
   latitude?: number;
   longitude?: number;
+  locationAndroid?: string;
+  locationIos?: string;
   amenities?: string[];
   techFeatures?: string[];
   imageUrl?: string;

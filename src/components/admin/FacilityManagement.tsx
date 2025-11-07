@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Edit, Trash2, Settings, MapPin, Building, Loader2, Search, Filter, X, RefreshCw, Eye, Users } from 'lucide-react';
+import { Plus, Edit, Trash2, Settings, MapPin, Building, Loader2, Search, Filter, X, RefreshCw, Eye, Users, Image, Clock, Link as LinkIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,6 +46,8 @@ const FacilityManagement = () => {
     location: '',
     description: '',
     openingTimes: { weekdays: '', weekends: '' },
+    locationAndroid: '',
+    locationIos: '',
     amenities: [],
     techFeatures: [],
     managerId: undefined,
@@ -55,6 +57,18 @@ const FacilityManagement = () => {
     isPercentageDiscount: false,
     seedRecordingFee: 40
   });
+
+  // Amenities and tech features input states
+  const [newAmenity, setNewAmenity] = useState('');
+  const [newTechFeature, setNewTechFeature] = useState('');
+  const [editAmenity, setEditAmenity] = useState('');
+  const [editTechFeature, setEditTechFeature] = useState('');
+
+  // Image upload states
+  const [createImagePreview, setCreateImagePreview] = useState<string | null>(null);
+  const [createSelectedImageFile, setCreateSelectedImageFile] = useState<File | null>(null);
+  const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
+  const [editSelectedImageFile, setEditSelectedImageFile] = useState<File | null>(null);
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -108,9 +122,169 @@ const FacilityManagement = () => {
     }
   };
 
+  const handleCreateImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      setCreateSelectedImageFile(null);
+      setCreateImagePreview(null);
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Please select an image smaller than 5MB');
+      return;
+    }
+
+    setCreateSelectedImageFile(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      setCreateImagePreview(result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleEditImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      setEditSelectedImageFile(null);
+      setEditImagePreview(null);
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Please select an image smaller than 5MB');
+      return;
+    }
+
+    setEditSelectedImageFile(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      setEditImagePreview(result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeCreateImage = () => {
+    setCreateSelectedImageFile(null);
+    setCreateImagePreview(null);
+    // Reset the file input
+    const fileInput = document.getElementById('createImageFile') as HTMLInputElement;
+    if (fileInput) fileInput.value = '';
+  };
+
+  const removeEditImage = () => {
+    setEditSelectedImageFile(null);
+    setEditImagePreview(null);
+    // Reset the file input
+    const fileInput = document.getElementById('editImageFile') as HTMLInputElement;
+    if (fileInput) fileInput.value = '';
+  };
+
+  // Amenities management for create form
+  const addAmenity = () => {
+    if (newAmenity.trim() && !newFacility.amenities?.includes(newAmenity.trim())) {
+      setNewFacility({
+        ...newFacility,
+        amenities: [...(newFacility.amenities || []), newAmenity.trim()]
+      });
+      setNewAmenity('');
+    }
+  };
+
+  const removeAmenity = (amenity: string) => {
+    setNewFacility({
+      ...newFacility,
+      amenities: newFacility.amenities?.filter(a => a !== amenity) || []
+    });
+  };
+
+  // Tech features management for create form
+  const addTechFeature = () => {
+    if (newTechFeature.trim() && !newFacility.techFeatures?.includes(newTechFeature.trim())) {
+      setNewFacility({
+        ...newFacility,
+        techFeatures: [...(newFacility.techFeatures || []), newTechFeature.trim()]
+      });
+      setNewTechFeature('');
+    }
+  };
+
+  const removeTechFeature = (feature: string) => {
+    setNewFacility({
+      ...newFacility,
+      techFeatures: newFacility.techFeatures?.filter(f => f !== feature) || []
+    });
+  };
+
+  // Amenities management for edit form
+  const addEditAmenity = () => {
+    if (editAmenity.trim() && editingFacility && !editingFacility.amenities?.includes(editAmenity.trim())) {
+      setEditingFacility({
+        ...editingFacility,
+        amenities: [...(editingFacility.amenities || []), editAmenity.trim()]
+      });
+      setEditAmenity('');
+    }
+  };
+
+  const removeEditAmenity = (amenity: string) => {
+    if (editingFacility) {
+      setEditingFacility({
+        ...editingFacility,
+        amenities: editingFacility.amenities?.filter(a => a !== amenity) || []
+      });
+    }
+  };
+
+  // Tech features management for edit form
+  const addEditTechFeature = () => {
+    if (editTechFeature.trim() && editingFacility && !editingFacility.techFeatures?.includes(editTechFeature.trim())) {
+      setEditingFacility({
+        ...editingFacility,
+        techFeatures: [...(editingFacility.techFeatures || []), editTechFeature.trim()]
+      });
+      setEditTechFeature('');
+    }
+  };
+
+  const removeEditTechFeature = (feature: string) => {
+    if (editingFacility) {
+      setEditingFacility({
+        ...editingFacility,
+        techFeatures: editingFacility.techFeatures?.filter(f => f !== feature) || []
+      });
+    }
+  };
+
   const handleCreateFacility = async () => {
     try {
-      const createdFacility = await facilityService.createFacility(newFacility);
+      let createdFacility;
+      if (createSelectedImageFile) {
+        createdFacility = await facilityService.createFacilityWithImage(newFacility, createSelectedImageFile);
+      } else {
+        createdFacility = await facilityService.createFacility(newFacility);
+      }
+      
       setFacilities([...facilities, createdFacility]);
       setCreateDialogOpen(false);
       setNewFacility({
@@ -118,6 +292,8 @@ const FacilityManagement = () => {
         location: '',
         description: '',
         openingTimes: { weekdays: '', weekends: '' },
+        locationAndroid: '',
+        locationIos: '',
         amenities: [],
         techFeatures: [],
         managerId: undefined,
@@ -127,6 +303,17 @@ const FacilityManagement = () => {
         isPercentageDiscount: false,
         seedRecordingFee: 40
       });
+      
+      // Reset amenities and tech features input states
+      setNewAmenity('');
+      setNewTechFeature('');
+      
+      // Reset image states
+      setCreateImagePreview(null);
+      setCreateSelectedImageFile(null);
+      const fileInput = document.getElementById('createImageFile') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+      
       toast.success('Facility created successfully');
     } catch (error) {
       console.error('Error creating facility:', error);
@@ -138,6 +325,11 @@ const FacilityManagement = () => {
   const handleEditFacility = (facility: Facility) => {
     setEditingFacility(facility);
     setEditDialogOpen(true);
+    // Reset image states when opening edit dialog
+    setEditImagePreview(null);
+    setEditSelectedImageFile(null);
+    const fileInput = document.getElementById('editImageFile') as HTMLInputElement;
+    if (fileInput) fileInput.value = '';
   };
 
   const handleUpdateFacility = async () => {
@@ -153,6 +345,8 @@ const FacilityManagement = () => {
         openingTimes: editingFacility.openingTimes,
         latitude: editingFacility.latitude,
         longitude: editingFacility.longitude,
+        locationAndroid: editingFacility.locationAndroid,
+        locationIos: editingFacility.locationIos,
         amenities: editingFacility.amenities,
         techFeatures: editingFacility.techFeatures,
         managerId: editingFacility.managerId,
@@ -163,7 +357,12 @@ const FacilityManagement = () => {
         seedRecordingFee: editingFacility.seedRecordingFee
       };
 
-      const updatedFacility = await facilityService.updateFacility(editingFacility.id, updateData);
+      let updatedFacility;
+      if (editSelectedImageFile) {
+        updatedFacility = await facilityService.updateFacilityWithImage(editingFacility.id, updateData, editSelectedImageFile);
+      } else {
+        updatedFacility = await facilityService.updateFacility(editingFacility.id, updateData);
+      }
       
       setFacilities(prevFacilities =>
         prevFacilities.map(facility =>
@@ -173,6 +372,13 @@ const FacilityManagement = () => {
 
       setEditDialogOpen(false);
       setEditingFacility(null);
+      
+      // Reset image states
+      setEditImagePreview(null);
+      setEditSelectedImageFile(null);
+      const fileInput = document.getElementById('editImageFile') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+      
       toast.success('Facility updated successfully');
     } catch (error) {
       console.error('Error updating facility:', error);
@@ -219,7 +425,7 @@ const FacilityManagement = () => {
   const canManageFacility = (facility: Facility) => {
     if (hasPermission('SUPER_ADMIN')) return true;
     if (user?.role === 'ADMIN') {
-      return facility.managerId === user.id;
+      return facility.managerId === Number(user.id);
     }
     return false;
   };
@@ -562,290 +768,622 @@ const FacilityManagement = () => {
 
       {/* Create Facility Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create New Facility</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="name">Facility Name</Label>
-              <Input
-                id="name"
-                value={newFacility.name}
-                onChange={(e) => setNewFacility({ ...newFacility, name: e.target.value })}
-                placeholder="Enter facility name"
-              />
-            </div>
-            <div>
-              <Label htmlFor="location">Location</Label>
-              <Input
-                id="location"
-                value={newFacility.location}
-                onChange={(e) => setNewFacility({ ...newFacility, location: e.target.value })}
-                placeholder="Enter facility location"
-              />
-            </div>
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Input
-                id="description"
-                value={newFacility.description}
-                onChange={(e) => setNewFacility({ ...newFacility, description: e.target.value })}
-                placeholder="Enter facility description"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left Column - Basic Info */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Basic Information</h3>
+              
               <div>
-                <Label htmlFor="weekdays">Weekdays Hours</Label>
+                <Label htmlFor="name">Facility Name</Label>
                 <Input
-                  id="weekdays"
-                  value={newFacility.openingTimes?.weekdays || ''}
-                  onChange={(e) => setNewFacility({ 
-                    ...newFacility, 
-                    openingTimes: { 
-                      ...newFacility.openingTimes, 
-                      weekdays: e.target.value 
-                    } 
-                  })}
-                  placeholder="e.g., 08:00-22:00"
+                  id="name"
+                  value={newFacility.name}
+                  onChange={(e) => setNewFacility({ ...newFacility, name: e.target.value })}
+                  placeholder="Enter facility name"
                 />
               </div>
               <div>
-                <Label htmlFor="weekends">Weekend Hours</Label>
+                <Label htmlFor="location">Location</Label>
                 <Input
-                  id="weekends"
-                  value={newFacility.openingTimes?.weekends || ''}
-                  onChange={(e) => setNewFacility({ 
-                    ...newFacility, 
-                    openingTimes: { 
-                      ...newFacility.openingTimes, 
-                      weekends: e.target.value 
-                    } 
-                  })}
-                  placeholder="e.g., 09:00-20:00"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="hourlyFee">Hourly Fee ($)</Label>
-                <Input
-                  id="hourlyFee"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={newFacility.hourlyFee}
-                  onChange={(e) => setNewFacility({ ...newFacility, hourlyFee: parseFloat(e.target.value) || 0 })}
-                  placeholder="0.00"
+                  id="location"
+                  value={newFacility.location}
+                  onChange={(e) => setNewFacility({ ...newFacility, location: e.target.value })}
+                  placeholder="Enter facility location"
                 />
               </div>
               <div>
-                <Label htmlFor="seedRecordingFee">SEED Recording Fee ($)</Label>
+                <Label htmlFor="description">Description</Label>
                 <Input
-                  id="seedRecordingFee"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={newFacility.seedRecordingFee}
-                  onChange={(e) => setNewFacility({ ...newFacility, seedRecordingFee: parseFloat(e.target.value) || 40 })}
-                  placeholder="40.00"
+                  id="description"
+                  value={newFacility.description}
+                  onChange={(e) => setNewFacility({ ...newFacility, description: e.target.value })}
+                  placeholder="Enter facility description"
                 />
               </div>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  Opening Hours
+                </Label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="weekdays" className="text-sm text-muted-foreground">Weekdays</Label>
+                    <Input
+                      id="weekdays"
+                      type="time"
+                      value={newFacility.openingTimes?.weekdays?.split('-')[0] || ''}
+                      onChange={(e) => {
+                        const endTime = newFacility.openingTimes?.weekdays?.split('-')[1] || '22:00';
+                        setNewFacility({ 
+                          ...newFacility, 
+                          openingTimes: { 
+                            ...newFacility.openingTimes, 
+                            weekdays: `${e.target.value}-${endTime}` 
+                          } 
+                        });
+                      }}
+                      placeholder="08:00"
+                    />
+                    <span className="text-xs text-muted-foreground">to</span>
+                    <Input
+                      type="time"
+                      value={newFacility.openingTimes?.weekdays?.split('-')[1] || ''}
+                      onChange={(e) => {
+                        const startTime = newFacility.openingTimes?.weekdays?.split('-')[0] || '08:00';
+                        setNewFacility({ 
+                          ...newFacility, 
+                          openingTimes: { 
+                            ...newFacility.openingTimes, 
+                            weekdays: `${startTime}-${e.target.value}` 
+                          } 
+                        });
+                      }}
+                      placeholder="22:00"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="weekends" className="text-sm text-muted-foreground">Weekends</Label>
+                    <Input
+                      id="weekends"
+                      type="time"
+                      value={newFacility.openingTimes?.weekends?.split('-')[0] || ''}
+                      onChange={(e) => {
+                        const endTime = newFacility.openingTimes?.weekends?.split('-')[1] || '20:00';
+                        setNewFacility({ 
+                          ...newFacility, 
+                          openingTimes: { 
+                            ...newFacility.openingTimes, 
+                            weekends: `${e.target.value}-${endTime}` 
+                          } 
+                        });
+                      }}
+                      placeholder="09:00"
+                    />
+                    <span className="text-xs text-muted-foreground">to</span>
+                    <Input
+                      type="time"
+                      value={newFacility.openingTimes?.weekends?.split('-')[1] || ''}
+                      onChange={(e) => {
+                        const startTime = newFacility.openingTimes?.weekends?.split('-')[0] || '09:00';
+                        setNewFacility({ 
+                          ...newFacility, 
+                          openingTimes: { 
+                            ...newFacility.openingTimes, 
+                            weekends: `${startTime}-${e.target.value}` 
+                          } 
+                        });
+                      }}
+                      placeholder="20:00"
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="hourlyFee">Hourly Fee (SAR)</Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">﷼</span>
+                    <Input
+                      id="hourlyFee"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={newFacility.hourlyFee}
+                      onChange={(e) => setNewFacility({ ...newFacility, hourlyFee: parseFloat(e.target.value) || 0 })}
+                      placeholder="0.00"
+                      className="pl-8"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="seedRecordingFee">SEED Recording Fee (SAR)</Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">﷼</span>
+                    <Input
+                      id="seedRecordingFee"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={newFacility.seedRecordingFee}
+                      onChange={(e) => setNewFacility({ ...newFacility, seedRecordingFee: parseFloat(e.target.value) || 40 })}
+                      placeholder="40.00"
+                      className="pl-8"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <LinkIcon className="w-4 h-4" />
+                  Map Links
+                </Label>
+                <div className="space-y-2">
+                  <Input
+                    placeholder="Android/Google Maps link"
+                    value={newFacility.locationAndroid || ''}
+                    onChange={(e) => setNewFacility({ ...newFacility, locationAndroid: e.target.value })}
+                  />
+                  <Input
+                    placeholder="iOS/Apple Maps link"
+                    value={newFacility.locationIos || ''}
+                    onChange={(e) => setNewFacility({ ...newFacility, locationIos: e.target.value })}
+                  />
+                </div>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="amenities">Amenities (comma-separated)</Label>
-              <Input
-                id="amenities"
-                value={newFacility.amenities?.join(', ') || ''}
-                onChange={(e) => setNewFacility({ 
-                  ...newFacility, 
-                  amenities: e.target.value.split(',').map(item => item.trim()).filter(Boolean)
-                })}
-                placeholder="e.g., Parking, Changing Rooms, Pro Shop"
-              />
-            </div>
-            <div>
-              <Label htmlFor="techFeatures">Tech Features (comma-separated)</Label>
-              <Input
-                id="techFeatures"
-                value={newFacility.techFeatures?.join(', ') || ''}
-                onChange={(e) => setNewFacility({ 
-                  ...newFacility, 
-                  techFeatures: e.target.value.split(',').map(item => item.trim()).filter(Boolean)
-                })}
-                placeholder="e.g., SEED System, LED Lighting, Sound System"
-              />
-            </div>
-            {hasPermission('SUPER_ADMIN') && (
+
+            {/* Right Column - Image Upload and Additional Info */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Facility Image</h3>
+              
               <div>
-                <Label htmlFor="manager">Manager</Label>
-                <Select
-                  value={newFacility.managerId?.toString() || 'no-manager'}
-                  onValueChange={(value) => setNewFacility({ 
-                    ...newFacility, 
-                    managerId: value === 'no-manager' ? undefined : parseInt(value) 
-                  })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select manager (optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="no-manager">No manager</SelectItem>
-                    {admins.map((admin) => (
-                      <SelectItem key={admin.id} value={admin.id}>
-                        {admin.name}
-                      </SelectItem>
+                <Label htmlFor="createImageFile">Cover Image</Label>
+                <div className="space-y-2">
+                  <Input
+                    id="createImageFile"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleCreateImageUpload}
+                    className="cursor-pointer"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Upload an image file (max 5MB). Supported formats: JPG, PNG, GIF, WebP
+                  </p>
+                </div>
+                
+                {createImagePreview && (
+                  <div className="mt-3 relative">
+                    <img
+                      src={createImagePreview}
+                      alt="Facility preview"
+                      className="w-full h-48 object-cover rounded-lg border"
+                    />
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-2 right-2"
+                      onClick={removeCreateImage}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+                
+                {createSelectedImageFile && (
+                  <div className="mt-2 text-sm text-muted-foreground">
+                    Selected: {createSelectedImageFile.name} ({(createSelectedImageFile.size / 1024 / 1024).toFixed(2)} MB)
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Amenities</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={newAmenity}
+                    onChange={(e) => setNewAmenity(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addAmenity())}
+                    placeholder="Add amenity (e.g., Parking)"
+                  />
+                  <Button type="button" onClick={addAmenity} size="sm">
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+                {newFacility.amenities && newFacility.amenities.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {newFacility.amenities.map((amenity, index) => (
+                      <Badge key={index} variant="secondary" className="gap-1">
+                        {amenity}
+                        <X
+                          className="w-3 h-3 cursor-pointer hover:text-destructive"
+                          onClick={() => removeAmenity(amenity)}
+                        />
+                      </Badge>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </div>
+                )}
               </div>
-            )}
-            <div className="flex gap-2">
-              <Button onClick={handleCreateFacility} className="flex-1">
-                Create Facility
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setCreateDialogOpen(false)}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
+              
+              <div className="space-y-2">
+                <Label>Tech Features</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={newTechFeature}
+                    onChange={(e) => setNewTechFeature(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTechFeature())}
+                    placeholder="Add tech feature (e.g., SEED System)"
+                  />
+                  <Button type="button" onClick={addTechFeature} size="sm">
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+                {newFacility.techFeatures && newFacility.techFeatures.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {newFacility.techFeatures.map((feature, index) => (
+                      <Badge key={index} variant="secondary" className="gap-1">
+                        {feature}
+                        <X
+                          className="w-3 h-3 cursor-pointer hover:text-destructive"
+                          onClick={() => removeTechFeature(feature)}
+                        />
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              {hasPermission('SUPER_ADMIN') && (
+                <div>
+                  <Label htmlFor="manager">Manager</Label>
+                  <Select
+                    value={newFacility.managerId?.toString() || 'no-manager'}
+                    onValueChange={(value) => setNewFacility({ 
+                      ...newFacility, 
+                      managerId: value === 'no-manager' ? undefined : parseInt(value) 
+                    })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select manager (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="no-manager">No manager</SelectItem>
+                      {admins.map((admin) => (
+                        <SelectItem key={admin.id} value={admin.id}>
+                          {admin.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
+          </div>
+
+          {/* Footer */}
+          <div className="flex justify-end space-x-2 pt-6 border-t">
+            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateFacility}>
+              Create Facility
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Edit Facility Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Facility</DialogTitle>
           </DialogHeader>
           {editingFacility && (
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="edit-name">Facility Name</Label>
-                <Input
-                  id="edit-name"
-                  value={editingFacility.name}
-                  onChange={(e) => setEditingFacility({ ...editingFacility, name: e.target.value })}
-                  placeholder="Enter facility name"
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-location">Location</Label>
-                <Input
-                  id="edit-location"
-                  value={editingFacility.location}
-                  onChange={(e) => setEditingFacility({ ...editingFacility, location: e.target.value })}
-                  placeholder="Enter facility location"
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-description">Description</Label>
-                <Input
-                  id="edit-description"
-                  value={editingFacility.description || ''}
-                  onChange={(e) => setEditingFacility({ ...editingFacility, description: e.target.value })}
-                  placeholder="Enter facility description"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+            <>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Left Column - Basic Info */}
+                <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Basic Information</h3>
+                
                 <div>
-                  <Label htmlFor="edit-weekdays">Weekdays Hours</Label>
+                  <Label htmlFor="edit-name">Facility Name</Label>
                   <Input
-                    id="edit-weekdays"
-                    value={editingFacility.openingTimes?.weekdays || ''}
-                    onChange={(e) => setEditingFacility({ 
-                      ...editingFacility, 
-                      openingTimes: { 
-                        ...editingFacility.openingTimes, 
-                        weekdays: e.target.value 
-                      } 
-                    })}
-                    placeholder="e.g., 08:00-22:00"
+                    id="edit-name"
+                    value={editingFacility.name}
+                    onChange={(e) => setEditingFacility({ ...editingFacility, name: e.target.value })}
+                    placeholder="Enter facility name"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="edit-weekends">Weekend Hours</Label>
+                  <Label htmlFor="edit-location">Location</Label>
                   <Input
-                    id="edit-weekends"
-                    value={editingFacility.openingTimes?.weekends || ''}
-                    onChange={(e) => setEditingFacility({ 
-                      ...editingFacility, 
-                      openingTimes: { 
-                        ...editingFacility.openingTimes, 
-                        weekends: e.target.value 
-                      } 
-                    })}
-                    placeholder="e.g., 09:00-20:00"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="edit-hourlyFee">Hourly Fee ($)</Label>
-                  <Input
-                    id="edit-hourlyFee"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={editingFacility.hourlyFee || 0}
-                    onChange={(e) => setEditingFacility({ ...editingFacility, hourlyFee: parseFloat(e.target.value) || 0 })}
-                    placeholder="0.00"
+                    id="edit-location"
+                    value={editingFacility.location}
+                    onChange={(e) => setEditingFacility({ ...editingFacility, location: e.target.value })}
+                    placeholder="Enter facility location"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="edit-seedRecordingFee">SEED Recording Fee ($)</Label>
+                  <Label htmlFor="edit-description">Description</Label>
                   <Input
-                    id="edit-seedRecordingFee"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={editingFacility.seedRecordingFee || 40}
-                    onChange={(e) => setEditingFacility({ ...editingFacility, seedRecordingFee: parseFloat(e.target.value) || 40 })}
-                    placeholder="40.00"
+                    id="edit-description"
+                    value={editingFacility.description || ''}
+                    onChange={(e) => setEditingFacility({ ...editingFacility, description: e.target.value })}
+                    placeholder="Enter facility description"
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    Opening Hours
+                  </Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-weekdays" className="text-sm text-muted-foreground">Weekdays</Label>
+                      <Input
+                        id="edit-weekdays"
+                        type="time"
+                        value={editingFacility.openingTimes?.weekdays?.split('-')[0] || ''}
+                        onChange={(e) => {
+                          const endTime = editingFacility.openingTimes?.weekdays?.split('-')[1] || '22:00';
+                          setEditingFacility({ 
+                            ...editingFacility, 
+                            openingTimes: { 
+                              ...editingFacility.openingTimes, 
+                              weekdays: `${e.target.value}-${endTime}` 
+                            } 
+                          });
+                        }}
+                        placeholder="08:00"
+                      />
+                      <span className="text-xs text-muted-foreground">to</span>
+                      <Input
+                        type="time"
+                        value={editingFacility.openingTimes?.weekdays?.split('-')[1] || ''}
+                        onChange={(e) => {
+                          const startTime = editingFacility.openingTimes?.weekdays?.split('-')[0] || '08:00';
+                          setEditingFacility({ 
+                            ...editingFacility, 
+                            openingTimes: { 
+                              ...editingFacility.openingTimes, 
+                              weekdays: `${startTime}-${e.target.value}` 
+                            } 
+                          });
+                        }}
+                        placeholder="22:00"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-weekends" className="text-sm text-muted-foreground">Weekends</Label>
+                      <Input
+                        id="edit-weekends"
+                        type="time"
+                        value={editingFacility.openingTimes?.weekends?.split('-')[0] || ''}
+                        onChange={(e) => {
+                          const endTime = editingFacility.openingTimes?.weekends?.split('-')[1] || '20:00';
+                          setEditingFacility({ 
+                            ...editingFacility, 
+                            openingTimes: { 
+                              ...editingFacility.openingTimes, 
+                              weekends: `${e.target.value}-${endTime}` 
+                            } 
+                          });
+                        }}
+                        placeholder="09:00"
+                      />
+                      <span className="text-xs text-muted-foreground">to</span>
+                      <Input
+                        type="time"
+                        value={editingFacility.openingTimes?.weekends?.split('-')[1] || ''}
+                        onChange={(e) => {
+                          const startTime = editingFacility.openingTimes?.weekends?.split('-')[0] || '09:00';
+                          setEditingFacility({ 
+                            ...editingFacility, 
+                            openingTimes: { 
+                              ...editingFacility.openingTimes, 
+                              weekends: `${startTime}-${e.target.value}` 
+                            } 
+                          });
+                        }}
+                        placeholder="20:00"
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="edit-hourlyFee">Hourly Fee (SAR)</Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">﷼</span>
+                      <Input
+                        id="edit-hourlyFee"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={editingFacility.hourlyFee || 0}
+                        onChange={(e) => setEditingFacility({ ...editingFacility, hourlyFee: parseFloat(e.target.value) || 0 })}
+                        placeholder="0.00"
+                        className="pl-8"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-seedRecordingFee">SEED Recording Fee (SAR)</Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">﷼</span>
+                      <Input
+                        id="edit-seedRecordingFee"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={editingFacility.seedRecordingFee || 40}
+                        onChange={(e) => setEditingFacility({ ...editingFacility, seedRecordingFee: parseFloat(e.target.value) || 40 })}
+                        placeholder="40.00"
+                        className="pl-8"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <LinkIcon className="w-4 h-4" />
+                    Map Links
+                  </Label>
+                  <div className="space-y-2">
+                    <Input
+                      placeholder="Android/Google Maps link"
+                      value={editingFacility.locationAndroid || ''}
+                      onChange={(e) => setEditingFacility({ ...editingFacility, locationAndroid: e.target.value })}
+                    />
+                    <Input
+                      placeholder="iOS/Apple Maps link"
+                      value={editingFacility.locationIos || ''}
+                      onChange={(e) => setEditingFacility({ ...editingFacility, locationIos: e.target.value })}
+                    />
+                  </div>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="edit-amenities">Amenities (comma-separated)</Label>
-                <Input
-                  id="edit-amenities"
-                  value={editingFacility.amenities?.join(', ') || ''}
-                  onChange={(e) => setEditingFacility({ 
-                    ...editingFacility, 
-                    amenities: e.target.value.split(',').map(item => item.trim()).filter(Boolean)
-                  })}
-                  placeholder="e.g., Parking, Changing Rooms, Pro Shop"
-                />
+
+              {/* Right Column - Image Upload and Additional Info */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Facility Image</h3>
+                
+                {/* Current Image Display */}
+                {editingFacility.imageUrl && !editImagePreview && (
+                  <div className="space-y-2">
+                    <Label>Current Image</Label>
+                    <div className="relative">
+                      <img
+                        src={editingFacility.imageUrl}
+                        alt="Current facility image"
+                        className="w-full h-48 object-cover rounded-lg border"
+                      />
+                      <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
+                        Current
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <div>
+                  <Label htmlFor="editImageFile">Upload New Image</Label>
+                  <div className="space-y-2">
+                    <Input
+                      id="editImageFile"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleEditImageUpload}
+                      className="cursor-pointer"
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Upload a new image file (max 5MB). This will replace the current image.
+                    </p>
+                  </div>
+                  
+                  {editImagePreview && (
+                    <div className="mt-3 relative">
+                      <img
+                        src={editImagePreview}
+                        alt="New facility preview"
+                        className="w-full h-48 object-cover rounded-lg border"
+                      />
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-2 right-2"
+                        onClick={removeEditImage}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                      <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
+                        New
+                      </div>
+                    </div>
+                  )}
+                  
+                  {editSelectedImageFile && (
+                    <div className="mt-2 text-sm text-muted-foreground">
+                      Selected: {editSelectedImageFile.name} ({(editSelectedImageFile.size / 1024 / 1024).toFixed(2)} MB)
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Amenities</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={editAmenity}
+                      onChange={(e) => setEditAmenity(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addEditAmenity())}
+                      placeholder="Add amenity (e.g., Parking)"
+                    />
+                    <Button type="button" onClick={addEditAmenity} size="sm">
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  {editingFacility.amenities && editingFacility.amenities.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {editingFacility.amenities.map((amenity, index) => (
+                        <Badge key={index} variant="secondary" className="gap-1">
+                          {amenity}
+                          <X
+                            className="w-3 h-3 cursor-pointer hover:text-destructive"
+                            onClick={() => removeEditAmenity(amenity)}
+                          />
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Tech Features</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={editTechFeature}
+                      onChange={(e) => setEditTechFeature(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addEditTechFeature())}
+                      placeholder="Add tech feature (e.g., SEED System)"
+                    />
+                    <Button type="button" onClick={addEditTechFeature} size="sm">
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  {editingFacility.techFeatures && editingFacility.techFeatures.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {editingFacility.techFeatures.map((feature, index) => (
+                        <Badge key={index} variant="secondary" className="gap-1">
+                          {feature}
+                          <X
+                            className="w-3 h-3 cursor-pointer hover:text-destructive"
+                            onClick={() => removeEditTechFeature(feature)}
+                          />
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="edit-techFeatures">Tech Features (comma-separated)</Label>
-                <Input
-                  id="edit-techFeatures"
-                  value={editingFacility.techFeatures?.join(', ') || ''}
-                  onChange={(e) => setEditingFacility({ 
-                    ...editingFacility, 
-                    techFeatures: e.target.value.split(',').map(item => item.trim()).filter(Boolean)
-                  })}
-                  placeholder="e.g., SEED System, LED Lighting, Sound System"
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button onClick={handleUpdateFacility} className="flex-1">
-                  Update Facility
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setEditDialogOpen(false)}
-                  className="flex-1"
-                >
+
+              {/* Footer */}
+              <div className="flex justify-end space-x-2 pt-6 border-t">
+                <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
                   Cancel
                 </Button>
+                <Button onClick={handleUpdateFacility}>
+                  Update Facility
+                </Button>
               </div>
-            </div>
+            </>
           )}
         </DialogContent>
       </Dialog>
