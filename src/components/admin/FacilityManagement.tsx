@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { facilityService } from '@/lib/api/services/facilityService';
@@ -28,6 +29,9 @@ const FacilityManagement = () => {
   const [admins, setAdmins] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [adminsLoading, setAdminsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>(
+    hasPermission('SUPER_ADMIN') ? 'all' : 'my-facility'
+  );
 
   // Dialog states
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -502,8 +506,20 @@ const FacilityManagement = () => {
         </div>
       </div>
 
-      {/* Search and Filters */}
-      <div className="space-y-4">
+      {/* Tabs for different views */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full max-w-md" style={{ gridTemplateColumns: hasPermission('SUPER_ADMIN') ? '1fr 1fr' : '1fr' }}>
+          {hasPermission('SUPER_ADMIN') && (
+            <TabsTrigger value="all">All Facilities</TabsTrigger>
+          )}
+          <TabsTrigger value="my-facility">My Facility</TabsTrigger>
+        </TabsList>
+
+        {/* All Facilities Tab (Super Admin Only) */}
+        {hasPermission('SUPER_ADMIN') && (
+          <TabsContent value="all" className="space-y-4">
+            {/* Search and Filters */}
+            <div className="space-y-4">
         <div className="flex items-center gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -765,6 +781,203 @@ const FacilityManagement = () => {
           ))}
         </div>
       )}
+          </TabsContent>
+        )}
+
+        {/* My Facility Tab (For Admins) */}
+        <TabsContent value="my-facility" className="space-y-4">
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-8 h-8 animate-spin" />
+              <span className="ml-2">Loading your facility...</span>
+            </div>
+          ) : facilities.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                <Building className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No Facility Assigned</h3>
+              <p className="text-gray-600 mb-4">
+                You don't have a facility assigned to you yet. Please contact a super admin to get assigned to a facility.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {facilities.map((facility) => (
+                <Card key={facility.id} className="overflow-hidden">
+                  {/* Facility Header with Image */}
+                  <div className="relative h-48 bg-gradient-to-br from-primary/10 to-primary/5">
+                    {facility.imageUrl ? (
+                      <img
+                        src={facility.imageUrl}
+                        alt={`${facility.name} facility`}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="text-center">
+                          <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-3">
+                            <Building className="w-8 h-8 text-primary/60" />
+                          </div>
+                          <p className="text-sm text-muted-foreground">No facility image</p>
+                        </div>
+                      </div>
+                    )}
+                    <div className="absolute top-4 right-4">
+                      <Badge
+                        variant={facility.status === 'ACTIVE' ? 'default' : 'secondary'}
+                        className="text-sm"
+                      >
+                        {facility.status}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <CardTitle className="text-2xl mb-2">{facility.name}</CardTitle>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <MapPin className="w-4 h-4" />
+                          <span>{facility.location}</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditFacility(facility)}
+                        >
+                          <Edit className="w-4 h-4 mr-1" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewCourts(facility)}
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
+                          View Courts
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="space-y-6">
+                    {/* Description */}
+                    {facility.description && (
+                      <div>
+                        <h4 className="font-semibold mb-2">Description</h4>
+                        <p className="text-gray-600">{facility.description}</p>
+                      </div>
+                    )}
+
+                    {/* Key Information Grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="space-y-1">
+                        <p className="text-sm text-muted-foreground">Courts</p>
+                        <p className="text-2xl font-bold">{facility.courtCount || 0}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm text-muted-foreground">Hourly Fee</p>
+                        <p className="text-2xl font-bold">﷼{facility.hourlyFee || 0}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm text-muted-foreground">SEED Fee</p>
+                        <p className="text-2xl font-bold">﷼{facility.seedRecordingFee || 40}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm text-muted-foreground">Rating</p>
+                        <p className="text-2xl font-bold">
+                          {facility.averageRating ? `${facility.averageRating.toFixed(1)}⭐` : 'N/A'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Opening Hours */}
+                    {facility.openingTimes && (
+                      <div>
+                        <h4 className="font-semibold mb-2 flex items-center gap-2">
+                          <Clock className="w-4 h-4" />
+                          Opening Hours
+                        </h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm text-muted-foreground">Weekdays</p>
+                            <p className="font-medium">{facility.openingTimes.weekdays || 'Not set'}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Weekends</p>
+                            <p className="font-medium">{facility.openingTimes.weekends || 'Not set'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Map Links */}
+                    {(facility.locationAndroid || facility.locationIos) && (
+                      <div>
+                        <h4 className="font-semibold mb-2 flex items-center gap-2">
+                          <LinkIcon className="w-4 h-4" />
+                          Map Links
+                        </h4>
+                        <div className="flex gap-2">
+                          {facility.locationAndroid && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => window.open(facility.locationAndroid, '_blank')}
+                            >
+                              Android/Google Maps
+                            </Button>
+                          )}
+                          {facility.locationIos && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => window.open(facility.locationIos, '_blank')}
+                            >
+                              iOS/Apple Maps
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Amenities */}
+                    {facility.amenities && facility.amenities.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold mb-2">Amenities</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {facility.amenities.map((amenity, index) => (
+                            <Badge key={index} variant="secondary">
+                              {amenity}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Tech Features */}
+                    {facility.techFeatures && facility.techFeatures.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold mb-2">Tech Features</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {facility.techFeatures.map((feature, index) => (
+                            <Badge key={index} variant="outline">
+                              {feature}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
 
       {/* Create Facility Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
