@@ -31,7 +31,8 @@ import {
     MapPin,
     AlertTriangle,
     CheckCircle,
-    Loader2
+    Loader2,
+    Building
 } from 'lucide-react';
 import { CurrencyDisplay } from '@/components/ui/currency-display';
 import { format } from 'date-fns';
@@ -41,8 +42,10 @@ import { BookingResponse, CreateBookingRequest, CourtResponse } from '@/types/bo
 import { UserResponse } from '@/types/user';
 import { AdminManualBookingRequest, ManualBookingResponse } from '@/types/receipt';
 import { PaymentLinkDTO, CreatePaymentLinkRequest } from '@/types/paymentLink';
+import { Facility } from '@/types/facility';
 import { bookingService, courtService, userService, receiptService } from '@/services';
 import { paymentLinkService } from '@/services/paymentLinkService';
+import { facilityService } from '@/lib/api/services/facilityService';
 import { cn } from '@/lib/utils';
 import UserSearchInput from './UserSearchInput';
 import PrintReceiptDialog from './PrintReceiptDialog';
@@ -56,6 +59,7 @@ interface ManualBookingFormProps {
 
 interface BookingFormData {
     userId: number | null;
+    facilityId: number | null;
     courtId: number | null;
     date: Date | null;
     duration: number | null; // 60, 90, or 120 minutes
@@ -92,11 +96,14 @@ const ManualBookingForm: React.FC<ManualBookingFormProps> = ({
     
     const [isOpen, setIsOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [facilities, setFacilities] = useState<Facility[]>([]);
+    const [facilitiesLoading, setFacilitiesLoading] = useState(false);
     const [courts, setCourts] = useState<CourtResponse[]>([]);
     const [courtsLoading, setCourtsLoading] = useState(false);
     
     const [formData, setFormData] = useState<BookingFormData>({
         userId: null,
+        facilityId: null,
         courtId: null,
         date: null,
         duration: null,
@@ -129,6 +136,7 @@ const ManualBookingForm: React.FC<ManualBookingFormProps> = ({
     
     useEffect(() => {
         if (isOpen) {
+            loadFacilities();
             loadCourts();
         }
     }, [isOpen]);
@@ -139,6 +147,7 @@ const ManualBookingForm: React.FC<ManualBookingFormProps> = ({
 const [users, setUsers] = useState<UserResponse[]>([]);
 const [usersLoading, setUsersLoading] = useState(false);
 const [userSearchTerm, setUserSearchTerm] = useState('');
+const [facilitySearchTerm, setFacilitySearchTerm] = useState('');
 const [courtSearchTerm, setCourtSearchTerm] = useState('');
 
 // Add this function to your data loading section
@@ -157,9 +166,25 @@ const loadUsers = async () => {
     }
 };
 
+const loadFacilities = async () => {
+    setFacilitiesLoading(true);
+    try {
+        console.log('🏢 Loading facilities from database...');
+        const response = await facilityService.getAllFacilities();
+        console.log('✅ Facilities loaded:', response);
+        setFacilities(response || []);
+    } catch (error) {
+        console.error('❌ Failed to load facilities:', error);
+        setErrors({ facilities: 'Failed to load facilities' });
+    } finally {
+        setFacilitiesLoading(false);
+    }
+};
+
 // Update your useEffect to also load users
 useEffect(() => {
     if (isOpen) {
+        loadFacilities();
         loadCourts();
         loadUsers();
     }
@@ -175,9 +200,24 @@ const filteredUsers = users.filter(user => {
     return nameMatch || emailMatch;
 });
 
-// Filter courts based on search term
+// Filter facilities based on search term
+const filteredFacilities = facilities.filter(facility => {
+    if (!facilitySearchTerm.trim()) return true;
+    const searchLower = facilitySearchTerm.toLowerCase();
+    const nameMatch = (facility.name?.toLowerCase() || '').includes(searchLower);
+    const locationMatch = (facility.location?.toLowerCase() || '').includes(searchLower);
+    return nameMatch || locationMatch;
+});
+
+// Filter courts based on search term AND selected facility
 const filteredCourts = courts.filter(court => {
-    if (!courtSearchTerm.trim()) return true; // Show all if no search term
+    // First filter by facility if one is selected
+    if (formData.facilityId && court.facility?.id !== formData.facilityId) {
+        return false;
+    }
+    
+    // Then filter by search term
+    if (!courtSearchTerm.trim()) return true;
     const searchLower = courtSearchTerm.toLowerCase();
     const nameMatch = (court.name?.toLowerCase() || '').includes(searchLower);
     const locationMatch = (court.location?.toLowerCase() || '').includes(searchLower);
@@ -201,6 +241,7 @@ const loadCourts = async () => {
             name: court.name,
             location: court.location,
             type: court.type,
+            hourlyFee: court.facility?.hourlyFee || 0,
             hasSeedSystem: court.hasSeedSystem,
             imageUrl: court.imageUrl || '',
             amenities: court.amenities || [],
@@ -212,7 +253,12 @@ const loadCourts = async () => {
             distanceInMeters: null,
             formattedDistance: null,
             latitude: null,
-            longitude: null
+            longitude: null,
+            facility: court.facility ? {
+                id: court.facility.id,
+                name: court.facility.name,
+                hourlyFee: court.facility.hourlyFee
+            } : undefined
         }));
         
         setCourts(convertedCourts);
@@ -234,6 +280,12 @@ const loadCourts = async () => {
         // Clear field error when user starts typing
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: '' }));
+        }
+        
+        // Reset court when facility changes
+        if (field === 'facilityId') {
+            setFormData(prev => ({ ...prev, courtId: null, selectedSlot: null }));
+            setAvailableSlots([]);
         }
         
         // Reset slots when court, date, or duration changes
@@ -259,7 +311,15 @@ const loadCourts = async () => {
             });
             
             console.log('✅ Slot availability response:', data);
-            setAvailableSlots(data.availableSlots || []);
+            // Map the response to include all required TimeSlot properties
+            const mappedSlots: TimeSlot[] = (data.availableSlots || []).map((slot: any) => ({
+                startTime: slot.startTime || slot.start,
+                endTime: slot.endTime || slot.end,
+                formattedTimeRange: slot.formattedTimeRange || slot.label || `${slot.startTime}-${slot.endTime}`,
+                price: slot.price || 0,
+                available: slot.available !== false
+            }));
+            setAvailableSlots(mappedSlots);
         } catch (error) {
             console.error('❌ Failed to load slots:', error);
             setErrors({ slots: 'Failed to load available time slots' });
@@ -609,6 +669,7 @@ const loadCourts = async () => {
     const resetForm = () => {
         setFormData({
             userId: null,
+            facilityId: null,
             courtId: null,
             date: null,
             duration: null,
@@ -631,6 +692,7 @@ const loadCourts = async () => {
         setPaymentLinkData(null);
         setShowPaymentLinkDialog(false);
         setUserSearchTerm('');
+        setFacilitySearchTerm('');
         setCourtSearchTerm('');
     };
 
@@ -1008,12 +1070,83 @@ const loadCourts = async () => {
                         )}
                         </div>
                         
+                        {/* Facility Selection */}
+                        <div className="md:col-span-2">
+                            {renderFormField(
+                                'Select Facility',
+                                'facilityId',
+                                <div className="space-y-2">
+                                    {/* Search Input */}
+                                    <Input
+                                        placeholder="Search for a facility by name or location..."
+                                        value={facilitySearchTerm}
+                                        onChange={(e) => {
+                                            console.log('🔍 Facility search input changed:', e.target.value);
+                                            setFacilitySearchTerm(e.target.value);
+                                        }}
+                                        disabled={facilitiesLoading}
+                                    />
+                                    
+                                    {/* Facility Selection */}
+                                    <Select
+                                        value={formData.facilityId?.toString() || ''}
+                                        onValueChange={(value) => handleInputChange('facilityId', parseInt(value))}
+                                        disabled={facilitiesLoading}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder={facilitiesLoading ? 'Loading facilities...' : 'Choose a facility'} />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-white">
+                                            {filteredFacilities.length === 0 ? (
+                                                <SelectItem value="no-facilities" disabled>
+                                                    {facilitiesLoading ? "Loading..." : `No facilities found ${facilitySearchTerm ? `for "${facilitySearchTerm}"` : ''}`}
+                                                </SelectItem>
+                                            ) : (
+                                                filteredFacilities.map((facility) => (
+                                                    <SelectItem key={facility.id} value={facility.id.toString()}>
+                                                        <div className="flex items-center space-x-3">
+                                                            <div className="w-8 h-8 rounded-md overflow-hidden flex-shrink-0">
+                                                                {facility.imageUrl ? (
+                                                                    <img 
+                                                                        src={facility.imageUrl} 
+                                                                        alt={`${facility.name} facility`}
+                                                                        className="h-full w-full object-cover"
+                                                                    />
+                                                                ) : (
+                                                                    <div className="w-full h-full bg-muted rounded-md flex items-center justify-center">
+                                                                        <Building className="w-4 h-4 text-gray-400" />
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="font-medium truncate">{facility.name}</div>
+                                                                <div className="text-xs text-gray-500 truncate flex items-center gap-1">
+                                                                    <MapPin className="w-3 h-3" />
+                                                                    {facility.location}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </SelectItem>
+                                                ))
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
+                        </div>
+                        
                         {/* Court Selection */}
                         <div className="md:col-span-2">
                             {renderFormField(
                                 t('manualBooking.selectCourt'),
                                 'courtId',
                                 <div className="space-y-2">
+                                    {!formData.facilityId && (
+                                        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+                                            <AlertTriangle className="w-4 h-4 inline mr-2" />
+                                            Please select a facility first to see available courts
+                                        </div>
+                                    )}
                                     {/* Search Input */}
                                     <Input
                                         placeholder="Search for a court by name, location, or type..."
@@ -1022,22 +1155,28 @@ const loadCourts = async () => {
                                             console.log('🔍 Court search input changed:', e.target.value);
                                             setCourtSearchTerm(e.target.value);
                                         }}
-                                        disabled={courtsLoading}
+                                        disabled={courtsLoading || !formData.facilityId}
                                     />
                                     
                                     {/* Court Selection */}
                                     <Select
                                         value={formData.courtId?.toString() || ''}
                                         onValueChange={(value) => handleInputChange('courtId', parseInt(value))}
-                                        disabled={courtsLoading}
+                                        disabled={courtsLoading || !formData.facilityId}
                                     >
                                         <SelectTrigger>
-                                            <SelectValue placeholder={courtsLoading ? t('manualBooking.loadingCourts') : t('manualBooking.chooseCourt')} />
+                                            <SelectValue placeholder={
+                                                !formData.facilityId ? 'Select a facility first' :
+                                                courtsLoading ? t('manualBooking.loadingCourts') : 
+                                                t('manualBooking.chooseCourt')
+                                            } />
                                         </SelectTrigger>
                                         <SelectContent className="bg-white">
                                             {filteredCourts.length === 0 ? (
                                                 <SelectItem value="no-courts" disabled>
-                                                    {courtsLoading ? "Loading..." : `No courts found ${courtSearchTerm ? `for "${courtSearchTerm}"` : ''}`}
+                                                    {!formData.facilityId ? "Select a facility first" :
+                                                     courtsLoading ? "Loading..." : 
+                                                     `No courts found ${courtSearchTerm ? `for "${courtSearchTerm}"` : 'in this facility'}`}
                                                 </SelectItem>
                                             ) : (
                                                 filteredCourts.map((court) => (

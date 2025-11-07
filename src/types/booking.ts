@@ -78,6 +78,11 @@ export interface CourtResponse {
   formattedDistance?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  facility?: {
+    id: number;
+    name: string;
+    hourlyFee?: number;
+  };
 }
 
 export interface TechnologyPolicyResponse {
