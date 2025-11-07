@@ -17,6 +17,8 @@ export interface AvailabilityRow {
   dayOfWeek: DOW;
   start: string; // "10:00:00"
   end: string;   // "22:00:00"
+  startDate?: string; // "2025-01-01" - Optional date range start
+  endDate?: string;   // "2025-12-31" - Optional date range end
 }
 
 export interface UnavailabilityRow {

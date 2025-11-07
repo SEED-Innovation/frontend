@@ -550,7 +550,12 @@ const FacilityManagement = () => {
       </div>
 
       {/* Tabs for different views */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs 
+        value={activeTab} 
+        onValueChange={setActiveTab} 
+        defaultValue={hasPermission('SUPER_ADMIN') ? 'all' : 'my-facility'}
+        className="w-full"
+      >
         <TabsList className="grid w-full max-w-md" style={{ gridTemplateColumns: '1fr' }}>
           {hasPermission('SUPER_ADMIN') && (
             <TabsTrigger value="all">All Facilities</TabsTrigger>

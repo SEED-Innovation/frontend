@@ -47,7 +47,10 @@ export interface AdminCourtAvailabilityResponse {
     startTime: string;
     endTime: string;
     isActive: boolean;
-    courtName?: string; // Added to support backend response
+    courtName?: string;
+    facilityName?: string;
+    startDate?: string; // Optional date range start (YYYY-MM-DD)
+    endDate?: string;   // Optional date range end (YYYY-MM-DD)
 }
 
 export interface UnavailabilityResponse {
@@ -339,7 +342,9 @@ class CourtService {
             endTime: item.end + ':00',
             isActive: true,
             courtName: item.courtName,
-            facilityName: item.facilityName
+            facilityName: item.facilityName,
+            startDate: item.startDate, // Optional date range start
+            endDate: item.endDate // Optional date range end
         }));
     }
 

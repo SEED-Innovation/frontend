@@ -100,7 +100,7 @@ export const UnavailabilityTable: React.FC = () => {
     }
 
     // Apply facility filter
-    if (facilityFilter !== 'ALL') {
+    if (facilityFilter && facilityFilter !== 'ALL') {
       filtered = filtered.filter(item => item.facilityName === facilityFilter);
     }
 
@@ -385,7 +385,7 @@ export const UnavailabilityTable: React.FC = () => {
                         />
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm text-muted-foreground">{item.facilityName || 'N/A'}</span>
+                        <span className="text-sm text-muted-foreground">{item.facilityName || '—'}</span>
                       </TableCell>
                       <TableCell>
                         {editingItem?.id === item.id ? (

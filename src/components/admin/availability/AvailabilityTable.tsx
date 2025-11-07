@@ -169,9 +169,12 @@ export const AvailabilityTable: React.FC = () => {
           id: item.id,
           courtId: item.courtId,
           courtName: item.courtName || `Court ${item.courtId}`,
+          facilityName: item.facilityName,
           dayOfWeek: item.dayOfWeek as DOW,
           start: item.startTime.slice(0, 5), // Convert "HH:mm:ss" to "HH:mm"
           end: item.endTime.slice(0, 5),     // Convert "HH:mm:ss" to "HH:mm"
+          startDate: item.startDate,
+          endDate: item.endDate
         }));
         
         // Enhance data with court images
@@ -234,7 +237,7 @@ export const AvailabilityTable: React.FC = () => {
     }
 
     // Apply facility filter
-    if (facilityFilter !== 'ALL') {
+    if (facilityFilter && facilityFilter !== 'ALL') {
       filtered = filtered.filter(item => item.facilityName === facilityFilter);
     }
 
@@ -531,6 +534,9 @@ export const AvailabilityTable: React.FC = () => {
                     End Time
                   </SortableHeader>
                 </TableHead>
+                <TableHead>
+                  Date Range
+                </TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -543,7 +549,7 @@ export const AvailabilityTable: React.FC = () => {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    <TableCell colSpan={7} className="h-32">
+                    <TableCell colSpan={8} className="h-32">
                       <div className="flex flex-col items-center justify-center text-center">
                         <div className="p-3 bg-muted/50 rounded-full mb-3">
                           <CheckCircle className="h-6 w-6 text-muted-foreground" />
@@ -570,7 +576,7 @@ export const AvailabilityTable: React.FC = () => {
                         />
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm text-muted-foreground">{item.facilityName || 'N/A'}</span>
+                        <span className="text-sm text-muted-foreground">{item.facilityName || '—'}</span>
                       </TableCell>
                       <TableCell>
                         {editingItem?.id === item.id ? (
@@ -670,6 +676,21 @@ export const AvailabilityTable: React.FC = () => {
                             <Clock className="h-3 w-3" />
                             {item.end}
                           </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {item.startDate || item.endDate ? (
+                          <div className="text-xs text-muted-foreground">
+                            {item.startDate && item.endDate ? (
+                              <span>{item.startDate} to {item.endDate}</span>
+                            ) : item.startDate ? (
+                              <span>From {item.startDate}</span>
+                            ) : (
+                              <span>Until {item.endDate}</span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">Recurring</span>
                         )}
                       </TableCell>
                       <TableCell className="text-right">
