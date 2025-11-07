@@ -92,7 +92,8 @@ const FacilityManagement = () => {
   const fetchFacilities = async () => {
     try {
       setLoading(true);
-      const fetchedFacilities = await facilityService.getAllFacilities();
+      // Use role-based endpoint that returns facilities based on user role
+      const fetchedFacilities = await facilityService.getMyFacilities();
       console.log('Fetched facilities:', fetchedFacilities);
       setFacilities(fetchedFacilities);
     } catch (error) {
