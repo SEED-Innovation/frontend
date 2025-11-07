@@ -509,11 +509,13 @@ const FacilityManagement = () => {
 
       {/* Tabs for different views */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full max-w-md" style={{ gridTemplateColumns: hasPermission('SUPER_ADMIN') ? '1fr 1fr' : '1fr' }}>
+        <TabsList className="grid w-full max-w-md" style={{ gridTemplateColumns: '1fr' }}>
           {hasPermission('SUPER_ADMIN') && (
             <TabsTrigger value="all">All Facilities</TabsTrigger>
           )}
-          <TabsTrigger value="my-facility">My Facility</TabsTrigger>
+          {!hasPermission('SUPER_ADMIN') && (
+            <TabsTrigger value="my-facility">My Facility</TabsTrigger>
+          )}
         </TabsList>
 
         {/* All Facilities Tab (Super Admin Only) */}
@@ -785,7 +787,8 @@ const FacilityManagement = () => {
           </TabsContent>
         )}
 
-        {/* My Facility Tab (For Admins) */}
+        {/* My Facility Tab (For Admins only, not Super Admins) */}
+        {!hasPermission('SUPER_ADMIN') && (
         <TabsContent value="my-facility" className="space-y-4">
           {loading ? (
             <div className="flex items-center justify-center py-8">
@@ -978,6 +981,7 @@ const FacilityManagement = () => {
             </div>
           )}
         </TabsContent>
+        )}
       </Tabs>
 
       {/* Create Facility Dialog */}
