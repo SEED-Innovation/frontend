@@ -8,7 +8,7 @@ export interface Facility {
   name: string;
   location: string;
   description?: string | null;
-  titleAr?: string | null;
+  nameAr?: string | null;
   descriptionAr?: string | null;
   openingTimes?: OpeningTimes | null;
   latitude?: number | null;
@@ -52,7 +52,7 @@ export interface CreateFacilityRequest {
   name: string;
   location: string;
   description?: string;
-  titleAr?: string;
+  nameAr?: string;
   descriptionAr?: string;
   openingTimes?: OpeningTimes;
   latitude?: number;
@@ -75,7 +75,7 @@ export interface UpdateFacilityRequest {
   name?: string;
   location?: string;
   description?: string;
-  titleAr?: string;
+  nameAr?: string;
   descriptionAr?: string;
   openingTimes?: OpeningTimes;
   latitude?: number;

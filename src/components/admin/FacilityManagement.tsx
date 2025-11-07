@@ -344,7 +344,7 @@ const FacilityManagement = () => {
         name: editingFacility.name,
         location: editingFacility.location,
         description: editingFacility.description,
-        titleAr: editingFacility.titleAr,
+        nameAr: editingFacility.nameAr,
         descriptionAr: editingFacility.descriptionAr,
         openingTimes: editingFacility.openingTimes,
         latitude: editingFacility.latitude,
