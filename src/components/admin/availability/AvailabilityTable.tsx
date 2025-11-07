@@ -135,6 +135,7 @@ export const AvailabilityTable: React.FC = () => {
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
   const [dayFilter, setDayFilter] = useState<DOW | 'ALL'>('ALL');
+  const [facilityFilter, setFacilityFilter] = useState<string>('ALL');
   const [startTimeFilter, setStartTimeFilter] = useState('');
   const [endTimeFilter, setEndTimeFilter] = useState('');
 
@@ -232,6 +233,11 @@ export const AvailabilityTable: React.FC = () => {
       filtered = filtered.filter(item => item.dayOfWeek === dayFilter);
     }
 
+    // Apply facility filter
+    if (facilityFilter !== 'ALL') {
+      filtered = filtered.filter(item => item.facilityName === facilityFilter);
+    }
+
     // Apply time filters
     if (startTimeFilter) {
       filtered = filtered.filter(item => item.start >= startTimeFilter);
@@ -278,7 +284,15 @@ export const AvailabilityTable: React.FC = () => {
     });
 
     return filtered;
-  }, [data, searchTerm, dayFilter, startTimeFilter, endTimeFilter, sortField, sortDirection]);
+  }, [data, searchTerm, dayFilter, facilityFilter, startTimeFilter, endTimeFilter, sortField, sortDirection]);
+
+  // Get unique facilities for filter
+  const uniqueFacilities = useMemo(() => {
+    const facilities = data
+      .map(item => item.facilityName)
+      .filter((name): name is string => !!name);
+    return Array.from(new Set(facilities)).sort();
+  }, [data]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -474,6 +488,9 @@ export const AvailabilityTable: React.FC = () => {
         loading={loading}
         dayFilter={dayFilter}
         onDayFilterChange={setDayFilter}
+        facilityFilter={facilityFilter}
+        onFacilityFilterChange={setFacilityFilter}
+        facilities={uniqueFacilities}
         startTimeFilter={startTimeFilter}
         endTimeFilter={endTimeFilter}
         onStartTimeFilterChange={setStartTimeFilter}
@@ -490,6 +507,9 @@ export const AvailabilityTable: React.FC = () => {
                     checked={selectedIds.length === filteredAndSortedData.length && filteredAndSortedData.length > 0}
                     onCheckedChange={handleSelectAll}
                   />
+                </TableHead>
+                <TableHead>
+                  Facility
                 </TableHead>
                 <TableHead>
                   <SortableHeader field="courtName" currentField={sortField} direction={sortDirection} onSort={handleSort}>
@@ -523,7 +543,7 @@ export const AvailabilityTable: React.FC = () => {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    <TableCell colSpan={6} className="h-32">
+                    <TableCell colSpan={7} className="h-32">
                       <div className="flex flex-col items-center justify-center text-center">
                         <div className="p-3 bg-muted/50 rounded-full mb-3">
                           <CheckCircle className="h-6 w-6 text-muted-foreground" />
@@ -548,6 +568,9 @@ export const AvailabilityTable: React.FC = () => {
                           checked={selectedIds.includes(item.id)}
                           onCheckedChange={() => handleSelectRow(item.id)}
                         />
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-muted-foreground">{item.facilityName || 'N/A'}</span>
                       </TableCell>
                       <TableCell>
                         {editingItem?.id === item.id ? (

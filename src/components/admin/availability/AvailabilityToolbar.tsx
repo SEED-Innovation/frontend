@@ -1,6 +1,7 @@
 import React from 'react';
 import { Trash2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SearchInput } from '../common/SearchInput';
 import { DayFilter } from '../common/DayFilter';
 import { TimeRangeInputs } from '../common/TimeRangeInputs';
@@ -13,6 +14,9 @@ interface AvailabilityToolbarProps {
   onSearchChange: (term: string) => void;
   dayFilter: DOW | 'ALL';
   onDayFilterChange: (day: DOW | 'ALL') => void;
+  facilityFilter: string;
+  onFacilityFilterChange: (facility: string) => void;
+  facilities: string[];
   startTimeFilter: string;
   endTimeFilter: string;
   onStartTimeFilterChange: (time: string) => void;
@@ -30,6 +34,9 @@ export const AvailabilityToolbar: React.FC<AvailabilityToolbarProps> = ({
   onSearchChange,
   dayFilter,
   onDayFilterChange,
+  facilityFilter,
+  onFacilityFilterChange,
+  facilities,
   startTimeFilter,
   endTimeFilter,
   onStartTimeFilterChange,
@@ -78,6 +85,20 @@ export const AvailabilityToolbar: React.FC<AvailabilityToolbarProps> = ({
           value={dayFilter}
           onValueChange={onDayFilterChange}
         />
+        
+        <Select value={facilityFilter} onValueChange={onFacilityFilterChange}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="All Facilities" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Facilities</SelectItem>
+            {facilities.map((facility) => (
+              <SelectItem key={facility} value={facility}>
+                {facility}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         
         <TimeRangeInputs
           startTime={startTimeFilter}

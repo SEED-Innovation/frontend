@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { courtService, CreateCourtRequest, UpdateCourtRequest, SetBulkCourtAvailabilityRequest } from '@/lib/api/services/courtService';
 import { Court, SportType } from '@/types/court';
+import { facilityService } from '@/lib/api/services/facilityService';
 import { getLocalizedCourtTitle, courtMatchesSearch } from '@/utils/courtLocalization';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCourtsPaged } from '@/lib/hooks/useCourtsPaged';
@@ -49,8 +50,10 @@ const CourtManagement = () => {
   // Legacy state for backward compatibility
   const [courts, setCourts] = useState<Court[]>([]);
   const [admins, setAdmins] = useState<AdminUser[]>([]);
+  const [facilities, setFacilities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [adminsLoading, setAdminsLoading] = useState(false);
+  const [facilitiesLoading, setFacilitiesLoading] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingCourt, setEditingCourt] = useState<Court | null>(null);
@@ -58,6 +61,7 @@ const CourtManagement = () => {
   const [courtToDelete, setCourtToDelete] = useState<Court | null>(null);
 
   const [availabilityData, setAvailabilityData] = useState({
+    facilityId: 0,
     courtId: 0,
     daysOfWeek: [] as string[],
     startTime: '',
@@ -67,6 +71,7 @@ const CourtManagement = () => {
   });
   const [courtSearchOpen, setCourtSearchOpen] = useState(false);
   const [courtSearchValue, setCourtSearchValue] = useState("");
+  const [availabilityCourts, setAvailabilityCourts] = useState<Court[]>([]);
 
   // Advanced filtering state
   const [filters, setFilters] = useState({
@@ -92,16 +97,33 @@ const CourtManagement = () => {
     if (!USE_PAGINATED_COURTS) {
       fetchCourts();
     }
-    // Always fetch admins for manager assignment functionality
+    // Always fetch admins and facilities for manager assignment functionality
     fetchAdmins();
+    fetchFacilities();
   }, []);
+
+  const fetchFacilities = async () => {
+    try {
+      setFacilitiesLoading(true);
+      const fetchedFacilities = await facilityService.getMyFacilities();
+      console.log('Fetched facilities:', fetchedFacilities);
+      setFacilities(fetchedFacilities);
+    } catch (error) {
+      console.error('Error fetching facilities:', error);
+      toast.error('Failed to load facilities');
+    } finally {
+      setFacilitiesLoading(false);
+    }
+  };
 
   const fetchCourts = async () => {
     if (USE_PAGINATED_COURTS) return; // Skip if using paginated API
 
     try {
       setLoading(true);
-      const fetchedCourts = await courtService.getAllCourts();
+      // Use my-courts endpoint for role-based filtering
+      // SUPER_ADMIN sees all courts, ADMIN sees only their facility's courts
+      const fetchedCourts = await courtService.getMyCourts();
       console.log('Fetched courts:', fetchedCourts);
       setCourts(fetchedCourts);
     } catch (error) {
@@ -142,6 +164,30 @@ const CourtManagement = () => {
       setAdminsLoading(false);
     }
   };
+
+  const fetchCourtsByFacility = async (facilityId: number) => {
+    try {
+      console.log('Fetching courts for facility:', facilityId);
+      const courts = await courtService.getCourtsByFacility(facilityId);
+      setAvailabilityCourts(courts);
+      console.log('Loaded courts for facility:', courts);
+    } catch (error) {
+      console.error('Error fetching courts for facility:', error);
+      toast.error('Failed to load courts for selected facility');
+      setAvailabilityCourts([]);
+    }
+  };
+
+  // Watch for facility changes in availability form
+  useEffect(() => {
+    if (availabilityData.facilityId > 0) {
+      fetchCourtsByFacility(availabilityData.facilityId);
+      // Reset court selection when facility changes
+      setAvailabilityData(prev => ({ ...prev, courtId: 0 }));
+    } else {
+      setAvailabilityCourts([]);
+    }
+  }, [availabilityData.facilityId]);
 
   const handleCreateCourt = async (courtData: CreateCourtRequest, imageFile?: File): Promise<boolean> => {
     try {
@@ -273,6 +319,7 @@ const CourtManagement = () => {
 
       toast.success(`Court availability set for ${availabilityData.daysOfWeek.length} day(s)${dateRangeText} successfully`);
       setAvailabilityData({
+        facilityId: 0,
         courtId: 0,
         daysOfWeek: [],
         startTime: '',
@@ -280,6 +327,7 @@ const CourtManagement = () => {
         startDate: '',
         endDate: ''
       });
+      setAvailabilityCourts([]);
     } catch (error) {
       console.error('Error setting court availability:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to update court availability';
@@ -865,6 +913,30 @@ const CourtManagement = () => {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
+                    <Label htmlFor="facility">Select Facility</Label>
+                    <Select
+                      value={availabilityData.facilityId.toString()}
+                      onValueChange={(value) => setAvailabilityData({ ...availabilityData, facilityId: parseInt(value) })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select facility..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {facilitiesLoading ? (
+                          <SelectItem value="0" disabled>Loading facilities...</SelectItem>
+                        ) : facilities.length === 0 ? (
+                          <SelectItem value="0" disabled>No facilities available</SelectItem>
+                        ) : (
+                          facilities.map((facility) => (
+                            <SelectItem key={facility.id} value={facility.id.toString()}>
+                              {facility.name}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
                     <Label htmlFor="court">Select Court</Label>
                     <Popover open={courtSearchOpen} onOpenChange={setCourtSearchOpen}>
                       <PopoverTrigger asChild>
@@ -873,10 +945,11 @@ const CourtManagement = () => {
                           role="combobox"
                           aria-expanded={courtSearchOpen}
                           className="w-full justify-between"
+                          disabled={!availabilityData.facilityId}
                         >
                           {availabilityData.courtId
-                            ? currentCourts.find((court) => court.id === availabilityData.courtId)?.name
-                            : "Select court..."}
+                            ? availabilityCourts.find((court) => court.id === availabilityData.courtId)?.name
+                            : availabilityData.facilityId ? "Select court..." : "Select facility first"}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </PopoverTrigger>
@@ -890,7 +963,7 @@ const CourtManagement = () => {
                           <CommandList>
                             <CommandEmpty>No court found.</CommandEmpty>
                             <CommandGroup>
-                              {currentCourts
+                              {availabilityCourts
                                 .filter((court) =>
                                   court.name.toLowerCase().includes(courtSearchValue.toLowerCase())
                                 )

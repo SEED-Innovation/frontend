@@ -13,6 +13,7 @@ export interface AvailabilityRow {
   courtId: number;
   courtName: string;
   courtImageUrl?: string;
+  facilityName?: string;
   dayOfWeek: DOW;
   start: string; // "10:00:00"
   end: string;   // "22:00:00"
@@ -23,6 +24,7 @@ export interface UnavailabilityRow {
   courtId: number;
   courtName: string;
   courtImageUrl?: string;
+  facilityName?: string;
   date: string; // "2025-08-22"
 }
 
@@ -41,8 +43,15 @@ export interface SetUnavailabilityRequest {
 export interface AvailabilityFilters {
   searchTerm: string;
   dayOfWeek: DOW | 'ALL';
+  facilityName?: string;
   startTimeAfter?: string;
   endTimeBefore?: string;
 }
 
-export interface UnavailabilityFilters extends AvailabilityFilters {}
+export interface UnavailabilityFilters {
+  searchTerm: string;
+  dayOfWeek: DOW | 'ALL';
+  facilityName?: string;
+  startTimeAfter?: string;
+  endTimeBefore?: string;
+}

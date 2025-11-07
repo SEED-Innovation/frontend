@@ -338,7 +338,8 @@ class CourtService {
             startTime: item.start + ':00', // Convert "HH:mm" to "HH:mm:ss" format
             endTime: item.end + ':00',
             isActive: true,
-            courtName: item.courtName
+            courtName: item.courtName,
+            facilityName: item.facilityName
         }));
     }
 
@@ -357,6 +358,7 @@ class CourtService {
             id: item.id,              // Use real database ID from backend
             courtId: item.courtId,    // Use real court ID from backend
             courtName: item.courtName,
+            facilityName: item.facilityName,
             date: item.date           // Display date format
         }));
     }

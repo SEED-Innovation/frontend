@@ -11,6 +11,9 @@ import { toast } from 'sonner';
 interface UnavailabilityToolbarProps {
   searchTerm: string;
   onSearchChange: (term: string) => void;
+  facilityFilter: string;
+  onFacilityFilterChange: (facility: string) => void;
+  facilities: string[];
   selectedIds: number[];
   onBulkDelete: (ids: number[]) => Promise<void>;
   filteredData: UnavailabilityRow[];

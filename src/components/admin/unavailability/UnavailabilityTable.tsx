@@ -316,6 +316,9 @@ export const UnavailabilityTable: React.FC = () => {
                     onCheckedChange={handleSelectAll}
                   />
                 </TableHead>
+                <TableHead>
+                  Facility
+                </TableHead>
                 <TableHead className="cursor-pointer hover:bg-muted/50 transition-colors">
                   <SortableHeader field="courtName" currentField={sortField} direction={sortDirection} onSort={handleSort}>
                     Court
@@ -338,7 +341,7 @@ export const UnavailabilityTable: React.FC = () => {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    <TableCell colSpan={4} className="h-32">
+                    <TableCell colSpan={5} className="h-32">
                       <div className="flex flex-col items-center justify-center text-center">
                         <div className="p-3 bg-muted/50 rounded-full mb-3">
                           <CheckCircle className="h-6 w-6 text-muted-foreground" />
@@ -363,6 +366,9 @@ export const UnavailabilityTable: React.FC = () => {
                           checked={selectedIds.includes(item.id)}
                           onCheckedChange={() => handleSelectRow(item.id)}
                         />
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-muted-foreground">{item.facilityName || 'N/A'}</span>
                       </TableCell>
                       <TableCell>
                         {editingItem?.id === item.id ? (

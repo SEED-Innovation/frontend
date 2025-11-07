@@ -378,13 +378,23 @@ const loadCourts = async (facilityId?: number) => {
                 throw new Error('No time slot selected');
             }
 
+            console.log('🔍 Debug selectedSlot for payment link:', formData.selectedSlot);
+
             // Extract start and end times
             let startTimeString = '';
             let endTimeString = '';
             
+            // Try to extract from startTime field
             if (formData.selectedSlot.startTime && typeof formData.selectedSlot.startTime === 'string') {
-                startTimeString = formData.selectedSlot.startTime.substring(0, 5); // HH:mm
-            } else if (formData.selectedSlot.formattedTimeRange) {
+                // Check if it's a valid time format (HH:mm or HH:mm:ss)
+                const timeMatch = formData.selectedSlot.startTime.match(/^(\d{2}:\d{2})/);
+                if (timeMatch) {
+                    startTimeString = timeMatch[1]; // HH:mm
+                }
+            }
+            
+            // If not found, try formattedTimeRange
+            if (!startTimeString && formData.selectedSlot.formattedTimeRange) {
                 const timeMatch = formData.selectedSlot.formattedTimeRange.match(/^(\d{2}:\d{2})-(\d{2}:\d{2})/);
                 if (timeMatch) {
                     startTimeString = timeMatch[1];
@@ -393,18 +403,32 @@ const loadCourts = async (facilityId?: number) => {
             }
 
             if (!startTimeString) {
-                throw new Error('Unable to parse start time');
+                console.error('❌ Unable to parse start time from slot:', formData.selectedSlot);
+                throw new Error('Unable to parse start time from selected slot');
             }
 
             // Calculate end time if not extracted
-            if (!endTimeString && formData.selectedSlot.endTime) {
-                endTimeString = formData.selectedSlot.endTime.substring(0, 5);
-            } else if (!endTimeString && formData.duration) {
-                const [hours, minutes] = startTimeString.split(':').map(Number);
-                const totalMinutes = hours * 60 + minutes + formData.duration;
-                const endHours = Math.floor(totalMinutes / 60);
-                const endMins = totalMinutes % 60;
-                endTimeString = `${String(endHours).padStart(2, '0')}:${String(endMins).padStart(2, '0')}`;
+            if (!endTimeString) {
+                if (formData.selectedSlot.endTime && typeof formData.selectedSlot.endTime === 'string') {
+                    const timeMatch = formData.selectedSlot.endTime.match(/^(\d{2}:\d{2})/);
+                    if (timeMatch) {
+                        endTimeString = timeMatch[1];
+                    }
+                }
+                
+                // If still not found, calculate from duration
+                if (!endTimeString && formData.duration) {
+                    const [hours, minutes] = startTimeString.split(':').map(Number);
+                    const totalMinutes = hours * 60 + minutes + formData.duration;
+                    const endHours = Math.floor(totalMinutes / 60);
+                    const endMins = totalMinutes % 60;
+                    endTimeString = `${String(endHours).padStart(2, '0')}:${String(endMins).padStart(2, '0')}`;
+                }
+            }
+
+            if (!endTimeString) {
+                console.error('❌ Unable to calculate end time');
+                throw new Error('Unable to calculate end time');
             }
 
             // Format date
@@ -423,7 +447,12 @@ const loadCourts = async (facilityId?: number) => {
                 existingUserId: formData.userId || undefined
             };
 
-            console.log('🔗 Creating payment link:', paymentLinkRequest);
+            console.log('🔗 Creating payment link with validated times:', {
+                ...paymentLinkRequest,
+                startTimeFormat: startTimeString,
+                endTimeFormat: endTimeString,
+                dateFormat: localDateString
+            });
 
             const paymentLink = await paymentLinkService.createPaymentLink(paymentLinkRequest);
             
