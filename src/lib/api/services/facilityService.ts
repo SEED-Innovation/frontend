@@ -110,41 +110,15 @@ class FacilityService {
   }
 
   async createFacilityWithImage(facilityData: CreateFacilityRequest, imageFile?: File): Promise<Facility> {
-    const formData = new FormData();
-    
-    // Add facility data to form
-    Object.entries(facilityData).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        if (Array.isArray(value)) {
-          value.forEach((item, index) => {
-            formData.append(`${key}[${index}]`, item);
-          });
-        } else {
-          formData.append(key, value.toString());
-        }
-      }
-    });
-
-    // Add image if provided
+    // If image is provided, upload it first and get the URL
     if (imageFile) {
-      formData.append('image', imageFile);
+      const fileUploadService = await import('@/services/fileUploadService').then(m => m.fileUploadService);
+      const imageUrl = await fileUploadService.uploadFile(imageFile, 'facilities');
+      facilityData.imageUrl = imageUrl;
     }
 
-    const response = await fetch(`${API_BASE_URL}/facilities/create`, {
-      method: 'POST',
-      headers: this.getMultipartHeaders(),
-      body: formData,
-    });
-
-    if (!response.ok) {
-      if (response.status === 401 || response.status === 403) {
-        throw new Error(`Access denied. Only super admins can create facilities.`);
-      }
-      const errorText = await response.text();
-      throw new Error(errorText || `Failed to create facility: ${response.statusText}`);
-    }
-
-    return response.json();
+    // Now send the facility data with the image URL as JSON
+    return this.createFacility(facilityData);
   }
 
   async updateFacility(facilityId: number, facilityData: UpdateFacilityRequest): Promise<Facility> {
@@ -170,41 +144,15 @@ class FacilityService {
     facilityData: UpdateFacilityRequest, 
     imageFile?: File
   ): Promise<Facility> {
-    const formData = new FormData();
-    
-    // Add facility data to form
-    Object.entries(facilityData).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        if (Array.isArray(value)) {
-          value.forEach((item, index) => {
-            formData.append(`${key}[${index}]`, item);
-          });
-        } else {
-          formData.append(key, value.toString());
-        }
-      }
-    });
-
-    // Add image if provided
+    // If image is provided, upload it first and get the URL
     if (imageFile) {
-      formData.append('image', imageFile);
+      const fileUploadService = await import('@/services/fileUploadService').then(m => m.fileUploadService);
+      const imageUrl = await fileUploadService.uploadFile(imageFile, 'facilities');
+      facilityData.imageUrl = imageUrl;
     }
 
-    const response = await fetch(`${API_BASE_URL}/facilities/${facilityId}`, {
-      method: 'PUT',
-      headers: this.getMultipartHeaders(),
-      body: formData,
-    });
-
-    if (!response.ok) {
-      if (response.status === 401 || response.status === 403) {
-        throw new Error(`Access denied. You don't have permission to update this facility.`);
-      }
-      const errorText = await response.text();
-      throw new Error(errorText || `Failed to update facility: ${response.statusText}`);
-    }
-
-    return response.json();
+    // Now send the facility data with the image URL as JSON
+    return this.updateFacility(facilityId, facilityData);
   }
 
   async deleteFacility(facilityId: number): Promise<void> {

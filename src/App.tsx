@@ -15,6 +15,7 @@ import PlayerReceipts from "./pages/PlayerReceipts";
 import AdminLogin from "./pages/AdminLogin";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import PaymentLinkRedirect from "./pages/PaymentLinkRedirect";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,9 @@ const App = () => (
               
               {/* Admin Panel - All admin routes */}
               <Route path="/admin/*" element={<Admin />} />
+              
+              {/* Payment Link Redirect */}
+              <Route path="/payment/:linkId" element={<PaymentLinkRedirect />} />
               
               {/* Catch-all for 404 */}
               <Route path="*" element={<NotFound />} />
