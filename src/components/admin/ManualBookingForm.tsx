@@ -170,7 +170,8 @@ const loadFacilities = async () => {
     setFacilitiesLoading(true);
     try {
         console.log('🏢 Loading facilities from database...');
-        const response = await facilityService.getAllFacilities();
+        // Use the role-based endpoint that returns facilities based on user role
+        const response = await facilityService.getMyFacilities();
         console.log('✅ Facilities loaded:', response);
         setFacilities(response || []);
     } catch (error) {

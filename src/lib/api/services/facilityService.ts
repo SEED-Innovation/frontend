@@ -39,7 +39,20 @@ class FacilityService {
     return response.json();
   }
 
+  async getMyFacilities(): Promise<Facility[]> {
+    const response = await fetch(`${API_BASE_URL}/facilities/admin/my-facilities`, {
+      headers: this.getAuthHeaders(),
+    });
 
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        throw new Error(`Access denied. Please check your authentication.`);
+      }
+      throw new Error(`Failed to fetch facilities: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
 
   async getFacilitiesPage(page: number = 0, size: number = 20): Promise<AdminFacilityPageResponse> {
     // Note: Backend doesn't have paged endpoint yet, using regular endpoint
