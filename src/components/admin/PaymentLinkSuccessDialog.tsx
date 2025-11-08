@@ -41,8 +41,9 @@ const PaymentLinkSuccessDialog: React.FC<PaymentLinkSuccessDialogProps> = ({
     const { toast } = useToast();
     const [copied, setCopied] = useState(false);
 
-    // Generate the payment link URL - always use seedco.sa domain
-    const paymentLinkUrl = `https://seedco.sa/payment/${paymentLink.id}`;
+    // Generate the payment link URL using the current application URL
+    const currentOrigin = window.location.origin; // Gets the current protocol + domain + port
+    const paymentLinkUrl = `${currentOrigin}/payment/${paymentLink.id}`;
 
     const handleCopyLink = async () => {
         try {
