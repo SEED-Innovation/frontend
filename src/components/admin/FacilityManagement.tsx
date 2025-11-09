@@ -21,7 +21,7 @@ import { useTranslation } from 'react-i18next';
 
 const FacilityManagement = () => {
   const { user, hasPermission } = useAdminAuth();
-  const { t } = useTranslation('web');
+  const { t } = useTranslation('admin');
   const { language } = useLanguage();
 
   // State
@@ -98,7 +98,7 @@ const FacilityManagement = () => {
       setFacilities(fetchedFacilities);
     } catch (error) {
       console.error('Error fetching facilities:', error);
-      toast.error('Failed to load facilities');
+      toast.error(t('facilityManagement.toasts.failedToLoadFacilities'));
     } finally {
       setLoading(false);
     }
@@ -121,7 +121,7 @@ const FacilityManagement = () => {
       setAdmins(adminUsers);
     } catch (error) {
       console.error('Error fetching admins:', error);
-      toast.error('Failed to load admins');
+      toast.error(t('facilityManagement.toasts.failedToLoadAdmins'));
     } finally {
       setAdminsLoading(false);
     }
@@ -137,13 +137,13 @@ const FacilityManagement = () => {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file');
+      toast.error(t('facilityManagement.toasts.selectImageFile'));
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Please select an image smaller than 5MB');
+      toast.error(t('facilityManagement.toasts.imageTooLarge'));
       return;
     }
 
@@ -168,13 +168,13 @@ const FacilityManagement = () => {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file');
+      toast.error(t('facilityManagement.toasts.selectImageFile'));
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Please select an image smaller than 5MB');
+      toast.error(t('facilityManagement.toasts.imageTooLarge'));
       return;
     }
 
@@ -284,22 +284,22 @@ const FacilityManagement = () => {
   const handleCreateFacility = async () => {
     // Validate required fields
     if (!newFacility.name || newFacility.name.trim() === '') {
-      toast.error('Facility name is required');
+      toast.error(t('facilityManagement.toasts.facilityNameRequired'));
       return;
     }
     
     if (!newFacility.location || newFacility.location.trim() === '') {
-      toast.error('Location is required');
+      toast.error(t('facilityManagement.toasts.locationRequired'));
       return;
     }
     
     if (newFacility.hourlyFee === undefined || newFacility.hourlyFee < 0) {
-      toast.error('Hourly fee is required and must be a positive number');
+      toast.error(t('facilityManagement.toasts.hourlyFeeRequired'));
       return;
     }
     
     if (newFacility.seedRecordingFee === undefined || newFacility.seedRecordingFee < 0) {
-      toast.error('SEED recording fee is required and must be a positive number');
+      toast.error(t('facilityManagement.toasts.seedRecordingFeeRequired'));
       return;
     }
     
@@ -340,10 +340,10 @@ const FacilityManagement = () => {
       const fileInput = document.getElementById('createImageFile') as HTMLInputElement;
       if (fileInput) fileInput.value = '';
       
-      toast.success('Facility created successfully');
+      toast.success(t('facilityManagement.toasts.facilityCreatedSuccessfully'));
     } catch (error) {
       console.error('Error creating facility:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to create facility';
+      const errorMessage = error instanceof Error ? error.message : t('facilityManagement.toasts.failedToCreateFacility');
       toast.error(errorMessage);
     }
   };
@@ -363,22 +363,22 @@ const FacilityManagement = () => {
 
     // Validate required fields
     if (!editingFacility.name || editingFacility.name.trim() === '') {
-      toast.error('Facility name is required');
+      toast.error(t('facilityManagement.toasts.facilityNameRequired'));
       return;
     }
     
     if (!editingFacility.location || editingFacility.location.trim() === '') {
-      toast.error('Location is required');
+      toast.error(t('facilityManagement.toasts.locationRequired'));
       return;
     }
     
     if (editingFacility.hourlyFee === undefined || editingFacility.hourlyFee < 0) {
-      toast.error('Hourly fee is required and must be a positive number');
+      toast.error(t('facilityManagement.toasts.hourlyFeeRequired'));
       return;
     }
     
     if (editingFacility.seedRecordingFee === undefined || editingFacility.seedRecordingFee < 0) {
-      toast.error('SEED recording fee is required and must be a positive number');
+      toast.error(t('facilityManagement.toasts.seedRecordingFeeRequired'));
       return;
     }
 
@@ -426,10 +426,10 @@ const FacilityManagement = () => {
       const fileInput = document.getElementById('editImageFile') as HTMLInputElement;
       if (fileInput) fileInput.value = '';
       
-      toast.success('Facility updated successfully');
+      toast.success(t('facilityManagement.toasts.facilityUpdatedSuccessfully'));
     } catch (error) {
       console.error('Error updating facility:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to update facility';
+      const errorMessage = error instanceof Error ? error.message : t('facilityManagement.toasts.failedToUpdateFacility');
       toast.error(errorMessage);
     }
   };
@@ -438,12 +438,12 @@ const FacilityManagement = () => {
     try {
       await facilityService.deleteFacility(facilityId);
       setFacilities(facilities.filter(facility => facility.id !== facilityId));
-      toast.success('Facility deleted successfully');
+      toast.success(t('facilityManagement.toasts.facilityDeletedSuccessfully'));
       setDeleteDialogOpen(false);
       setFacilityToDelete(null);
     } catch (error) {
       console.error('Error deleting facility:', error);
-      toast.error('Failed to delete facility');
+      toast.error(t('facilityManagement.toasts.failedToDeleteFacility'));
     }
   };
 
@@ -462,7 +462,7 @@ const FacilityManagement = () => {
       setFacilityCourts(courts);
     } catch (error) {
       console.error('Error fetching facility courts:', error);
-      toast.error('Failed to load facility courts');
+      toast.error(t('facilityManagement.toasts.failedToLoadFacilityCourts'));
       setFacilityCourts([]);
     } finally {
       setCourtsLoading(false);
@@ -527,15 +527,15 @@ const FacilityManagement = () => {
     >
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Facility Management</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t('facilityManagement.title')}</h1>
           <p className="text-gray-600 mt-1">
-            Manage facilities and their associated courts
+            {t('facilityManagement.subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={fetchFacilities} disabled={loading}>
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
+            {t('facilityManagement.refresh')}
           </Button>
           {hasPermission('SUPER_ADMIN') && (
             <Button
@@ -543,7 +543,7 @@ const FacilityManagement = () => {
               onClick={() => setCreateDialogOpen(true)}
             >
               <Plus className="w-4 h-4" />
-              Add New Facility
+              {t('facilityManagement.addNewFacility')}
             </Button>
           )}
         </div>
@@ -558,10 +558,10 @@ const FacilityManagement = () => {
       >
         <TabsList className="grid w-full max-w-md" style={{ gridTemplateColumns: '1fr' }}>
           {hasPermission('SUPER_ADMIN') && (
-            <TabsTrigger value="all">All Facilities</TabsTrigger>
+            <TabsTrigger value="all">{t('facilityManagement.allFacilities')}</TabsTrigger>
           )}
           {!hasPermission('SUPER_ADMIN') && (
-            <TabsTrigger value="my-facility">My Facility</TabsTrigger>
+            <TabsTrigger value="my-facility">{t('facilityManagement.myFacility')}</TabsTrigger>
           )}
         </TabsList>
 
@@ -574,7 +574,7 @@ const FacilityManagement = () => {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
-              placeholder="Search facilities by name, location, or description..."
+              placeholder={t('facilityManagement.searchPlaceholder')}
               value={filters.searchTerm}
               onChange={(e) => setFilters(prev => ({ ...prev, searchTerm: e.target.value }))}
               className="pl-10 max-w-md"
@@ -586,10 +586,10 @@ const FacilityManagement = () => {
             className="flex items-center gap-2"
           >
             <Filter className="w-4 h-4" />
-            Filters
+            {t('facilityManagement.filters')}
             {hasActiveFilters && (
               <Badge variant="secondary" className="ml-2 px-1 py-0 text-xs">
-                Active
+                {t('facilityManagement.active')}
               </Badge>
             )}
           </Button>
@@ -600,7 +600,7 @@ const FacilityManagement = () => {
               className="flex items-center gap-2 text-muted-foreground"
             >
               <X className="w-4 h-4" />
-              Clear
+              {t('facilityManagement.clearFilters')}
             </Button>
           )}
         </div>
@@ -616,16 +616,16 @@ const FacilityManagement = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Manager Filter */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Manager</Label>
+                <Label className="text-sm font-medium">{t('facilityManagement.manager')}</Label>
                 <Select
                   value={filters.manager}
                   onValueChange={(value) => setFilters(prev => ({ ...prev, manager: value }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="All Managers" />
+                    <SelectValue placeholder={t('facilityManagement.allManagers')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all-managers">All Managers</SelectItem>
+                    <SelectItem value="all-managers">{t('facilityManagement.allManagers')}</SelectItem>
                     {uniqueManagers.map((manager) => (
                       <SelectItem key={manager} value={manager}>
                         {manager}
@@ -637,34 +637,34 @@ const FacilityManagement = () => {
 
               {/* Status Filter */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Status</Label>
+                <Label className="text-sm font-medium">{t('facilityManagement.status')}</Label>
                 <Select
                   value={filters.status}
                   onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="All Status" />
+                    <SelectValue placeholder={t('facilityManagement.allStatus')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all-status">All Status</SelectItem>
-                    <SelectItem value="ACTIVE">Active</SelectItem>
-                    <SelectItem value="INACTIVE">Inactive</SelectItem>
+                    <SelectItem value="all-status">{t('facilityManagement.allStatus')}</SelectItem>
+                    <SelectItem value="ACTIVE">{t('facilityManagement.active')}</SelectItem>
+                    <SelectItem value="INACTIVE">{t('facilityManagement.inactive')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               {/* Location Filter */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Location</Label>
+                <Label className="text-sm font-medium">{t('facilityManagement.location')}</Label>
                 <Select
                   value={filters.location}
                   onValueChange={(value) => setFilters(prev => ({ ...prev, location: value }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="All Locations" />
+                    <SelectValue placeholder={t('facilityManagement.allLocations')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all-locations">All Locations</SelectItem>
+                    <SelectItem value="all-locations">{t('facilityManagement.allLocations')}</SelectItem>
                     {uniqueLocations.map((location) => (
                       <SelectItem key={location} value={location}>
                         {location}
@@ -677,7 +677,7 @@ const FacilityManagement = () => {
 
             <div className="flex items-center justify-between pt-2 border-t">
               <span className="text-sm text-muted-foreground">
-                Showing {filteredFacilities.length} of {facilities.length} facilities
+                {t('facilityManagement.showingResults', { count: filteredFacilities.length, total: facilities.length })}
               </span>
             </div>
           </motion.div>
@@ -688,14 +688,14 @@ const FacilityManagement = () => {
       {loading ? (
         <div className="flex items-center justify-center py-8">
           <Loader2 className="w-8 h-8 animate-spin" />
-          <span className="ml-2">Loading facilities...</span>
+          <span className="ml-2">{t('facilityManagement.loadingFacilities')}</span>
         </div>
       ) : facilities.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-gray-500">
             {user?.role === 'SUPER_ADMIN'
-              ? 'No facilities found. Create your first facility to get started.'
-              : 'No facilities assigned to you yet.'
+              ? t('facilityManagement.noFacilitiesFound')
+              : t('facilityManagement.noFacilitiesAssigned')
             }
           </p>
         </div>
@@ -716,7 +716,7 @@ const FacilityManagement = () => {
                     <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-2">
                       <Building className="w-6 h-6 text-primary/60" />
                     </div>
-                    <p className="text-sm text-muted-foreground">Facility Image</p>
+                    <p className="text-sm text-muted-foreground">{t('facilityManagement.facilityImage')}</p>
                   </div>
                 )}
               </div>
@@ -733,7 +733,7 @@ const FacilityManagement = () => {
               
               <CardContent className="space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Location:</span>
+                  <span className="text-gray-600">{t('facilityManagement.location')}:</span>
                   <span className="font-medium flex items-center gap-1">
                     <MapPin className="w-3 h-3" />
                     {facility.location}
@@ -741,31 +741,31 @@ const FacilityManagement = () => {
                 </div>
                 
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Courts:</span>
+                  <span className="text-gray-600">{t('facilityManagement.courts')}:</span>
                   <span className="font-medium">{facility.courtCount || 0}</span>
                 </div>
                 
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Hourly Fee:</span>
-                  <span className="font-medium">${facility.hourlyFee || 0}</span>
+                  <span className="text-gray-600">{t('facilityManagement.hourlyFee')}:</span>
+                  <span className="font-medium">﷼{facility.hourlyFee || 0}</span>
                 </div>
                 
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">SEED Recording:</span>
-                  <span className="font-medium">${facility.seedRecordingFee || 40}</span>
+                  <span className="text-gray-600">{t('facilityManagement.seedRecording')}:</span>
+                  <span className="font-medium">﷼{facility.seedRecordingFee || 40}</span>
                 </div>
                 
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Hours:</span>
+                  <span className="text-gray-600">{t('facilityManagement.hours')}:</span>
                   <span className="font-medium text-xs">
-                    {facility.openingTimes?.weekdays || 'Not set'}
+                    {facility.openingTimes?.weekdays || t('facilityManagement.notSet')}
                   </span>
                 </div>
                 
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Manager:</span>
+                  <span className="text-gray-600">{t('facilityManagement.manager')}:</span>
                   <span className="font-medium">
-                    {facility.manager ? facility.manager.name : 'No manager assigned'}
+                    {facility.manager ? facility.manager.name : t('facilityManagement.noManagerAssigned')}
                   </span>
                 </div>
 
@@ -777,7 +777,7 @@ const FacilityManagement = () => {
 
                 {facility.techFeatures && facility.techFeatures.length > 0 && (
                   <div className="pt-2 border-t">
-                    <p className="text-xs text-gray-600 mb-1">Tech Features:</p>
+                    <p className="text-xs text-gray-600 mb-1">{t('facilityManagement.techFeatures')}:</p>
                     <div className="flex flex-wrap gap-1">
                       {facility.techFeatures.slice(0, 2).map((feature, index) => (
                         <Badge key={index} variant="outline" className="text-xs">
@@ -786,7 +786,7 @@ const FacilityManagement = () => {
                       ))}
                       {facility.techFeatures.length > 2 && (
                         <Badge variant="outline" className="text-xs">
-                          +{facility.techFeatures.length - 2} more
+                          +{facility.techFeatures.length - 2} {t('facilityManagement.more')}
                         </Badge>
                       )}
                     </div>
@@ -801,7 +801,7 @@ const FacilityManagement = () => {
                     onClick={() => handleViewCourts(facility)}
                   >
                     <Eye className="w-4 h-4 mr-1" />
-                    View Courts
+                    {t('facilityManagement.viewCourts')}
                   </Button>
                   {canManageFacility(facility) && (
                     <>
@@ -812,7 +812,7 @@ const FacilityManagement = () => {
                         onClick={() => handleEditFacility(facility)}
                       >
                         <Edit className="w-4 h-4 mr-1" />
-                        Edit
+                        {t('facilityManagement.edit')}
                       </Button>
                       <Button
                         variant="outline"
@@ -821,7 +821,7 @@ const FacilityManagement = () => {
                         onClick={() => confirmDeleteFacility(facility)}
                       >
                         <Trash2 className="w-4 h-4 mr-1" />
-                        Delete
+                        {t('facilityManagement.delete')}
                       </Button>
                     </>
                   )}
@@ -847,9 +847,9 @@ const FacilityManagement = () => {
               <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
                 <Building className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No Facility Assigned</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('facilityManagement.noFacilityAssigned')}</h3>
               <p className="text-gray-600 mb-4">
-                You don't have a facility assigned to you yet. Please contact a super admin to get assigned to a facility.
+                {t('facilityManagement.noFacilityDescription')}
               </p>
             </div>
           ) : (
@@ -870,7 +870,7 @@ const FacilityManagement = () => {
                           <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-3">
                             <Building className="w-8 h-8 text-primary/60" />
                           </div>
-                          <p className="text-sm text-muted-foreground">No facility image</p>
+                          <p className="text-sm text-muted-foreground">{t('facilityManagement.noFacilityImage')}</p>
                         </div>
                       </div>
                     )}
@@ -900,7 +900,7 @@ const FacilityManagement = () => {
                           onClick={() => handleEditFacility(facility)}
                         >
                           <Edit className="w-4 h-4 mr-1" />
-                          Edit
+                          {t('facilityManagement.edit')}
                         </Button>
                         <Button
                           variant="outline"
@@ -908,7 +908,7 @@ const FacilityManagement = () => {
                           onClick={() => handleViewCourts(facility)}
                         >
                           <Eye className="w-4 h-4 mr-1" />
-                          View Courts
+                          {t('facilityManagement.viewCourts')}
                         </Button>
                       </div>
                     </div>
@@ -918,7 +918,7 @@ const FacilityManagement = () => {
                     {/* Description */}
                     {facility.description && (
                       <div>
-                        <h4 className="font-semibold mb-2">Description</h4>
+                        <h4 className="font-semibold mb-2">{t('facilityManagement.description')}</h4>
                         <p className="text-gray-600">{facility.description}</p>
                       </div>
                     )}
@@ -926,19 +926,19 @@ const FacilityManagement = () => {
                     {/* Key Information Grid */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="space-y-1">
-                        <p className="text-sm text-muted-foreground">Courts</p>
+                        <p className="text-sm text-muted-foreground">{t('facilityManagement.courts')}</p>
                         <p className="text-2xl font-bold">{facility.courtCount || 0}</p>
                       </div>
                       <div className="space-y-1">
-                        <p className="text-sm text-muted-foreground">Hourly Fee</p>
+                        <p className="text-sm text-muted-foreground">{t('facilityManagement.hourlyFee')}</p>
                         <p className="text-2xl font-bold">﷼{facility.hourlyFee || 0}</p>
                       </div>
                       <div className="space-y-1">
-                        <p className="text-sm text-muted-foreground">SEED Fee</p>
+                        <p className="text-sm text-muted-foreground">{t('facilityManagement.seedFee')}</p>
                         <p className="text-2xl font-bold">﷼{facility.seedRecordingFee || 40}</p>
                       </div>
                       <div className="space-y-1">
-                        <p className="text-sm text-muted-foreground">Rating</p>
+                        <p className="text-sm text-muted-foreground">{t('facilityManagement.rating')}</p>
                         <p className="text-2xl font-bold">
                           {facility.averageRating ? `${facility.averageRating.toFixed(1)}⭐` : 'N/A'}
                         </p>
@@ -950,16 +950,16 @@ const FacilityManagement = () => {
                       <div>
                         <h4 className="font-semibold mb-2 flex items-center gap-2">
                           <Clock className="w-4 h-4" />
-                          Opening Hours
+                          {t('facilityManagement.openingHours')}
                         </h4>
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <p className="text-sm text-muted-foreground">Weekdays</p>
-                            <p className="font-medium">{facility.openingTimes.weekdays || 'Not set'}</p>
+                            <p className="text-sm text-muted-foreground">{t('facilityManagement.weekdays')}</p>
+                            <p className="font-medium">{facility.openingTimes.weekdays || t('facilityManagement.notSet')}</p>
                           </div>
                           <div>
-                            <p className="text-sm text-muted-foreground">Weekends</p>
-                            <p className="font-medium">{facility.openingTimes.weekends || 'Not set'}</p>
+                            <p className="text-sm text-muted-foreground">{t('facilityManagement.weekends')}</p>
+                            <p className="font-medium">{facility.openingTimes.weekends || t('facilityManagement.notSet')}</p>
                           </div>
                         </div>
                       </div>
@@ -1035,64 +1035,64 @@ const FacilityManagement = () => {
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Create New Facility</DialogTitle>
+            <DialogTitle>{t('facilityManagement.createNewFacility')}</DialogTitle>
           </DialogHeader>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left Column - Basic Info */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Basic Information</h3>
+              <h3 className="text-lg font-semibold">{t('facilityManagement.basicInformation')}</h3>
               
               <div>
                 <Label htmlFor="name">
-                  Facility Name <span className="text-red-500">*</span>
+                  {t('facilityManagement.facilityName')} <span className="text-red-500">{t('facilityManagement.required')}</span>
                 </Label>
                 <Input
                   id="name"
                   value={newFacility.name}
                   onChange={(e) => setNewFacility({ ...newFacility, name: e.target.value })}
-                  placeholder="Enter facility name"
+                  placeholder={t('facilityManagement.enterFacilityName')}
                   required
                 />
               </div>
               <div>
                 <Label htmlFor="location">
-                  Location <span className="text-red-500">*</span>
+                  {t('facilityManagement.location')} <span className="text-red-500">{t('facilityManagement.required')}</span>
                 </Label>
                 <Input
                   id="location"
                   value={newFacility.location}
                   onChange={(e) => setNewFacility({ ...newFacility, location: e.target.value })}
-                  placeholder="Enter facility location"
+                  placeholder={t('facilityManagement.enterFacilityLocation')}
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="description">Description (Optional)</Label>
+                <Label htmlFor="description">{t('facilityManagement.descriptionOptional')}</Label>
                 <Input
                   id="description"
                   value={newFacility.description}
                   onChange={(e) => setNewFacility({ ...newFacility, description: e.target.value })}
-                  placeholder="Enter facility description"
+                  placeholder={t('facilityManagement.enterFacilityDescription')}
                 />
               </div>
               <div>
-                <Label htmlFor="nameAr">Arabic Name (Optional)</Label>
+                <Label htmlFor="nameAr">{t('facilityManagement.arabicName')}</Label>
                 <Input
                   id="nameAr"
                   value={newFacility.nameAr || ''}
                   onChange={(e) => setNewFacility({ ...newFacility, nameAr: e.target.value })}
-                  placeholder="أدخل اسم المنشأة بالعربية"
+                  placeholder={t('facilityManagement.arabicNamePlaceholder')}
                   dir="rtl"
                 />
               </div>
               <div>
-                <Label htmlFor="descriptionAr">Arabic Description (Optional)</Label>
+                <Label htmlFor="descriptionAr">{t('facilityManagement.arabicDescription')}</Label>
                 <Input
                   id="descriptionAr"
                   value={newFacility.descriptionAr || ''}
                   onChange={(e) => setNewFacility({ ...newFacility, descriptionAr: e.target.value })}
-                  placeholder="أدخل وصف المنشأة بالعربية"
+                  placeholder={t('facilityManagement.arabicDescriptionPlaceholder')}
                   dir="rtl"
                 />
               </div>

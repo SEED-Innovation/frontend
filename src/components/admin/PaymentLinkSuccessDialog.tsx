@@ -26,6 +26,7 @@ import { paymentLinkService } from '@/services/paymentLinkService';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { CurrencyDisplay } from '@/components/ui/currency-display';
+import { useTranslation } from 'react-i18next';
 
 interface PaymentLinkSuccessDialogProps {
     isOpen: boolean;
@@ -39,6 +40,7 @@ const PaymentLinkSuccessDialog: React.FC<PaymentLinkSuccessDialogProps> = ({
     paymentLink
 }) => {
     const { toast } = useToast();
+    const { t } = useTranslation('admin');
     const [copied, setCopied] = useState(false);
 
     // Generate the payment link URL using the current application URL
@@ -50,15 +52,15 @@ const PaymentLinkSuccessDialog: React.FC<PaymentLinkSuccessDialogProps> = ({
             await navigator.clipboard.writeText(paymentLinkUrl);
             setCopied(true);
             toast({
-                title: 'Link Copied',
-                description: 'Payment link copied to clipboard',
+                title: t('paymentLinkSuccess.linkCopied'),
+                description: t('paymentLinkSuccess.linkCopiedDescription'),
             });
             setTimeout(() => setCopied(false), 2000);
         } catch (error) {
             console.error('Failed to copy:', error);
             toast({
-                title: 'Copy Failed',
-                description: 'Failed to copy link to clipboard',
+                title: t('paymentLinkSuccess.copyFailed'),
+                description: t('paymentLinkSuccess.copyFailedDescription'),
                 variant: 'destructive'
             });
         }
@@ -84,9 +86,9 @@ const PaymentLinkSuccessDialog: React.FC<PaymentLinkSuccessDialogProps> = ({
                             <CheckCircle className="w-6 h-6 text-green-600" />
                         </div>
                         <div>
-                            <DialogTitle className="text-xl">Payment Link Created!</DialogTitle>
+                            <DialogTitle className="text-xl">{t('paymentLinkSuccess.title')}</DialogTitle>
                             <DialogDescription>
-                                Share this link with your customer to complete the booking
+                                {t('paymentLinkSuccess.subtitle')}
                             </DialogDescription>
                         </div>
                     </div>
@@ -95,26 +97,26 @@ const PaymentLinkSuccessDialog: React.FC<PaymentLinkSuccessDialogProps> = ({
                 <div className="space-y-6">
                     {/* Booking Summary */}
                     <div className="bg-muted/50 p-4 rounded-lg space-y-3">
-                        <h4 className="font-semibold text-sm">Booking Details</h4>
+                        <h4 className="font-semibold text-sm">{t('paymentLinkSuccess.bookingDetails')}</h4>
                         <div className="grid grid-cols-2 gap-3 text-sm">
                             <div className="flex items-center gap-2">
                                 <MapPin className="w-4 h-4 text-muted-foreground" />
                                 <div>
-                                    <p className="text-xs text-muted-foreground">Court</p>
+                                    <p className="text-xs text-muted-foreground">{t('paymentLinkSuccess.court')}</p>
                                     <p className="font-medium">{paymentLink.courtName}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
                                 <MapPin className="w-4 h-4 text-muted-foreground" />
                                 <div>
-                                    <p className="text-xs text-muted-foreground">Facility</p>
+                                    <p className="text-xs text-muted-foreground">{t('paymentLinkSuccess.facility')}</p>
                                     <p className="font-medium">{paymentLink.facilityName}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
                                 <Calendar className="w-4 h-4 text-muted-foreground" />
                                 <div>
-                                    <p className="text-xs text-muted-foreground">Date</p>
+                                    <p className="text-xs text-muted-foreground">{t('paymentLinkSuccess.date')}</p>
                                     <p className="font-medium">
                                         {format(new Date(paymentLink.bookingDate), 'PPP')}
                                     </p>
@@ -123,7 +125,7 @@ const PaymentLinkSuccessDialog: React.FC<PaymentLinkSuccessDialogProps> = ({
                             <div className="flex items-center gap-2">
                                 <Clock className="w-4 h-4 text-muted-foreground" />
                                 <div>
-                                    <p className="text-xs text-muted-foreground">Time</p>
+                                    <p className="text-xs text-muted-foreground">{t('paymentLinkSuccess.time')}</p>
                                     <p className="font-medium">
                                         {paymentLink.startTime} - {paymentLink.endTime}
                                     </p>
@@ -133,12 +135,12 @@ const PaymentLinkSuccessDialog: React.FC<PaymentLinkSuccessDialogProps> = ({
                         
                         {paymentLink.recordingAddon && (
                             <div className="pt-3 border-t border-border">
-                                <p className="text-sm font-medium">✅ Recording Service Included</p>
+                                <p className="text-sm font-medium">✅ {t('paymentLinkSuccess.recordingIncluded')}</p>
                             </div>
                         )}
                         
                         <div className="pt-3 border-t border-border flex items-center justify-between">
-                            <span className="font-semibold">Total Amount</span>
+                            <span className="font-semibold">{t('paymentLinkSuccess.totalAmount')}</span>
                             <span className="text-xl font-bold text-primary">
                                 <CurrencyDisplay amount={paymentLink.totalAmount} size="lg" showSymbol />
                             </span>
@@ -149,13 +151,13 @@ const PaymentLinkSuccessDialog: React.FC<PaymentLinkSuccessDialogProps> = ({
                     <Alert>
                         <Clock className="h-4 w-4" />
                         <AlertDescription>
-                            This link will expire in <strong>{hoursUntilExpiry} hours</strong> ({format(expiresAt, 'PPp')})
+                            {t('paymentLinkSuccess.expiresIn')} <strong>{hoursUntilExpiry} {t('paymentLinkSuccess.hours')}</strong> ({format(expiresAt, 'PPp')})
                         </AlertDescription>
                     </Alert>
 
                     {/* Payment Link */}
                     <div className="space-y-2">
-                        <Label>Payment Link</Label>
+                        <Label>{t('paymentLinkSuccess.paymentLink')}</Label>
                         <div className="flex gap-2">
                             <Input
                                 value={paymentLinkUrl}
@@ -180,11 +182,11 @@ const PaymentLinkSuccessDialog: React.FC<PaymentLinkSuccessDialogProps> = ({
                     {/* Customer Info */}
                     {(paymentLink.phoneNumber || paymentLink.targetUserId) && (
                         <div className="bg-blue-50 p-3 rounded-lg text-sm">
-                            <p className="font-medium text-blue-900">Customer Information</p>
+                            <p className="font-medium text-blue-900">{t('paymentLinkSuccess.customerInformation')}</p>
                             <p className="text-blue-700 mt-1">
                                 {paymentLink.phoneNumber 
-                                    ? `Phone: ${paymentLink.phoneNumber}` 
-                                    : `User ID: ${paymentLink.targetUserId}`}
+                                    ? `${t('paymentLinkSuccess.phone')}: ${paymentLink.phoneNumber}` 
+                                    : `${t('paymentLinkSuccess.userId')}: ${paymentLink.targetUserId}`}
                             </p>
                         </div>
                     )}
@@ -197,7 +199,7 @@ const PaymentLinkSuccessDialog: React.FC<PaymentLinkSuccessDialogProps> = ({
                         onClick={onClose}
                         className="w-full sm:w-auto"
                     >
-                        Close
+                        {t('paymentLinkSuccess.close')}
                     </Button>
                     <Button
                         type="button"
@@ -205,7 +207,7 @@ const PaymentLinkSuccessDialog: React.FC<PaymentLinkSuccessDialogProps> = ({
                         className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
                     >
                         <Share2 className="w-4 h-4 mr-2" />
-                        Share via WhatsApp
+                        {t('paymentLinkSuccess.shareViaWhatsApp')}
                     </Button>
                 </DialogFooter>
             </DialogContent>
