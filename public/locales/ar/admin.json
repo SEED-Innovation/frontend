@@ -328,5 +328,13 @@
       "selectImageFile": "يرجى اختيار ملف صورة",
       "imageTooLarge": "يرجى اختيار صورة أصغر من 5 ميجابايت"
     }
+  },
+  "feeBreakdown": {
+    "title": "ملخص الدفع",
+    "courtFee": "رسوم الملعب",
+    "seedRecordingFee": "رسوم تسجيل SEED",
+    "totalAmount": "المبلغ الإجمالي",
+    "duration": "المدة",
+    "hourlyRate": "السعر بالساعة"
   }
 }

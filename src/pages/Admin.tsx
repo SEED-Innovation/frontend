@@ -11,7 +11,6 @@ import FacilityManagement from '@/components/admin/FacilityManagement';
 import BookingManagement from '@/components/admin/BookingManagement';
 import PaymentManagement from '@/components/admin/PaymentManagement';
 import ReportsAnalytics from '@/components/admin/ReportsAnalytics';
-import SessionMonitoring from '@/components/admin/SessionMonitoring';
 import SystemAnalytics from '@/components/admin/SystemAnalytics';
 import AdminSettings from '@/components/admin/AdminSettings';
 import AdminProfile from '@/components/admin/AdminProfile';
@@ -62,7 +61,6 @@ const Admin = () => {
             <Route path="/courts" element={<CourtManagement />} />
             {/* <Route path="/bookings" element={<BookingManagement />} /> */}
             <Route path="/bookings" element={<AdminBooking />} />
-            <Route path="/sessions" element={<SessionMonitoring />} />
             <Route path="/payments" element={<PaymentManagement />} />
             <Route path="/analytics" element={<SystemAnalytics />} />
             <Route path="/cameras" element={<CameraManagement />} />

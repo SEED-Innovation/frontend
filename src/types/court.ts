@@ -14,6 +14,7 @@ export interface Court {
     id: number;
     name: string;
     hourlyFee: number;
+    seedRecordingFee?: number;
     location?: string;
   } | null;
   hasSeedSystem?: boolean;

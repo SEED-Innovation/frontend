@@ -15,9 +15,10 @@ import {
     CheckCircle, XCircle,
     ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
     TrendingUp, Activity, Crown, Sparkles, Building2,
-    Mail, Phone, AlertCircle, Award, Zap
+    Mail, Phone, AlertCircle, Award, Zap, Receipt
 } from 'lucide-react';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
+import FeeBreakdown from './FeeBreakdown';
 
 import { formatDateTime, calculateDuration } from '@/utils';
 import { getStatusColor, getStatusIcon } from '@/utils/bookingUtils';
@@ -129,11 +130,114 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
         });
     };
 
+    // Calculate stats from bookings
+    const bookingStats = useMemo(() => {
+        const total = bookings.length;
+        const pending = bookings.filter(b => b.status === 'PENDING').length;
+        const approved = bookings.filter(b => b.status === 'APPROVED').length;
+        const cancelled = bookings.filter(b => b.status === 'CANCELLED').length;
+        const rejected = bookings.filter(b => b.status === 'REJECTED').length;
+        
+        return { total, pending, approved, cancelled, rejected };
+    }, [bookings]);
+
     return (
         <div className="space-y-8">
 
+            {/* Stats Overview Cards */}
+            <motion.div 
+                initial={{ opacity: 0, y: 20 }} 
+                animate={{ opacity: 1, y: 0 }}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4"
+            >
+                {/* Total Bookings */}
+                <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Total Bookings</p>
+                                <p className="text-3xl font-bold text-blue-900 dark:text-blue-100 mt-2">
+                                    {bookingStats.total}
+                                </p>
+                            </div>
+                            <div className="p-3 bg-blue-500 rounded-full">
+                                <Activity className="w-6 h-6 text-white" />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Pending Review */}
+                <Card className="border-0 shadow-lg bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950 dark:to-yellow-900">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400">Pending Review</p>
+                                <p className="text-3xl font-bold text-yellow-900 dark:text-yellow-100 mt-2">
+                                    {bookingStats.pending}
+                                </p>
+                            </div>
+                            <div className="p-3 bg-yellow-500 rounded-full">
+                                <Clock className="w-6 h-6 text-white" />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Approved */}
+                <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium text-green-600 dark:text-green-400">Approved</p>
+                                <p className="text-3xl font-bold text-green-900 dark:text-green-100 mt-2">
+                                    {bookingStats.approved}
+                                </p>
+                            </div>
+                            <div className="p-3 bg-green-500 rounded-full">
+                                <CheckCircle className="w-6 h-6 text-white" />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Cancelled */}
+                <Card className="border-0 shadow-lg bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-900">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium text-red-600 dark:text-red-400">Cancelled</p>
+                                <p className="text-3xl font-bold text-red-900 dark:text-red-100 mt-2">
+                                    {bookingStats.cancelled}
+                                </p>
+                            </div>
+                            <div className="p-3 bg-red-500 rounded-full">
+                                <XCircle className="w-6 h-6 text-white" />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Rejected */}
+                <Card className="border-0 shadow-lg bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Rejected</p>
+                                <p className="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-2">
+                                    {bookingStats.rejected}
+                                </p>
+                            </div>
+                            <div className="p-3 bg-gray-500 rounded-full">
+                                <AlertCircle className="w-6 h-6 text-white" />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </motion.div>
+
             {/* Enhanced Filter Section */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
                 <Card className="border-0 shadow-xl bg-card/80 backdrop-blur-sm">
                     <CardHeader className="pb-4">
                         <CardTitle className="flex items-center text-2xl font-bold text-foreground">
@@ -460,13 +564,35 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                                                                 >
                                                                     {getStatusIcon(booking.status)} {booking.status}
                                                                 </Badge>
-                                                                <div className="flex items-center">
-                                                                    <CurrencyDisplay
-                                                                        amount={calculateDuration(booking.startTime, booking.endTime) * (booking.court?.hourlyFee || 0)}
-                                                                        size="sm"
-                                                                        className="text-foreground font-bold text-sm"
-                                                                    />
-                                                                </div>
+                                                                
+                                                                {/* Fee Breakdown Popover */}
+                                                                <Popover>
+                                                                    <PopoverTrigger asChild>
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            className="h-auto p-0 hover:bg-transparent group"
+                                                                        >
+                                                                            <div className="flex items-center gap-1.5 text-foreground font-bold text-sm group-hover:text-primary transition-colors">
+                                                                                <Receipt className="w-3.5 h-3.5" />
+                                                                                <CurrencyDisplay
+                                                                                    amount={calculateDuration(booking.startTime, booking.endTime) * (booking.court?.hourlyFee || 0) + (booking.court?.facility?.seedRecordingFee || booking.court?.seedRecordingFee || 0)}
+                                                                                    size="sm"
+                                                                                    className="text-inherit"
+                                                                                />
+                                                                            </div>
+                                                                        </Button>
+                                                                    </PopoverTrigger>
+                                                                    <PopoverContent className="w-80 p-0" align="end">
+                                                                        <FeeBreakdown
+                                                                            courtFee={calculateDuration(booking.startTime, booking.endTime) * (booking.court?.hourlyFee || 0)}
+                                                                            seedRecordingFee={booking.court?.facility?.seedRecordingFee || booking.court?.seedRecordingFee || 0}
+                                                                            duration={calculateDuration(booking.startTime, booking.endTime) * 60}
+                                                                            hourlyRate={booking.court?.hourlyFee || 0}
+                                                                            showHeader={true}
+                                                                        />
+                                                                    </PopoverContent>
+                                                                </Popover>
                                                             </div>
                                                         </TableCell>
 

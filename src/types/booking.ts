@@ -49,6 +49,7 @@ export interface BookingResponse {
     status: string;    // BookingStatus enum as string
     cancellationReason?: string;
     rejectionReason?: string;
+    refundStatus?: string; // RefundStatus enum as string (PENDING, REFUNDED, NOT_APPLICABLE)
     matchType: string; // MatchType enum as string
     techPolicy?: TechnologyPolicyResponse;
     payment?: PaymentResponse;
@@ -66,6 +67,7 @@ export interface CourtResponse {
   location: string;
   type: string;
   hourlyFee: number;
+  seedRecordingFee?: number; // SEED recording fee from facility
   hasSeedSystem: boolean; 
   imageUrl?: string;
   amenities?: string[];
@@ -82,6 +84,7 @@ export interface CourtResponse {
     id: number;
     name: string;
     hourlyFee?: number;
+    seedRecordingFee?: number;
   };
 }
 
@@ -215,6 +218,14 @@ export const BookingStatus = {
 } as const;
 
 export type BookingStatusType = typeof BookingStatus[keyof typeof BookingStatus];
+
+export const RefundStatus = {
+    PENDING: 'PENDING',
+    REFUNDED: 'REFUNDED',
+    NOT_APPLICABLE: 'NOT_APPLICABLE'
+} as const;
+
+export type RefundStatusType = typeof RefundStatus[keyof typeof RefundStatus];
 
 export const MatchType = {
     SINGLE: 'SINGLE',

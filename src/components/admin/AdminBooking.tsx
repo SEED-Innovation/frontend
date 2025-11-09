@@ -7,12 +7,15 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
 import { EnhancedAdminBooking } from './EnhancedAdminBooking';
 import ManualBookingForm from './ManualBookingForm';
 import BookingAnalyticsCharts from './BookingAnalyticsCharts';
+import FeeBreakdown from './FeeBreakdown';
+import CancelledBookingsTab from './CancelledBookingsTab';
 import { CurrencyDisplay } from '@/components/ui/currency-display';
 import {
     ClipboardList, BarChart3, CheckCircle, Clock, XCircle, AlertTriangle,
@@ -44,7 +47,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
-    const [currentView, setCurrentView] = useState<'dashboard' | 'manage' | 'analytics'>('manage');
+    const [currentView, setCurrentView] = useState<'dashboard' | 'manage' | 'analytics' | 'cancelled'>('manage');
 
     // ================================
     // 🔄 DATA LOADING
@@ -216,6 +219,13 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                         <span>Manage Bookings</span>
                     </TabsTrigger>
                     <TabsTrigger
+                        value="cancelled"
+                        className="flex items-center space-x-2 h-12 rounded-lg font-medium text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
+                    >
+                        <XCircle className="w-4 h-4" />
+                        <span>Cancelled</span>
+                    </TabsTrigger>
+                    <TabsTrigger
                         value="analytics"
                         className="flex items-center space-x-2 h-12 rounded-lg font-medium text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
                     >
@@ -234,6 +244,19 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
 
                 <TabsContent value="manage" className="space-y-6">
                     {renderManageView()}
+                </TabsContent>
+
+                <TabsContent value="cancelled" className="space-y-6">
+                    <CancelledBookingsTab
+                        bookings={bookings}
+                        isLoading={isLoading}
+                        onRefresh={loadData}
+                        onMarkAsRefunded={async (bookingIds, refundReference, notes) => {
+                            // TODO: Implement API call when backend endpoint is ready
+                            console.log('Mark as refunded:', { bookingIds, refundReference, notes });
+                            // await bookingService.markAsRefunded(bookingIds, refundReference, notes);
+                        }}
+                    />
                 </TabsContent>
 
                 <TabsContent value="analytics" className="space-y-6">
@@ -271,6 +294,25 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                             <CheckCircle className="w-4 h-4 mr-2" />
                             {stats?.confirmedBookings || 0} Confirmed
                         </Badge>
+                        
+                        {/* Revenue Badge with Fee Breakdown */}
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Badge className="px-4 py-2 bg-green-500/10 text-green-600 border-green-500/20 font-medium text-sm cursor-pointer hover:bg-green-500/20 transition-colors">
+                                    <TrendingUp className="w-4 h-4 mr-2" />
+                                    <CurrencyDisplay amount={stats?.totalRevenue || 0} size="sm" showSymbol />
+                                    <span className="ml-1">Revenue</span>
+                                </Badge>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80 p-0" align="start">
+                                <FeeBreakdown
+                                    courtFee={stats?.confirmedRevenue || 0}
+                                    seedRecordingFee={(stats?.totalRevenue || 0) - (stats?.confirmedRevenue || 0)}
+                                    showHeader={true}
+                                    compact={false}
+                                />
+                            </PopoverContent>
+                        </Popover>
                     </div>
 
                     <div className="flex items-center gap-3">

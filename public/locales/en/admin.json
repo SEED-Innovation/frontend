@@ -759,5 +759,13 @@
       "selectImageFile": "Please select an image file",
       "imageTooLarge": "Please select an image smaller than 5MB"
     }
+  },
+  "feeBreakdown": {
+    "title": "Payment Summary",
+    "courtFee": "Court Fee",
+    "seedRecordingFee": "SEED Recording Fee",
+    "totalAmount": "Total Amount",
+    "duration": "Duration",
+    "hourlyRate": "Hourly Rate"
   }
 }

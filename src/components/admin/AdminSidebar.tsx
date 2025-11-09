@@ -9,7 +9,6 @@ import {
   BarChart3,
   Settings,
   Trophy,
-  Clock,
   MapPin,
   Camera,
   Bell,
@@ -53,12 +52,6 @@ const sidebarItems: SidebarItem[] = [
     titleKey: 'admin.menu.bookings',
     href: '/admin/bookings',
     icon: Calendar,
-  },
-  {
-    titleKey: 'admin.menu.sessions',
-    href: '/admin/sessions',
-    icon: Clock,
-    superAdminOnly: true,
   },
   {
     titleKey: 'admin.menu.cameras',
