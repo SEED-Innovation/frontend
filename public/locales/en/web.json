@@ -1037,5 +1037,18 @@
     "advanced": "Advanced",
     "badgeCollection": "Badge Collection",
     "earned": "Earned"
+  },
+  "paymentLinkRedirect": {
+    "title": "Opening SEED Tennis",
+    "redirecting": "Redirecting you to the app...",
+    "loading": "Loading...",
+    "countdownMessage": "If the app doesn't open, you'll be redirected to the app store in {countdown}s",
+    "openGooglePlay": "Open in Google Play",
+    "openAppStore": "Open in App Store",
+    "desktopMessage": "This payment link is designed for the SEED Tennis mobile app.",
+    "downloadPrompt": "Download the app to complete your payment:",
+    "downloadAndroid": "Download for Android",
+    "downloadIOS": "Download for iOS",
+    "paymentLinkId": "Payment Link ID"
   }
 }

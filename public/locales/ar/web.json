@@ -1037,5 +1037,18 @@
     "advanced": "متقدم",
     "badgeCollection": "مجموعة الشارات",
     "earned": "مكتسب"
+  },
+  "paymentLinkRedirect": {
+    "title": "فتح تطبيق سيد تنس",
+    "redirecting": "جاري توجيهك إلى التطبيق...",
+    "loading": "جاري التحميل...",
+    "countdownMessage": "إذا لم يفتح التطبيق، سيتم توجيهك إلى متجر التطبيقات خلال {countdown} ثانية",
+    "openGooglePlay": "فتح في جوجل بلاي",
+    "openAppStore": "فتح في آب ستور",
+    "desktopMessage": "رابط الدفع هذا مصمم لتطبيق سيد تنس للهواتف المحمولة.",
+    "downloadPrompt": "قم بتنزيل التطبيق لإكمال الدفع:",
+    "downloadAndroid": "تنزيل لأندرويد",
+    "downloadIOS": "تنزيل لآيفون",
+    "paymentLinkId": "معرف رابط الدفع"
   }
 }

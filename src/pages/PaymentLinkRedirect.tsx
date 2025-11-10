@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const PaymentLinkRedirect = () => {
   const { linkId } = useParams<{ linkId: string }>();
+  const { t } = useTranslation('web');
   const [countdown, setCountdown] = useState(3);
 
   useEffect(() => {
@@ -91,13 +93,13 @@ const PaymentLinkRedirect = () => {
 
         {/* Title */}
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Opening SEED Tennis
+          {t('paymentLinkRedirect.title')}
         </h1>
 
         {isMobile ? (
           <>
             <p className="text-gray-600 mb-6">
-              Redirecting you to the app...
+              {t('paymentLinkRedirect.redirecting')}
             </p>
 
             {/* Loading spinner */}
@@ -107,7 +109,7 @@ const PaymentLinkRedirect = () => {
 
             {countdown > 0 && (
               <p className="text-sm text-gray-500 mb-4">
-                If the app doesn't open, you'll be redirected to the app store in {countdown}s
+                {t('paymentLinkRedirect.countdownMessage', { countdown })}
               </p>
             )}
 
@@ -118,7 +120,7 @@ const PaymentLinkRedirect = () => {
                   href="https://play.google.com/store/apps/details?id=com.devarch.tennis2"
                   className="block w-full bg-gray-900 text-white py-3 px-6 rounded-lg font-medium hover:bg-gray-800 transition-colors"
                 >
-                  Open in Google Play
+                  {t('paymentLinkRedirect.openGooglePlay')}
                 </a>
               )}
               {isIOS && (
@@ -126,7 +128,7 @@ const PaymentLinkRedirect = () => {
                   href="https://apps.apple.com/app/seed-%D8%B3%D9%8A%D9%8A%D8%AF/id6754299638"
                   className="block w-full bg-gray-900 text-white py-3 px-6 rounded-lg font-medium hover:bg-gray-800 transition-colors"
                 >
-                  Open in App Store
+                  {t('paymentLinkRedirect.openAppStore')}
                 </a>
               )}
             </div>
@@ -134,26 +136,26 @@ const PaymentLinkRedirect = () => {
         ) : (
           <>
             <p className="text-gray-600 mb-6">
-              This payment link is designed for the SEED Tennis mobile app.
+              {t('paymentLinkRedirect.desktopMessage')}
             </p>
 
             <div className="space-y-3">
               <p className="text-sm text-gray-500 mb-4">
-                Download the app to complete your payment:
+                {t('paymentLinkRedirect.downloadPrompt')}
               </p>
               
               <a
                 href="https://play.google.com/store/apps/details?id=com.devarch.tennis2"
                 className="block w-full bg-gray-900 text-white py-3 px-6 rounded-lg font-medium hover:bg-gray-800 transition-colors"
               >
-                Download for Android
+                {t('paymentLinkRedirect.downloadAndroid')}
               </a>
               
               <a
                 href="https://apps.apple.com/app/seed-%D8%B3%D9%8A%D9%8A%D8%AF/id6754299638"
                 className="block w-full bg-gray-900 text-white py-3 px-6 rounded-lg font-medium hover:bg-gray-800 transition-colors"
               >
-                Download for iOS
+                {t('paymentLinkRedirect.downloadIOS')}
               </a>
             </div>
           </>
@@ -161,7 +163,7 @@ const PaymentLinkRedirect = () => {
 
         {/* Help text */}
         <p className="text-xs text-gray-400 mt-6">
-          Payment Link ID: {linkId}
+          {t('paymentLinkRedirect.paymentLinkId')}: {linkId}
         </p>
       </div>
     </div>
