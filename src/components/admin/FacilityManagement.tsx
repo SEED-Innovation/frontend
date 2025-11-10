@@ -1586,8 +1586,31 @@ const FacilityManagement = () => {
 
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    GPS Coordinates (Optional)
+                  </Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      type="number"
+                      step="any"
+                      placeholder="Latitude (e.g., 24.7136)"
+                      value={editingFacility.latitude || ''}
+                      onChange={(e) => setEditingFacility({ ...editingFacility, latitude: e.target.value ? parseFloat(e.target.value) : undefined })}
+                    />
+                    <Input
+                      type="number"
+                      step="any"
+                      placeholder="Longitude (e.g., 46.6753)"
+                      value={editingFacility.longitude || ''}
+                      onChange={(e) => setEditingFacility({ ...editingFacility, longitude: e.target.value ? parseFloat(e.target.value) : undefined })}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
                     <LinkIcon className="w-4 h-4" />
-                    Map Links
+                    Map Links (Optional)
                   </Label>
                   <div className="space-y-2">
                     <Input
@@ -1723,6 +1746,31 @@ const FacilityManagement = () => {
                     </div>
                   )}
                 </div>
+                
+                {hasPermission('SUPER_ADMIN') && (
+                  <div>
+                    <Label htmlFor="edit-manager">Manager</Label>
+                    <Select
+                      value={editingFacility.managerId?.toString() || 'no-manager'}
+                      onValueChange={(value) => setEditingFacility({ 
+                        ...editingFacility, 
+                        managerId: value === 'no-manager' ? undefined : parseInt(value) 
+                      })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select manager (optional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="no-manager">No manager</SelectItem>
+                        {admins.map((admin) => (
+                          <SelectItem key={admin.id} value={admin.id}>
+                            {admin.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 </div>
               </div>
 
