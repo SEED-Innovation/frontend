@@ -72,13 +72,6 @@ export const UnavailabilityTable: React.FC = () => {
         });
         
         setData(enhancedResult);
-      } catch (apiError) {
-        console.warn('Real API failed, falling back to mock data:', apiError);
-        // Fallback to mock data if real API fails
-        const result = await unavailabilityService.getUnavailabilities();
-        setData(result);
-        toast.info('Using mock data - API not available');
-      }
     } catch (error) {
       console.error('Failed to load unavailabilities:', error);
       toast.error('Failed to load data');

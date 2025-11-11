@@ -163,10 +163,8 @@ export class BookingService {
       return data;
       
     } catch (error) {
-      console.error('❌ Backend not available, using mock stats:', error);
-      
-      // Return fake stats when backend is not running
-      return this.createMockStats();
+      console.error('❌ Failed to get booking stats:', error);
+      throw error;
     }
   }
 
@@ -186,11 +184,8 @@ export class BookingService {
       console.log('✅ Booking approved successfully');
       
     } catch (error) {
-      console.error('❌ Backend not available, simulating approval:', error);
-      
-      // Simulate approval when backend is not running
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log('🔄 Mock approval completed');
+      console.error('❌ Failed to approve booking:', error);
+      throw error;
     }
   }
 
@@ -210,11 +205,8 @@ export class BookingService {
       console.log('✅ Booking rejected successfully');
       
     } catch (error) {
-      console.error('❌ Backend not available, simulating rejection:', error);
-      
-      // Simulate rejection when backend is not running
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log('🔄 Mock rejection completed');
+      console.error('❌ Failed to reject booking:', error);
+      throw error;
     }
   }
 
@@ -234,11 +226,8 @@ export class BookingService {
       console.log('✅ Booking cancelled successfully');
       
     } catch (error) {
-      console.error('❌ Backend not available, simulating cancellation:', error);
-      
-      // Simulate cancellation when backend is not running
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log('🔄 Mock cancellation completed');
+      console.error('❌ Failed to cancel booking:', error);
+      throw error;
     }
   }
 
@@ -305,8 +294,8 @@ export class BookingService {
       return data;
       
     } catch (error) {
-      console.error('❌ Search failed, using mock data:', error);
-      return this.createMockBookingData({ page, size, search: query }).content;
+      console.error('❌ Search failed:', error);
+      throw error;
     }
   }
 
@@ -326,8 +315,8 @@ export class BookingService {
       return data;
       
     } catch (error) {
-      console.error('❌ Failed to get bookings by status, using mock data:', error);
-      return this.createMockBookingData({ page, size, statuses: [status] }).content;
+      console.error('❌ Failed to get bookings by status:', error);
+      throw error;
     }
   }
 
@@ -347,8 +336,8 @@ export class BookingService {
       return data;
       
     } catch (error) {
-      console.error('❌ Failed to get user bookings, using mock data:', error);
-      return this.createMockBookingData({ page, size, userId }).content;
+      console.error('❌ Failed to get user bookings:', error);
+      throw error;
     }
   }
 
@@ -373,9 +362,8 @@ export class BookingService {
       return data;
       
     } catch (error) {
-      console.error('❌ Bulk action failed, simulating:', error);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return []; // Return empty array for mock
+      console.error('❌ Bulk action failed:', error);
+      throw error;
     }
   }
 
@@ -400,8 +388,8 @@ export class BookingService {
       return data;
       
     } catch (error) {
-      console.error('❌ Failed to get bookings by court and date, using mock data:', error);
-      return this.createMockBookingData({ courtIds: [courtId], startDateTime: start, endDateTime: end }).content;
+      console.error('❌ Failed to get bookings by court and date:', error);
+      throw error;
     }
   }
 
@@ -419,8 +407,8 @@ export class BookingService {
       return data;
       
     } catch (error) {
-      console.error('❌ Failed to get daily calendar, using mock data:', error);
-      return this.createMockCalendarResponse(date, 'daily');
+      console.error('❌ Failed to get daily calendar:', error);
+      throw error;
     }
   }
 
@@ -438,8 +426,8 @@ export class BookingService {
       return data;
       
     } catch (error) {
-      console.error('❌ Failed to get weekly calendar, using mock data:', error);
-      return this.createMockCalendarResponse(startDate, 'weekly');
+      console.error('❌ Failed to get weekly calendar:', error);
+      throw error;
     }
   }
 
@@ -457,8 +445,8 @@ export class BookingService {
       return data;
       
     } catch (error) {
-      console.error('❌ Failed to get monthly calendar, using mock data:', error);
-      return this.createMockCalendarResponse(`${year}-${month.toString().padStart(2, '0')}-01`, 'monthly');
+      console.error('❌ Failed to get monthly calendar:', error);
+      throw error;
     }
   }
 
@@ -480,8 +468,162 @@ export class BookingService {
       return data;
       
     } catch (error) {
-      console.error('❌ Failed to get court timeline, using mock data:', error);
-      return this.createMockTimelineResponse(courtId, date || new Date().toISOString().split('T')[0]);
+      console.error('❌ Failed to get court timeline:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get cancelled bookings for facility admin (matches your backend /admin/bookings/cancelled)
+   */
+  async getCancelledBookings(filters?: {
+    courtId?: number;
+    startDate?: string;
+    endDate?: string;
+    refundStatus?: string;
+    page?: number;
+    size?: number;
+  }): Promise<PaginatedBookingResponse> {
+    console.log('🚫 Getting cancelled bookings with filters:', filters);
+    
+    try {
+      const params = new URLSearchParams();
+      if (filters?.courtId) params.set('courtId', filters.courtId.toString());
+      if (filters?.startDate) params.set('startDate', filters.startDate);
+      if (filters?.endDate) params.set('endDate', filters.endDate);
+      if (filters?.refundStatus) params.set('refundStatus', filters.refundStatus);
+      if (filters?.page !== undefined) params.set('page', filters.page.toString());
+      if (filters?.size !== undefined) params.set('size', filters.size.toString());
+      
+      const queryString = params.toString();
+      const url = `${this.baseUrl}/admin/bookings/cancelled${queryString ? `?${queryString}` : ''}`;
+      
+      const response = await this.makeAPICall(url);
+      const data = await response.json();
+      
+      console.log('✅ Cancelled bookings fetched:', data);
+      return data;
+      
+    } catch (error) {
+      console.error('❌ Failed to get cancelled bookings:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get cancelled bookings summary statistics (super admin)
+   */
+  async getCancelledBookingsSummary(filters?: {
+    startDate?: string;
+    endDate?: string;
+  }): Promise<{
+    totalCancelled: number;
+    pendingRefunds: number;
+    completedRefunds: number;
+    totalRefundAmount: number;
+  }> {
+    console.log('📊 Getting cancelled bookings summary:', filters);
+    
+    try {
+      const params = new URLSearchParams();
+      if (filters?.startDate) params.set('startDate', filters.startDate);
+      if (filters?.endDate) params.set('endDate', filters.endDate);
+      
+      const queryString = params.toString();
+      const url = `${this.baseUrl}/admin/bookings/cancelled/summary${queryString ? `?${queryString}` : ''}`;
+      
+      const response = await this.makeAPICall(url);
+      const data = await response.json();
+      
+      console.log('✅ Cancelled bookings summary:', data);
+      return data;
+      
+    } catch (error) {
+      console.error('❌ Failed to get cancelled bookings summary:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Mark a booking as refunded (super admin only)
+   */
+  async markBookingAsRefunded(bookingId: number, refundReference: string, notes?: string): Promise<BookingResponse> {
+    console.log('💰 Marking booking as refunded:', bookingId, 'reference:', refundReference);
+    
+    try {
+      const response = await this.makeAPICall(`${this.baseUrl}/super-admin/bookings/${bookingId}/mark-refunded`, {
+        method: 'POST',
+        body: JSON.stringify({
+          refundReference,
+          notes
+        })
+      });
+      
+      const data = await response.json();
+      console.log('✅ Booking marked as refunded:', data);
+      return data;
+      
+    } catch (error) {
+      console.error('❌ Failed to mark booking as refunded:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Bulk mark bookings as refunded (super admin only)
+   */
+  async bulkMarkAsRefunded(bookingIds: number[], refundReference: string, notes?: string): Promise<{
+    successCount: number;
+    failureCount: number;
+    results: Array<{ bookingId: number; success: boolean; message?: string }>;
+  }> {
+    console.log('💰 Bulk marking bookings as refunded:', bookingIds, 'reference:', refundReference);
+    
+    try {
+      const response = await this.makeAPICall(`${this.baseUrl}/super-admin/bookings/bulk-mark-refunded`, {
+        method: 'POST',
+        body: JSON.stringify({
+          bookingIds,
+          refundReference,
+          notes
+        })
+      });
+      
+      const data = await response.json();
+      console.log('✅ Bulk refund marking completed:', data);
+      return data;
+      
+    } catch (error) {
+      console.error('❌ Failed to bulk mark as refunded:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get audit trail for a booking (super admin only)
+   */
+  async getBookingAuditTrail(bookingId: number): Promise<Array<{
+    id: number;
+    bookingId: number;
+    actionType: string;
+    performedBy: { id: number; fullName: string; email: string };
+    performedAt: string;
+    cancellationReason?: string;
+    refundReference?: string;
+    notes?: string;
+  }>> {
+    console.log('📋 Getting audit trail for booking:', bookingId);
+    
+    try {
+      const response = await this.makeAPICall(`${this.baseUrl}/super-admin/bookings/${bookingId}/audit-trail`);
+      
+      const data = await response.json();
+      console.log('✅ Audit trail fetched:', data);
+      return data;
+      
+    } catch (error) {
+      console.error('❌ Failed to get audit trail:', error);
+      throw error;
     }
   }
 
@@ -509,155 +651,8 @@ export class BookingService {
   }
 
   // ================================
-  // 🔧 HELPER METHODS (MOCK DATA)
+  // 🔧 HELPER METHODS
   // ================================
-
-  private createMockBookingData(filters: AdminBookingFilterRequest): PaginatedBookingResponse {
-    const statuses = ['PENDING', 'APPROVED', 'CANCELLED', 'REJECTED'] as const;
-    const matchTypes = ['SINGLE', 'DOUBLE'] as const;
-    
-    // Create 20 fake bookings
-    const mockBookings: BookingResponse[] = Array.from({ length: 20 }, (_, index) => ({
-      id: index + 1,
-      user: {
-        id: index + 1,
-        fullName: `Test User ${index + 1}`,
-        email: `user${index + 1}@example.com`
-      },
-      court: {
-        id: (index % 5) + 1,
-        name: `Court ${(index % 5) + 1}`,
-        location: `Location ${(index % 3) + 1}`,
-        type: index % 2 === 0 ? 'HARD' : 'CLAY',
-        hourlyFee: 50 + (index % 5) * 10,
-        hasSeedSystem: index % 2 === 0
-      },
-      startTime: new Date(Date.now() + (index * 86400000)).toISOString(),
-      endTime: new Date(Date.now() + (index * 86400000) + 7200000).toISOString(),
-      status: statuses[index % statuses.length],
-      matchType: matchTypes[index % matchTypes.length]
-    }));
-
-    return {
-      content: mockBookings,
-      page: filters.page || 0,
-      size: filters.size || 20,
-      totalElements: 156,
-      totalPages: 8,
-      first: (filters.page || 0) === 0,
-      last: (filters.page || 0) === 7
-    };
-  }
-
-private createMockStats(): BookingFilterSummary {
-  return {
-    // Keep your existing properties
-    total: 156,
-    pending: 23,
-    approved: 89,
-    cancelled: 32,
-    rejected: 12,
-    totalRevenue: 12450.75,
-    todayBookings: 8,
-    
-    totalBookings: 156,        // Same as total
-    confirmedBookings: 89,     // Same as approved
-    pendingBookings: 23,       // Same as pending
-    cancelledBookings: 32,     // Same as cancelled
-    confirmedRevenue: 12450.75 // Same as totalRevenue
-  };
-}
-
-  private createMockBooking(request: CreateBookingRequest): BookingResponse {
-    try {
-      // Safely handle date parsing for mock data
-      let startDateTime: Date;
-      let endDateTime: Date;
-      
-      // Handle different date formats
-      if (typeof request.date === 'string') {
-        // Try parsing YYYY-MM-DD format
-        const dateParts = request.date.split('-');
-        if (dateParts.length === 3) {
-          const year = parseInt(dateParts[0]);
-          const month = parseInt(dateParts[1]) - 1; // Month is 0-indexed
-          const day = parseInt(dateParts[2]);
-          startDateTime = new Date(year, month, day);
-        } else {
-          startDateTime = new Date(request.date);
-        }
-      } else {
-        startDateTime = new Date(request.date);
-      }
-      
-      // Handle time parsing safely
-      if (request.startTime) {
-        const timeParts = request.startTime.split(':');
-        if (timeParts.length >= 2) {
-          const hours = parseInt(timeParts[0]) || 0;
-          const minutes = parseInt(timeParts[1]) || 0;
-          const seconds = parseInt(timeParts[2]) || 0;
-          startDateTime.setHours(hours, minutes, seconds);
-        }
-      }
-      
-      // Calculate end time
-      endDateTime = new Date(startDateTime.getTime() + (request.durationMinutes * 60 * 1000));
-      
-      // Validate dates
-      if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
-        throw new Error('Invalid date/time in mock booking request');
-      }
-      
-      return {
-        id: Date.now(),
-        user: { 
-          id: request.userId, 
-          fullName: 'Mock User', 
-          email: 'mock@example.com' 
-        },
-        court: { 
-          id: request.courtId, 
-          name: 'Mock Court', 
-          location: 'Mock Location', 
-          type: 'HARD', 
-          hourlyFee: 65, 
-          hasSeedSystem: true 
-        },
-        startTime: startDateTime.toISOString(),
-        endTime: endDateTime.toISOString(),
-        status: 'PENDING',
-        matchType: request.matchType
-      };
-      
-    } catch (error) {
-      console.error('❌ Failed to create mock booking:', error);
-      // Return a basic mock booking with current time if parsing fails
-      const now = new Date();
-      const endTime = new Date(now.getTime() + (60 * 60 * 1000)); // 1 hour later
-      
-      return {
-        id: Date.now(),
-        user: { 
-          id: request.userId, 
-          fullName: 'Mock User', 
-          email: 'mock@example.com' 
-        },
-        court: { 
-          id: request.courtId, 
-          name: 'Mock Court', 
-          location: 'Mock Location', 
-          type: 'HARD', 
-          hourlyFee: 65, 
-          hasSeedSystem: true 
-        },
-        startTime: now.toISOString(),
-        endTime: endTime.toISOString(),
-        status: 'PENDING',
-        matchType: request.matchType || 'SINGLE'
-      };
-    }
-  }
 
   private createCSVContent(bookings: BookingResponse[]): string {
     const headers = ['ID', 'User', 'Email', 'Court', 'Date', 'Status', 'Match Type', 'Price'];
@@ -670,56 +665,10 @@ private createMockStats(): BookingFilterSummary {
       new Date(booking.startTime).toLocaleDateString(),
       booking.status,
       booking.matchType,
-      `$${(booking.court.hourlyFee * 2).toFixed(2)}`
+      `${(booking.court.hourlyFee * 2).toFixed(2)}`
     ]);
 
     return [headers, ...rows].map(row => row.join(',')).join('\n');
-  }
-
-  private createMockCalendarResponse(date: string, viewType: string): AdminBookingCalendarResponse {
-    return {
-      date,
-      courts: [
-        {
-          court: {
-            id: 1,
-            name: 'Court 1',
-            location: 'Mock Location',
-            type: 'HARD',
-            hourlyFee: 65,
-            hasSeedSystem: true
-          },
-          timeSlots: [],
-          bookings: [],
-          revenue: 520
-        }
-      ],
-      totalBookings: 15,
-      totalRevenue: 1250.50
-    };
-  }
-
-  private createMockTimelineResponse(courtId: number, date: string): AdminCourtTimelineResponse {
-    return {
-      court: {
-        id: courtId,
-        name: `Court ${courtId}`,
-        location: 'Mock Location',
-        type: 'HARD',
-        hourlyFee: 65,
-        hasSeedSystem: true
-      },
-      date,
-      timeSlots: [],
-      bookings: [],
-      statistics: {
-        totalSlots: 16,
-        bookedSlots: 8,
-        availableSlots: 8,
-        revenue: 520,
-        occupancyRate: 50
-      }
-    };
   }
 
   private downloadCSVFile(content: string, filename: string): void {

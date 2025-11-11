@@ -160,41 +160,32 @@ export const AvailabilityTable: React.FC = () => {
         console.warn('Failed to load courts data:', error);
       }
       
-      // Try to fetch from real API first, fallback to mock if needed
-      try {
-        const result = await courtService.getAvailabilities();
-        
-        // Transform to match AvailabilityRow interface
-        const transformedData = result.map(item => ({
-          id: item.id,
-          courtId: item.courtId,
-          courtName: item.courtName || `Court ${item.courtId}`,
-          facilityName: item.facilityName,
-          dayOfWeek: item.dayOfWeek as DOW,
-          start: item.startTime.slice(0, 5), // Convert "HH:mm:ss" to "HH:mm"
-          end: item.endTime.slice(0, 5),     // Convert "HH:mm:ss" to "HH:mm"
-          startDate: item.startDate,
-          endDate: item.endDate
-        }));
-        
-        // Enhance data with court images
-        const enhancedResult = transformedData.map(item => {
-          const court = courts.find(c => (typeof c.id === 'string' ? parseInt(c.id) : c.id) === item.courtId);
-          return {
-            ...item,
-            courtImageUrl: court?.imageUrl
-          };
-        });
-        
-        setData(enhancedResult);
-      } catch (apiError) {
-        console.warn('Real API failed, falling back to mock data:', apiError);
-        // Fallback to mock data if real API fails
-        const { getAvailabilitiesMock } = await import('@/lib/api/admin/availability');
-        const result = await getAvailabilitiesMock();
-        setData(result);
-        toast.info('Using mock data - API not available');
-      }
+      // Fetch from real API
+      const result = await courtService.getAvailabilities();
+      
+      // Transform to match AvailabilityRow interface
+      const transformedData = result.map(item => ({
+        id: item.id,
+        courtId: item.courtId,
+        courtName: item.courtName || `Court ${item.courtId}`,
+        facilityName: item.facilityName,
+        dayOfWeek: item.dayOfWeek as DOW,
+        start: item.startTime.slice(0, 5), // Convert "HH:mm:ss" to "HH:mm"
+        end: item.endTime.slice(0, 5),     // Convert "HH:mm:ss" to "HH:mm"
+        startDate: item.startDate,
+        endDate: item.endDate
+      }));
+      
+      // Enhance data with court images
+      const enhancedResult = transformedData.map(item => {
+        const court = courts.find(c => (typeof c.id === 'string' ? parseInt(c.id) : c.id) === item.courtId);
+        return {
+          ...item,
+          courtImageUrl: court?.imageUrl
+        };
+      });
+      
+      setData(enhancedResult);
     } catch (error) {
       console.error('Failed to load availabilities:', error);
       toast.error('Failed to load data');
