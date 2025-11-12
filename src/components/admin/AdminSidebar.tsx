@@ -12,7 +12,8 @@ import {
   MapPin,
   Camera,
   Bell,
-  Building
+  Building,
+  Video
 } from 'lucide-react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { cn } from '@/lib/utils';
@@ -57,6 +58,12 @@ const sidebarItems: SidebarItem[] = [
     titleKey: 'admin.menu.cameras',
     href: '/admin/cameras',
     icon: Camera,
+    superAdminOnly: true,
+  },
+  {
+    titleKey: 'admin.menu.recordings',
+    href: '/admin/recordings',
+    icon: Video,
     superAdminOnly: true,
   },
   {
