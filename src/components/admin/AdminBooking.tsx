@@ -252,9 +252,15 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                         isLoading={isLoading}
                         onRefresh={loadData}
                         onMarkAsRefunded={async (bookingIds, refundReference, notes) => {
-                            // TODO: Implement API call when backend endpoint is ready
-                            console.log('Mark as refunded:', { bookingIds, refundReference, notes });
-                            // await bookingService.markAsRefunded(bookingIds, refundReference, notes);
+                            try {
+                                await bookingService.bulkMarkAsRefunded(bookingIds, refundReference, notes);
+                                toast.success(`Successfully marked ${bookingIds.length} booking(s) as refunded`);
+                                loadData(); // Refresh data
+                            } catch (error) {
+                                console.error('Failed to mark as refunded:', error);
+                                toast.error('Failed to mark booking(s) as refunded');
+                                throw error;
+                            }
                         }}
                     />
                 </TabsContent>
