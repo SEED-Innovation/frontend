@@ -828,5 +828,20 @@
     "creating": "Creating...",
     "success": "Recording created successfully",
     "error": "Failed to create recording"
+  },
+  "menu": {
+    "dashboard": "Dashboard",
+    "admins": "Admins",
+    "facilities": "Facilities",
+    "courts": "Courts",
+    "bookings": "Bookings",
+    "cameras": "Cameras",
+    "recordings": "Recordings",
+    "notifications": "Notifications",
+    "payments": "Payments",
+    "analytics": "Analytics",
+    "settings": "Settings",
+    "myProfile": "My Profile",
+    "courtManagement": "Court Management"
   }
 }

@@ -29,69 +29,69 @@ interface SidebarItem {
 
 const sidebarItems: SidebarItem[] = [
   {
-    titleKey: 'admin.menu.dashboard',
+    titleKey: 'menu.dashboard',
     href: '/admin',
     icon: LayoutDashboard,
   },
   {
-    titleKey: 'admin.menu.admins',
+    titleKey: 'menu.admins',
     href: '/admin/players',
     icon: Users,
     superAdminOnly: true,
   },
   {
-    titleKey: 'admin.menu.facilities',
+    titleKey: 'menu.facilities',
     href: '/admin/facilities',
     icon: Building,
   },
   {
-    titleKey: 'admin.menu.courts',
+    titleKey: 'menu.courts',
     href: '/admin/courts',
     icon: Trophy,
   },
   {
-    titleKey: 'admin.menu.bookings',
+    titleKey: 'menu.bookings',
     href: '/admin/bookings',
     icon: Calendar,
   },
   {
-    titleKey: 'admin.menu.cameras',
+    titleKey: 'menu.cameras',
     href: '/admin/cameras',
     icon: Camera,
     superAdminOnly: true,
   },
   {
-    titleKey: 'admin.menu.recordings',
+    titleKey: 'menu.recordings',
     href: '/admin/recordings',
     icon: Video,
     superAdminOnly: true,
   },
   {
-    titleKey: 'admin.menu.notifications',
+    titleKey: 'menu.notifications',
     href: '/admin/notifications',
     icon: Bell,
     superAdminOnly: true,
   },
   {
-    titleKey: 'admin.menu.payments',
+    titleKey: 'menu.payments',
     href: '/admin/payments',
     icon: CreditCard,
     superAdminOnly: true,
   },
   {
-    titleKey: 'admin.menu.analytics',
+    titleKey: 'menu.analytics',
     href: '/admin/analytics',
     icon: BarChart3,
     superAdminOnly: true,
   },
   {
-    titleKey: 'admin.menu.settings',
+    titleKey: 'menu.settings',
     href: '/admin/settings',
     icon: Settings,
     superAdminOnly: true,
   },
   {
-    titleKey: 'admin.menu.myProfile',
+    titleKey: 'menu.myProfile',
     href: '/admin/profile',
     icon: Trophy,
   },
@@ -133,7 +133,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed }) => {
           {!collapsed && (
             <div>
               <h1 className="text-lg font-bold text-gray-900">SEED Admin</h1>
-              <p className="text-xs text-gray-500">{t('admin.menu.courtManagement')}</p>
+              <p className="text-xs text-gray-500">{t('menu.courtManagement')}</p>
             </div>
           )}
         </motion.div>
