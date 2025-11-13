@@ -8,7 +8,7 @@ import { Camera, Wifi, AlertTriangle, CheckCircle, Settings, Plus, Wrench } from
 import { toast } from 'sonner';
 
 const CourtInstallations = () => {
-  const { t } = useTranslation('web');
+  const { t } = useTranslation('admin');
   const [selectedCourt, setSelectedCourt] = useState<any>(null);
 
   // Mock court installation data

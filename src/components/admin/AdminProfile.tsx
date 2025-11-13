@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 
 const AdminProfile = () => {
   const { profile, loading, error } = useAdminProfile();
-  const { t } = useTranslation('web');
+  const { t } = useTranslation('admin');
 
   if (loading) {
     return (

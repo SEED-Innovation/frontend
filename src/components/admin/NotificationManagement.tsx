@@ -36,7 +36,7 @@ interface NotificationForm {
 }
 
 const NotificationManagement: React.FC = () => {
-  const { t } = useTranslation('web');
+  const { t } = useTranslation('admin');
   const { toast } = useToast();
   
   const [stats, setStats] = useState<NotificationStats | null>(null);

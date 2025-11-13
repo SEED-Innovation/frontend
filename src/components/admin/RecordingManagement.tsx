@@ -3,18 +3,15 @@ import { motion } from 'framer-motion';
 import {
   Video,
   Search,
-  Filter,
   RefreshCw,
   Eye,
   Clock,
   CheckCircle,
   XCircle,
-  AlertCircle,
   Download,
-  Calendar,
   User,
   MapPin,
-  Camera as CameraIcon,
+  Plus,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -37,41 +34,18 @@ import {
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import RecordingDetailsDialog from './RecordingDetailsDialog';
-import axios from 'axios';
-
-interface MatchRecording {
-  id: number;
-  recordingId: string;
-  bookingId: number;
-  userId: number;
-  userName: string;
-  userEmail: string;
-  cameraId: number;
-  cameraName: string;
-  courtName: string;
-  facilityName: string;
-  status: 'RECORDING' | 'PROCESSING' | 'READY' | 'FAILED';
-  checkInTime: string;
-  checkOutTime: string;
-  totalChunks: number;
-  uploadedChunks: number;
-  consolidatedChunks: number;
-  totalFileSizeBytes: number;
-  totalDurationSeconds: number;
-  retryCount: number;
-  maxRetries: number;
-  errorMessage: string;
-  notificationSent: boolean;
-  consolidationCompletedAt: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import CreateRecordingDialog from './CreateRecordingDialog';
+import { adminRecordingService, type MatchRecording } from '@/lib/api/services/adminRecordingService';
 
 interface RecordingStats {
   total: number;
-  recording: number;
-  processing: number;
-  ready: number;
+  pending: number;
+  requestingChunks: number;
+  polling: number;
+  downloading: number;
+  consolidating: number;
+  uploading: number;
+  completed: number;
   failed: number;
 }
 
@@ -84,9 +58,8 @@ const RecordingManagement: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [selectedRecording, setSelectedRecording] = useState<MatchRecording | null>(null);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const { toast } = useToast();
-
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
   useEffect(() => {
     fetchRecordings();
@@ -96,24 +69,20 @@ const RecordingManagement: React.FC = () => {
   const fetchRecordings = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('adminToken');
+      const response = await adminRecordingService.getAllRecordings();
+      const allRecordings = Array.isArray(response) ? response : [];
+
+      let filteredData = allRecordings;
       
-      const params: any = {
-        page: currentPage,
-        size: 20,
-      };
-      
+      // Apply status filter
       if (statusFilter !== 'all') {
-        params.status = statusFilter.toUpperCase();
+        filteredData = filteredData.filter((r: MatchRecording) => 
+          r.status.toLowerCase() === statusFilter.toLowerCase()
+        );
       }
 
-      const response = await axios.get(`${API_BASE_URL}/api/admin/recordings/match`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params,
-      });
-
-      setRecordings(response.data.content);
-      setTotalPages(response.data.totalPages);
+      setRecordings(filteredData);
+      setTotalPages(Math.ceil(filteredData.length / 20));
     } catch (error) {
       console.error('Failed to fetch recordings:', error);
       toast({
@@ -121,6 +90,8 @@ const RecordingManagement: React.FC = () => {
         description: 'Failed to load recordings',
         variant: 'destructive',
       });
+      setRecordings([]);
+      setTotalPages(0);
     } finally {
       setLoading(false);
     }
@@ -128,11 +99,22 @@ const RecordingManagement: React.FC = () => {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('adminToken');
-      const response = await axios.get(`${API_BASE_URL}/api/admin/recordings/match/stats`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setStats(response.data);
+      const response = await adminRecordingService.getAllRecordings();
+      const recordings = Array.isArray(response) ? response : [];
+      
+      const stats: RecordingStats = {
+        total: recordings.length,
+        pending: recordings.filter((r: MatchRecording) => r.status === 'PENDING').length,
+        requestingChunks: recordings.filter((r: MatchRecording) => r.status === 'REQUESTING_CHUNKS').length,
+        polling: recordings.filter((r: MatchRecording) => r.status === 'POLLING').length,
+        downloading: recordings.filter((r: MatchRecording) => r.status === 'DOWNLOADING').length,
+        consolidating: recordings.filter((r: MatchRecording) => r.status === 'CONSOLIDATING').length,
+        uploading: recordings.filter((r: MatchRecording) => r.status === 'UPLOADING').length,
+        completed: recordings.filter((r: MatchRecording) => r.status === 'COMPLETED').length,
+        failed: recordings.filter((r: MatchRecording) => r.status === 'FAILED').length,
+      };
+      
+      setStats(stats);
     } catch (error) {
       console.error('Failed to fetch stats:', error);
     }
@@ -140,9 +122,13 @@ const RecordingManagement: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      RECORDING: { color: 'bg-blue-100 text-blue-800', icon: Clock, label: 'Recording' },
-      PROCESSING: { color: 'bg-yellow-100 text-yellow-800', icon: RefreshCw, label: 'Processing' },
-      READY: { color: 'bg-green-100 text-green-800', icon: CheckCircle, label: 'Ready' },
+      PENDING: { color: 'bg-gray-100 text-gray-800', icon: Clock, label: 'Pending' },
+      REQUESTING_CHUNKS: { color: 'bg-blue-100 text-blue-800', icon: RefreshCw, label: 'Requesting' },
+      POLLING: { color: 'bg-indigo-100 text-indigo-800', icon: Clock, label: 'Polling' },
+      DOWNLOADING: { color: 'bg-purple-100 text-purple-800', icon: Download, label: 'Downloading' },
+      CONSOLIDATING: { color: 'bg-yellow-100 text-yellow-800', icon: RefreshCw, label: 'Consolidating' },
+      UPLOADING: { color: 'bg-orange-100 text-orange-800', icon: RefreshCw, label: 'Uploading' },
+      COMPLETED: { color: 'bg-green-100 text-green-800', icon: CheckCircle, label: 'Completed' },
       FAILED: { color: 'bg-red-100 text-red-800', icon: XCircle, label: 'Failed' },
     };
 
@@ -183,34 +169,19 @@ const RecordingManagement: React.FC = () => {
     return new Date(dateString).toLocaleString();
   };
 
-  const handleRetry = async (recordingId: string) => {
+  const handleRetry = async (recordingId: number) => {
     try {
-      const token = localStorage.getItem('adminToken');
-      const response = await axios.post(
-        `${API_BASE_URL}/api/admin/recordings/match/${recordingId}/retry`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      await adminRecordingService.retryRecording(recordingId);
 
-      if (response.data.success) {
-        toast({
-          title: 'Success',
-          description: response.data.message,
-        });
-        
-        // Refresh recordings list
-        fetchRecordings();
-        fetchStats();
-        setSelectedRecording(null);
-      } else {
-        toast({
-          title: 'Error',
-          description: response.data.message,
-          variant: 'destructive',
-        });
-      }
+      toast({
+        title: 'Success',
+        description: 'Recording retry initiated successfully',
+      });
+      
+      // Refresh recordings list
+      fetchRecordings();
+      fetchStats();
+      setSelectedRecording(null);
     } catch (error: any) {
       console.error('Failed to retry recording:', error);
       toast({
@@ -224,11 +195,10 @@ const RecordingManagement: React.FC = () => {
   const filteredRecordings = recordings.filter(recording => {
     const searchLower = searchTerm.toLowerCase();
     return (
-      recording.userName?.toLowerCase().includes(searchLower) ||
-      recording.userEmail?.toLowerCase().includes(searchLower) ||
-      recording.courtName?.toLowerCase().includes(searchLower) ||
-      recording.facilityName?.toLowerCase().includes(searchLower) ||
-      recording.recordingId?.toLowerCase().includes(searchLower)
+      recording.userId?.toLowerCase().includes(searchLower) ||
+      recording.id?.toString().includes(searchLower) ||
+      recording.sessionId?.toString().includes(searchLower) ||
+      recording.courtId?.toString().includes(searchLower)
     );
   });
 
@@ -240,15 +210,21 @@ const RecordingManagement: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900">Recording Management</h1>
           <p className="text-gray-500 mt-1">Monitor and manage match recordings</p>
         </div>
-        <Button onClick={fetchRecordings} variant="outline" className="gap-2">
-          <RefreshCw className="w-4 h-4" />
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
+            <Plus className="w-4 h-4" />
+            Create Recording
+          </Button>
+          <Button onClick={fetchRecordings} variant="outline" className="gap-2">
+            <RefreshCw className="w-4 h-4" />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -265,10 +241,12 @@ const RecordingManagement: React.FC = () => {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500">Recording</p>
-                  <p className="text-2xl font-bold text-blue-600">{stats.recording}</p>
+                  <p className="text-sm text-gray-500">In Progress</p>
+                  <p className="text-2xl font-bold text-blue-600">
+                    {stats.pending + stats.requestingChunks + stats.polling + stats.downloading + stats.consolidating + stats.uploading}
+                  </p>
                 </div>
-                <Clock className="w-8 h-8 text-blue-400" />
+                <RefreshCw className="w-8 h-8 text-blue-400" />
               </div>
             </CardContent>
           </Card>
@@ -277,20 +255,8 @@ const RecordingManagement: React.FC = () => {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500">Processing</p>
-                  <p className="text-2xl font-bold text-yellow-600">{stats.processing}</p>
-                </div>
-                <RefreshCw className="w-8 h-8 text-yellow-400" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">Ready</p>
-                  <p className="text-2xl font-bold text-green-600">{stats.ready}</p>
+                  <p className="text-sm text-gray-500">Completed</p>
+                  <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
                 </div>
                 <CheckCircle className="w-8 h-8 text-green-400" />
               </div>
@@ -319,7 +285,7 @@ const RecordingManagement: React.FC = () => {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
-                  placeholder="Search by user, email, court, facility, or recording ID..."
+                  placeholder="Search by recording ID, user ID, session ID, or court ID..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -332,9 +298,13 @@ const RecordingManagement: React.FC = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="recording">Recording</SelectItem>
-                <SelectItem value="processing">Processing</SelectItem>
-                <SelectItem value="ready">Ready</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="requesting_chunks">Requesting</SelectItem>
+                <SelectItem value="polling">Polling</SelectItem>
+                <SelectItem value="downloading">Downloading</SelectItem>
+                <SelectItem value="consolidating">Consolidating</SelectItem>
+                <SelectItem value="uploading">Uploading</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
                 <SelectItem value="failed">Failed</SelectItem>
               </SelectContent>
             </Select>
@@ -362,13 +332,15 @@ const RecordingManagement: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Recording ID</TableHead>
-                    <TableHead>User</TableHead>
+                    <TableHead>ID</TableHead>
+                    <TableHead>User ID</TableHead>
+                    <TableHead>Session</TableHead>
                     <TableHead>Court</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Check-in</TableHead>
+                    <TableHead>Start Time</TableHead>
                     <TableHead>Duration</TableHead>
-                    <TableHead>Progress</TableHead>
+                    <TableHead>Chunks</TableHead>
+                    <TableHead>Retries</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -376,45 +348,49 @@ const RecordingManagement: React.FC = () => {
                   {filteredRecordings.map((recording) => (
                     <TableRow key={recording.id}>
                       <TableCell className="font-mono text-xs">
-                        {recording.recordingId.substring(0, 8)}...
+                        #{recording.id}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <User className="w-4 h-4 text-gray-400" />
-                          <div>
-                            <p className="font-medium">{recording.userName}</p>
-                            <p className="text-xs text-gray-500">{recording.userEmail}</p>
-                          </div>
+                          <span className="font-mono text-xs">{recording.userId}</span>
                         </div>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs">
+                        #{recording.sessionId}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <MapPin className="w-4 h-4 text-gray-400" />
-                          <div>
-                            <p className="font-medium">{recording.courtName}</p>
-                            <p className="text-xs text-gray-500">{recording.facilityName}</p>
-                          </div>
+                          <span>Court {recording.courtId}</span>
                         </div>
                       </TableCell>
                       <TableCell>{getStatusBadge(recording.status)}</TableCell>
                       <TableCell className="text-sm">
-                        {formatDateTime(recording.checkInTime)}
+                        {formatDateTime(recording.startTime)}
                       </TableCell>
-                      <TableCell>{formatDuration(recording.totalDurationSeconds)}</TableCell>
+                      <TableCell>{formatDuration(recording.duration)}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <div className="flex-1 bg-gray-200 rounded-full h-2">
+                          <div className="flex-1 bg-gray-200 rounded-full h-2 min-w-[60px]">
                             <div
                               className="bg-primary h-2 rounded-full transition-all"
                               style={{
-                                width: `${(recording.uploadedChunks / recording.totalChunks) * 100}%`,
+                                width: recording.chunks?.length > 0 
+                                  ? `${(recording.chunks.filter(c => c.status === 'DOWNLOADED').length / recording.chunks.length) * 100}%`
+                                  : '0%',
                               }}
                             />
                           </div>
                           <span className="text-xs text-gray-500">
-                            {recording.uploadedChunks}/{recording.totalChunks}
+                            {recording.chunks?.filter(c => c.status === 'DOWNLOADED').length || 0}/{recording.chunks?.length || 0}
                           </span>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={recording.retryCount > 0 ? 'destructive' : 'secondary'}>
+                          {recording.retryCount}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <Button
@@ -465,6 +441,16 @@ const RecordingManagement: React.FC = () => {
         open={!!selectedRecording}
         onClose={() => setSelectedRecording(null)}
         onRetry={handleRetry}
+      />
+
+      {/* Create Recording Dialog */}
+      <CreateRecordingDialog
+        open={createDialogOpen}
+        onClose={() => setCreateDialogOpen(false)}
+        onSuccess={() => {
+          fetchRecordings();
+          fetchStats();
+        }}
       />
     </div>
   );

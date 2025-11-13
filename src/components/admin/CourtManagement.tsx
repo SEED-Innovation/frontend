@@ -37,7 +37,7 @@ import { useTranslation } from 'react-i18next';
 
 const CourtManagement = () => {
   const { user, hasPermission } = useAdminAuth();
-  const { t } = useTranslation('web');
+  const { t } = useTranslation('admin');
   const { language } = useLanguage();
 
   // Pagination state

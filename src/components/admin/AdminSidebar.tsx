@@ -104,7 +104,7 @@ interface AdminSidebarProps {
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed }) => {
   const location = useLocation();
   const { user, hasPermission } = useAdminAuth();
-  const { t } = useTranslation('web');
+  const { t } = useTranslation('admin');
 
   const filteredItems = sidebarItems.filter(item => {
     // If item is not restricted to super admin, show it to all admins

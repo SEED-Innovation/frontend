@@ -22,7 +22,7 @@ import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 
 const PaymentManagement = () => {
-  const { t } = useTranslation('web');
+  const { t } = useTranslation('admin');
   // State management
   const [pageData, setPageData] = useState<AdminPaymentsPageDto | null>(null);
   const [loading, setLoading] = useState(true);

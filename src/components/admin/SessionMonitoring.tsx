@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslation } from 'react-i18next';
 
 const SessionMonitoring = () => {
-  const { t } = useTranslation('web');
+  const { t } = useTranslation('admin');
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

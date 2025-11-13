@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, Edit, ChevronUp, ChevronDown, Loader2, Calendar, AlertCircle, Ban, CheckCircle } from 'lucide-react';
@@ -72,8 +73,12 @@ export const UnavailabilityTable: React.FC = () => {
         });
         
         setData(enhancedResult);
+      } catch (error) {
+        console.error('Failed to load unavailabilities:', error);
+        toast.error('Failed to load data');
+      }
     } catch (error) {
-      console.error('Failed to load unavailabilities:', error);
+      console.error('Failed to load data:', error);
       toast.error('Failed to load data');
     } finally {
       setLoading(false);

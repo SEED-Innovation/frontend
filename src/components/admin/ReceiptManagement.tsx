@@ -51,7 +51,7 @@ import { CurrencyDisplay } from '@/components/ui/currency-display';
 import { useTranslation } from 'react-i18next';
 
 const ReceiptManagement: React.FC = () => {
-  const { t } = useTranslation('web');
+  const { t } = useTranslation('admin');
   const [receipts, setReceipts] = useState<ReceiptResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');

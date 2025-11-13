@@ -31,7 +31,7 @@ import { PaginationBar } from '@/components/common/PaginationBar';
 import { useTranslation } from 'react-i18next';
 
 const AdminDashboard = () => {
-  const { t } = useTranslation('web');
+  const { t } = useTranslation('admin');
   const { user, hasPermission } = useAdminAuth();
   
   // Pagination state for courts

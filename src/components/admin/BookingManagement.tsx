@@ -37,7 +37,7 @@ interface Booking {
 }
 
 const BookingManagement = () => {
-  const { t } = useTranslation('web');
+  const { t } = useTranslation('admin');
   const { user } = useAdminAuth();
   const isSuperAdmin = user?.role === 'SUPER_ADMIN';
   

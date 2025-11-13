@@ -46,6 +46,8 @@ export default function CameraManagement() {
   const [isHikCentralCamerasOpen, setIsHikCentralCamerasOpen] = useState(false);
   const [associatingCamera, setAssociatingCamera] = useState<HikCentralCameraInfo | null>(null);
   const [availableCourts, setAvailableCourts] = useState<Court[]>([]);
+  const [facilities, setFacilities] = useState<{ id: number; name: string }[]>([]);
+  const [selectedFacility, setSelectedFacility] = useState<number | null>(null);
 
   const { toast } = useToast();
 
@@ -128,13 +130,64 @@ export default function CameraManagement() {
   const handleStartCourtAssociation = async (camera: HikCentralCameraInfo) => {
     try {
       setAssociatingCamera(camera);
-      const courtsData = await cameraService.getUnassociatedCourts();
-      setAvailableCourts(courtsData);
+      setSelectedFacility(null);
+      setAvailableCourts([]);
+      
+      // Fetch facilities first
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/facilities/admin/my-facilities`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch facilities');
+      }
+      
+      const facilitiesData = await response.json();
+      const facilities = Array.isArray(facilitiesData) ? facilitiesData : (facilitiesData.content || []);
+      setFacilities(facilities);
+      
       setIsCourtSelectionDialogOpen(true);
     } catch (error) {
       toast({
+        title: "Failed to Load Facilities",
+        description: "Could not load available facilities",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleFacilitySelect = async (facilityId: number) => {
+    try {
+      setSelectedFacility(facilityId);
+      
+      // Fetch courts for the selected facility
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/facilities/${facilityId}/courts`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch courts');
+      }
+      
+      const courtsData = await response.json();
+      const courts = Array.isArray(courtsData) ? courtsData : (courtsData.content || []);
+      
+      // Filter out courts that already have cameras
+      const unassociatedCourts = courts.filter((court: Court) => {
+        return !cameras.some(cam => cam.isAssociated && cam.associatedCourt?.id === court.id);
+      });
+      
+      setAvailableCourts(unassociatedCourts);
+    } catch (error) {
+      toast({
         title: "Failed to Load Courts",
-        description: "Could not load available courts",
+        description: "Could not load courts for this facility",
         variant: "destructive"
       });
     }
@@ -419,41 +472,93 @@ export default function CameraManagement() {
 
       {/* Court Selection Dialog */}
       <Dialog open={isCourtSelectionDialogOpen} onOpenChange={setIsCourtSelectionDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
               <Link className="w-5 h-5 text-blue-500" />
               <span>Associate Camera with Court</span>
             </DialogTitle>
             <DialogDescription>
-              Choose a court to associate {associatingCamera?.cameraName} with.
+              {!selectedFacility 
+                ? `Select a facility first, then choose a court to associate ${associatingCamera?.cameraName} with.`
+                : `Choose a court in the selected facility to associate ${associatingCamera?.cameraName} with.`
+              }
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            {availableCourts.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">No courts available</p>
+            {/* Step 1: Select Facility */}
+            {!selectedFacility ? (
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium">Select Facility</h3>
+                {facilities.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No facilities available</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-2">
+                    {facilities.map((facility) => (
+                      <Button
+                        key={facility.id}
+                        variant="outline"
+                        className="justify-start h-auto p-4"
+                        onClick={() => handleFacilitySelect(facility.id)}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                            <span className="text-green-600 font-semibold">{facility.name.charAt(0)}</span>
+                          </div>
+                          <div className="text-left">
+                            <div className="font-medium">{facility.name}</div>
+                            <div className="text-sm text-muted-foreground">Click to view courts</div>
+                          </div>
+                        </div>
+                      </Button>
+                    ))}
+                  </div>
+                )}
               </div>
             ) : (
-              <div className="grid gap-2">
-                {availableCourts.map((court) => (
+              /* Step 2: Select Court */
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium">Select Court</h3>
                   <Button
-                    key={court.id}
-                    variant="outline"
-                    className="justify-start h-auto p-4"
-                    onClick={() => handleAssociateWithCourt(court)}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedFacility(null);
+                      setAvailableCourts([]);
+                    }}
                   >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <span className="text-blue-600 font-semibold">{court.name.charAt(0)}</span>
-                      </div>
-                      <div className="text-left">
-                        <div className="font-medium">{court.name}</div>
-                        <div className="text-sm text-muted-foreground">Click to associate camera</div>
-                      </div>
-                    </div>
+                    ← Back to Facilities
                   </Button>
-                ))}
+                </div>
+                {availableCourts.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No unassociated courts available in this facility</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-2">
+                    {availableCourts.map((court) => (
+                      <Button
+                        key={court.id}
+                        variant="outline"
+                        className="justify-start h-auto p-4"
+                        onClick={() => handleAssociateWithCourt(court)}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <span className="text-blue-600 font-semibold">{court.name.charAt(0)}</span>
+                          </div>
+                          <div className="text-left">
+                            <div className="font-medium">{court.name}</div>
+                            <div className="text-sm text-muted-foreground">Click to associate camera</div>
+                          </div>
+                        </div>
+                      </Button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
