@@ -32,45 +32,13 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-interface RecordingChunk {
-  id: number;
-  chunkIndex: number;
-  startTime: string;
-  endTime: string;
-  status: string;
-  hikVisionTaskId: string;
-  downloadUrl: string;
-  localPath: string;
-  fileSize: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface MatchRecording {
-  id: number;
-  userId: string;
-  courtId: number;
-  sessionId: number;
-  startTime: string;
-  endTime: string;
-  status: 'PENDING' | 'REQUESTING_CHUNKS' | 'POLLING' | 'DOWNLOADING' | 'CONSOLIDATING' | 'UPLOADING' | 'COMPLETED' | 'FAILED';
-  s3Url: string;
-  thumbnailUrl: string;
-  fileSize: number;
-  duration: number;
-  retryCount: number;
-  errorMessage: string;
-  createdAt: string;
-  updatedAt: string;
-  chunks: RecordingChunk[];
-}
+import { adminRecordingService, type MatchRecording, type RecordingChunk } from '@/lib/api/services/adminRecordingService';
 
 interface RecordingDetailsDialogProps {
   recording: MatchRecording | null;
   open: boolean;
   onClose: () => void;
-  onRetry?: (recordingId: number) => void;
+  onRetry?: (recordingId: string) => void;
 }
 
 const RecordingDetailsDialog: React.FC<RecordingDetailsDialogProps> = ({
@@ -87,16 +55,46 @@ const RecordingDetailsDialog: React.FC<RecordingDetailsDialogProps> = ({
 
   useEffect(() => {
     if (open && initialRecording) {
-      fetchRecordingDetails(initialRecording.id);
+      fetchRecordingDetails(initialRecording.recordingId);
     }
   }, [open, initialRecording]);
 
-  const fetchRecordingDetails = async (recordingId: number) => {
+  const fetchRecordingDetails = async (recordingId: string) => {
+    try {
+      setLoading(true);
+      const recordingData = await adminRecordingService.getRecordingById(recordingId);
+      setRecording(recordingData);
+    } catch (error) {
+      console.error('Failed to fetch recording details:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load recording details',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRetry = async () => {
+    if (!recording) return;
+    
+    try {
+      if (onRetry) {
+        onRetry(recording.recordingId);
+      }
+    } catch (error) {
+      console.error('Failed to retry recording:', error);
+    }
+  };
+
+  // Remove old fetch code
+  const oldFetch = async (recordingId: string) => {
     try {
       setLoading(true);
       const token = localStorage.getItem('adminToken');
       const response = await fetch(
-        `${API_BASE_URL}/api/recordings/admin/${recordingId}`,
+        `${API_BASE_URL}/api/admin/recordings/match/${recordingId}`,
         {
           headers: { 
             'Authorization': `Bearer ${token}`,
@@ -205,23 +203,52 @@ const RecordingDetailsDialog: React.FC<RecordingDetailsDialogProps> = ({
                       <span className="text-sm font-mono">#{recording.id}</span>
                     </div>
                     <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">UUID:</span>
+                      <span className="text-xs font-mono text-gray-500" title={recording.recordingId}>
+                        {recording.recordingId.substring(0, 8)}...
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">Status:</span>
                       {getStatusBadge(recording.status)}
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Session ID:</span>
-                      <span className="text-sm font-medium">#{recording.sessionId}</span>
+                      <span className="text-sm text-gray-600">Booking ID:</span>
+                      <span className="text-sm font-medium">{recording.bookingId ? `#${recording.bookingId}` : 'N/A'}</span>
                     </div>
+                    {recording.isManualRecording && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Type:</span>
+                        <Badge className="bg-purple-100 text-purple-800">Manual Recording</Badge>
+                      </div>
+                    )}
+                    {recording.description && (
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm text-gray-600">Description:</span>
+                        <span className="text-sm text-gray-700">{recording.description}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 <div>
                   <h3 className="text-sm font-semibold text-gray-500 mb-2">User Information</h3>
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm font-mono">{recording.userId}</span>
-                    </div>
+                    {recording.userName && (
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-gray-400" />
+                        <span className="text-sm">{recording.userName}</span>
+                      </div>
+                    )}
+                    {recording.userEmail && (
+                      <div className="text-sm text-gray-600">{recording.userEmail}</div>
+                    )}
+                    {recording.userId && (
+                      <div className="text-xs text-gray-500">User ID: {recording.userId}</div>
+                    )}
+                    {!recording.userName && !recording.userEmail && !recording.userId && (
+                      <div className="text-sm text-gray-400">No user associated</div>
+                    )}
                   </div>
                 </div>
 
@@ -230,8 +257,17 @@ const RecordingDetailsDialog: React.FC<RecordingDetailsDialogProps> = ({
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <MapPin className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm">Court #{recording.courtId}</span>
+                      <span className="text-sm">{recording.courtName || `Court #${recording.courtId || 'N/A'}`}</span>
                     </div>
+                    {recording.cameraName && (
+                      <div className="flex items-center gap-2">
+                        <CameraIcon className="w-4 h-4 text-gray-400" />
+                        <span className="text-sm">{recording.cameraName}</span>
+                      </div>
+                    )}
+                    {recording.facilityName && (
+                      <div className="text-xs text-gray-500">{recording.facilityName}</div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -241,17 +277,23 @@ const RecordingDetailsDialog: React.FC<RecordingDetailsDialogProps> = ({
                   <h3 className="text-sm font-semibold text-gray-500 mb-2">Timing</h3>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Start Time:</span>
-                      <span className="text-sm">{formatDateTime(recording.startTime)}</span>
+                      <span className="text-sm text-gray-600">Check-In:</span>
+                      <span className="text-sm">{formatDateTime(recording.checkInTime || recording.createdAt)}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">End Time:</span>
-                      <span className="text-sm">{formatDateTime(recording.endTime)}</span>
+                      <span className="text-sm text-gray-600">Check-Out:</span>
+                      <span className="text-sm">{formatDateTime(recording.checkOutTime || '')}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">Duration:</span>
-                      <span className="text-sm font-medium">{formatDuration(recording.duration)}</span>
+                      <span className="text-sm font-medium">{formatDuration(recording.totalDurationSeconds || 0)}</span>
                     </div>
+                    {recording.firstChunkStartTime && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">First Chunk:</span>
+                        <span className="text-sm">{formatDateTime(recording.firstChunkStartTime)}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -260,41 +302,56 @@ const RecordingDetailsDialog: React.FC<RecordingDetailsDialogProps> = ({
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">Total Chunks:</span>
-                      <span className="text-sm font-medium">{recording.chunks?.length || 0}</span>
+                      <span className="text-sm font-medium">{recording.totalChunks || 0}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Downloaded:</span>
-                      <span className="text-sm font-medium">
-                        {recording.chunks?.filter(c => c.status === 'DOWNLOADED').length || 0}
-                      </span>
+                      <span className="text-sm text-gray-600">Uploaded:</span>
+                      <span className="text-sm font-medium">{recording.uploadedChunks || 0}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Consolidated:</span>
+                      <span className="text-sm font-medium">{recording.consolidatedChunks || 0}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">File Size:</span>
-                      <span className="text-sm font-medium">{formatFileSize(recording.fileSize)}</span>
+                      <span className="text-sm font-medium">{formatFileSize(recording.totalFileSizeBytes || 0)}</span>
                     </div>
-                    {recording.s3Url && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">S3 URL:</span>
-                        <a 
-                          href={recording.s3Url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:underline truncate max-w-[200px]"
-                        >
-                          View Video
-                        </a>
+                    {recording.consolidatedS3Key && (
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm text-gray-600">S3 Location:</span>
+                        <span className="text-xs font-mono text-gray-500 break-all">
+                          {recording.consolidatedS3Bucket && `${recording.consolidatedS3Bucket}/`}{recording.consolidatedS3Key}
+                        </span>
                       </div>
                     )}
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-500 mb-2">Retry Information</h3>
+                  <h3 className="text-sm font-semibold text-gray-500 mb-2">Status & Retry Information</h3>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">Retry Count:</span>
-                      <span className="text-sm font-medium">{recording.retryCount}</span>
+                      <span className="text-sm font-medium">{recording.retryCount || 0} / {recording.maxRetries || 5}</span>
                     </div>
+                    {recording.lastRetryAt && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Last Retry:</span>
+                        <span className="text-sm">{formatDateTime(recording.lastRetryAt)}</span>
+                      </div>
+                    )}
+                    {recording.consolidationStartedAt && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Consolidation Started:</span>
+                        <span className="text-sm">{formatDateTime(recording.consolidationStartedAt)}</span>
+                      </div>
+                    )}
+                    {recording.consolidationCompletedAt && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Consolidation Completed:</span>
+                        <span className="text-sm">{formatDateTime(recording.consolidationCompletedAt)}</span>
+                      </div>
+                    )}
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">Created:</span>
                       <span className="text-sm">{formatDateTime(recording.createdAt)}</span>
@@ -308,14 +365,103 @@ const RecordingDetailsDialog: React.FC<RecordingDetailsDialogProps> = ({
               </div>
             </div>
 
+            {/* Status Progress Section */}
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <RefreshCw className="w-4 h-4" />
+                Recording Status & Progress
+              </h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Current Status:</span>
+                  {getStatusBadge(recording.status)}
+                </div>
+                
+                {/* Progress bar for chunk processing */}
+                {recording.totalChunks > 0 && (
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-gray-600">Chunk Progress</span>
+                      <span className="text-xs text-gray-600">
+                        {recording.uploadedChunks || 0} / {recording.totalChunks}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-blue-600 h-2 rounded-full transition-all"
+                        style={{
+                          width: `${((recording.uploadedChunks || 0) / recording.totalChunks) * 100}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Consolidation progress */}
+                {recording.consolidatedChunks > 0 && (
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-gray-600">Consolidation Progress</span>
+                      <span className="text-xs text-gray-600">
+                        {recording.consolidatedChunks} / {recording.totalChunks}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-green-600 h-2 rounded-full transition-all"
+                        style={{
+                          width: `${((recording.consolidatedChunks || 0) / (recording.totalChunks || 1)) * 100}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Status timeline */}
+                <div className="border-t pt-3 mt-3">
+                  <div className="text-xs text-gray-500 space-y-1">
+                    {recording.createdAt && (
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-3 h-3 text-green-500" />
+                        <span>Created: {formatDateTime(recording.createdAt)}</span>
+                      </div>
+                    )}
+                    {recording.consolidationStartedAt && (
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-3 h-3 text-blue-500" />
+                        <span>Consolidation started: {formatDateTime(recording.consolidationStartedAt)}</span>
+                      </div>
+                    )}
+                    {recording.consolidationCompletedAt && (
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-3 h-3 text-green-500" />
+                        <span>Consolidation completed: {formatDateTime(recording.consolidationCompletedAt)}</span>
+                      </div>
+                    )}
+                    {recording.notificationSent && recording.notificationSentAt && (
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-3 h-3 text-green-500" />
+                        <span>User notified: {formatDateTime(recording.notificationSentAt)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Error Message */}
             {recording.errorMessage && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <h4 className="text-sm font-semibold text-red-900 mb-1">Error</h4>
-                    <p className="text-sm text-red-700">{recording.errorMessage}</p>
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <h4 className="text-base font-semibold text-red-900 mb-2">Error Details</h4>
+                    <p className="text-sm text-red-700 whitespace-pre-wrap break-words">{recording.errorMessage}</p>
+                    {recording.lastRetryAt && (
+                      <p className="text-xs text-red-600 mt-2">
+                        Last retry attempt: {formatDateTime(recording.lastRetryAt)}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -341,14 +487,14 @@ const RecordingDetailsDialog: React.FC<RecordingDetailsDialogProps> = ({
                     <TableBody>
                       {recording.chunks.map((chunk) => (
                         <TableRow key={chunk.id}>
-                          <TableCell className="font-medium">{chunk.chunkIndex}</TableCell>
+                          <TableCell className="font-medium">{chunk.chunkNumber}</TableCell>
                           <TableCell className="font-mono text-xs">
                             {chunk.hikVisionTaskId ? chunk.hikVisionTaskId.substring(0, 12) + '...' : 'N/A'}
                           </TableCell>
                           <TableCell>{getStatusBadge(chunk.status)}</TableCell>
                           <TableCell className="text-xs">{formatDateTime(chunk.startTime)}</TableCell>
                           <TableCell className="text-xs">{formatDateTime(chunk.endTime)}</TableCell>
-                          <TableCell>{formatFileSize(chunk.fileSize)}</TableCell>
+                          <TableCell>{formatFileSize(chunk.fileSizeBytes)}</TableCell>
                           <TableCell className="text-xs font-mono truncate max-w-[150px]">
                             {chunk.localPath || 'N/A'}
                           </TableCell>
@@ -364,7 +510,7 @@ const RecordingDetailsDialog: React.FC<RecordingDetailsDialogProps> = ({
             <div className="flex items-center justify-end gap-2 pt-4 border-t">
               {recording.status === 'FAILED' && onRetry && (
                 <Button
-                  onClick={() => onRetry(recording.id)}
+                  onClick={() => onRetry(recording.recordingId)}
                   variant="outline"
                   className="gap-2"
                 >

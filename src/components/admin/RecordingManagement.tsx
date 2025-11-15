@@ -12,11 +12,18 @@ import {
   User,
   MapPin,
   Plus,
+  AlertCircle,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
@@ -56,33 +63,44 @@ const RecordingManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize, setPageSize] = useState(20);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
   const [selectedRecording, setSelectedRecording] = useState<MatchRecording | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [associateDialogOpen, setAssociateDialogOpen] = useState(false);
+  const [recordingToAssociate, setRecordingToAssociate] = useState<MatchRecording | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchRecordings();
+  }, [currentPage, pageSize, statusFilter]);
+
+  useEffect(() => {
     fetchStats();
-  }, [currentPage, statusFilter]);
+  }, []);
+
+  // Reset to page 0 when filter changes
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [statusFilter]);
 
   const fetchRecordings = async () => {
     try {
       setLoading(true);
-      const response = await adminRecordingService.getAllRecordings();
-      const allRecordings = Array.isArray(response) ? response : [];
+      const response = await adminRecordingService.getAllRecordings(
+        currentPage,
+        pageSize,
+        statusFilter
+      );
 
-      let filteredData = allRecordings;
-      
-      // Apply status filter
-      if (statusFilter !== 'all') {
-        filteredData = filteredData.filter((r: MatchRecording) => 
-          r.status.toLowerCase() === statusFilter.toLowerCase()
-        );
-      }
+      // Debug: Log unique statuses
+      const uniqueStatuses = [...new Set(response.content.map(r => r.status))];
+      console.log('Unique recording statuses:', uniqueStatuses);
 
-      setRecordings(filteredData);
-      setTotalPages(Math.ceil(filteredData.length / 20));
+      setRecordings(response.content);
+      setTotalPages(response.totalPages);
+      setTotalElements(response.totalElements);
     } catch (error) {
       console.error('Failed to fetch recordings:', error);
       toast({
@@ -92,6 +110,7 @@ const RecordingManagement: React.FC = () => {
       });
       setRecordings([]);
       setTotalPages(0);
+      setTotalElements(0);
     } finally {
       setLoading(false);
     }
@@ -99,19 +118,28 @@ const RecordingManagement: React.FC = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await adminRecordingService.getAllRecordings();
-      const recordings = Array.isArray(response) ? response : [];
+      // Fetch all recordings for stats (without pagination)
+      const response = await adminRecordingService.getAllRecordings(0, 10000, undefined);
+      const recordings = response.content;
       
       const stats: RecordingStats = {
         total: recordings.length,
         pending: recordings.filter((r: MatchRecording) => r.status === 'PENDING').length,
-        requestingChunks: recordings.filter((r: MatchRecording) => r.status === 'REQUESTING_CHUNKS').length,
+        requestingChunks: recordings.filter((r: MatchRecording) => 
+          r.status === 'REQUESTING_CHUNKS' || r.status === 'RECORDING'
+        ).length,
         polling: recordings.filter((r: MatchRecording) => r.status === 'POLLING').length,
         downloading: recordings.filter((r: MatchRecording) => r.status === 'DOWNLOADING').length,
-        consolidating: recordings.filter((r: MatchRecording) => r.status === 'CONSOLIDATING').length,
+        consolidating: recordings.filter((r: MatchRecording) => 
+          r.status === 'CONSOLIDATING' || r.status === 'PROCESSING'
+        ).length,
         uploading: recordings.filter((r: MatchRecording) => r.status === 'UPLOADING').length,
-        completed: recordings.filter((r: MatchRecording) => r.status === 'COMPLETED').length,
-        failed: recordings.filter((r: MatchRecording) => r.status === 'FAILED').length,
+        completed: recordings.filter((r: MatchRecording) => 
+          r.status === 'COMPLETED' || r.status === 'READY'
+        ).length,
+        failed: recordings.filter((r: MatchRecording) => 
+          r.status === 'FAILED' || r.status === 'CANCELLED'
+        ).length,
       };
       
       setStats(stats);
@@ -123,17 +151,32 @@ const RecordingManagement: React.FC = () => {
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       PENDING: { color: 'bg-gray-100 text-gray-800', icon: Clock, label: 'Pending' },
+      STARTING: { color: 'bg-gray-100 text-gray-800', icon: Clock, label: 'Starting' },
       REQUESTING_CHUNKS: { color: 'bg-blue-100 text-blue-800', icon: RefreshCw, label: 'Requesting' },
+      RECORDING: { color: 'bg-blue-100 text-blue-800', icon: Video, label: 'Recording' },
       POLLING: { color: 'bg-indigo-100 text-indigo-800', icon: Clock, label: 'Polling' },
       DOWNLOADING: { color: 'bg-purple-100 text-purple-800', icon: Download, label: 'Downloading' },
       CONSOLIDATING: { color: 'bg-yellow-100 text-yellow-800', icon: RefreshCw, label: 'Consolidating' },
+      PROCESSING: { color: 'bg-yellow-100 text-yellow-800', icon: RefreshCw, label: 'Processing' },
       UPLOADING: { color: 'bg-orange-100 text-orange-800', icon: RefreshCw, label: 'Uploading' },
       COMPLETED: { color: 'bg-green-100 text-green-800', icon: CheckCircle, label: 'Completed' },
+      READY: { color: 'bg-green-100 text-green-800', icon: CheckCircle, label: 'Ready' },
       FAILED: { color: 'bg-red-100 text-red-800', icon: XCircle, label: 'Failed' },
+      CANCELLED: { color: 'bg-orange-100 text-orange-800', icon: XCircle, label: 'Cancelled' },
+      ARCHIVED: { color: 'bg-gray-100 text-gray-800', icon: CheckCircle, label: 'Archived' },
     };
 
     const config = statusConfig[status as keyof typeof statusConfig];
-    if (!config) return null;
+    
+    // Fallback for unknown statuses
+    if (!config) {
+      return (
+        <Badge className="bg-gray-100 text-gray-800 flex items-center gap-1">
+          <AlertCircle className="w-3 h-3" />
+          {status || 'Unknown'}
+        </Badge>
+      );
+    }
 
     const Icon = config.icon;
 
@@ -169,7 +212,7 @@ const RecordingManagement: React.FC = () => {
     return new Date(dateString).toLocaleString();
   };
 
-  const handleRetry = async (recordingId: number) => {
+  const handleRetry = async (recordingId: string) => {
     try {
       await adminRecordingService.retryRecording(recordingId);
 
@@ -186,21 +229,87 @@ const RecordingManagement: React.FC = () => {
       console.error('Failed to retry recording:', error);
       toast({
         title: 'Error',
-        description: error.response?.data?.message || 'Failed to retry recording',
+        description: error.message || 'Failed to retry recording',
         variant: 'destructive',
       });
     }
   };
 
-  const filteredRecordings = recordings.filter(recording => {
+  const handleStopProcessing = async (recordingId: string) => {
+    if (!confirm('Are you sure you want to cancel this recording? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await adminRecordingService.cancelRecording(recordingId);
+
+      toast({
+        title: 'Success',
+        description: 'Recording cancelled successfully',
+      });
+
+      // Refresh recordings list
+      fetchRecordings();
+      fetchStats();
+    } catch (error: any) {
+      console.error('Failed to cancel recording:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to cancel recording',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleAssociate = (recording: MatchRecording) => {
+    setRecordingToAssociate(recording);
+    setAssociateDialogOpen(true);
+  };
+
+  const handleAssociateSubmit = async (userId: string, bookingId?: number, notes?: string) => {
+    if (!recordingToAssociate) return;
+
+    try {
+      await adminRecordingService.associateRecording(
+        recordingToAssociate.recordingId,
+        userId,
+        bookingId,
+        notes
+      );
+
+      toast({
+        title: 'Success',
+        description: 'Recording associated successfully',
+      });
+
+      setAssociateDialogOpen(false);
+      setRecordingToAssociate(null);
+      fetchRecordings();
+      fetchStats();
+    } catch (error: any) {
+      console.error('Failed to associate recording:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to associate recording',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Client-side search filtering (since backend doesn't support search yet)
+  const filteredRecordings = searchTerm ? recordings.filter(recording => {
     const searchLower = searchTerm.toLowerCase();
     return (
-      recording.userId?.toLowerCase().includes(searchLower) ||
+      recording.userId?.toString().toLowerCase().includes(searchLower) ||
+      recording.userName?.toLowerCase().includes(searchLower) ||
+      recording.userEmail?.toLowerCase().includes(searchLower) ||
       recording.id?.toString().includes(searchLower) ||
-      recording.sessionId?.toString().includes(searchLower) ||
-      recording.courtId?.toString().includes(searchLower)
+      recording.recordingId?.toLowerCase().includes(searchLower) ||
+      recording.bookingId?.toString().includes(searchLower) ||
+      recording.courtId?.toString().includes(searchLower) ||
+      recording.courtName?.toLowerCase().includes(searchLower)
     );
-  });
+  }) : recordings;
 
   return (
     <div className="space-y-6">
@@ -299,13 +408,17 @@ const RecordingManagement: React.FC = () => {
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="requesting_chunks">Requesting</SelectItem>
+                <SelectItem value="requesting_chunks">Requesting Chunks</SelectItem>
+                <SelectItem value="recording">Recording</SelectItem>
                 <SelectItem value="polling">Polling</SelectItem>
                 <SelectItem value="downloading">Downloading</SelectItem>
                 <SelectItem value="consolidating">Consolidating</SelectItem>
+                <SelectItem value="processing">Processing</SelectItem>
                 <SelectItem value="uploading">Uploading</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="ready">Ready</SelectItem>
                 <SelectItem value="failed">Failed</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -351,39 +464,64 @@ const RecordingManagement: React.FC = () => {
                         #{recording.id}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <User className="w-4 h-4 text-gray-400" />
-                          <span className="font-mono text-xs">{recording.userId}</span>
+                        <div className="flex flex-col gap-1">
+                          {recording.userName && (
+                            <div className="flex items-center gap-2">
+                              <User className="w-4 h-4 text-gray-400" />
+                              <span className="text-sm">{recording.userName}</span>
+                            </div>
+                          )}
+                          {recording.userEmail && (
+                            <span className="text-xs text-gray-500">{recording.userEmail}</span>
+                          )}
+                          {!recording.userName && !recording.userEmail && recording.userId && (
+                            <span className="font-mono text-xs">ID: {recording.userId}</span>
+                          )}
+                          {!recording.userName && !recording.userEmail && !recording.userId && (
+                            <span className="text-xs text-gray-400">Manual Recording</span>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell className="font-mono text-xs">
-                        #{recording.sessionId}
+                        {recording.bookingId ? `#${recording.bookingId}` : '-'}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <MapPin className="w-4 h-4 text-gray-400" />
-                          <span>Court {recording.courtId}</span>
+                          <span>{recording.courtName || `Court ${recording.courtId || '-'}`}</span>
                         </div>
                       </TableCell>
-                      <TableCell>{getStatusBadge(recording.status)}</TableCell>
-                      <TableCell className="text-sm">
-                        {formatDateTime(recording.startTime)}
+                      <TableCell>
+                        <div className="flex flex-col gap-1">
+                          {getStatusBadge(recording.status)}
+                          {recording.status === 'FAILED' && recording.errorMessage && (
+                            <div className="flex items-start gap-1 mt-1 text-xs text-red-600 max-w-[200px]">
+                              <AlertCircle className="w-3 h-3 flex-shrink-0 mt-0.5" />
+                              <span className="line-clamp-2" title={recording.errorMessage}>
+                                {recording.errorMessage}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </TableCell>
-                      <TableCell>{formatDuration(recording.duration)}</TableCell>
+                      <TableCell className="text-sm">
+                        {formatDateTime(recording.checkInTime || recording.createdAt)}
+                      </TableCell>
+                      <TableCell>{formatDuration(recording.totalDurationSeconds || 0)}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <div className="flex-1 bg-gray-200 rounded-full h-2 min-w-[60px]">
                             <div
                               className="bg-primary h-2 rounded-full transition-all"
                               style={{
-                                width: recording.chunks?.length > 0 
-                                  ? `${(recording.chunks.filter(c => c.status === 'DOWNLOADED').length / recording.chunks.length) * 100}%`
+                                width: recording.totalChunks && recording.totalChunks > 0
+                                  ? `${((recording.uploadedChunks || 0) / recording.totalChunks) * 100}%`
                                   : '0%',
                               }}
                             />
                           </div>
                           <span className="text-xs text-gray-500">
-                            {recording.chunks?.filter(c => c.status === 'DOWNLOADED').length || 0}/{recording.chunks?.length || 0}
+                            {recording.uploadedChunks || 0}/{recording.totalChunks || 0}
                           </span>
                         </div>
                       </TableCell>
@@ -393,15 +531,62 @@ const RecordingManagement: React.FC = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedRecording(recording)}
-                          className="gap-2"
-                        >
-                          <Eye className="w-4 h-4" />
-                          View
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setSelectedRecording(recording)}
+                            className="gap-1"
+                          >
+                            <Eye className="w-4 h-4" />
+                            View
+                          </Button>
+                          
+                          {recording.status === 'FAILED' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleRetry(recording.recordingId)}
+                              className="gap-1 text-orange-600 hover:text-orange-700"
+                            >
+                              <RefreshCw className="w-4 h-4" />
+                              Retry
+                            </Button>
+                          )}
+                          
+                          {(recording.status === 'PENDING' || 
+                            recording.status === 'STARTING' ||
+                            recording.status === 'REQUESTING_CHUNKS' || 
+                            recording.status === 'RECORDING' || 
+                            recording.status === 'POLLING' ||
+                            recording.status === 'DOWNLOADING' ||
+                            recording.status === 'CONSOLIDATING' ||
+                            recording.status === 'PROCESSING' ||
+                            recording.status === 'UPLOADING') && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleStopProcessing(recording.recordingId)}
+                              className="gap-1 text-red-600 hover:text-red-700"
+                              title="Cancel this recording"
+                            >
+                              <XCircle className="w-4 h-4" />
+                              Cancel
+                            </Button>
+                          )}
+                          
+                          {recording.isManualRecording && !recording.userId && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleAssociate(recording)}
+                              className="gap-1 text-blue-600 hover:text-blue-700"
+                            >
+                              <User className="w-4 h-4" />
+                              Associate
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -413,23 +598,60 @@ const RecordingManagement: React.FC = () => {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-4">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
-                disabled={currentPage === 0}
-              >
-                Previous
-              </Button>
-              <span className="text-sm text-gray-500">
-                Page {currentPage + 1} of {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
-                disabled={currentPage === totalPages - 1}
-              >
-                Next
-              </Button>
+              <div className="text-sm text-gray-500">
+                Showing {currentPage * pageSize + 1} to {Math.min((currentPage + 1) * pageSize, totalElements)} of {totalElements} recordings
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(0)}
+                  disabled={currentPage === 0}
+                >
+                  First
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                  disabled={currentPage === 0}
+                >
+                  Previous
+                </Button>
+                <span className="text-sm text-gray-700 px-2">
+                  Page {currentPage + 1} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
+                  disabled={currentPage === totalPages - 1}
+                >
+                  Next
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(totalPages - 1)}
+                  disabled={currentPage === totalPages - 1}
+                >
+                  Last
+                </Button>
+              </div>
+              <Select value={pageSize.toString()} onValueChange={(value) => {
+                setPageSize(parseInt(value));
+                setCurrentPage(0);
+              }}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10 per page</SelectItem>
+                  <SelectItem value="20">20 per page</SelectItem>
+                  <SelectItem value="50">50 per page</SelectItem>
+                  <SelectItem value="100">100 per page</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           )}
         </CardContent>
@@ -452,7 +674,243 @@ const RecordingManagement: React.FC = () => {
           fetchStats();
         }}
       />
+
+      {/* Associate Recording Dialog */}
+      {associateDialogOpen && recordingToAssociate && (
+        <AssociateRecordingDialog
+          open={associateDialogOpen}
+          recording={recordingToAssociate}
+          onClose={() => {
+            setAssociateDialogOpen(false);
+            setRecordingToAssociate(null);
+          }}
+          onSubmit={handleAssociateSubmit}
+        />
+      )}
     </div>
+  );
+};
+
+// Enhanced Associate Recording Dialog Component with User & Booking Selects
+interface AssociateRecordingDialogProps {
+  open: boolean;
+  recording: MatchRecording;
+  onClose: () => void;
+  onSubmit: (userId: string, bookingId?: number, notes?: string) => void;
+}
+
+const AssociateRecordingDialog: React.FC<AssociateRecordingDialogProps> = ({
+  open,
+  recording,
+  onClose,
+  onSubmit,
+}) => {
+  const [users, setUsers] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState('');
+  const [selectedBookingId, setSelectedBookingId] = useState('');
+  const [notes, setNotes] = useState('');
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [loadingBookings, setLoadingBookings] = useState(false);
+  const [userSearch, setUserSearch] = useState('');
+  const { toast } = useToast();
+
+  // Load users when dialog opens
+  useEffect(() => {
+    if (open) {
+      fetchUsers();
+    }
+  }, [open]);
+
+  // Load bookings when user is selected
+  useEffect(() => {
+    if (selectedUserId) {
+      fetchUserBookings(parseInt(selectedUserId));
+    } else {
+      setBookings([]);
+      setSelectedBookingId('');
+    }
+  }, [selectedUserId]);
+
+  const fetchUsers = async () => {
+    try {
+      setLoadingUsers(true);
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/admin/users/paged?page=0&size=100`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) throw new Error('Failed to fetch users');
+      
+      const data = await response.json();
+      setUsers(data.users || []);
+    } catch (error) {
+      console.error('Failed to fetch users:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load users',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  const fetchUserBookings = async (userId: number) => {
+    try {
+      setLoadingBookings(true);
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/admin/bookings/user/${userId}?page=0&size=50`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) throw new Error('Failed to fetch bookings');
+      
+      const data = await response.json();
+      setBookings(data || []);
+    } catch (error) {
+      console.error('Failed to fetch bookings:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load user bookings',
+        variant: 'destructive',
+      });
+      setBookings([]);
+    } finally {
+      setLoadingBookings(false);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedUserId) {
+      toast({
+        title: 'Error',
+        description: 'Please select a user',
+        variant: 'destructive',
+      });
+      return;
+    }
+    onSubmit(selectedUserId, selectedBookingId ? parseInt(selectedBookingId) : undefined, notes || undefined);
+  };
+
+  const filteredUsers = userSearch
+    ? users.filter(user => {
+        const searchLower = userSearch.toLowerCase();
+        return (
+          user.email?.toLowerCase().includes(searchLower) ||
+          user.firstName?.toLowerCase().includes(searchLower) ||
+          user.lastName?.toLowerCase().includes(searchLower) ||
+          `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchLower)
+        );
+      })
+    : users;
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Associate Recording with User</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="bg-gray-50 p-3 rounded-lg">
+            <p className="text-sm text-gray-600 mb-1">
+              <span className="font-medium">Recording ID:</span> <span className="font-mono">{recording.recordingId}</span>
+            </p>
+            <p className="text-sm text-gray-600">
+              <span className="font-medium">Court:</span> {recording.courtName || 'N/A'} | 
+              <span className="font-medium ml-2">Camera:</span> {recording.cameraName || 'N/A'}
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Select User <span className="text-red-500">*</span>
+            </label>
+            <Input
+              type="text"
+              placeholder="Search by name or email..."
+              value={userSearch}
+              onChange={(e) => setUserSearch(e.target.value)}
+              className="mb-2"
+            />
+            <Select value={selectedUserId} onValueChange={setSelectedUserId} disabled={loadingUsers}>
+              <SelectTrigger>
+                <SelectValue placeholder={loadingUsers ? "Loading users..." : "Select a user"} />
+              </SelectTrigger>
+              <SelectContent>
+                {filteredUsers.length === 0 ? (
+                  <SelectItem value="none" disabled>No users found</SelectItem>
+                ) : (
+                  filteredUsers.map((user) => (
+                    <SelectItem key={user.id} value={user.id.toString()}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{user.firstName} {user.lastName}</span>
+                        <span className="text-xs text-gray-500">{user.email}</span>
+                      </div>
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {selectedUserId && (
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Select Booking (Optional)
+              </label>
+              <Select value={selectedBookingId} onValueChange={setSelectedBookingId} disabled={loadingBookings}>
+                <SelectTrigger>
+                  <SelectValue placeholder={loadingBookings ? "Loading bookings..." : "Select a booking (optional)"} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">No booking</SelectItem>
+                  {bookings.length === 0 ? (
+                    <SelectItem value="none" disabled>No bookings found for this user</SelectItem>
+                  ) : (
+                    bookings.map((booking) => (
+                      <SelectItem key={booking.id} value={booking.id.toString()}>
+                        <div className="flex flex-col">
+                          <span className="font-medium">Booking #{booking.id}</span>
+                          <span className="text-xs text-gray-500">
+                            {booking.courtName || `Court ${booking.courtId}`} - {new Date(booking.startTime).toLocaleString()}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Notes (Optional)
+            </label>
+            <Input
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Add any notes..."
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={!selectedUserId}>
+              Associate Recording
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
 

@@ -11,7 +11,10 @@
     "todayBookings": "حجوزات اليوم",
     "monthlyRevenue": "الإيرادات الشهرية",
     "systemHealth": "صحة النظام",
-    "recentActivity": "النشاط الأخير"
+    "recentActivity": "النشاط الأخير",
+    "welcomeBack": "مرحباً بعودتك",
+    "adminSubtitle": "إليك ما يحدث في منشأتك اليوم",
+    "superAdminSubtitle": "إليك نظرة عامة على جميع المنشآت"
   },
   "users": {
     "title": "إدارة المستخدمين",
@@ -823,5 +826,38 @@
     "viewDetails": "عرض التفاصيل",
     "edit": "تعديل",
     "delete": "حذف"
+  },
+  "stats": {
+    "totalRevenue": "إجمالي الإيرادات",
+    "totalBookings": "حجوزات اليوم",
+    "totalCourts": "إجمالي الملاعب",
+    "totalAdmins": "إجمالي المديرين",
+    "topPlayersByBookings": "أفضل اللاعبين حسب الحجوزات",
+    "topCourtsByBookings": "أفضل الملاعب حسب الحجوزات"
+  },
+  "status": {
+    "approved": "موافق عليه",
+    "pending": "معلق"
+  },
+  "login": {
+    "welcomeToThe": "مرحباً بك في",
+    "adminUniverse": "عالم الإدارة",
+    "adminPowerhouse": "مركز القوة الخاص بك لإدارة الملاعب والحجوزات وكل ما يتعلق بالتنس",
+    "secureAccess": "وصول آمن",
+    "smartDashboard": "لوحة تحكم ذكية",
+    "adminPortal": "بوابة الإدارة",
+    "logInToSeed": "تسجيل الدخول إلى SEED",
+    "yourEmailAndPassword": "بريدك الإلكتروني وكلمة المرور",
+    "yourEmail": "بريدك الإلكتروني",
+    "enterEmailAddress": "أدخل عنوان بريدك الإلكتروني",
+    "enterPassword": "أدخل كلمة المرور",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "contactAdminForReset": "اتصل بالمسؤول الرئيسي لإعادة تعيين كلمة المرور",
+    "signingIn": "جاري تسجيل الدخول...",
+    "signIn": "تسجيل الدخول",
+    "backToSeedPlatform": "العودة إلى منصة SEED",
+    "pleaseFillAllFields": "يرجى ملء جميع الحقول",
+    "welcomeToSeedAdmin": "مرحباً بك في إدارة SEED!",
+    "loginFailed": "فشل تسجيل الدخول. يرجى التحقق من بيانات الاعتماد."
   }
 }

@@ -11,7 +11,10 @@
     "todayBookings": "Today's Bookings",
     "monthlyRevenue": "Monthly Revenue",
     "systemHealth": "System Health",
-    "recentActivity": "Recent Activity"
+    "recentActivity": "Recent Activity",
+    "welcomeBack": "Welcome back",
+    "adminSubtitle": "Here's what's happening at your facility today",
+    "superAdminSubtitle": "Here's an overview of all facilities"
   },
   "users": {
     "title": "User Management",
@@ -843,5 +846,38 @@
     "settings": "Settings",
     "myProfile": "My Profile",
     "courtManagement": "Court Management"
+  },
+  "stats": {
+    "totalRevenue": "Total Revenue",
+    "totalBookings": "Today's Bookings",
+    "totalCourts": "Total Courts",
+    "totalAdmins": "Total Admins",
+    "topPlayersByBookings": "Top Players by Bookings",
+    "topCourtsByBookings": "Top Courts by Bookings"
+  },
+  "status": {
+    "approved": "Approved",
+    "pending": "Pending"
+  },
+  "login": {
+    "welcomeToThe": "Welcome to the",
+    "adminUniverse": "Admin Universe",
+    "adminPowerhouse": "Your powerhouse for managing courts, bookings, and everything tennis",
+    "secureAccess": "Secure Access",
+    "smartDashboard": "Smart Dashboard",
+    "adminPortal": "Admin Portal",
+    "logInToSeed": "Log in to SEED",
+    "yourEmailAndPassword": "Your email and password",
+    "yourEmail": "Your Email",
+    "enterEmailAddress": "Enter your email address",
+    "enterPassword": "Enter your password",
+    "forgotPassword": "Forgot Password?",
+    "contactAdminForReset": "Contact a super admin to reset your password",
+    "signingIn": "Signing in...",
+    "signIn": "Sign In",
+    "backToSeedPlatform": "Back to SEED Platform",
+    "pleaseFillAllFields": "Please fill in all fields",
+    "welcomeToSeedAdmin": "Welcome to SEED Admin!",
+    "loginFailed": "Login failed. Please check your credentials."
   }
 }

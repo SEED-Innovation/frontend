@@ -63,6 +63,17 @@ const CreateRecordingDialog: React.FC<CreateRecordingDialogProps> = ({ open, onC
   const { toast } = useToast();
   const { user } = useAdminAuth();
 
+  // Get current datetime in local format for max attribute
+  const getCurrentDateTime = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
   useEffect(() => {
     if (open) {
       fetchFacilities();
@@ -165,6 +176,50 @@ const CreateRecordingDialog: React.FC<CreateRecordingDialogProps> = ({ open, onC
       toast({
         title: 'Error',
         description: 'User not authenticated',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate times
+    const start = new Date(startDateTime);
+    const end = new Date(endDateTime);
+    const now = new Date();
+    
+    if (start > now) {
+      toast({
+        title: 'Error',
+        description: 'Start time must be in the past',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (end > now) {
+      toast({
+        title: 'Error',
+        description: 'End time must be in the past',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (end <= start) {
+      toast({
+        title: 'Error',
+        description: 'End time must be after start time',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate duration (max 2 hours)
+    const durationHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+    
+    if (durationHours > 2) {
+      toast({
+        title: 'Error',
+        description: 'Recording duration cannot exceed 2 hours',
         variant: 'destructive',
       });
       return;
@@ -301,8 +356,32 @@ const CreateRecordingDialog: React.FC<CreateRecordingDialogProps> = ({ open, onC
                 <Input
                   type="datetime-local"
                   value={startDateTime}
-                  onChange={(e) => setStartDateTime(e.target.value)}
+                  onChange={(e) => {
+                    const newStartTime = e.target.value;
+                    setStartDateTime(newStartTime);
+                    
+                    // Auto-set end time to 1 hour after start time if not set or before start
+                    if (!endDateTime || endDateTime <= newStartTime) {
+                      const start = new Date(newStartTime);
+                      const end = new Date(start.getTime() + 60 * 60 * 1000); // Add 1 hour
+                      const now = new Date();
+                      
+                      // Don't exceed current time
+                      const finalEnd = end > now ? now : end;
+                      
+                      const year = finalEnd.getFullYear();
+                      const month = String(finalEnd.getMonth() + 1).padStart(2, '0');
+                      const day = String(finalEnd.getDate()).padStart(2, '0');
+                      const hours = String(finalEnd.getHours()).padStart(2, '0');
+                      const minutes = String(finalEnd.getMinutes()).padStart(2, '0');
+                      setEndDateTime(`${year}-${month}-${day}T${hours}:${minutes}`);
+                    }
+                  }}
+                  max={getCurrentDateTime()}
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Select a past time. End time will auto-adjust to 1 hour later.
+                </p>
               </div>
 
               <div>
@@ -312,7 +391,11 @@ const CreateRecordingDialog: React.FC<CreateRecordingDialogProps> = ({ open, onC
                   value={endDateTime}
                   onChange={(e) => setEndDateTime(e.target.value)}
                   min={startDateTime}
+                  max={getCurrentDateTime()}
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Must be after start time. Maximum duration: 2 hours.
+                </p>
               </div>
             </div>
           )}
