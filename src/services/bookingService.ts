@@ -129,8 +129,8 @@ export class BookingService {
         // The backend will handle this based on the user's role in the JWT
       };
 
-      // Call your backend's /admin/bookings/filter endpoint
-      const response = await this.makeAPICall(`${this.baseUrl}/admin/bookings/filter`, {
+      // Call your backend's /api/admin/bookings/filter endpoint
+      const response = await this.makeAPICall(`${this.baseUrl}/api/admin/bookings/filter`, {
         method: 'POST',
         body: JSON.stringify(enhancedFilters)
       });
@@ -155,8 +155,8 @@ export class BookingService {
     console.log('🔄 Getting booking statistics');
     
     try {
-      // Call your backend's /admin/bookings/stats endpoint
-      const response = await this.makeAPICall(`${this.baseUrl}/admin/bookings/stats`);
+      // Call your backend's /api/admin/bookings/stats endpoint
+      const response = await this.makeAPICall(`${this.baseUrl}/api/admin/bookings/stats`);
       
       const data = await response.json();
       console.log('✅ Real backend stats:', data);
@@ -175,8 +175,8 @@ export class BookingService {
     console.log('✅ Approving booking:', bookingId, 'reason:', reason);
     
     try {
-      // Call your backend's /admin/bookings/approve endpoint
-      await this.makeAPICall(`${this.baseUrl}/admin/bookings/approve`, {
+      // Call your backend's /api/admin/bookings/approve endpoint
+      await this.makeAPICall(`${this.baseUrl}/api/admin/bookings/approve`, {
         method: 'POST',
         body: JSON.stringify({ bookingId, reason })
       });
@@ -196,8 +196,8 @@ export class BookingService {
     console.log('❌ Rejecting booking:', bookingId, 'reason:', reason);
     
     try {
-      // Call your backend's /admin/bookings/reject endpoint
-      await this.makeAPICall(`${this.baseUrl}/admin/bookings/reject`, {
+      // Call your backend's /api/admin/bookings/reject endpoint
+      await this.makeAPICall(`${this.baseUrl}/api/admin/bookings/reject`, {
         method: 'POST',
         body: JSON.stringify({ bookingId, reason })
       });
@@ -217,8 +217,8 @@ export class BookingService {
     console.log('🚫 Cancelling booking:', bookingId, 'reason:', reason);
     
     try {
-      // Call your backend's /admin/bookings/cancel endpoint
-      await this.makeAPICall(`${this.baseUrl}/admin/bookings/cancel`, {
+      // Call your backend's /api/admin/bookings/cancel endpoint
+      await this.makeAPICall(`${this.baseUrl}/api/admin/bookings/cancel`, {
         method: 'POST',
         body: JSON.stringify({ bookingId, reason })
       });
@@ -241,7 +241,7 @@ export class BookingService {
     console.log('➕ Creating manual booking:', request);
     
     try {
-      // Call your backend's /admin/bookings/manual endpoint
+      // Call your backend's /api/admin/bookings/manual endpoint
       const requestBody: any = {
         userId: request.userId,
         courtId: request.courtId,
@@ -261,7 +261,7 @@ export class BookingService {
       
       console.log('📤 Sending request body:', requestBody);
       
-      const response = await this.makeAPICall(`${this.baseUrl}/admin/bookings/manual`, {
+      const response = await this.makeAPICall(`${this.baseUrl}/api/admin/bookings/manual`, {
         method: 'POST',
         body: JSON.stringify(requestBody)
       });
@@ -286,7 +286,7 @@ export class BookingService {
     
     try {
       const response = await this.makeAPICall(
-        `${this.baseUrl}/admin/bookings/search?query=${encodeURIComponent(query)}&page=${page}&size=${size}`
+        `${this.baseUrl}/api/admin/bookings/search?query=${encodeURIComponent(query)}&page=${page}&size=${size}`
       );
       
       const data = await response.json();
@@ -307,7 +307,7 @@ export class BookingService {
     
     try {
       const response = await this.makeAPICall(
-        `${this.baseUrl}/admin/bookings/status/${status}?page=${page}&size=${size}`
+        `${this.baseUrl}/api/admin/bookings/status/${status}?page=${page}&size=${size}`
       );
       
       const data = await response.json();
@@ -328,7 +328,7 @@ export class BookingService {
     
     try {
       const response = await this.makeAPICall(
-        `${this.baseUrl}/admin/bookings/user/${userId}?page=${page}&size=${size}`
+        `${this.baseUrl}/api/admin/bookings/user/${userId}?page=${page}&size=${size}`
       );
       
       const data = await response.json();
@@ -348,7 +348,7 @@ export class BookingService {
     console.log('📦 Performing bulk action:', action, 'on bookings:', bookingIds);
     
     try {
-      const response = await this.makeAPICall(`${this.baseUrl}/admin/bookings/bulk-action`, {
+      const response = await this.makeAPICall(`${this.baseUrl}/api/admin/bookings/bulk-action`, {
         method: 'POST',
         body: JSON.stringify({
           bookingIds,
@@ -374,7 +374,7 @@ export class BookingService {
     console.log('📅 Getting bookings by court and date:', { courtId, start, end });
     
     try {
-      const response = await this.makeAPICall(`${this.baseUrl}/admin/bookings/range`, {
+      const response = await this.makeAPICall(`${this.baseUrl}/api/admin/bookings/range`, {
         method: 'POST',
         body: JSON.stringify({
           courtId,
@@ -400,7 +400,7 @@ export class BookingService {
     console.log('📅 Getting daily calendar for:', date);
     
     try {
-      const response = await this.makeAPICall(`${this.baseUrl}/admin/bookings/calendar/daily/${date}`);
+      const response = await this.makeAPICall(`${this.baseUrl}/api/admin/bookings/calendar/daily/${date}`);
       
       const data = await response.json();
       console.log('✅ Daily calendar:', data);
@@ -419,7 +419,7 @@ export class BookingService {
     console.log('📅 Getting weekly calendar starting from:', startDate);
     
     try {
-      const response = await this.makeAPICall(`${this.baseUrl}/admin/bookings/calendar/weekly/${startDate}`);
+      const response = await this.makeAPICall(`${this.baseUrl}/api/admin/bookings/calendar/weekly/${startDate}`);
       
       const data = await response.json();
       console.log('✅ Weekly calendar:', data);
@@ -438,7 +438,7 @@ export class BookingService {
     console.log('📅 Getting monthly calendar for:', year, month);
     
     try {
-      const response = await this.makeAPICall(`${this.baseUrl}/admin/bookings/calendar/monthly/${year}/${month}`);
+      const response = await this.makeAPICall(`${this.baseUrl}/api/admin/bookings/calendar/monthly/${year}/${month}`);
       
       const data = await response.json();
       console.log('✅ Monthly calendar:', data);
@@ -458,8 +458,8 @@ export class BookingService {
     
     try {
       const url = date 
-        ? `${this.baseUrl}/admin/bookings/timeline/${courtId}?date=${date}`
-        : `${this.baseUrl}/admin/bookings/timeline/${courtId}`;
+        ? `${this.baseUrl}/api/admin/bookings/timeline/${courtId}?date=${date}`
+        : `${this.baseUrl}/api/admin/bookings/timeline/${courtId}`;
         
       const response = await this.makeAPICall(url);
       
@@ -496,7 +496,7 @@ export class BookingService {
       if (filters?.size !== undefined) params.set('size', filters.size.toString());
       
       const queryString = params.toString();
-      const url = `${this.baseUrl}/admin/bookings/cancelled${queryString ? `?${queryString}` : ''}`;
+      const url = `${this.baseUrl}/api/admin/bookings/cancelled${queryString ? `?${queryString}` : ''}`;
       
       const response = await this.makeAPICall(url);
       const data = await response.json();
@@ -530,7 +530,7 @@ export class BookingService {
       if (filters?.endDate) params.set('endDate', filters.endDate);
       
       const queryString = params.toString();
-      const url = `${this.baseUrl}/admin/bookings/cancelled/summary${queryString ? `?${queryString}` : ''}`;
+      const url = `${this.baseUrl}/api/admin/bookings/cancelled/summary${queryString ? `?${queryString}` : ''}`;
       
       const response = await this.makeAPICall(url);
       const data = await response.json();
@@ -551,7 +551,7 @@ export class BookingService {
     console.log('💰 Marking booking as refunded:', bookingId, 'reference:', refundReference);
     
     try {
-      const response = await this.makeAPICall(`${this.baseUrl}/super-admin/bookings/${bookingId}/mark-refunded`, {
+      const response = await this.makeAPICall(`${this.baseUrl}/api/super-admin/bookings/${bookingId}/mark-refunded`, {
         method: 'POST',
         body: JSON.stringify({
           refundReference,
@@ -580,7 +580,7 @@ export class BookingService {
     console.log('💰 Bulk marking bookings as refunded:', bookingIds, 'reference:', refundReference);
     
     try {
-      const response = await this.makeAPICall(`${this.baseUrl}/super-admin/bookings/bulk-mark-refunded`, {
+      const response = await this.makeAPICall(`${this.baseUrl}/api/super-admin/bookings/bulk-mark-refunded`, {
         method: 'POST',
         body: JSON.stringify({
           bookingIds,
@@ -615,7 +615,7 @@ export class BookingService {
     console.log('📋 Getting audit trail for booking:', bookingId);
     
     try {
-      const response = await this.makeAPICall(`${this.baseUrl}/super-admin/bookings/${bookingId}/audit-trail`);
+      const response = await this.makeAPICall(`${this.baseUrl}/api/super-admin/bookings/${bookingId}/audit-trail`);
       
       const data = await response.json();
       console.log('✅ Audit trail fetched:', data);

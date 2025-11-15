@@ -98,7 +98,7 @@ export interface CourtAvailabilityResponse {
 }
 
 class CourtService {
-    private baseUrl = '/admin/courts';
+    private baseUrl = '/api/admin/courts';
 
     /**
      * Get all courts - SUPER_ADMIN only

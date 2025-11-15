@@ -14,7 +14,7 @@ class AdminServiceImpl implements AdminService {
   }
 
   async getAllAdmins(): Promise<AdminUser[]> {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/courts/all-admins`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/courts/all-admins`, {
       method: 'GET',
       headers: this.getAuthHeaders()
     });

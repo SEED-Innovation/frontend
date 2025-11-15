@@ -324,6 +324,24 @@ const RecordingDetailsDialog: React.FC<RecordingDetailsDialogProps> = ({
                         </span>
                       </div>
                     )}
+                    {recording.videoUrl && (
+                      <div className="flex flex-col gap-2 pt-2 border-t">
+                        <span className="text-sm text-gray-600">Video URL:</span>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            onClick={() => window.open(recording.videoUrl, '_blank')}
+                            size="sm"
+                            className="gap-2"
+                          >
+                            <Video className="w-4 h-4" />
+                            Play Video
+                          </Button>
+                          <span className="text-xs text-gray-500">
+                            (Expires in 12 hours)
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 

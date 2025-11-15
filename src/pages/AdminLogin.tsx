@@ -20,13 +20,13 @@ const AdminLogin = () => {
   });
   const navigate = useNavigate();
   const { login } = useAdminAuth();
-  const { t } = useTranslation('web');
+  const { t } = useTranslation('admin');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.email || !formData.password) {
-      toast.error(t('admin.login.pleaseFillAllFields'));
+      toast.error(t('login.pleaseFillAllFields'));
       return;
     }
 
@@ -35,13 +35,13 @@ const AdminLogin = () => {
     try {
       // Use real authentication from useAdminAuth hook
       await login(formData.email, formData.password);
-      toast.success(t('admin.login.welcomeToSeedAdmin'));
+      toast.success(t('login.welcomeToSeedAdmin'));
       navigate('/admin');
     } catch (err: unknown) {
       if (err instanceof Error) {
         toast.error(err.message);
       } else {
-        toast.error(t('admin.login.loginFailed'));
+        toast.error(t('login.loginFailed'));
       }
     } finally {
       setIsLoading(false);
@@ -143,24 +143,24 @@ const AdminLogin = () => {
             </div>
             
             <h1 className="text-5xl font-bold mb-6 leading-tight">
-              {t('admin.login.welcomeToThe')}
+              {t('login.welcomeToThe')}
               <span className="block bg-gradient-to-r from-yellow-300 to-pink-300 bg-clip-text text-transparent">
-                {t('admin.login.adminUniverse')}
+                {t('login.adminUniverse')}
               </span>
             </h1>
             
             <p className="text-xl text-white/80 mb-8 leading-relaxed max-w-md">
-              {t('admin.login.adminPowerhouse')}
+              {t('login.adminPowerhouse')}
             </p>
             
             <div className="flex items-center gap-4 text-white/70">
               <div className="flex items-center gap-2">
                 <Shield className="w-5 h-5" />
-                <span className="text-sm">{t('admin.login.secureAccess')}</span>
+                <span className="text-sm">{t('login.secureAccess')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5" />
-                <span className="text-sm">{t('admin.login.smartDashboard')}</span>
+                <span className="text-sm">{t('login.smartDashboard')}</span>
               </div>
             </div>
           </motion.div>
@@ -178,16 +178,16 @@ const AdminLogin = () => {
           {/* Mobile Logo */}
           <div className="lg:hidden text-center mb-8">
             <SeedLogo size="lg" className="mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-white">{t('admin.login.adminPortal')}</h2>
+            <h2 className="text-2xl font-bold text-white">{t('login.adminPortal')}</h2>
           </div>
 
           {/* Form Header */}
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-white mb-2 hidden lg:block">
-              {t('admin.login.logInToSeed')}
+              {t('login.logInToSeed')}
             </h2>
             <p className="text-slate-400">
-              {t('admin.login.yourEmailAndPassword')}
+              {t('login.yourEmailAndPassword')}
             </p>
           </div>
 
@@ -196,13 +196,13 @@ const AdminLogin = () => {
           {/* Email Field */}
           <div className="space-y-2">
             <Label htmlFor="email" className="text-sm font-medium text-slate-200">
-              {t('admin.login.yourEmail')}
+              {t('login.yourEmail')}
             </Label>
             <div className="relative">
               <Input
                 id="email"
                 type="email"
-                placeholder={t('admin.login.enterEmailAddress')}
+                placeholder={t('login.enterEmailAddress')}
                 value={formData.email}
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
                 className="h-12 w-full bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 focus:border-purple-500 focus:ring-purple-500/20 pr-10 transition-all duration-300"
@@ -217,11 +217,11 @@ const AdminLogin = () => {
             {/* Password Field */}
             <div className="space-y-2">
               <Label htmlFor="password" className="text-sm font-medium text-slate-200">
-                {t('admin.password')}
+                {t('password')}
               </Label>
               <PasswordInput
                 id="password"
-                placeholder={t('admin.login.enterPassword')}
+                placeholder={t('login.enterPassword')}
                 value={formData.password}
                 onChange={(e) => setFormData({...formData, password: e.target.value})}
                 required
@@ -234,10 +234,10 @@ const AdminLogin = () => {
               <button
                 type="button"
                 className="text-sm text-purple-400 hover:text-purple-300 transition-colors duration-200"
-                onClick={() => toast.info(t('admin.login.contactAdminForReset'))}
+                onClick={() => toast.info(t('login.contactAdminForReset'))}
                 disabled={isLoading}
               >
-                {t('admin.login.forgotPassword')}
+                {t('login.forgotPassword')}
               </button>
             </div>
 
@@ -260,10 +260,10 @@ const AdminLogin = () => {
                       animate={{ rotate: 360 }}
                       transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                     />
-                    {t('admin.login.signingIn')}
+                    {t('login.signingIn')}
                   </div>
                 ) : (
-                  <span className="relative z-10">{t('admin.login.signIn')}</span>
+                  <span className="relative z-10">{t('login.signIn')}</span>
                 )}
               </Button>
             </motion.div>
@@ -276,7 +276,7 @@ const AdminLogin = () => {
               className="inline-flex items-center text-slate-400 hover:text-purple-400 text-sm transition-all duration-200 group"
             >
               <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform duration-200" />
-              {t('admin.login.backToSeedPlatform')}
+              {t('login.backToSeedPlatform')}
             </Link>
           </div>
         </motion.div>

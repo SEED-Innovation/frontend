@@ -58,6 +58,9 @@ export interface MatchRecording {
   // Optional chunks
   chunks?: RecordingChunk[];
   
+  // Presigned URL for video playback (expires in 12 hours)
+  videoUrl?: string;
+  
   // Computed fields (for backward compatibility)
   sessionId?: number; // Maps to bookingId
   startTime?: string; // Maps to checkInTime

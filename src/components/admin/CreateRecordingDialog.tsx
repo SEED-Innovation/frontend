@@ -125,7 +125,7 @@ const CreateRecordingDialog: React.FC<CreateRecordingDialogProps> = ({ open, onC
 
   const fetchUsers = async () => {
     try {
-      const response = await apiClient.get('/admin/users');
+      const response = await apiClient.get('/api/admin/users');
       // Handle both array response and paginated response
       const usersData = Array.isArray(response) ? response : (response.content || []);
       setUsers(usersData);

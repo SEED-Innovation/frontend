@@ -542,6 +542,30 @@ const RecordingManagement: React.FC = () => {
                             View
                           </Button>
                           
+                          {recording.videoUrl && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                console.log('Download clicked for recording:', recording.id, 'URL:', recording.videoUrl);
+                                if (recording.videoUrl) {
+                                  window.open(recording.videoUrl, '_blank');
+                                }
+                              }}
+                              className="gap-1 text-green-600 hover:text-green-700"
+                              title="Download recording video"
+                            >
+                              <Download className="w-4 h-4" />
+                              Download
+                            </Button>
+                          )}
+                          
+                          {!recording.videoUrl && (recording.status === 'READY' || recording.status === 'COMPLETED') && (
+                            <span className="text-xs text-gray-400" title="Video URL not available">
+                              No URL
+                            </span>
+                          )}
+                          
                           {recording.status === 'FAILED' && (
                             <Button
                               variant="outline"
@@ -575,12 +599,14 @@ const RecordingManagement: React.FC = () => {
                             </Button>
                           )}
                           
-                          {recording.isManualRecording && !recording.userId && (
+                          {recording.isManualRecording && !recording.userId && 
+                           (recording.status === 'COMPLETED' || recording.status === 'READY') && (
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => handleAssociate(recording)}
                               className="gap-1 text-blue-600 hover:text-blue-700"
+                              title="Associate this recording with a user"
                             >
                               <User className="w-4 h-4" />
                               Associate
@@ -737,7 +763,7 @@ const AssociateRecordingDialog: React.FC<AssociateRecordingDialogProps> = ({
       setLoadingUsers(true);
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/admin/users/paged?page=0&size=100`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json',
         },
       });
@@ -763,7 +789,7 @@ const AssociateRecordingDialog: React.FC<AssociateRecordingDialogProps> = ({
       setLoadingBookings(true);
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/admin/bookings/user/${userId}?page=0&size=50`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json',
         },
       });
@@ -795,7 +821,11 @@ const AssociateRecordingDialog: React.FC<AssociateRecordingDialogProps> = ({
       });
       return;
     }
-    onSubmit(selectedUserId, selectedBookingId ? parseInt(selectedBookingId) : undefined, notes || undefined);
+    // Handle booking ID - skip if "no-booking" is selected
+    const bookingIdToSubmit = selectedBookingId && selectedBookingId !== 'no-booking' 
+      ? parseInt(selectedBookingId) 
+      : undefined;
+    onSubmit(selectedUserId, bookingIdToSubmit, notes || undefined);
   };
 
   const filteredUsers = userSearch
@@ -869,7 +899,7 @@ const AssociateRecordingDialog: React.FC<AssociateRecordingDialogProps> = ({
                   <SelectValue placeholder={loadingBookings ? "Loading bookings..." : "Select a booking (optional)"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No booking</SelectItem>
+                  <SelectItem value="no-booking">No booking</SelectItem>
                   {bookings.length === 0 ? (
                     <SelectItem value="none" disabled>No bookings found for this user</SelectItem>
                   ) : (

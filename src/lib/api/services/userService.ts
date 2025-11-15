@@ -1,7 +1,7 @@
 import { AdminUserPageResponse } from '@/types/user';
 import { apiClient } from '../client';
 
-const BASE = '/admin/users';
+const BASE = '/api/admin/users';
 
 export async function getUsersPaged(page = 0, size = 50): Promise<AdminUserPageResponse> {
   const params = new URLSearchParams();
