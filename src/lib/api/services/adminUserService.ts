@@ -1,151 +1,136 @@
-/**
- * Admin User Management Service
- * Handles all admin-specific user operations
- */
-
 import { apiClient } from '../client';
 
-// ================================
-// REQUEST TYPES
-// ================================
-
-export interface CreateAdminRequest {
+export interface User {
+  id: number;
+  cognitoId: string;
   email: string;
-  phone?: string;
-  fullName: string;
-  password: string;
-  returnPlainPassword?: boolean;
-  requirePasswordResetOnFirstLogin?: boolean;
-  markEmailVerified?: boolean;
+  firstName: string;
+  lastName: string;
+  phoneNumber?: string;
+  skillLevel?: string;
+  createdAt: string;
 }
 
-export interface ResetPasswordRequest {
-  newPassword: string;
-  requirePasswordResetOnFirstLogin?: boolean;
-  returnPlainPassword?: boolean;
+export interface Booking {
+  id: number;
+  userId: number;
+  courtId: number;
+  courtName?: string;
+  facilityName?: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+  matchType?: string;
+  createdAt: string;
 }
-
-export interface UpdateUserStatusRequest {
-  enabled: boolean;
-  forceLogout?: boolean;
-}
-
-// ================================
-// RESPONSE TYPES
-// ================================
 
 export interface CreateAdminResponse {
   id: number;
-  cognitoSub: string;
   email: string;
-  phone?: string;
+  fullName: string;
   role: string;
-  enabled: boolean;
-  isVerified: boolean;
-  username: string;
-  passwordPlain: string | null;
-  passwordMasked: string;
-  temporaryPassword: boolean;
-}
-
-export interface ResetPasswordResponse {
-  username: string;
-  passwordPlain: string | null;
-  passwordMasked: string;
-  temporaryPassword: boolean;
+  passwordPlain?: string;
+  temporaryPassword?: string;
 }
 
 export interface AuditEntry {
-  id: string;
+  id: number;
   action: 'CREATED' | 'ENABLED' | 'DISABLED' | 'PASSWORD_RESET' | 'UPDATED';
   actor: string;
   timestamp: string;
   details?: string;
 }
 
-// ================================
-// API FUNCTIONS
-// ================================
+export const adminUserService = {
+  /**
+   * Get all users (paginated)
+   */
+  async getAllUsers(page: number = 0, size: number = 100): Promise<{
+    users: User[];
+    totalElements: number;
+    totalPages: number;
+  }> {
+    const response = await apiClient.get<any>(`/api/admin/users/paged?page=${page}&size=${size}`);
+    return response;
+  },
 
-export async function createAdmin(data: CreateAdminRequest): Promise<CreateAdminResponse> {
-  try {
-    return await apiClient.post<CreateAdminResponse>('/admin/users/create-admin', {
-      ...data,
-      returnPlainPassword: data.returnPlainPassword ?? false,
-      requirePasswordResetOnFirstLogin: false, // Always create confirmed/permanent
-      markEmailVerified: true
-    });
-  } catch (error: any) {
-    if (error.status === 409) {
-      throw new Error('Email or phone already in use.');
-    }
-    if (error.status === 400) {
-      throw new Error(error.data?.message || 'Password does not meet complexity requirements');
-    }
-    if (error.status === 429) {
-      throw new Error('Rate limit exceeded. Please try again later.');
-    }
+  /**
+   * Search users by email or name
+   */
+  async searchUsers(query: string): Promise<User[]> {
+    const response = await apiClient.get<{ users: User[] }>(`/api/admin/users/paged?page=0&size=50`);
+    const allUsers = response.users || [];
     
-    throw new Error(error.data?.message || 'Failed to create admin');
-  }
-}
+    // Client-side filtering
+    const searchLower = query.toLowerCase();
+    return allUsers.filter(user => 
+      user.email?.toLowerCase().includes(searchLower) ||
+      user.firstName?.toLowerCase().includes(searchLower) ||
+      user.lastName?.toLowerCase().includes(searchLower) ||
+      `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchLower)
+    );
+  },
 
-export async function resetUserPassword(
-  userId: number,
-  data: ResetPasswordRequest
-): Promise<ResetPasswordResponse> {
-  try {
-    return await apiClient.post<ResetPasswordResponse>(`/admin/users/reset-password/${userId}`, {
-      ...data,
-      requirePasswordResetOnFirstLogin: data.requirePasswordResetOnFirstLogin ?? false,
-      returnPlainPassword: data.returnPlainPassword ?? false
-    });
-  } catch (error: any) {
-    if (error.status === 409) {
-      throw new Error('Enable user before resetting password.');
-    }
-    if (error.status === 400) {
-      throw new Error(error.data?.message || 'Password does not meet complexity requirements');
-    }
-    if (error.status === 404) {
-      throw new Error('User not found');
-    }
-    if (error.status === 429) {
-      throw new Error('Rate limit exceeded. Please try again later.');
-    }
-    
-    throw new Error(error.data?.message || 'Failed to reset password');
-  }
-}
+  /**
+   * Get bookings for a specific user
+   */
+  async getUserBookings(userId: number, page: number = 0, size: number = 50): Promise<Booking[]> {
+    const response = await apiClient.get<Booking[]>(`/api/admin/bookings/user/${userId}?page=${page}&size=${size}`);
+    return response;
+  },
 
-export async function updateUserStatus(
-  userId: number,
-  data: UpdateUserStatusRequest
-): Promise<void> {
-  try {
-    await apiClient.patch<void>(`/admin/users/status/${userId}`, data);
-  } catch (error: any) {
-    if (error.status === 404) {
-      throw new Error('User not found');
-    }
-    if (error.status === 403) {
-      throw new Error('Access denied');
-    }
-    if (error.status === 429) {
-      throw new Error('Rate limit exceeded. Please try again later.');
-    }
-    
-    throw new Error(error.data?.message || 'Failed to update user status');
-  }
-}
+  /**
+   * Reset user password (admin only)
+   */
+  async resetUserPassword(userId: number, data: { newPassword: string; returnPlainPassword?: boolean }): Promise<{ 
+    message: string; 
+    plainPassword?: string;
+    temporaryPassword?: string;
+  }> {
+    const response = await apiClient.post(`/api/admin/users/${userId}/reset-password`, data);
+    return response;
+  },
 
-// Mock audit log - replace with actual endpoint when available
-export async function getUserAuditLog(userId: number): Promise<AuditEntry[]> {
-  // TODO: Replace with actual backend endpoint when ready
-  // const response = await fetch(`${BASE_URL}/admin/users/${userId}/audit`, {
-  //   headers: authHeaders()
-  // });
-  
-  // For now, return mock data
-  return [];
-}
+  /**
+   * Update user status (enable/disable)
+   */
+  async updateUserStatus(userId: number, data: { enabled: boolean; forceLogout?: boolean }): Promise<{ 
+    message: string;
+  }> {
+    const response = await apiClient.patch(`/api/admin/users/${userId}/status`, data);
+    return response;
+  },
+
+  /**
+   * Create a new admin user
+   */
+  async createAdmin(data: {
+    fullName: string;
+    email: string;
+    phone?: string;
+    password: string;
+    returnPlainPassword?: boolean;
+  }): Promise<CreateAdminResponse> {
+    const response = await apiClient.post<CreateAdminResponse>('/api/admin/users/create-admin', data);
+    return response;
+  },
+
+  /**
+   * Get audit log for a user
+   */
+  async getUserAuditLog(userId: number): Promise<AuditEntry[]> {
+    const response = await apiClient.get<AuditEntry[]>(`/api/admin/users/${userId}/audit-log`);
+    return response;
+  },
+};
+
+// Export individual functions for convenience
+export const { 
+  getAllUsers, 
+  searchUsers, 
+  getUserBookings, 
+  resetUserPassword,
+  updateUserStatus,
+  createAdmin,
+  getUserAuditLog,
+} = adminUserService;
