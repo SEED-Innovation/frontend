@@ -25,13 +25,13 @@ export class UserService {
   // ================================
 
   /**
-   * GET /admin/users - Get all users
+   * GET /api/admin/users - Get all users
    */
   async getAllUsers(): Promise<UserResponse[]> {
     console.log('👥 UserService.getAllUsers called');
     
     try {
-      const response = await fetch(`${this.baseUrl}/admin/users`, {
+      const response = await fetch(`${this.baseUrl}/api/admin/users`, {
         method: 'GET',
         headers: this.getHeaders()
       });
@@ -51,13 +51,13 @@ export class UserService {
   }
 
   /**
-   * POST /admin/users - Create new user
+   * POST /api/admin/users - Create new user
    */
   async createUser(userData: CreateUserRequest): Promise<UserResponse> {
     console.log('➕ UserService.createUser called:', userData);
     
     try {
-      const response = await fetch(`${this.baseUrl}/admin/users`, {
+      const response = await fetch(`${this.baseUrl}/api/admin/users`, {
         method: 'POST',
         headers: this.getHeaders(),
         body: JSON.stringify(userData)
@@ -78,14 +78,14 @@ export class UserService {
   }
 
   /**
-   * GET /admin/users/{id} - Get detailed user information by ID
+   * GET /api/admin/users/{id} - Get detailed user information by ID
    * This is optimized for the detail view and includes all user fields
    */
   async getUserDetails(userId: number): Promise<UserResponse> {
     console.log('🔍 UserService.getUserDetails called for ID:', userId);
     
     try {
-      const response = await fetch(`${this.baseUrl}/admin/users/${userId}`, {
+      const response = await fetch(`${this.baseUrl}/api/admin/users/${userId}`, {
         method: 'GET',
         headers: this.getHeaders()
       });
@@ -107,13 +107,13 @@ export class UserService {
   }
 
   /**
-   * POST /admin/users/get - Get user by flexible identifier
+   * POST /api/admin/users/get - Get user by flexible identifier
    */
   async getUserByIdentifier(request: GetUserByIdentifierRequest): Promise<UserResponse> {
     console.log('🔍 UserService.getUserByIdentifier called:', request);
     
     try {
-      const response = await fetch(`${this.baseUrl}/admin/users/get`, {
+      const response = await fetch(`${this.baseUrl}/api/admin/users/get`, {
         method: 'POST',
         headers: this.getHeaders(),
         body: JSON.stringify(request)
@@ -134,13 +134,13 @@ export class UserService {
   }
 
   /**
-   * PUT /admin/users/update - Update user by flexible identifier
+   * PUT /api/admin/users/update - Update user by flexible identifier
    */
   async updateUser(userData: UpdateUserRequest): Promise<UserResponse> {
     console.log('📝 UserService.updateUser called:', userData);
     
     try {
-      const response = await fetch(`${this.baseUrl}/admin/users/update`, {
+      const response = await fetch(`${this.baseUrl}/api/admin/users/update`, {
         method: 'PUT',
         headers: this.getHeaders(),
         body: JSON.stringify(userData)
@@ -161,13 +161,13 @@ export class UserService {
   }
 
   /**
-   * DELETE /admin/users/delete - Delete user by flexible identifier
+   * DELETE /api/admin/users/delete - Delete user by flexible identifier
    */
   async deleteUser(deleteData: DeleteUserRequest): Promise<void> {
     console.log('🗑️ UserService.deleteUser called:', deleteData);
     
     try {
-      const response = await fetch(`${this.baseUrl}/admin/users/delete`, {
+      const response = await fetch(`${this.baseUrl}/api/admin/users/delete`, {
         method: 'DELETE',
         headers: this.getHeaders(),
         body: JSON.stringify(deleteData)
@@ -200,7 +200,7 @@ export class UserService {
       queryParams.append('query', params.query);
       if (params.limit) queryParams.append('limit', params.limit.toString());
 
-      const response = await fetch(`${this.baseUrl}/users/search?${queryParams}`, {
+      const response = await fetch(`${this.baseUrl}/api/users/search?${queryParams}`, {
         method: 'GET',
         headers: this.getHeaders()
       });
@@ -226,7 +226,7 @@ export class UserService {
     console.log('📋 UserService.getRecentUsers called');
     
     try {
-      const response = await fetch(`${this.baseUrl}/users/recent`, {
+      const response = await fetch(`${this.baseUrl}/api/users/recent`, {
         method: 'GET',
         headers: this.getHeaders()
       });
@@ -246,13 +246,13 @@ export class UserService {
   }
 
   /**
-   * GET /admin/users/admins/list - Get all admin names (SUPER_ADMIN only)
+   * GET /api/admin/users/list-admins - Get all admin names (SUPER_ADMIN only)
    */
   async getAllAdminNames(): Promise<string[]> {
     console.log('👥 UserService.getAllAdminNames called');
     
     try {
-      const response = await fetch(`${this.baseUrl}/admin/users/list-admins`, {
+      const response = await fetch(`${this.baseUrl}/api/admin/users/list-admins`, {
         method: 'GET',
         headers: this.getHeaders()
       });
@@ -272,7 +272,7 @@ export class UserService {
   }
 
   /**
-   * GET /admin/users/paged - Get paginated users and admins
+   * GET /api/admin/users/paged - Get paginated users and admins
    */
   async getUsersPaged(page: number = 1, size: number = 10, type?: 'user' | 'admin'): Promise<any> {
     console.log(`👥 UserService.getUsersPaged called - page: ${page}, size: ${size}, type: ${type}`);
@@ -284,7 +284,7 @@ export class UserService {
         ...(type && { type })
       });
 
-      const response = await fetch(`${this.baseUrl}/admin/users/paged?${params}`, {
+      const response = await fetch(`${this.baseUrl}/api/admin/users/paged?${params}`, {
         method: 'GET',
         headers: this.getHeaders()
       });
@@ -304,7 +304,7 @@ export class UserService {
   }
 
   /**
-   * GET /admin/users/admins-paged - Get paginated admins
+   * GET /api/admin/users/admins-paged - Get paginated admins
    */
   async getAdminsPaged(page: number = 0, size: number = 10): Promise<any> {
     console.log(`👥 UserService.getAdminsPaged called - page: ${page}, size: ${size}`);
@@ -315,7 +315,7 @@ export class UserService {
         size: size.toString()
       });
 
-      const response = await fetch(`${this.baseUrl}/admin/users/admins-paged?${params}`, {
+      const response = await fetch(`${this.baseUrl}/api/admin/users/admins-paged?${params}`, {
         method: 'GET',
         headers: this.getHeaders()
       });
@@ -339,14 +339,14 @@ export class UserService {
   // ================================
 
   /**
-   * PATCH /admin/users/status/{id} - Enable user account
+   * PATCH /api/admin/users/status/{id} - Enable user account
    * Enables a user account without forcing logout
    */
   async enableUser(userId: number): Promise<UserResponse> {
     console.log('✅ UserService.enableUser called for ID:', userId);
     
     try {
-      const response = await fetch(`${this.baseUrl}/admin/users/status/${userId}`, {
+      const response = await fetch(`${this.baseUrl}/api/admin/users/status/${userId}`, {
         method: 'PATCH',
         headers: {
           ...this.getHeaders(),
@@ -373,14 +373,14 @@ export class UserService {
   }
 
   /**
-   * PATCH /admin/users/status/{id} - Disable user account
+   * PATCH /api/admin/users/status/{id} - Disable user account
    * Disables a user account and forces logout
    */
   async disableUser(userId: number): Promise<UserResponse> {
     console.log('🚫 UserService.disableUser called for ID:', userId);
     
     try {
-      const response = await fetch(`${this.baseUrl}/admin/users/status/${userId}`, {
+      const response = await fetch(`${this.baseUrl}/api/admin/users/status/${userId}`, {
         method: 'PATCH',
         headers: {
           ...this.getHeaders(),
@@ -407,14 +407,14 @@ export class UserService {
   }
 
   /**
-   * PATCH /admin/users/status/{id} - Update user status with custom options
+   * PATCH /api/admin/users/status/{id} - Update user status with custom options
    * Allows custom control over enabled state and force logout
    */
   async updateUserStatus(userId: number, enabled: boolean, forceLogout: boolean = false): Promise<UserResponse> {
     console.log(`🔄 UserService.updateUserStatus called for ID: ${userId}, enabled: ${enabled}, forceLogout: ${forceLogout}`);
     
     try {
-      const response = await fetch(`${this.baseUrl}/admin/users/status/${userId}`, {
+      const response = await fetch(`${this.baseUrl}/api/admin/users/status/${userId}`, {
         method: 'PATCH',
         headers: {
           ...this.getHeaders(),
@@ -449,7 +449,7 @@ export class UserService {
    */
   async healthCheck(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseUrl}/admin/users`, {
+      const response = await fetch(`${this.baseUrl}/api/admin/users`, {
         method: 'GET',
         headers: this.getHeaders()
       });

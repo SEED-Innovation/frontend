@@ -64,7 +64,7 @@ const PaymentManagement = () => {
       }
 
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${API_BASE}/admin/payments/page-data?${params}`, {
+      const response = await fetch(`${API_BASE}/api/admin/payments/page-data?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -130,7 +130,7 @@ const PaymentManagement = () => {
       const token = localStorage.getItem('accessToken');
       const requestBody: PaymentIdRequest = { paymentId };
 
-      const response = await fetch(`${API_BASE}/admin/payments/mark-paid`, {
+      const response = await fetch(`${API_BASE}/api/admin/payments/mark-paid`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -169,8 +169,8 @@ const PaymentManagement = () => {
         return;
       }
 
-      console.log('Making authenticated request to:', `${API_BASE}/admin/payments/export-csv`);
-      const response = await fetch(`${API_BASE}/admin/payments/export-csv`, {
+      console.log('Making authenticated request to:', `${API_BASE}/api/admin/payments/export-csv`);
+      const response = await fetch(`${API_BASE}/api/admin/payments/export-csv`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -77,7 +77,7 @@ const UserManagement = () => {
   async function loadAdmins(page = 0, size = 10) {
     try {
       const apiUrl = import.meta.env.VITE_API_URL || "";
-      const res = await fetch(`${apiUrl}/admin/users/admins-paged?page=${page}&size=${size}`, {
+      const res = await fetch(`${apiUrl}/api/admin/users/admins-paged?page=${page}&size=${size}`, {
         credentials: "include",
         headers: {
           "Accept": "application/json",

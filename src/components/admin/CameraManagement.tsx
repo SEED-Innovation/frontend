@@ -134,7 +134,7 @@ export default function CameraManagement() {
       setAvailableCourts([]);
       
       // Fetch facilities first
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/facilities/admin/my-facilities`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/facilities/admin/my-facilities`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json'
@@ -164,7 +164,7 @@ export default function CameraManagement() {
       setSelectedFacility(facilityId);
       
       // Fetch courts for the selected facility
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/facilities/${facilityId}/courts`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/facilities/${facilityId}/courts`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json'

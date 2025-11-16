@@ -9,7 +9,7 @@ export const adminProfileService = {
       throw new Error('No access token found');
     }
 
-    const response = await fetch(`${API_URL}/admin/profile/me`, {
+    const response = await fetch(`${API_URL}/api/admin/profile/me`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,

@@ -59,7 +59,7 @@ export const useAdminAuth = () => {
     async (identifier: string, password: string) => {
       setLoading(true);
       try {
-        const resp = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
+        const resp = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ identifier, password })

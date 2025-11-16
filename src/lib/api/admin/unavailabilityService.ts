@@ -40,7 +40,7 @@ class UnavailabilityService {
     console.log('🔄 Fetching unavailabilities with filters:', filters);
     
     try {
-      const url = new URL(`${this.baseUrl}/admin/courts/unavailability`);
+      const url = new URL(`${this.baseUrl}/api/admin/courts/unavailability`);
       
       if (filters?.searchTerm) {
         url.searchParams.set('search', filters.searchTerm);

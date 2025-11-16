@@ -61,7 +61,7 @@ export class BookingService {
     console.log('🔄 Fetching availability for court:', courtId, 'date:', dateISO, 'duration:', durationMinutes);
     
     try {
-      const response = await this.makeAPICall(`${this.baseUrl}/courts/${courtId}/availability`, {
+      const response = await this.makeAPICall(`${this.baseUrl}/api/courts/${courtId}/availability`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -69,7 +69,7 @@ export class BookingService {
       });
 
       // Add query params
-      const url = new URL(`${this.baseUrl}/courts/${courtId}/availability`);
+      const url = new URL(`${this.baseUrl}/api/courts/${courtId}/availability`);
       url.searchParams.set('date', dateISO);
       url.searchParams.set('durationMinutes', durationMinutes.toString());
 
