@@ -37,7 +37,7 @@ export interface UserProfile {
   guest: boolean;
 }
 
-const USERS_ENDPOINT = '/users';
+const USERS_ENDPOINT = '/api/users';
 
 /**
  * Get current user profile

@@ -25,7 +25,7 @@ class FacilityService {
   }
 
   async getAllFacilities(): Promise<Facility[]> {
-    const response = await fetch(`${API_BASE_URL}/facilities/all`, {
+    const response = await fetch(`${API_BASE_URL}/api/facilities/all`, {
       headers: this.getAuthHeaders(),
     });
 
@@ -40,7 +40,7 @@ class FacilityService {
   }
 
   async getMyFacilities(): Promise<Facility[]> {
-    const response = await fetch(`${API_BASE_URL}/facilities/admin/my-facilities`, {
+    const response = await fetch(`${API_BASE_URL}/api/facilities/admin/my-facilities`, {
       headers: this.getAuthHeaders(),
     });
 
@@ -77,7 +77,7 @@ class FacilityService {
   }
 
   async getFacilityById(facilityId: number): Promise<Facility> {
-    const response = await fetch(`${API_BASE_URL}/facilities/${facilityId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/facilities/${facilityId}`, {
       headers: this.getAuthHeaders(),
     });
 
@@ -92,7 +92,7 @@ class FacilityService {
   }
 
   async createFacility(facilityData: CreateFacilityRequest): Promise<Facility> {
-    const response = await fetch(`${API_BASE_URL}/facilities/create`, {
+    const response = await fetch(`${API_BASE_URL}/api/facilities/create`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(facilityData),
@@ -122,7 +122,7 @@ class FacilityService {
   }
 
   async updateFacility(facilityId: number, facilityData: UpdateFacilityRequest): Promise<Facility> {
-    const response = await fetch(`${API_BASE_URL}/facilities/${facilityId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/facilities/${facilityId}`, {
       method: 'PUT',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(facilityData),
@@ -156,7 +156,7 @@ class FacilityService {
   }
 
   async deleteFacility(facilityId: number): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/facilities/${facilityId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/facilities/${facilityId}`, {
       method: 'DELETE',
       headers: this.getAuthHeaders(),
     });
@@ -174,7 +174,7 @@ class FacilityService {
     status: 'ACTIVE' | 'INACTIVE' | 'DELETED', 
     reason?: string
   ): Promise<Facility> {
-    const url = new URL(`${API_BASE_URL}/facilities/${facilityId}/status`);
+    const url = new URL(`${API_BASE_URL}/api/facilities/${facilityId}/status`);
     url.searchParams.append('status', status);
     if (reason) {
       url.searchParams.append('reason', reason);
@@ -193,7 +193,7 @@ class FacilityService {
   }
 
   async getFacilityStatus(facilityId: number): Promise<string> {
-    const response = await fetch(`${API_BASE_URL}/facilities/${facilityId}/status`, {
+    const response = await fetch(`${API_BASE_URL}/api/facilities/${facilityId}/status`, {
       headers: this.getAuthHeaders(),
     });
 
@@ -206,7 +206,7 @@ class FacilityService {
 
   async assignAdminToFacility(facilityId: number, adminId: number): Promise<void> {
     const response = await fetch(
-      `${API_BASE_URL}/facilities/${facilityId}/assign-admin/${adminId}`,
+      `${API_BASE_URL}/api/facilities/${facilityId}/assign-admin/${adminId}`,
       {
         method: 'POST',
         headers: this.getAuthHeaders(),
@@ -219,7 +219,7 @@ class FacilityService {
   }
 
   async getFacilitiesForAdmin(adminId: number): Promise<Facility[]> {
-    const response = await fetch(`${API_BASE_URL}/facilities/admin/${adminId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/facilities/admin/${adminId}`, {
       headers: this.getAuthHeaders(),
     });
 
@@ -231,7 +231,7 @@ class FacilityService {
   }
 
   async getUnassignedFacilities(): Promise<Facility[]> {
-    const response = await fetch(`${API_BASE_URL}/facilities/unassigned`, {
+    const response = await fetch(`${API_BASE_URL}/api/facilities/unassigned`, {
       headers: this.getAuthHeaders(),
     });
 
@@ -244,7 +244,7 @@ class FacilityService {
 
   async canAdminManageFacility(facilityId: number, adminId: number): Promise<boolean> {
     const response = await fetch(
-      `${API_BASE_URL}/facilities/${facilityId}/can-manage/${adminId}`,
+      `${API_BASE_URL}/api/facilities/${facilityId}/can-manage/${adminId}`,
       {
         headers: this.getAuthHeaders(),
       }
@@ -258,7 +258,7 @@ class FacilityService {
   }
 
   async getFacilityCourts(facilityId: number): Promise<any[]> {
-    const response = await fetch(`${API_BASE_URL}/facilities/${facilityId}/courts`, {
+    const response = await fetch(`${API_BASE_URL}/api/facilities/${facilityId}/courts`, {
       headers: this.getAuthHeaders(),
     });
 

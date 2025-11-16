@@ -24,6 +24,7 @@ export interface ApiError {
 
 class ApiClient {
   private baseUrl: string;
+  private apiPrefix: string = '/api';
 
   constructor() {
     this.baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
@@ -108,7 +109,18 @@ class ApiClient {
   ): Promise<T> {
     const { locale, ...fetchOptions } = options;
     
-    const url = endpoint.startsWith('http') ? endpoint : `${this.baseUrl}${endpoint}`;
+    // Build URL with /api prefix if not already present and not an absolute URL
+    let url: string;
+    if (endpoint.startsWith('http')) {
+      url = endpoint;
+    } else {
+      // Add /api prefix if the endpoint doesn't already have it
+      const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+      const hasApiPrefix = normalizedEndpoint.startsWith('/api/');
+      url = hasApiPrefix 
+        ? `${this.baseUrl}${normalizedEndpoint}`
+        : `${this.baseUrl}${this.apiPrefix}${normalizedEndpoint}`;
+    }
     
     const headers = {
       ...this.getAuthHeaders(),
@@ -169,7 +181,18 @@ class ApiClient {
   // Special method for multipart/form-data requests (file uploads)
   async postFormData<T = any>(endpoint: string, formData: FormData, options: ApiRequestOptions = {}): Promise<T> {
     const { locale, ...fetchOptions } = options;
-    const url = endpoint.startsWith('http') ? endpoint : `${this.baseUrl}${endpoint}`;
+    
+    // Build URL with /api prefix if not already present and not an absolute URL
+    let url: string;
+    if (endpoint.startsWith('http')) {
+      url = endpoint;
+    } else {
+      const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+      const hasApiPrefix = normalizedEndpoint.startsWith('/api/');
+      url = hasApiPrefix 
+        ? `${this.baseUrl}${normalizedEndpoint}`
+        : `${this.baseUrl}${this.apiPrefix}${normalizedEndpoint}`;
+    }
     
     const token = localStorage.getItem('accessToken');
     const headers: Record<string, string> = {
@@ -206,7 +229,18 @@ class ApiClient {
   // Special method for PUT with form data
   async putFormData<T = any>(endpoint: string, formData: FormData, options: ApiRequestOptions = {}): Promise<T> {
     const { locale, ...fetchOptions } = options;
-    const url = endpoint.startsWith('http') ? endpoint : `${this.baseUrl}${endpoint}`;
+    
+    // Build URL with /api prefix if not already present and not an absolute URL
+    let url: string;
+    if (endpoint.startsWith('http')) {
+      url = endpoint;
+    } else {
+      const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+      const hasApiPrefix = normalizedEndpoint.startsWith('/api/');
+      url = hasApiPrefix 
+        ? `${this.baseUrl}${normalizedEndpoint}`
+        : `${this.baseUrl}${this.apiPrefix}${normalizedEndpoint}`;
+    }
     
     const token = localStorage.getItem('accessToken');
     const headers: Record<string, string> = {

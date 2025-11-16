@@ -393,7 +393,7 @@ class CourtService {
      * Check court availability for booking (requires authentication)
      */
     async checkAvailability(requestData: CourtAvailabilityRequest): Promise<CourtAvailabilityResponse> {
-        return apiClient.post<CourtAvailabilityResponse>('/courts/availability', requestData);
+        return apiClient.post<CourtAvailabilityResponse>('/api/courts/availability', requestData);
     }
 }
 
