@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { toast } from 'sonner';
 import LanguageToggler from '@/components/ui/language-toggler';
+import { useTranslation } from 'react-i18next';
 
 interface AdminHeaderProps {
   onToggleSidebar: () => void;
@@ -13,9 +14,10 @@ interface AdminHeaderProps {
 
 const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar, collapsed }) => {
   const { user, logout } = useAdminAuth();
+  const { t } = useTranslation('admin');
 
   const handleLogout = () => {
-    toast.success('Logged out successfully');
+    toast.success(t('login.welcomeToSeedAdmin'));
     logout();
   };
 

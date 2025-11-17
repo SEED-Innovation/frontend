@@ -170,14 +170,7 @@
     "cameraStatus": "Camera Status",
     "scheduleService": "Schedule Service"
   },
-  "userManagement": {
-    "deleteUserTitle": "Delete User Account",
-    "deleteConfirmation": "This action cannot be undone",
-    "typeDelete": "Type DELETE to confirm",
-    "dataProtectionNote": "This action complies with data protection regulations and user rights to account deletion. The user will be immediately logged out from all devices.",
-    "name": "Name",
-    "email": "Email"
-  },
+
   "hikConnect": {
     "title": "Hik-Connect Integration Test",
     "username": "Username/Email",
@@ -526,7 +519,12 @@
     "editUser": "Edit User",
     "updateUserDescription": "Update user information. Some fields like email cannot be changed for security reasons.",
     "saveChanges": "Save Changes",
-    "searchPlaceholder": "Search by name, email, or phone..."
+    "searchPlaceholder": "Search by name, email, or phone...",
+    "deleteUserTitle": "Delete User Account",
+    "deleteConfirmation": "This action cannot be undone",
+    "typeDelete": "Type DELETE to confirm",
+    "dataProtectionNote": "This action complies with data protection regulations and user rights to account deletion. The user will be immediately logged out from all devices.",
+    "name": "Name"
   },
   "createAdmin": {
     "title": "Create New Admin",
