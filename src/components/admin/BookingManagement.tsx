@@ -588,14 +588,23 @@ const BookingManagement = () => {
                           <Eye className="w-4 h-4" />
                           View Details
                         </Button>
-                        {link.status === PaymentLinkStatus.ACTIVE && link.whatsAppTemplate && (
+                        {link.status === PaymentLinkStatus.ACTIVE && (
                           <Button 
                             size="sm" 
                             variant="outline"
                             onClick={() => {
-                              const whatsappLink = paymentLinkService.generateWhatsAppWebLink(
-                                link.whatsAppTemplate.formattedMessage
-                              );
+                              // Generate payment link URL
+                              const currentOrigin = window.location.origin;
+                              const paymentLinkUrl = `${currentOrigin}/payment/${link.id}`;
+                              
+                              // Generate bilingual message
+                              const message = paymentLinkService.generateBilingualWhatsAppMessage(link, paymentLinkUrl);
+                              
+                              // Use phone number if available
+                              const whatsappLink = link.phoneNumber
+                                ? paymentLinkService.generateWhatsAppWebLinkWithPhone(link.phoneNumber, message)
+                                : paymentLinkService.generateWhatsAppWebLink(message);
+                              
                               window.open(whatsappLink, '_blank');
                             }}
                             className="flex items-center gap-1"

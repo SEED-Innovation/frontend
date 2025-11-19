@@ -46,7 +46,7 @@ export interface CreatePaymentLinkRequest {
   bookingDate: string; // YYYY-MM-DD format
   startTime: string; // HH:mm format
   endTime: string; // HH:mm format
-  recordingAddon: boolean;
+  recordingAddon?: boolean; // Optional, defaults to false on backend
   phoneNumber?: string; // For new user invitation
   existingUserId?: number; // For existing user selection
 }

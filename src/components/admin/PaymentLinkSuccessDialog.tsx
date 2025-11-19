@@ -67,10 +67,15 @@ const PaymentLinkSuccessDialog: React.FC<PaymentLinkSuccessDialogProps> = ({
     };
 
     const handleWhatsAppShare = () => {
-        const message = paymentLink.whatsAppTemplate?.formattedMessage || 
-            `🎾 SEED Tennis Booking\n\nCourt: ${paymentLink.courtName}\nFacility: ${paymentLink.facilityName}\nDate: ${format(new Date(paymentLink.bookingDate), 'PPP')}\nTime: ${paymentLink.startTime} - ${paymentLink.endTime}\nPrice: ${paymentLink.totalAmount} SAR\n\nComplete your booking: ${paymentLinkUrl}`;
+        // Generate bilingual message
+        const message = paymentLinkService.generateBilingualWhatsAppMessage(paymentLink, paymentLinkUrl);
         
-        const whatsappUrl = paymentLinkService.generateWhatsAppWebLink(message);
+        // Use phone number if available, otherwise open WhatsApp web without number
+        const phoneNumber = paymentLink.phoneNumber;
+        const whatsappUrl = phoneNumber 
+            ? paymentLinkService.generateWhatsAppWebLinkWithPhone(phoneNumber, message)
+            : paymentLinkService.generateWhatsAppWebLink(message);
+        
         window.open(whatsappUrl, '_blank');
     };
 

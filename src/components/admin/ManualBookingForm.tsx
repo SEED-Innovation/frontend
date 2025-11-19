@@ -72,7 +72,6 @@ interface BookingFormData {
     // Payment link specific fields
     bookingMode: 'IMMEDIATE' | 'PAYMENT_LINK';
     phoneNumber: string;
-    recordingAddon: boolean;
 }
 
 interface TimeSlot {
@@ -114,7 +113,6 @@ const ManualBookingForm: React.FC<ManualBookingFormProps> = ({
         sendReceiptEmail: true,
         bookingMode: 'IMMEDIATE',
         phoneNumber: '',
-        recordingAddon: false,
         customerEmail: ''
     });
     
@@ -442,7 +440,6 @@ const loadCourts = async (facilityId?: number) => {
                 bookingDate: localDateString,
                 startTime: startTimeString,
                 endTime: endTimeString,
-                recordingAddon: formData.recordingAddon,
                 phoneNumber: formData.phoneNumber || undefined,
                 existingUserId: formData.userId || undefined
             };
@@ -734,8 +731,7 @@ const loadCourts = async (facilityId?: number) => {
             sendReceiptEmail: true,
             customerEmail: '',
             bookingMode: 'IMMEDIATE',
-            phoneNumber: '',
-            recordingAddon: false
+            phoneNumber: ''
         });
         setSelectedUser(null);
         setAvailableSlots([]);
@@ -1398,30 +1394,7 @@ const loadCourts = async (facilityId?: number) => {
                             </div>
                         )}
 
-                        {/* Recording Addon (Payment Link Mode Only) */}
-                        {formData.bookingMode === 'PAYMENT_LINK' && (
-                            <div className="lg:col-span-2">
-                                <div className="bg-muted/30 p-4 rounded-lg border border-border">
-                                    <div className="flex items-center space-x-3">
-                                        <input
-                                            type="checkbox"
-                                            id="recordingAddon"
-                                            checked={formData.recordingAddon}
-                                            onChange={(e) => handleInputChange('recordingAddon', e.target.checked)}
-                                            className="rounded border-gray-300 h-5 w-5"
-                                        />
-                                        <div className="flex-1">
-                                            <label htmlFor="recordingAddon" className="text-sm font-semibold cursor-pointer">
-                                                Add Recording Service
-                                            </label>
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                                Include professional court recording service with this booking
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+
 
                         {/* Payment Method (Immediate Booking Only) */}
                         {formData.bookingMode === 'IMMEDIATE' && (

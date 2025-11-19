@@ -91,6 +91,57 @@ class PaymentLinkService {
     const encodedMessage = encodeURIComponent(message);
     return `https://wa.me/?text=${encodedMessage}`;
   }
+
+  generateWhatsAppWebLinkWithPhone(phoneNumber: string, message: string): string {
+    // Remove any non-digit characters from phone number
+    const cleanPhone = phoneNumber.replace(/\D/g, '');
+    const encodedMessage = encodeURIComponent(message);
+    return `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
+  }
+
+  generateBilingualWhatsAppMessage(paymentLink: PaymentLinkDTO, paymentLinkUrl: string): string {
+    const { courtName, facilityName, bookingDate, startTime, endTime, totalAmount } = paymentLink;
+    
+    // Format date nicely
+    const date = new Date(bookingDate);
+    const dateStr = date.toLocaleDateString('en-US', { 
+      weekday: 'short', 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+    
+    // Build bilingual message (English + Arabic)
+    const message = `🎾 *SEED Tennis Booking*
+
+Hi! We've reserved a court for you:
+
+📍 *Facility:* ${facilityName}
+🏟️ *Court:* ${courtName}
+📅 *Date:* ${dateStr}
+⏰ *Time:* ${startTime} - ${endTime}
+💰 *Price:* ${totalAmount} SAR
+
+Please complete your payment to confirm:
+${paymentLinkUrl}
+
+───────────────
+
+🎾 *حجز ملاعب سيد*
+
+مرحباً! حجزنا لك ملعب:
+
+📍 *المنشأة:* ${facilityName}
+🏟️ *الملعب:* ${courtName}
+📅 *التاريخ:* ${dateStr}
+⏰ *الوقت:* ${startTime} - ${endTime}
+💰 *السعر:* ${totalAmount} ريال
+
+يرجى إتمام الدفع لتأكيد الحجز:
+${paymentLinkUrl}`;
+
+    return message;
+  }
 }
 
 export const paymentLinkService = new PaymentLinkService();
