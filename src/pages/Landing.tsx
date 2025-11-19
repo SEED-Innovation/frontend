@@ -626,6 +626,7 @@ const Landing = () => {
       </section>
 
       {/* Testimonials Section */}
+      {/* 
       <section className="py-16 sm:py-24 lg:py-32 bg-white relative overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute top-0 left-0 w-96 h-96 bg-tennis-purple-100 rounded-full filter blur-3xl opacity-30" />
@@ -668,6 +669,7 @@ const Landing = () => {
           </div>
         </div>
       </section>
+      */}
 
       {/* Mobile App Download Section */}
       <section className="py-16 sm:py-24 lg:py-32 bg-gradient-to-br from-gray-50 via-white to-gray-100 relative overflow-hidden">
@@ -813,8 +815,10 @@ const Landing = () => {
       </section>
 
       {/* Get in Touch Section */}
+      {/* 
       <section className="relative py-20 sm:py-32 bg-gradient-to-br from-gray-900 via-tennis-purple-900 to-gray-900 overflow-hidden">
         {/* Background Pattern */}
+        {/* 
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-0 w-96 h-96 bg-tennis-green-500/20 rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 right-0 w-96 h-96 bg-tennis-purple-500/20 rounded-full blur-3xl"></div>
@@ -838,6 +842,7 @@ const Landing = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             {/* Contact Form */}
+            {/* 
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -899,6 +904,7 @@ const Landing = () => {
             </motion.div>
 
             {/* Contact Information */}
+            {/* 
             <motion.div
               initial={{ opacity: 0, x: 50 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -971,6 +977,7 @@ const Landing = () => {
           </div>
         </div>
       </section>
+      */}
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12 sm:py-16">

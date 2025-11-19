@@ -113,7 +113,7 @@ const PaymentManagement = () => {
   const getStatusDisplay = (status: string) => {
     switch (status) {
       case 'SUCCESS': return 'Paid';
-      case 'PENDING': return t('admin.status.pending');
+      case 'PENDING': return t('status.pending');
       case 'FAILED': return 'Failed';
       default: return status;
     }
@@ -247,7 +247,7 @@ const PaymentManagement = () => {
       color: 'text-green-600'
     },
     {
-      title: t('admin.status.pending'),
+      title: t('status.pending'),
       value: pageData.pendingCount,
       icon: Clock,
       color: 'text-yellow-600'
@@ -336,7 +336,7 @@ const PaymentManagement = () => {
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="SUCCESS">Paid</SelectItem>
-                <SelectItem value="PENDING">{t('admin.status.pending')}</SelectItem>
+                <SelectItem value="PENDING">{t('status.pending')}</SelectItem>
                 <SelectItem value="FAILED">Failed</SelectItem>
               </SelectContent>
             </Select>
