@@ -122,7 +122,7 @@ export const ModernAdminBooking: React.FC<ModernAdminBookingProps> = ({
                             </Select>
                             <Button onClick={onRefresh} className="h-12 bg-gradient-to-r from-blue-600 to-blue-700">
                                 <RefreshCw className="w-4 h-4 mr-2" />
-                                Refresh
+                                {t('common.refresh')}
                             </Button>
                         </div>
                     </CardContent>

@@ -912,7 +912,7 @@ const loadCourts = async (facilityId?: number) => {
                     <form onSubmit={handleSubmit} className="space-y-8">
                         {/* Booking Mode Toggle */}
                         <div className="bg-muted/50 p-4 rounded-lg border border-border">
-                            <Label className="text-sm font-semibold mb-3 block">Booking Type</Label>
+                            <Label className="text-sm font-semibold mb-3 block">{t('forms.labels.bookingType')}</Label>
                             <div className="grid grid-cols-2 gap-3">
                                 <Button
                                     type="button"
@@ -945,13 +945,13 @@ const loadCourts = async (facilityId?: number) => {
                             <div className="lg:col-span-2">
                             {formData.bookingMode === 'PAYMENT_LINK' ? (
                                 <div className="space-y-4">
-                                    <Label className="text-sm font-semibold">Customer Information</Label>
+                                    <Label className="text-sm font-semibold">{t('forms.labels.customerInformation')}</Label>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <Label htmlFor="phoneNumber">Phone Number (for new customer)</Label>
+                                            <Label htmlFor="phoneNumber">{t('forms.labels.phoneNumber')}</Label>
                                             <Input
                                                 id="phoneNumber"
-                                                placeholder="+966501234567"
+                                                placeholder={t('forms.placeholders.phoneNumber')}
                                                 value={formData.phoneNumber}
                                                 onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
                                                 disabled={!!formData.userId}
@@ -961,15 +961,15 @@ const loadCourts = async (facilityId?: number) => {
                                             )}
                                         </div>
                                         <div className="flex items-center justify-center">
-                                            <span className="text-sm text-muted-foreground">OR</span>
+                                            <span className="text-sm text-muted-foreground">{t('forms.buttons.or')}</span>
                                         </div>
                                     </div>
                                     {renderFormField(
-                                        'Select Existing User',
+                                        t('forms.labels.selectExistingUser'),
                                         'userId',
                                         <div className="space-y-2">
                                             <Input
-                                                placeholder="Search for a user by name or email..."
+                                                placeholder={t('forms.placeholders.searchUser')}
                                                 value={userSearchTerm}
                                                 onChange={(e) => setUserSearchTerm(e.target.value)}
                                                 disabled={usersLoading || !!formData.phoneNumber}
@@ -988,9 +988,9 @@ const loadCourts = async (facilityId?: number) => {
                                                 <SelectTrigger>
                                                     <SelectValue 
                                                         placeholder={
-                                                            usersLoading ? 'Loading users...' : 
+                                                            usersLoading ? t('forms.buttons.loadingUsers') : 
                                                             selectedUser ? `${selectedUser.fullName} (${selectedUser.email})` :
-                                                            'Choose a user'
+                                                            t('forms.buttons.selectUser')
                                                         } 
                                                     />
                                                 </SelectTrigger>
@@ -1123,12 +1123,12 @@ const loadCourts = async (facilityId?: number) => {
                         {/* Facility Selection */}
                         <div className="md:col-span-2">
                             {renderFormField(
-                                'Select Facility',
+                                t('forms.labels.selectFacility'),
                                 'facilityId',
                                 <div className="space-y-2">
                                     {/* Search Input */}
                                     <Input
-                                        placeholder="Search for a facility by name or location..."
+                                        placeholder={t('forms.placeholders.searchFacility')}
                                         value={facilitySearchTerm}
                                         onChange={(e) => {
                                             console.log('🔍 Facility search input changed:', e.target.value);
@@ -1144,7 +1144,7 @@ const loadCourts = async (facilityId?: number) => {
                                         disabled={facilitiesLoading}
                                     >
                                         <SelectTrigger>
-                                            <SelectValue placeholder={facilitiesLoading ? 'Loading facilities...' : 'Choose a facility'} />
+                                            <SelectValue placeholder={facilitiesLoading ? t('forms.buttons.loadingFacilities') : t('forms.buttons.chooseFacility')} />
                                         </SelectTrigger>
                                         <SelectContent className="bg-white">
                                             {filteredFacilities.length === 0 ? (
@@ -1199,7 +1199,7 @@ const loadCourts = async (facilityId?: number) => {
                                     )}
                                     {/* Search Input */}
                                     <Input
-                                        placeholder="Search for a court by name, location, or type..."
+                                        placeholder={t('forms.placeholders.searchCourt')}
                                         value={courtSearchTerm}
                                         onChange={(e) => {
                                             console.log('🔍 Court search input changed:', e.target.value);
@@ -1216,8 +1216,8 @@ const loadCourts = async (facilityId?: number) => {
                                     >
                                         <SelectTrigger>
                                             <SelectValue placeholder={
-                                                !formData.facilityId ? 'Select a facility first' :
-                                                courtsLoading ? t('manualBooking.loadingCourts') : 
+                                                !formData.facilityId ? t('forms.buttons.selectFacilityFirst') :
+                                                courtsLoading ? t('forms.buttons.loadingCourts') : 
                                                 t('manualBooking.chooseCourt')
                                             } />
                                         </SelectTrigger>

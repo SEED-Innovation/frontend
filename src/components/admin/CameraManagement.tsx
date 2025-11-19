@@ -293,7 +293,7 @@ export default function CameraManagement() {
           </Button>
           <Button variant="outline" onClick={() => loadData()}>
             <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh Cameras
+            {t('common.refreshCameras')}
           </Button>
         </div>
       </div>
@@ -509,7 +509,7 @@ export default function CameraManagement() {
                           </div>
                           <div className="text-left">
                             <div className="font-medium">{facility.name}</div>
-                            <div className="text-sm text-muted-foreground">Click to view courts</div>
+                            <div className="text-sm text-muted-foreground">{t('cameraManagement.clickToViewCourts')}</div>
                           </div>
                         </div>
                       </Button>

@@ -758,7 +758,8 @@
       "deleteAllRecordings": "هل أنت متأكد من حذف جميع التسجيلات لـ {name}؟ لا يمكن التراجع عن هذا الإجراء.",
       "deleteRecording": "هل أنت متأكد من حذف {filename}؟"
     },
-    "unknown": "غير معروف"
+    "unknown": "غير معروف",
+    "clickToViewCourts": "انقر لعرض الملاعب"
   },
   "manualBooking": {
     "title": "الحجز اليدوي",
@@ -859,5 +860,67 @@
     "pleaseFillAllFields": "يرجى ملء جميع الحقول",
     "welcomeToSeedAdmin": "مرحباً بك في إدارة SEED!",
     "loginFailed": "فشل تسجيل الدخول. يرجى التحقق من بيانات الاعتماد."
+  },
+  "common": {
+    "refresh": "تحديث",
+    "retry": "إعادة المحاولة",
+    "retryRecording": "إعادة محاولة التسجيل",
+    "refreshCameras": "تحديث الكاميرات"
+  },
+  "forms": {
+    "labels": {
+      "bookingType": "نوع الحجز",
+      "customerInformation": "معلومات العميل",
+      "phoneNumber": "رقم الهاتف (للعميل الجديد)",
+      "selectExistingUser": "اختر مستخدم موجود",
+      "selectFacility": "اختر المنشأة",
+      "selectCourt": "اختر الملعب",
+      "date": "التاريخ",
+      "duration": "المدة",
+      "matchType": "نوع المباراة",
+      "availableTimeSlots": "الأوقات المتاحة",
+      "paymentMethod": "طريقة الدفع",
+      "receiptEmail": "إيصال البريد الإلكتروني",
+      "sendReceiptEmail": "إرسال الإيصال عبر البريد الإلكتروني",
+      "notes": "ملاحظات",
+      "amount": "المبلغ",
+      "status": "الحالة",
+      "court": "الملعب",
+      "actions": "الإجراءات"
+    },
+    "placeholders": {
+      "phoneNumber": "+966501234567",
+      "searchUser": "البحث عن مستخدم بالاسم أو البريد الإلكتروني...",
+      "searchFacility": "البحث عن منشأة بالاسم أو الموقع...",
+      "searchCourt": "البحث عن ملعب بالاسم أو الموقع أو النوع...",
+      "emailAddress": "عنوان البريد الإلكتروني للإيصال",
+      "addNotes": "إضافة ملاحظات...",
+      "searchReceipts": "البحث في الإيصالات...",
+      "searchPayments": "البحث بالاسم أو البريد الإلكتروني أو المرجع...",
+      "searchBookings": "البحث بالاسم أو البريد الإلكتروني أو اسم الملعب...",
+      "searchCourts": "البحث في الملاعب بالاسم أو النوع أو الموقع أو المدير...",
+      "searchRecordings": "البحث بمعرف التسجيل أو معرف المستخدم أو معرف الجلسة أو معرف الملعب...",
+      "notificationTitle": "أدخل عنوان الإشعار...",
+      "notificationMessage": "أدخل محتوى الرسالة...",
+      "testNotificationTitle": "عنوان إشعار تجريبي...",
+      "testNotificationMessage": "محتوى رسالة تجريبية...",
+      "filterByStatus": "تصفية حسب الحالة",
+      "filterByStatusBooking": "تصفية حسب الحالة",
+      "filterByCourt": "تصفية حسب الملعب",
+      "pickDate": "اختر تاريخ",
+      "dateRange": "نطاق التاريخ"
+    },
+    "buttons": {
+      "or": "أو",
+      "loadingUsers": "جاري تحميل المستخدمين...",
+      "loadingFacilities": "جاري تحميل المنشآت...",
+      "loadingCourts": "جاري تحميل الملاعب...",
+      "loadingBookings": "جاري تحميل الحجوزات...",
+      "chooseFacility": "اختر منشأة",
+      "selectFacilityFirst": "اختر منشأة أولاً",
+      "selectUser": "اختر مستخدم",
+      "selectBooking": "اختر حجز (اختياري)",
+      "cancelRecording": "إلغاء هذا التسجيل"
+    }
   }
 }

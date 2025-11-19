@@ -380,7 +380,7 @@ export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
                                 className="h-10 bg-gradient-to-r from-primary to-admin-accent hover:from-primary/90 hover:to-admin-accent/90 text-primary-foreground font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 text-sm"
                             >
                                 <RefreshCw className="w-5 h-5 mr-2" />
-                                Refresh
+                                {t('common.refresh')}
                             </Button>
                         </div>
                     </CardContent>

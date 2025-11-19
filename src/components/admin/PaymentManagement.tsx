@@ -277,7 +277,7 @@ const PaymentManagement = () => {
             className="flex items-center gap-2"
           >
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-            {t('admin.common.refresh')}
+            {t('common.refresh')}
           </Button>
           <Button 
             className="flex items-center gap-2"
@@ -323,7 +323,7 @@ const PaymentManagement = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
-                placeholder="Search by player name, email, or reference..."
+                placeholder={t('forms.placeholders.searchPayments')}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 className="pl-10"

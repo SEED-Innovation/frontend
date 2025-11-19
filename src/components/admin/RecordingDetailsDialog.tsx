@@ -533,7 +533,7 @@ const RecordingDetailsDialog: React.FC<RecordingDetailsDialogProps> = ({
                   className="gap-2"
                 >
                   <RefreshCw className="w-4 h-4" />
-                  Retry Recording
+                  {t('common.retryRecording')}
                 </Button>
               )}
               <Button onClick={onClose} variant="outline">

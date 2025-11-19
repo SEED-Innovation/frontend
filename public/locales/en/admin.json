@@ -384,7 +384,8 @@
       "deleteAllRecordings": "Are you sure you want to delete all recordings for {name}? This action cannot be undone.",
       "deleteRecording": "Are you sure you want to delete {filename}?"
     },
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "clickToViewCourts": "Click to view courts"
   },
   "manualBooking": {
     "title": "Manual Booking",
@@ -877,5 +878,67 @@
     "pleaseFillAllFields": "Please fill in all fields",
     "welcomeToSeedAdmin": "Welcome to SEED Admin!",
     "loginFailed": "Login failed. Please check your credentials."
+  },
+  "common": {
+    "refresh": "Refresh",
+    "retry": "Retry",
+    "retryRecording": "Retry Recording",
+    "refreshCameras": "Refresh Cameras"
+  },
+  "forms": {
+    "labels": {
+      "bookingType": "Booking Type",
+      "customerInformation": "Customer Information",
+      "phoneNumber": "Phone Number (for new customer)",
+      "selectExistingUser": "Select Existing User",
+      "selectFacility": "Select Facility",
+      "selectCourt": "Select Court",
+      "date": "Date",
+      "duration": "Duration",
+      "matchType": "Match Type",
+      "availableTimeSlots": "Available Time Slots",
+      "paymentMethod": "Payment Method",
+      "receiptEmail": "Receipt Email",
+      "sendReceiptEmail": "Send receipt via email",
+      "notes": "Notes",
+      "amount": "Amount",
+      "status": "Status",
+      "court": "Court",
+      "actions": "Actions"
+    },
+    "placeholders": {
+      "phoneNumber": "+966501234567",
+      "searchUser": "Search for a user by name or email...",
+      "searchFacility": "Search for a facility by name or location...",
+      "searchCourt": "Search for a court by name, location, or type...",
+      "emailAddress": "Email address for receipt",
+      "addNotes": "Add any notes...",
+      "searchReceipts": "Search receipts...",
+      "searchPayments": "Search by player name, email, or reference...",
+      "searchBookings": "Search by user name, email, court name...",
+      "searchCourts": "Search courts by name, type, location, or manager...",
+      "searchRecordings": "Search by recording ID, user ID, session ID, or court ID...",
+      "notificationTitle": "Enter notification title...",
+      "notificationMessage": "Enter your message content...",
+      "testNotificationTitle": "Test notification title...",
+      "testNotificationMessage": "Test message content...",
+      "filterByStatus": "Filter by status",
+      "filterByStatusBooking": "Filter by Status",
+      "filterByCourt": "Filter by Court",
+      "pickDate": "Pick a date",
+      "dateRange": "Date range"
+    },
+    "buttons": {
+      "or": "OR",
+      "loadingUsers": "Loading users...",
+      "loadingFacilities": "Loading facilities...",
+      "loadingCourts": "Loading courts...",
+      "loadingBookings": "Loading bookings...",
+      "chooseFacility": "Choose a facility",
+      "selectFacilityFirst": "Select a facility first",
+      "selectUser": "Select a user",
+      "selectBooking": "Select a booking (optional)",
+      "cancelRecording": "Cancel this recording"
+    }
   }
 }

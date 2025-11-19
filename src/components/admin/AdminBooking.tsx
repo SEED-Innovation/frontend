@@ -340,7 +340,7 @@ const AdminBooking: React.FC<AdminBookingProps> = ({ className = '' }) => {
                             className="h-10 px-4 border-border/50 hover:border-primary/50 hover:bg-primary/5 text-muted-foreground hover:text-foreground transition-all duration-200"
                         >
                             <RefreshCw className="w-4 h-4 mr-2" />
-                            Refresh
+                            {t('common.refresh')}
                         </Button>
                     </div>
                 </motion.div>

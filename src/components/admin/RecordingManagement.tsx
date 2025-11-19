@@ -326,7 +326,7 @@ const RecordingManagement: React.FC = () => {
           </Button>
           <Button onClick={fetchRecordings} variant="outline" className="gap-2">
             <RefreshCw className="w-4 h-4" />
-            Refresh
+            {t('common.refresh')}
           </Button>
         </div>
       </div>
@@ -574,7 +574,7 @@ const RecordingManagement: React.FC = () => {
                               className="gap-1 text-orange-600 hover:text-orange-700"
                             >
                               <RefreshCw className="w-4 h-4" />
-                              Retry
+                              {t('common.retry')}
                             </Button>
                           )}
                           

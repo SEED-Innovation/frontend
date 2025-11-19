@@ -36,6 +36,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryParam } from '@/hooks/useQueryParam';
+import { useTranslation } from 'react-i18next';
 import { useUsersPaged, useAdminsPaged, useToggleUserEnabled, useToggleAdminEnabled } from '@/lib/hooks/useUsersPaged';
 import type { UserListItem, UserResponse } from '@/types/user';
 import { UpdateUserForm } from './UpdateUserForm';
@@ -54,6 +55,7 @@ interface UsersListProps {
 export default function UsersList({ onViewUser, onDeleteUser, searchTerm = '', statusFilter = 'All', isManagersTab = false, userType = 'users' }: UsersListProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation('admin');
   
   const [page, setPage] = useQueryParam('page', 0);
   const [size, setSize] = useQueryParam('size', 50);
@@ -316,7 +318,7 @@ export default function UsersList({ onViewUser, onDeleteUser, searchTerm = '', s
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">User Management</h2>
+          <h2 className="text-2xl font-bold">{t('userManagement.title')}</h2>
           <p className="text-muted-foreground">
             All Users ({(data as any)?.totalElements ?? 0})
           </p>
