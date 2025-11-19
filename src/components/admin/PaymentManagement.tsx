@@ -335,9 +335,9 @@ const PaymentManagement = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="SUCCESS">Paid</SelectItem>
+                <SelectItem value="SUCCESS">{t('common.paid')}</SelectItem>
                 <SelectItem value="PENDING">{t('status.pending')}</SelectItem>
-                <SelectItem value="FAILED">Failed</SelectItem>
+                <SelectItem value="FAILED">{t('common.failed')}</SelectItem>
               </SelectContent>
             </Select>
           </div>

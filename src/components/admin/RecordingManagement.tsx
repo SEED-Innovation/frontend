@@ -40,6 +40,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 import RecordingDetailsDialog from './RecordingDetailsDialog';
 import CreateRecordingDialog from './CreateRecordingDialog';
 import { adminRecordingService, type MatchRecording } from '@/lib/api/services/adminRecordingService';
@@ -57,6 +58,7 @@ interface RecordingStats {
 }
 
 const RecordingManagement: React.FC = () => {
+  const { t } = useTranslation('admin');
   const [recordings, setRecordings] = useState<MatchRecording[]>([]);
   const [stats, setStats] = useState<RecordingStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -236,7 +238,7 @@ const RecordingManagement: React.FC = () => {
   };
 
   const handleStopProcessing = async (recordingId: string) => {
-    if (!confirm('Are you sure you want to cancel this recording? This action cannot be undone.')) {
+    if (!confirm(t('recordings.confirmCancel'))) {
       return;
     }
 
@@ -245,7 +247,7 @@ const RecordingManagement: React.FC = () => {
 
       toast({
         title: 'Success',
-        description: 'Recording cancelled successfully',
+        description: t('recordings.cancelledSuccessfully'),
       });
 
       // Refresh recordings list
@@ -255,7 +257,7 @@ const RecordingManagement: React.FC = () => {
       console.error('Failed to cancel recording:', error);
       toast({
         title: 'Error',
-        description: error.message || 'Failed to cancel recording',
+        description: error.message || t('recordings.failedToCancel'),
         variant: 'destructive',
       });
     }
@@ -415,10 +417,10 @@ const RecordingManagement: React.FC = () => {
                 <SelectItem value="consolidating">Consolidating</SelectItem>
                 <SelectItem value="processing">Processing</SelectItem>
                 <SelectItem value="uploading">Uploading</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="ready">Ready</SelectItem>
-                <SelectItem value="failed">Failed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value="completed">{t('common.completed')}</SelectItem>
+                <SelectItem value="ready">{t('common.ready')}</SelectItem>
+                <SelectItem value="failed">{t('common.failed')}</SelectItem>
+                <SelectItem value="cancelled">{t('common.cancelled')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -592,10 +594,10 @@ const RecordingManagement: React.FC = () => {
                               size="sm"
                               onClick={() => handleStopProcessing(recording.recordingId)}
                               className="gap-1 text-red-600 hover:text-red-700"
-                              title="Cancel this recording"
+                              title={t('recordings.cancelRecording')}
                             >
                               <XCircle className="w-4 h-4" />
-                              Cancel
+                              {t('common.cancel')}
                             </Button>
                           )}
                           
@@ -932,10 +934,10 @@ const AssociateRecordingDialog: React.FC<AssociateRecordingDialogProps> = ({
 
           <div className="flex justify-end gap-2 pt-4 border-t">
             <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={!selectedUserId}>
-              Associate Recording
+              {t('recordings.associateRecording')}
             </Button>
           </div>
         </form>

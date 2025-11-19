@@ -47,7 +47,7 @@ export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
     if (!user) return;
 
     if (confirmText !== 'DELETE') {
-      toast.error('Please type "DELETE" to confirm');
+      toast.error(t('userManagement.typeDelete'));
       return;
     }
 

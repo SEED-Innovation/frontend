@@ -12,6 +12,7 @@ import { MapPin, Image, Trash2, Plus, Check, ChevronsUpDown, X } from 'lucide-re
 import { CreateCourtRequest } from '@/lib/api/services/courtService';
 import { SportType } from '@/types/court';
 import { toast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -53,6 +54,7 @@ export default function EnhancedCourtForm({
   admins, 
   adminsLoading 
 }: EnhancedCourtFormProps) {
+  const { t } = useTranslation('admin');
   const [formData, setFormData] = useState<CreateCourtRequest & { managerId?: string }>({
     name: '',
     sportType: 'TENNIS' as SportType,
@@ -103,7 +105,7 @@ export default function EnhancedCourtForm({
     } catch (error) {
       console.error('Error fetching facilities:', error);
       toast({ 
-        title: "Error", 
+        title: t('common.error'), 
         description: "Failed to load facilities",
         variant: "destructive"
       });
@@ -247,7 +249,7 @@ export default function EnhancedCourtForm({
               <h3 className="text-lg font-semibold">Basics</h3>
               
               <div>
-                <Label htmlFor="name">Court Name *</Label>
+                <Label htmlFor="name">{t('courts.courtName')} *</Label>
                 <Input
                   id="name"
                   value={formData.name}

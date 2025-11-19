@@ -439,7 +439,12 @@
     "cancel": "إلغاء",
     "creating": "جاري الإنشاء...",
     "success": "تم إنشاء التسجيل بنجاح",
-    "error": "فشل إنشاء التسجيل"
+    "error": "فشل إنشاء التسجيل",
+    "associateRecording": "ربط التسجيل",
+    "confirmCancel": "هل أنت متأكد من إلغاء هذا التسجيل؟ لا يمكن التراجع عن هذا الإجراء.",
+    "cancelledSuccessfully": "تم إلغاء التسجيل بنجاح",
+    "failedToCancel": "فشل إلغاء التسجيل",
+    "cancelRecording": "إلغاء هذا التسجيل"
   },
   "resetPassword": {
     "title": "إعادة تعيين كلمة المرور",
@@ -865,7 +870,17 @@
     "refresh": "تحديث",
     "retry": "إعادة المحاولة",
     "retryRecording": "إعادة محاولة التسجيل",
-    "refreshCameras": "تحديث الكاميرات"
+    "refreshCameras": "تحديث الكاميرات",
+    "allStatus": "جميع الحالات",
+    "paid": "مدفوع",
+    "failed": "فشل",
+    "completed": "مكتمل",
+    "ready": "جاهز",
+    "cancelled": "ملغي",
+    "error": "خطأ",
+    "success": "نجح",
+    "loading": "جاري التحميل",
+    "cancel": "إلغاء"
   },
   "forms": {
     "labels": {

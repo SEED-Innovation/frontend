@@ -829,7 +829,12 @@
     "cancel": "Cancel",
     "creating": "Creating...",
     "success": "Recording created successfully",
-    "error": "Failed to create recording"
+    "error": "Failed to create recording",
+    "associateRecording": "Associate Recording",
+    "confirmCancel": "Are you sure you want to cancel this recording? This action cannot be undone.",
+    "cancelledSuccessfully": "Recording cancelled successfully",
+    "failedToCancel": "Failed to cancel recording",
+    "cancelRecording": "Cancel this recording"
   },
   "menu": {
     "dashboard": "Dashboard",
@@ -883,7 +888,17 @@
     "refresh": "Refresh",
     "retry": "Retry",
     "retryRecording": "Retry Recording",
-    "refreshCameras": "Refresh Cameras"
+    "refreshCameras": "Refresh Cameras",
+    "allStatus": "All Status",
+    "paid": "Paid",
+    "failed": "Failed",
+    "completed": "Completed",
+    "ready": "Ready",
+    "cancelled": "Cancelled",
+    "error": "Error",
+    "success": "Success",
+    "loading": "Loading",
+    "cancel": "Cancel"
   },
   "forms": {
     "labels": {

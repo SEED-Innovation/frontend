@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Copy, Eye, EyeOff, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { useSecureClipboard } from '@/hooks/useSecureClipboard';
+import { useTranslation } from 'react-i18next';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface CredentialsDialogProps {
@@ -19,6 +20,7 @@ interface CredentialsDialogProps {
 }
 
 export function CredentialsDialog({ open, onOpenChange, credentials, onClose }: CredentialsDialogProps) {
+  const { t } = useTranslation('admin');
   const [showPassword, setShowPassword] = useState(false);
   const { copyToClipboard, cleanup } = useSecureClipboard();
   const [copiedField, setCopiedField] = useState<'email' | 'password' | null>(null);
@@ -69,7 +71,7 @@ export function CredentialsDialog({ open, onOpenChange, credentials, onClose }: 
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t('userManagement.email')}</Label>
             <div className="flex gap-2">
               <Input
                 id="email"

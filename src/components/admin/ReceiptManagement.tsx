@@ -217,7 +217,7 @@ const ReceiptManagement: React.FC = () => {
           color="bg-blue-500"
         />
         <StatCard
-          title="Paid"
+          title={t('common.paid')}
           value={receipts.filter(r => r.status === ReceiptStatus.PAID).length}
           icon={CheckCircle}
           color="bg-green-500"
@@ -229,7 +229,7 @@ const ReceiptManagement: React.FC = () => {
           color="bg-yellow-500"
         />
         <StatCard
-          title="Cancelled"
+          title={t('common.cancelled')}
           value={receipts.filter(r => r.status === ReceiptStatus.CANCELLED).length}
           icon={XCircle}
           color="bg-red-500"

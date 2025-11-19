@@ -691,7 +691,7 @@ const CourtManagement = () => {
                       onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="All Status" />
+                        <SelectValue placeholder={t('common.allStatus')} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all-status">All Status</SelectItem>

@@ -217,7 +217,7 @@ export default function UsersList({ onViewUser, onDeleteUser, searchTerm = '', s
       });
     } catch (error) {
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: `Failed to ${action} user. Please try again.`,
         variant: "destructive"
       });
@@ -285,7 +285,7 @@ export default function UsersList({ onViewUser, onDeleteUser, searchTerm = '', s
       });
     } catch (error) {
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: "Failed to refresh data. Please try again.",
         variant: "destructive"
       });

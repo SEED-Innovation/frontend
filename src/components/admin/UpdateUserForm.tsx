@@ -162,7 +162,7 @@ export function UpdateUserForm({ user, isOpen, onClose, onSubmit, isManager = fa
                           {t('updateUser.email')}
                         </FormLabel>
                         <FormControl>
-                          <Input {...field} type="email" placeholder="Enter email address" />
+                          <Input {...field} type="email" placeholder={t('userManagement.enterEmailAddress')} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
