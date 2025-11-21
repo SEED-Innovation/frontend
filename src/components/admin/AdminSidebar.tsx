@@ -132,7 +132,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed }) => {
           </div>
           {!collapsed && (
             <div>
-              <h1 className="text-lg font-bold text-gray-900">{user?.name || 'SEED Admin'}</h1>
+              <h1 className="text-lg font-bold text-gray-900">{user?.name}</h1>
               <p className="text-xs text-gray-500">{t('menu.courtManagement')}</p>
             </div>
           )}

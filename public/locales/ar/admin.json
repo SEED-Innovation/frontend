@@ -36,7 +36,7 @@
     "totalSpent": "إجمالي المبلغ المنفق"
   },
   "courts": {
-    "title": "إدارة الملاعب",
+    "title": "إدارة المنشآت",
     "allCourts": "جميع الملاعب",
     "addCourt": "إضافة ملعب",
     "editCourt": "تعديل الملعب",
@@ -422,7 +422,7 @@
     "analytics": "التحليلات",
     "settings": "الإعدادات",
     "myProfile": "ملفي الشخصي",
-    "courtManagement": "إدارة الملاعب"
+    "courtManagement": "إدارة المنشآت"
   },
   "recordings": {
     "title": "إدارة التسجيلات",

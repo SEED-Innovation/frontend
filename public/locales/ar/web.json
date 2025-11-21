@@ -214,7 +214,7 @@
       "analytics": "التحليلات",
       "settings": "الإعدادات",
       "myProfile": "ملفي الشخصي",
-      "courtManagement": "إدارة الملاعب"
+      "courtManagement": "إدارة المنشآت"
     },
     "common": {
       "add": "إضافة",
@@ -238,7 +238,7 @@
     },
     "pages": {
       "courtManagement": {
-        "title": "إدارة الملاعب",
+        "title": "إدارة المنشآت",
         "subtitle": "إدارة جميع الملاعب والتوفر والأسعار",
         "addNewCourt": "إضافة ملعب جديد",
         "availability": "التوفر",

@@ -36,7 +36,7 @@
     "totalSpent": "Total Spent"
   },
   "courts": {
-    "title": "Court Management",
+    "title": "Facility Management",
     "allCourts": "All Courts",
     "addCourt": "Add Court",
     "editCourt": "Edit Court",
@@ -812,7 +812,7 @@
     "analytics": "Analytics",
     "settings": "Settings",
     "myProfile": "My Profile",
-    "courtManagement": "Court Management"
+    "courtManagement": "Facility Management"
   },
   "recordings": {
     "title": "Recording Management",
@@ -879,7 +879,7 @@
     "analytics": "Analytics",
     "settings": "Settings",
     "myProfile": "My Profile",
-    "courtManagement": "Court Management"
+    "courtManagement": "Facility Management"
   },
   "stats": {
     "totalRevenue": "Total Revenue",

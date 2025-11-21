@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import FeeBreakdown from './FeeBreakdown';
+import { useTranslation } from 'react-i18next';
 
 import { formatDateTime, calculateDuration } from '@/utils';
 import { getStatusColor, getStatusIcon } from '@/utils/bookingUtils';
@@ -37,6 +38,7 @@ interface EnhancedAdminBookingProps {
 export const EnhancedAdminBooking: React.FC<EnhancedAdminBookingProps> = ({
     bookings, stats, courts, isLoading, onApprove, onReject, onCancel, onRefresh
 }) => {
+    const { t } = useTranslation('admin');
 
     const [statusFilter, setStatusFilter] = useState('all');
     const [dateFilter, setDateFilter] = useState('all');

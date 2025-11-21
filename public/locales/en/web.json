@@ -210,7 +210,7 @@
       "analytics": "Analytics",
       "settings": "Settings",
       "myProfile": "My Profile",
-      "courtManagement": "Court Management"
+      "courtManagement": "Facility Management"
     },
     "common": {
       "add": "Add",
@@ -234,7 +234,7 @@
     },
     "pages": {
       "courtManagement": {
-        "title": "Court Management",
+        "title": "Facility Management",
         "subtitle": "Manage all courts, availability, and pricing",
         "addNewCourt": "Add New Court",
         "availability": "Availability",
