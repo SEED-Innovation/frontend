@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Settings, LogOut, Home } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 interface AdminNavigationProps {
   onSettingsClick?: () => void;
@@ -11,6 +12,7 @@ interface AdminNavigationProps {
 
 const AdminNavigation: React.FC<AdminNavigationProps> = ({ onSettingsClick }) => {
   const navigate = useNavigate();
+  const { user } = useAdminAuth();
 
   const handleLogout = () => {
     toast.success('Logged out successfully');
@@ -35,7 +37,7 @@ const AdminNavigation: React.FC<AdminNavigationProps> = ({ onSettingsClick }) =>
             <div className="w-8 h-8 tennis-gradient rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">S</span>
             </div>
-            <span className="text-xl font-bold text-gray-900">SEED Admin</span>
+            <span className="text-xl font-bold text-gray-900">{user?.name || 'SEED Admin'}</span>
           </Link>
 
           {/* Navigation Items */}
