@@ -9,6 +9,7 @@ import { adminRecordingService } from '@/lib/api/services/adminRecordingService'
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { useTranslation } from 'react-i18next';
 
 interface Facility {
   id: number;
@@ -41,6 +42,7 @@ interface CreateRecordingDialogProps {
 }
 
 const CreateRecordingDialog: React.FC<CreateRecordingDialogProps> = ({ open, onClose, onSuccess }) => {
+  const { t } = useTranslation('admin');
   const [step, setStep] = useState(1);
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [courts, setCourts] = useState<Court[]>([]);
@@ -184,25 +186,6 @@ const CreateRecordingDialog: React.FC<CreateRecordingDialogProps> = ({ open, onC
     // Validate times
     const start = new Date(startDateTime);
     const end = new Date(endDateTime);
-    const now = new Date();
-    
-    if (start > now) {
-      toast({
-        title: 'Error',
-        description: 'Start time must be in the past',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (end > now) {
-      toast({
-        title: 'Error',
-        description: 'End time must be in the past',
-        variant: 'destructive',
-      });
-      return;
-    }
 
     if (end <= start) {
       toast({
@@ -240,9 +223,12 @@ const CreateRecordingDialog: React.FC<CreateRecordingDialogProps> = ({ open, onC
         }
       });
 
+      const now = new Date();
+      const isFuture = start > now;
+      
       toast({
         title: 'Success',
-        description: 'Recording created successfully',
+        description: isFuture ? t('recordings.successFuture') : t('recordings.success'),
       });
       
       onSuccess();
@@ -364,23 +350,18 @@ const CreateRecordingDialog: React.FC<CreateRecordingDialogProps> = ({ open, onC
                     if (!endDateTime || endDateTime <= newStartTime) {
                       const start = new Date(newStartTime);
                       const end = new Date(start.getTime() + 60 * 60 * 1000); // Add 1 hour
-                      const now = new Date();
                       
-                      // Don't exceed current time
-                      const finalEnd = end > now ? now : end;
-                      
-                      const year = finalEnd.getFullYear();
-                      const month = String(finalEnd.getMonth() + 1).padStart(2, '0');
-                      const day = String(finalEnd.getDate()).padStart(2, '0');
-                      const hours = String(finalEnd.getHours()).padStart(2, '0');
-                      const minutes = String(finalEnd.getMinutes()).padStart(2, '0');
+                      const year = end.getFullYear();
+                      const month = String(end.getMonth() + 1).padStart(2, '0');
+                      const day = String(end.getDate()).padStart(2, '0');
+                      const hours = String(end.getHours()).padStart(2, '0');
+                      const minutes = String(end.getMinutes()).padStart(2, '0');
                       setEndDateTime(`${year}-${month}-${day}T${hours}:${minutes}`);
                     }
                   }}
-                  max={getCurrentDateTime()}
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Select a past time. End time will auto-adjust to 1 hour later.
+                  Select any date and time. End time will auto-adjust to 1 hour later.
                 </p>
               </div>
 
@@ -391,7 +372,6 @@ const CreateRecordingDialog: React.FC<CreateRecordingDialogProps> = ({ open, onC
                   value={endDateTime}
                   onChange={(e) => setEndDateTime(e.target.value)}
                   min={startDateTime}
-                  max={getCurrentDateTime()}
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   Must be after start time. Maximum duration: 2 hours.

@@ -102,5 +102,23 @@
     "confirmed": "مؤكد",
     "available": "متاح",
     "unavailable": "غير متاح"
+  },
+  "ui": {
+    "faq": "الأسئلة الشائعة",
+    "goToPreviousPage": "الانتقال إلى الصفحة السابقة",
+    "goToNextPage": "الانتقال إلى الصفحة التالية",
+    "morePages": "المزيد من الصفحات",
+    "loading": "جاري التحميل...",
+    "seedTagline": "إدارة ملاعب التنس الاحترافية",
+    "selectCourt": "اختر الملعب",
+    "backToCourts": "العودة إلى الملاعب",
+    "aiTechnologyFeatures": "ميزات تقنية الذكاء الاصطناعي",
+    "availableTimeSlots": "الأوقات المتاحة",
+    "noAvailableSlots": "لا توجد أوقات متاحة",
+    "total": "الإجمالي",
+    "booking": "جاري الحجز...",
+    "bookSession": "احجز جلسة",
+    "hour": "ساعة",
+    "hours": "ساعات"
   }
 }

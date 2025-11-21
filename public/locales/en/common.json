@@ -102,5 +102,23 @@
     "confirmed": "Confirmed",
     "available": "Available",
     "unavailable": "Unavailable"
+  },
+  "ui": {
+    "faq": "FAQ",
+    "goToPreviousPage": "Go to previous page",
+    "goToNextPage": "Go to next page",
+    "morePages": "More pages",
+    "loading": "Loading...",
+    "seedTagline": "Professional Tennis Court Management",
+    "selectCourt": "Select Court",
+    "backToCourts": "Back to Courts",
+    "aiTechnologyFeatures": "AI Technology Features",
+    "availableTimeSlots": "Available Time Slots",
+    "noAvailableSlots": "No available time slots",
+    "total": "Total",
+    "booking": "Booking...",
+    "bookSession": "Book Session",
+    "hour": "hour",
+    "hours": "hours"
   }
 }

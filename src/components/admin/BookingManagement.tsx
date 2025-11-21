@@ -880,7 +880,7 @@ const BookingManagement = () => {
                         onClick={() => setCancelledBookingsPage(Math.max(0, cancelledBookingsPage - 1))}
                         disabled={cancelledBookingsPage === 0}
                       >
-                        {t('ui.previous')}
+                        {t('buttons.previous', { ns: 'common' })}
                       </Button>
                       <span className="text-sm text-gray-600">
                         {t('admin.cancelledBookings.page')} {cancelledBookingsPage + 1} {t('admin.cancelledBookings.of')} {cancelledBookingsTotalPages}
@@ -890,7 +890,7 @@ const BookingManagement = () => {
                         onClick={() => setCancelledBookingsPage(Math.min(cancelledBookingsTotalPages - 1, cancelledBookingsPage + 1))}
                         disabled={cancelledBookingsPage >= cancelledBookingsTotalPages - 1}
                       >
-                        {t('ui.next')}
+                        {t('buttons.next', { ns: 'common' })}
                       </Button>
                     </div>
                   )}
@@ -1139,7 +1139,7 @@ const RefundActionModal: React.FC<RefundActionModalProps> = ({ bookingIds, booki
           {/* Actions */}
           <div className="flex justify-end gap-2 pt-4">
             <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
-              {t('ui.cancel')}
+              {t('buttons.cancel', { ns: 'common' })}
             </Button>
             <Button onClick={handleSubmit} disabled={isSubmitting}>
               {isSubmitting ? t('admin.cancelledBookings.processing') : t('admin.cancelledBookings.confirmRefund')}
@@ -1230,7 +1230,7 @@ const AuditTrailModal: React.FC<AuditTrailModalProps> = ({ bookingId, auditData,
           )}
           <div className="flex justify-end pt-4">
             <Button variant="outline" onClick={onClose}>
-              {t('ui.close')}
+              {t('buttons.close', { ns: 'common' })}
             </Button>
           </div>
         </div>

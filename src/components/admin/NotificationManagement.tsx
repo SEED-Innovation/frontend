@@ -185,15 +185,15 @@ const NotificationManagement: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
             <Bell className="w-8 h-8 text-primary" />
-            Broadcast Notifications
+            {t('notifications.broadcastNotifications')}
           </h1>
           <p className="text-gray-600 mt-2">
-            Send promotional messages and announcements to mobile app users
+            {t('notifications.sendPromotionalMessages')}
           </p>
         </div>
         <Button onClick={loadStats} variant="outline" disabled={statsLoading}>
           {statsLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <BarChart3 className="w-4 h-4 mr-2" />}
-          Refresh Stats
+          {t('notifications.refreshStats')}
         </Button>
       </div>
 
@@ -201,7 +201,7 @@ const NotificationManagement: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Active Devices</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('notifications.totalActiveDevices')}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -209,14 +209,14 @@ const NotificationManagement: React.FC = () => {
               {statsLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : stats?.totalActiveDevices || 0}
             </div>
             <p className="text-xs text-muted-foreground">
-              Registered mobile devices
+              {t('notifications.registeredMobileDevices')}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Language Distribution</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('notifications.languageDistribution')}</CardTitle>
             <Globe className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -226,11 +226,11 @@ const NotificationManagement: React.FC = () => {
               ) : (
                 <>
                   <div className="flex justify-between">
-                    <span className="text-sm">English:</span>
+                    <span className="text-sm">{t('notifications.english')}:</span>
                     <Badge variant="secondary">{stats?.devicesByLanguage?.en || 0}</Badge>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm">Arabic:</span>
+                    <span className="text-sm">{t('notifications.arabic')}:</span>
                     <Badge variant="secondary">{stats?.devicesByLanguage?.ar || 0}</Badge>
                   </div>
                 </>
@@ -241,7 +241,7 @@ const NotificationManagement: React.FC = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Platform Distribution</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('notifications.platformDistribution')}</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -251,11 +251,11 @@ const NotificationManagement: React.FC = () => {
               ) : (
                 <>
                   <div className="flex justify-between">
-                    <span className="text-sm">Android:</span>
+                    <span className="text-sm">{t('notifications.android')}:</span>
                     <Badge variant="secondary">{stats?.devicesByPlatform?.ANDROID || 0}</Badge>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm">iOS:</span>
+                    <span className="text-sm">{t('notifications.ios')}:</span>
                     <Badge variant="secondary">{stats?.devicesByPlatform?.IOS || 0}</Badge>
                   </div>
                 </>
@@ -268,8 +268,8 @@ const NotificationManagement: React.FC = () => {
       {/* Main Content */}
       <Tabs defaultValue="broadcast" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="broadcast">Broadcast Notification</TabsTrigger>
-          <TabsTrigger value="test">Test Notification</TabsTrigger>
+          <TabsTrigger value="broadcast">{t('notifications.broadcastNotification')}</TabsTrigger>
+          <TabsTrigger value="test">{t('notifications.testNotification')}</TabsTrigger>
         </TabsList>
 
         {/* Broadcast Tab */}
@@ -278,10 +278,10 @@ const NotificationManagement: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Send className="w-5 h-5" />
-                Send Broadcast Notification
+                {t('notifications.sendBroadcastNotification')}
               </CardTitle>
               <CardDescription>
-                Send promotional messages, announcements, or important updates to your users
+                {t('notifications.sendPromotionalDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -289,43 +289,43 @@ const NotificationManagement: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="title">Notification Title</Label>
+                    <Label htmlFor="title">{t('notifications.notificationTitle')}</Label>
                     <Input
                       id="title"
-                      placeholder="Enter notification title..."
+                      placeholder={t('notifications.enterNotificationTitle')}
                       value={form.title}
                       onChange={(e) => setForm({ ...form, title: e.target.value })}
                       maxLength={100}
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      {form.title.length}/100 characters
+                      {form.title.length}/100 {t('notifications.characters')}
                     </p>
                   </div>
 
                   <div>
-                    <Label htmlFor="body">Message Content</Label>
+                    <Label htmlFor="body">{t('notifications.messageContent')}</Label>
                     <Textarea
                       id="body"
-                      placeholder="Enter your message content..."
+                      placeholder={t('notifications.enterMessageContent')}
                       value={form.body}
                       onChange={(e) => setForm({ ...form, body: e.target.value })}
                       rows={4}
                       maxLength={500}
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      {form.body.length}/500 characters
+                      {form.body.length}/500 {t('notifications.characters')}
                     </p>
                   </div>
 
                   <div>
-                    <Label htmlFor="language">Message Language</Label>
+                    <Label htmlFor="language">{t('notifications.messageLanguage')}</Label>
                     <Select value={form.language} onValueChange={(value) => setForm({ ...form, language: value })}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="en">English</SelectItem>
-                        <SelectItem value="ar">Arabic</SelectItem>
+                        <SelectItem value="en">{t('notifications.english')}</SelectItem>
+                        <SelectItem value="ar">{t('notifications.arabic')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -336,7 +336,7 @@ const NotificationManagement: React.FC = () => {
                   <Alert>
                     <Target className="h-4 w-4" />
                     <AlertDescription>
-                      <strong>Target:</strong> {getTargetDescription()}
+                      <strong>{t('notifications.target')}:</strong> {getTargetDescription()}
                     </AlertDescription>
                   </Alert>
                 </div>

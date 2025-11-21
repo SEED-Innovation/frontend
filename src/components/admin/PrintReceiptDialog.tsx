@@ -11,6 +11,7 @@ import {
 import { Printer, Eye, Mail, X, Download, Loader2 } from 'lucide-react';
 import { CurrencyDisplay } from '@/components/ui/currency-display';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 
 interface PrintReceiptDialogProps {
     isOpen: boolean;
@@ -37,6 +38,7 @@ const PrintReceiptDialog: React.FC<PrintReceiptDialogProps> = ({
     const [isDownloading, setIsDownloading] = useState(false);
     const [isPreviewing, setIsPreviewing] = useState(false);
     const { toast } = useToast();
+    const { t } = useTranslation('admin');
 
     const handlePrintReceipt = async () => {
         try {
@@ -77,16 +79,16 @@ const PrintReceiptDialog: React.FC<PrintReceiptDialogProps> = ({
                 URL.revokeObjectURL(url);
                 
                 toast({
-                    title: "Download Started",
-                    description: "Receipt downloaded - you can print it manually",
+                    title: t('common.success'),
+                    description: t('printReceipt.downloadStarted'),
                 });
             }
             
         } catch (error) {
             console.error('Print failed:', error);
             toast({
-                title: "Print Failed",
-                description: "Unable to open receipt for printing. Please try again.",
+                title: t('common.error'),
+                description: t('printReceipt.printFailed'),
                 variant: "destructive"
             });
         } finally {
@@ -113,15 +115,15 @@ const PrintReceiptDialog: React.FC<PrintReceiptDialogProps> = ({
             }, 1000);
             
             toast({
-                title: "Preview Opened",
-                description: "Receipt opened in new tab for preview",
+                title: t('common.success'),
+                description: t('printReceipt.previewOpened'),
             });
             
         } catch (error) {
             console.error('Preview failed:', error);
             toast({
-                title: "Preview Failed",
-                description: "Unable to preview receipt. Please try again.",
+                title: t('common.error'),
+                description: t('printReceipt.previewFailed'),
                 variant: "destructive"
             });
         } finally {
@@ -131,8 +133,8 @@ const PrintReceiptDialog: React.FC<PrintReceiptDialogProps> = ({
 
     const handleEmailOnly = () => {
         toast({
-            title: "Email Sent",
-            description: "Receipt has been sent to the customer's email",
+            title: t('common.success'),
+            description: t('printReceipt.emailSent'),
         });
         onClose();
     };

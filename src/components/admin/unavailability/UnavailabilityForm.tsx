@@ -15,6 +15,7 @@ import { courtService, MarkUnavailableRequest } from '@/lib/api/services/courtSe
 import { Court } from '@/types/court';
 import { handleApiError, isErrorCode } from '@/utils/errorMapper';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -24,6 +25,7 @@ interface UnavailabilityFormProps {
 }
 
 export const UnavailabilityForm: React.FC<UnavailabilityFormProps> = ({ onSuccess }) => {
+  const { t } = useTranslation('admin');
   const [courts, setCourts] = useState<Court[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -162,7 +164,7 @@ export const UnavailabilityForm: React.FC<UnavailabilityFormProps> = ({ onSucces
               <div className="space-y-2">
                 <Label htmlFor="court" className="text-sm font-medium flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
-                  Court *
+                  {t('courts.court')} *
                 </Label>
                 <Popover open={courtSearchOpen} onOpenChange={setCourtSearchOpen}>
                   <PopoverTrigger asChild>
@@ -252,7 +254,7 @@ export const UnavailabilityForm: React.FC<UnavailabilityFormProps> = ({ onSucces
               <div className="space-y-2">
                 <Label htmlFor="date" className="text-sm font-medium flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  Date *
+                  {t('common.date')} *
                 </Label>
                 <div className="relative">
                   <Input

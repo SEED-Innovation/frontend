@@ -16,11 +16,13 @@ import { unavailabilityService } from '@/lib/api/admin/unavailabilityService';
 import { handleApiError } from '@/utils/errorMapper';
 import { courtService } from '@/lib/api/services/courtService';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 type SortField = 'courtName' | 'date';
 type SortDirection = 'asc' | 'desc';
 
 export const UnavailabilityTable: React.FC = () => {
+  const { t } = useTranslation('admin');
   const [data, setData] = useState<UnavailabilityRow[]>([]);
   const [courts, setCourts] = useState<{ id: number; name: string; imageUrl?: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -341,7 +343,7 @@ export const UnavailabilityTable: React.FC = () => {
                 </TableHead>
                 <TableHead className="cursor-pointer hover:bg-muted/50 transition-colors">
                   <SortableHeader field="date" currentField={sortField} direction={sortDirection} onSort={handleSort}>
-                    Date
+                    {t('common.date')}
                   </SortableHeader>
                 </TableHead>
                 <TableHead className="text-right">Actions</TableHead>
