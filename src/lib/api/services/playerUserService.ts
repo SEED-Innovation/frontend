@@ -113,8 +113,13 @@ export async function getLanguagePreferenceWithFallback(): Promise<LanguagePrefe
   try {
     // Try to get from backend first
     return await getLanguagePreference();
-  } catch (error) {
-    console.warn('Failed to get language preference from backend, using local fallback:', error);
+  } catch (error: any) {
+    // Handle 401 errors silently
+    if (error?.status === 401) {
+      console.debug('User not authenticated, using local language preference');
+    } else {
+      console.warn('Failed to get language preference from backend, using local fallback:', error);
+    }
     
     // Fallback to local storage
     const localLanguage = localStorage.getItem('i18nextLng') as 'en' | 'ar' || 'en';
@@ -161,7 +166,14 @@ export async function initializeLanguagePreference(): Promise<LanguagePreference
     }
     
     return backendPreference;
-  } catch (error) {
+  } catch (error: any) {
+    // Handle 401 errors silently (user not authenticated or token expired)
+    if (error?.status === 401) {
+      console.debug('User not authenticated for language preference sync');
+      return null;
+    }
+    
+    // Log other errors as warnings
     console.warn('Failed to initialize language preference from backend:', error);
     return null;
   }
