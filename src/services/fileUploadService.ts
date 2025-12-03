@@ -19,7 +19,7 @@ class FileUploadService {
     formData.append('file', file);
     formData.append('folder', folder);
 
-    const response = await fetch(`${API_BASE_URL}/upload`, {
+    const response = await fetch(`${API_BASE_URL}/api/upload`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: formData,
