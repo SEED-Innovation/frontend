@@ -69,6 +69,7 @@ interface BookingFormData {
     paymentMethod: 'CASH' | 'TAP_TO_MANAGER' | 'PENDING' | '';
     sendReceiptEmail: boolean;
     customerEmail: string;
+    seedRecordingEnabled: boolean; // Enable SEED recording for this booking
     // Payment link specific fields
     bookingMode: 'IMMEDIATE' | 'PAYMENT_LINK';
     phoneNumber: string;
@@ -111,6 +112,7 @@ const ManualBookingForm: React.FC<ManualBookingFormProps> = ({
         notes: '',
         paymentMethod: '',
         sendReceiptEmail: true,
+        seedRecordingEnabled: true, // Default to enabled
         bookingMode: 'IMMEDIATE',
         phoneNumber: '',
         customerEmail: ''
@@ -636,7 +638,8 @@ const loadCourts = async (facilityId?: number) => {
             
             const bookingRequest: CreateBookingRequest & { 
                 sendReceiptEmail?: boolean; 
-                customerEmail?: string; 
+                customerEmail?: string;
+                seedRecordingEnabled?: boolean;
             } = {
                 userId: formData.userId!,
                 courtId: formData.courtId!,
@@ -646,7 +649,8 @@ const loadCourts = async (facilityId?: number) => {
                 matchType: formData.matchType as 'SINGLE' | 'DOUBLE',
                 notes: formData.notes || undefined,
                 sendReceiptEmail: formData.sendReceiptEmail,
-                customerEmail: formData.customerEmail || undefined
+                customerEmail: formData.customerEmail || undefined,
+                seedRecordingEnabled: formData.seedRecordingEnabled // ✅ Pass SEED recording preference
             };
 
             console.log('🏗️ Creating manual booking with email settings:', {
@@ -729,6 +733,7 @@ const loadCourts = async (facilityId?: number) => {
             notes: '',
             paymentMethod: '',
             sendReceiptEmail: true,
+            seedRecordingEnabled: true, // Reset to default enabled
             customerEmail: '',
             bookingMode: 'IMMEDIATE',
             phoneNumber: ''
@@ -1463,6 +1468,30 @@ const loadCourts = async (facilityId?: number) => {
                                     )}
                                 </div>,
                                 false
+                            )}
+                            </div>
+                        )}
+
+                        {/* SEED Recording Option (Immediate Booking Only) */}
+                        {formData.bookingMode === 'IMMEDIATE' && (
+                            <div>
+                            {renderFormField(
+                                'SEED Recording',
+                                'seedRecordingEnabled',
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type="checkbox"
+                                        id="seedRecordingEnabled"
+                                        checked={formData.seedRecordingEnabled}
+                                        onChange={(e) => handleInputChange('seedRecordingEnabled', e.target.checked)}
+                                        className="rounded border-gray-300"
+                                    />
+                                    <label htmlFor="seedRecordingEnabled" className="text-sm font-medium">
+                                        Enable SEED recording for this booking
+                                    </label>
+                                </div>,
+                                false,
+                                'Enable automatic video recording if the court has SEED system'
                             )}
                             </div>
                         )}
