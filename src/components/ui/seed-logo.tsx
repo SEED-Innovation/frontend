@@ -23,45 +23,24 @@ const SeedLogo: React.FC<SeedLogoProps> = ({
   if (variant === 'icon') {
     return (
       <div className={`${sizeClasses[size]} ${className}`}>
-        <svg 
-          viewBox="0 0 100 100" 
-          className="h-full w-auto"
-          fill="none" 
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          {/* SEED Icon - Arrow/Chevron */}
-          <path
-            d="M25 20 L60 50 L25 80 L30 85 L70 50 L30 15 Z"
-            fill="hsl(var(--seed-purple))"
-          />
-          <path
-            d="M45 20 L80 50 L45 80 L50 85 L90 50 L50 15 Z"
-            fill="hsl(var(--seed-green))"
-          />
-        </svg>
+        <img 
+          src="/logo.png" 
+          alt="SEED Logo"
+          className="h-full w-auto object-contain"
+        />
       </div>
     );
   }
 
   return (
     <div className={`flex items-center space-x-3 ${className}`}>
-      {/* Icon */}
+      {/* Logo Image */}
       <div className={`${sizeClasses[size]} flex items-center`}>
-        <svg 
-          viewBox="0 0 100 100" 
-          className="h-full w-auto"
-          fill="none" 
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M25 20 L60 50 L25 80 L30 85 L70 50 L30 15 Z"
-            fill="hsl(var(--seed-purple))"
-          />
-          <path
-            d="M45 20 L80 50 L45 80 L50 85 L90 50 L50 15 Z"
-            fill="hsl(var(--seed-green))"
-          />
-        </svg>
+        <img 
+          src="/logo.png" 
+          alt="SEED Logo"
+          className="h-full w-auto object-contain"
+        />
       </div>
       
       {/* Text */}

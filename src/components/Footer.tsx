@@ -15,8 +15,12 @@ const Footer = () => {
           {/* Logo and Description */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-3 mb-4">
-              <div className="w-8 h-8 tennis-gradient rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">S</span>
+              <div className="w-8 h-8 flex items-center justify-center">
+                <img 
+                  src="/logo.png" 
+                  alt="SEED Logo"
+                  className="w-full h-full object-contain"
+                />
               </div>
               <span className="text-xl font-bold">SEED</span>
               {/* Saudi Flag */}

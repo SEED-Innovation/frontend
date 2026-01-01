@@ -34,8 +34,12 @@ const AdminNavigation: React.FC<AdminNavigationProps> = ({ onSettingsClick }) =>
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/admin" className="flex items-center space-x-3">
-            <div className="w-8 h-8 tennis-gradient rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">S</span>
+            <div className="w-8 h-8 flex items-center justify-center">
+              <img 
+                src="/logo.png" 
+                alt="SEED Logo"
+                className="w-full h-full object-contain"
+              />
             </div>
             <span className="text-xl font-bold text-gray-900">{user?.name || 'SEED Admin'}</span>
           </Link>
