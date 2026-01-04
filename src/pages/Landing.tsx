@@ -195,7 +195,7 @@ const Landing = () => {
               <motion.img
                 src="/logo.png"
                 alt={t('landing.hero.seedLogoAlt')}
-                className="h-10 w-auto"
+                className="h-10 w-auto rounded-full"
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
               />
@@ -987,7 +987,7 @@ const Landing = () => {
                 <img
                   src="/logo.png"
                   alt={t('landing.hero.seedLogoAlt')}
-                  className="h-10 sm:h-12 w-auto"
+                  className="h-10 sm:h-12 w-auto rounded-full"
                 />
                 <span className="text-xl sm:text-2xl font-bold">INNOVATION</span>
               </Link>

@@ -19,7 +19,7 @@ const Footer = () => {
                 <img 
                   src="/logo.png" 
                   alt="SEED Logo"
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-contain rounded-full"
                 />
               </div>
               <span className="text-xl font-bold">SEED</span>

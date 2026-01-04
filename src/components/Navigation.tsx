@@ -67,7 +67,7 @@ const Navigation = () => {
             <img 
               src="/logo.png" 
               alt="SEED Logo" 
-              className="h-10 w-auto"
+              className="h-10 w-auto rounded-full"
             />
             <span className="text-xl font-bold text-gray-900 hidden sm:block">SEED</span>
           </Link>

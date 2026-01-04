@@ -38,7 +38,7 @@ const AdminNavigation: React.FC<AdminNavigationProps> = ({ onSettingsClick }) =>
               <img 
                 src="/logo.png" 
                 alt="SEED Logo"
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain rounded-full"
               />
             </div>
             <span className="text-xl font-bold text-gray-900">{user?.name || 'SEED Admin'}</span>

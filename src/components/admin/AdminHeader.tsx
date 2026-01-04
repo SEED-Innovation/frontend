@@ -45,7 +45,7 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar, collapsed })
               <img 
                 src="/logo.png" 
                 alt="SEED Logo"
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain rounded-full"
               />
             </div>
             <span className="text-lg font-bold text-gray-900">SEED</span>

@@ -131,7 +131,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed }) => {
             <img 
               src="/logo.png" 
               alt="SEED Logo"
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain rounded-full"
             />
           </div>
           {!collapsed && (

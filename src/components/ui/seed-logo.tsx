@@ -26,7 +26,7 @@ const SeedLogo: React.FC<SeedLogoProps> = ({
         <img 
           src="/logo.png" 
           alt="SEED Logo"
-          className="h-full w-auto object-contain"
+          className="h-full w-auto object-contain rounded-full"
         />
       </div>
     );
@@ -39,7 +39,7 @@ const SeedLogo: React.FC<SeedLogoProps> = ({
         <img 
           src="/logo.png" 
           alt="SEED Logo"
-          className="h-full w-auto object-contain"
+          className="h-full w-auto object-contain rounded-full"
         />
       </div>
       
