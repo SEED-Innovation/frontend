@@ -38,7 +38,19 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar, collapsed })
           <Menu className="w-5 h-5" />
         </Button>
 
-
+        {/* Logo - only show when sidebar is collapsed */}
+        {collapsed && (
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 flex items-center justify-center">
+              <img 
+                src="/logo.png" 
+                alt="SEED Logo"
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <span className="text-lg font-bold text-gray-900">SEED</span>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center space-x-4">

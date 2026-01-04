@@ -9,7 +9,6 @@ import StickerPeel from '../components/ui/StickerPeel'
 import AppStoreButton from '../components/ui/AppStoreButton';
 import { useTranslation } from 'react-i18next';
 import { LanguageToggle } from '@/components/common/LanguageToggle';
-import logo from '/lovable-uploads/d6e16ac6-604a-4a7a-9497-3476e49278a1.png'
 
 const Landing = () => {
   const { t } = useTranslation('web');
@@ -194,7 +193,7 @@ const Landing = () => {
           >
             <Link to="/" className="flex items-center space-x-3">
               <motion.img
-                src="/lovable-uploads/d6e16ac6-604a-4a7a-9497-3476e49278a1.png"
+                src="/logo.png"
                 alt={t('landing.hero.seedLogoAlt')}
                 className="h-10 w-auto"
                 whileHover={{ scale: 1.05 }}
@@ -986,7 +985,7 @@ const Landing = () => {
             <div className="col-span-1 md:col-span-2">
               <Link to="/" className="flex items-center space-x-3 mb-4 sm:mb-6">
                 <img
-                  src="/lovable-uploads/d6e16ac6-604a-4a7a-9497-3476e49278a1.png"
+                  src="/logo.png"
                   alt={t('landing.hero.seedLogoAlt')}
                   className="h-10 sm:h-12 w-auto"
                 />

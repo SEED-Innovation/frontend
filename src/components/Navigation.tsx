@@ -65,7 +65,7 @@ const Navigation = () => {
               title="Saudi Arabia"
             />
             <img 
-              src="/lovable-uploads/9b877c55-5518-40cb-ba2c-a68fccfbe495.png" 
+              src="/logo.png" 
               alt="SEED Logo" 
               className="h-10 w-auto"
             />
