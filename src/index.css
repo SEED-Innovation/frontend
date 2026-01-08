@@ -108,7 +108,21 @@
   * {
     @apply border-border;
   }
+  html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+  }
   body {
     @apply bg-background text-foreground;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow-x: hidden;
+  }
+  #root {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
   }
 }

@@ -62,6 +62,17 @@
   @apply py-16 sm:py-24 lg:py-32;
 }
 
+/* Viewport Height Fix */
+.min-h-screen-fix {
+  min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height for mobile browsers */
+}
+
+.h-screen-fix {
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for mobile browsers */
+}
+
 /* Dark Mode Support */
 @media (prefers-color-scheme: dark) {
   .dark-mode-auto {

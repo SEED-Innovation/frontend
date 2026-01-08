@@ -26,7 +26,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <div className="min-h-screen">
+          <div>
             <Routes>
               {/* Public Landing Page */}
               <Route path="/" element={<Landing />} />
