@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Mail, Lock, Shield, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, Shield, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { PasswordInput } from '@/components/ui/password-input';
 import { toast } from 'sonner';
-import SeedLogo from '@/components/ui/seed-logo';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useTranslation } from 'react-i18next';
-import LanguageToggler from '@/components/ui/language-toggler';
 
 const AdminLogin = () => {
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -49,238 +48,130 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen-fix flex">
-      {/* Language Toggler - Fixed Position */}
-      <div className="fixed top-4 right-4 z-50">
-        <LanguageToggler />
-      </div>
-      {/* Left Side - Brand & Graphics */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-purple-600 via-blue-500 to-teal-400 relative overflow-hidden">
-        {/* Animated Background Shapes */}
-        <div className="absolute inset-0">
-          {/* Large Abstract Shapes */}
-          <motion.div
-            className="absolute top-20 left-20 w-80 h-80 bg-white/10 rounded-full blur-3xl"
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.6, 0.3],
-              x: [0, 30, 0],
-              y: [0, -20, 0],
-            }}
-            transition={{
-              duration: 8,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          />
-          
-          <motion.div
-            className="absolute bottom-32 right-16 w-64 h-64 bg-gradient-to-r from-pink-300/20 to-purple-400/20 rounded-full blur-2xl"
-            animate={{
-              scale: [1.2, 1, 1.2],
-              opacity: [0.4, 0.7, 0.4],
-              x: [0, -40, 0],
-              y: [0, 30, 0],
-            }}
-            transition={{
-              duration: 6,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 2
-            }}
-          />
-
-          {/* Geometric Shapes */}
-          <motion.div
-            className="absolute top-1/3 right-1/3 w-40 h-40 border border-white/20 rounded-3xl"
-            animate={{
-              rotate: [0, 180, 360],
-              opacity: [0.2, 0.5, 0.2],
-            }}
-            transition={{
-              duration: 12,
-              repeat: Infinity,
-            }}
-          />
-
-          {/* Floating Orbs */}
-          {[...Array(6)].map((_, i) => (
-            <motion.div
-              key={i}
-              className={`absolute rounded-full ${
-                i % 3 === 0 ? 'w-4 h-4 bg-white/30' : 
-                i % 3 === 1 ? 'w-6 h-6 bg-yellow-300/40' : 
-                'w-3 h-3 bg-pink-300/50'
-              }`}
-              style={{
-                left: `${20 + Math.random() * 60}%`,
-                top: `${20 + Math.random() * 60}%`,
-              }}
-              animate={{
-                y: [0, -50, 0],
-                x: [0, Math.random() * 30 - 15, 0],
-                opacity: [0, 1, 0],
-                scale: [1, 1.5, 1],
-              }}
-              transition={{
-                duration: 5 + Math.random() * 3,
-                repeat: Infinity,
-                delay: Math.random() * 4,
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Content */}
-        <div className="relative z-10 flex flex-col justify-center px-16 text-white">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <div className="mb-8">
-              <SeedLogo size="xl" className="text-white mb-6" />
-            </div>
-            
-            <h1 className="text-5xl font-bold mb-6 leading-tight">
-              {t('login.welcomeToThe')}
-              <span className="block bg-gradient-to-r from-yellow-300 to-pink-300 bg-clip-text text-transparent">
-                {t('login.adminUniverse')}
-              </span>
-            </h1>
-            
-            <p className="text-xl text-white/80 mb-8 leading-relaxed max-w-md">
-              {t('login.adminPowerhouse')}
-            </p>
-            
-            <div className="flex items-center gap-4 text-white/70">
-              <div className="flex items-center gap-2">
-                <Shield className="w-5 h-5" />
-                <span className="text-sm">{t('login.secureAccess')}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5" />
-                <span className="text-sm">{t('login.smartDashboard')}</span>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </div>
-
-      {/* Right Side - Login Form */}
-      <div className="w-full lg:w-1/2 bg-slate-900 flex items-center justify-center p-8">
-        <motion.div
-          initial={{ opacity: 0, x: 30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="w-full max-w-md"
-        >
-          {/* Mobile Logo */}
-          <div className="lg:hidden text-center mb-8">
-            <SeedLogo size="lg" className="mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-white">{t('login.adminPortal')}</h2>
-          </div>
-
-          {/* Form Header */}
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-white mb-2 hidden lg:block">
-              {t('login.logInToSeed')}
-            </h2>
-            <p className="text-slate-400">
-              {t('login.yourEmailAndPassword')}
-            </p>
-          </div>
-
-        {/* Login Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Email Field */}
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium text-slate-200">
-              {t('login.yourEmail')}
-            </Label>
-            <div className="relative">
-              <Input
-                id="email"
-                type="email"
-                placeholder={t('login.enterEmailAddress')}
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
-                className="h-12 w-full bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 focus:border-purple-500 focus:ring-purple-500/20 pr-10 transition-all duration-300"
-                required
-                disabled={isLoading}
-              />
-              <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-500" />
-            </div>
-          </div>
-          
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-slate-900/50 opacity-40"></div>
       
-            {/* Password Field */}
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium text-slate-200">
-                {t('password')}
-              </Label>
-              <PasswordInput
-                id="password"
-                placeholder={t('login.enterPassword')}
-                value={formData.password}
-                onChange={(e) => setFormData({...formData, password: e.target.value})}
-                required
-                disabled={isLoading}
-              />
-            </div>
-
-            {/* Forgot Password */}
-            <div className="flex items-center justify-end">
-              <button
-                type="button"
-                className="text-sm text-purple-400 hover:text-purple-300 transition-colors duration-200"
-                onClick={() => toast.info(t('login.contactAdminForReset'))}
-                disabled={isLoading}
-              >
-                {t('login.forgotPassword')}
-              </button>
-            </div>
-
-            {/* Submit Button */}
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <Button 
-                type="submit" 
-                className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden group"
-                disabled={isLoading}
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                
-                {isLoading ? (
-                  <div className="flex items-center justify-center relative z-10">
-                    <motion.div 
-                      className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full mr-3"
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    />
-                    {t('login.signingIn')}
-                  </div>
-                ) : (
-                  <span className="relative z-10">{t('login.signIn')}</span>
-                )}
-              </Button>
-            </motion.div>
-          </form>
-
-          {/* Back Link */}
-          <div className="mt-8 text-center">
-            <Link 
-              to="/" 
-              className="inline-flex items-center text-slate-400 hover:text-purple-400 text-sm transition-all duration-200 group"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform duration-200" />
-              {t('login.backToSeedPlatform')}
-            </Link>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="w-full max-w-md relative z-10"
+      >
+        {/* Logo Section */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="text-center mb-8"
+        >
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl mb-4 shadow-lg">
+            <Shield className="w-8 h-8 text-white" />
           </div>
+          <h1 className="text-3xl font-bold text-white mb-2">SEED Admin</h1>
+          <p className="text-slate-400 text-sm">Secure Administrative Access</p>
         </motion.div>
-      </div>
+
+        {/* Login Card */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+        >
+          <Card className="bg-white/5 backdrop-blur-xl border-white/10 shadow-2xl">
+            <CardHeader className="text-center space-y-2 pb-8">
+              <CardTitle className="text-2xl font-semibold text-white">
+                {t('login.adminLogin')}
+              </CardTitle>
+              <p className="text-slate-400 text-sm">
+                {t('login.enterAdminCredentials')}
+              </p>
+            </CardHeader>
+
+            <CardContent className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {/* Email Field */}
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-slate-300 text-sm font-medium">
+                    {t('login.adminEmail')}
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder={t('login.enterEmailAddress')}
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    className="h-12 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-orange-500/50 focus:ring-orange-500/20 transition-all duration-200"
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+
+                {/* Password Field */}
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-slate-300 text-sm font-medium">
+                    {t('password')}
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder={t('login.enterPassword')}
+                      value={formData.password}
+                      onChange={(e) => setFormData({...formData, password: e.target.value})}
+                      className="h-12 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-orange-500/50 focus:ring-orange-500/20 transition-all duration-200 pr-12"
+                      required
+                      disabled={isLoading}
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer text-slate-400 hover:text-slate-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10"
+                      onClick={() => setShowPassword(!showPassword)}
+                      disabled={isLoading}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-5 h-5" />
+                      ) : (
+                        <Eye className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <Button 
+                  type="submit" 
+                  className="w-full h-12 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <div className="flex items-center justify-center">
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                      {t('login.signingIn')}
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center">
+                      <Shield className="w-5 h-5 mr-2" />
+                      {t('login.accessAdminPanel')}
+                    </div>
+                  )}
+                </Button>
+              </form>
+
+              {/* Back Link */}
+              <div className="pt-6 border-t border-white/10">
+                <Link 
+                  to="/" 
+                  className="flex items-center justify-center text-slate-400 hover:text-slate-300 text-sm transition-colors duration-200 group"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform duration-200" />
+                  {t('login.backToMainApp')}
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };
