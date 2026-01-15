@@ -155,7 +155,7 @@ const Landing = () => {
   ];
 
   const stats = [
-    { number: "50K+", label: t('landing.stats.activePlayers') },
+    { number: "10K", label: t('landing.stats.activePlayers') },
     { number: "200+", label: t('landing.stats.aiEnabledCourts') },
     { number: "2M+", label: t('landing.stats.matchesAnalyzed') },
     { number: "98%", label: t('landing.stats.accuracyRate') }
