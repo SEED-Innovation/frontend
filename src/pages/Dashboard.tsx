@@ -1,15 +1,26 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, Clock, Trophy, User, MapPin, Video, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Navigation from '@/components/Navigation';
-import { PostSignupLanguageSelection } from '@/components/common/PostSignupLanguageSelection';
+import { LanguageSelectionModal } from '@/components/common/LanguageSelectionModal';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from 'react-i18next';
 
 const Dashboard = () => {
   const { t } = useTranslation('web');
+  const { needsLanguageSelection, checkLanguageSelectionStatus } = useLanguage();
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
+
+  useEffect(() => {
+    const checkStatus = async () => {
+      const needsSelection = await checkLanguageSelectionStatus();
+      setShowLanguageModal(needsSelection);
+    };
+    checkStatus();
+  }, [checkLanguageSelectionStatus]);
   const upcomingSessions = [
     {
       id: 1,
@@ -62,7 +73,11 @@ const Dashboard = () => {
       <Navigation />
       
       {/* Language Selection Modal for first-time users */}
-      <PostSignupLanguageSelection />
+      <LanguageSelectionModal 
+        isOpen={showLanguageModal}
+        onClose={() => setShowLanguageModal(false)}
+        onLanguageSelected={() => setShowLanguageModal(false)}
+      />
       
       <div className="pt-20 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

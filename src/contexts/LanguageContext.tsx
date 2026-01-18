@@ -154,10 +154,6 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     needsLanguageSelection,
     checkLanguageSelectionStatus,
   };
-    isLoading,
-    getSystemInfo: getSystemLanguageInfo,
-    syncWithBackend,
-  };
 
   return (
     <LanguageContext.Provider value={contextValue}>
