@@ -59,7 +59,8 @@ const FacilityManagement = () => {
     discountAmount: 0,
     discountPercentage: 0,
     isPercentageDiscount: false,
-    seedRecordingFee: 40
+    seedRecordingFee: 40,
+    whatsappNumber: ''
   });
 
   // Amenities and tech features input states
@@ -327,7 +328,8 @@ const FacilityManagement = () => {
         discountAmount: 0,
         discountPercentage: 0,
         isPercentageDiscount: false,
-        seedRecordingFee: 40
+        seedRecordingFee: 40,
+        whatsappNumber: ''
       });
       
       // Reset amenities and tech features input states
@@ -401,7 +403,8 @@ const FacilityManagement = () => {
         discountAmount: editingFacility.discountAmount,
         discountPercentage: editingFacility.discountPercentage,
         isPercentageDiscount: editingFacility.isPercentageDiscount,
-        seedRecordingFee: editingFacility.seedRecordingFee
+        seedRecordingFee: editingFacility.seedRecordingFee,
+        whatsappNumber: editingFacility.whatsappNumber
       };
 
       let updatedFacility;
@@ -1257,6 +1260,22 @@ const FacilityManagement = () => {
                   />
                 </div>
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="whatsappNumber">
+                  WhatsApp Business Number (Optional)
+                </Label>
+                <Input
+                  id="whatsappNumber"
+                  type="tel"
+                  placeholder="+966501234567"
+                  value={newFacility.whatsappNumber || ''}
+                  onChange={(e) => setNewFacility({ ...newFacility, whatsappNumber: e.target.value })}
+                />
+                <p className="text-sm text-muted-foreground">
+                  Enter WhatsApp number in E.164 format (e.g., +966501234567)
+                </p>
+              </div>
             </div>
 
             {/* Right Column - Image Upload and Additional Info */}
@@ -1624,6 +1643,22 @@ const FacilityManagement = () => {
                       onChange={(e) => setEditingFacility({ ...editingFacility, locationIos: e.target.value })}
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit-whatsappNumber">
+                    WhatsApp Business Number (Optional)
+                  </Label>
+                  <Input
+                    id="edit-whatsappNumber"
+                    type="tel"
+                    placeholder="+966501234567"
+                    value={editingFacility.whatsappNumber || ''}
+                    onChange={(e) => setEditingFacility({ ...editingFacility, whatsappNumber: e.target.value })}
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Enter WhatsApp number in E.164 format (e.g., +966501234567)
+                  </p>
                 </div>
               </div>
 

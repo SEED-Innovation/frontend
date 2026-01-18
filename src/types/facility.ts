@@ -31,6 +31,8 @@ export interface Facility {
   discountPercentage?: number;
   isPercentageDiscount?: boolean;
   seedRecordingFee?: number;
+  // WhatsApp integration
+  whatsappNumber?: string | null; // WhatsApp Business number in E.164 format
   // Distance fields for location-based queries
   distanceInMeters?: number;
   formattedDistance?: string;
@@ -73,6 +75,9 @@ export interface CreateFacilityRequest {
   discountAmount?: number;
   discountPercentage?: number;
   isPercentageDiscount?: boolean;
+  
+  // WhatsApp integration
+  whatsappNumber?: string; // WhatsApp Business number in E.164 format
 }
 
 export interface UpdateFacilityRequest {
@@ -96,4 +101,7 @@ export interface UpdateFacilityRequest {
   discountPercentage?: number;
   isPercentageDiscount?: boolean;
   seedRecordingFee?: number;
+  
+  // WhatsApp integration
+  whatsappNumber?: string; // WhatsApp Business number in E.164 format
 }
