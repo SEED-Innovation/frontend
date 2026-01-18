@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { detectLanguage, storeLanguagePreference, getSystemLanguageInfo, type SupportedLanguage } from '../lib/languageDetection';
-import { syncLanguagePreference, initializeLanguagePreference } from '../lib/api/services/playerUserService';
+import { syncLanguagePreference, initializeLanguagePreference, getLanguageSelectionStatus } from '../lib/api/services/playerUserService';
 
 export type Language = SupportedLanguage;
 
@@ -13,6 +13,8 @@ interface LanguageContextType {
   isLoading: boolean;
   getSystemInfo: () => ReturnType<typeof getSystemLanguageInfo>;
   syncWithBackend: (lang: Language) => Promise<void>;
+  needsLanguageSelection: boolean;
+  checkLanguageSelectionStatus: () => Promise<boolean>;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -24,6 +26,7 @@ interface LanguageProviderProps {
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
   const { t, i18n } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
+  const [needsLanguageSelection, setNeedsLanguageSelection] = useState(false);
   const [language, setLanguage] = useState<Language>(() => {
     // Use enhanced language detection
     const detection = detectLanguage();
@@ -31,6 +34,23 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   });
 
   const isRTL = language === 'ar';
+
+  const checkLanguageSelectionStatus = async (): Promise<boolean> => {
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) {
+        return false; // Not authenticated, no need for language selection
+      }
+
+      const status = await getLanguageSelectionStatus();
+      setNeedsLanguageSelection(status.needsLanguageSelection);
+      return status.needsLanguageSelection;
+    } catch (error) {
+      console.debug('Could not check language selection status:', error);
+      setNeedsLanguageSelection(false);
+      return false;
+    }
+  };
 
   const changeLanguage = async (lang: Language) => {
     setIsLoading(true);
@@ -128,6 +148,12 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     isRTL,
     changeLanguage,
     t,
+    isLoading,
+    getSystemInfo: getSystemLanguageInfo,
+    syncWithBackend,
+    needsLanguageSelection,
+    checkLanguageSelectionStatus,
+  };
     isLoading,
     getSystemInfo: getSystemLanguageInfo,
     syncWithBackend,

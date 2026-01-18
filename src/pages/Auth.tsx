@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, ArrowRight, Mail, Lock, User, Check } from 'lucide-react';
@@ -12,6 +12,7 @@ import SeedLogo from '@/components/ui/seed-logo';
 import { LanguageSelectionModal } from '@/components/common/LanguageSelectionModal';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from 'react-i18next';
+import { completeLanguageSelection, getLanguageSelectionStatus } from '@/lib/api/services/playerUserService';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -19,6 +20,7 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [showLanguageSelection, setShowLanguageSelection] = useState(false);
+  const [isSignupComplete, setIsSignupComplete] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -28,6 +30,26 @@ const Auth = () => {
   const navigate = useNavigate();
   const { language, changeLanguage } = useLanguage();
   const { t } = useTranslation('web');
+
+  // Check if user needs language selection after login
+  useEffect(() => {
+    const checkLanguageSelectionStatus = async () => {
+      try {
+        const accessToken = localStorage.getItem('accessToken');
+        if (accessToken) {
+          const status = await getLanguageSelectionStatus();
+          if (status.needsLanguageSelection) {
+            setShowLanguageSelection(true);
+          }
+        }
+      } catch (error) {
+        console.debug('Could not check language selection status:', error);
+      }
+    };
+
+    // Only check on component mount if user is already authenticated
+    checkLanguageSelectionStatus();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,31 +64,65 @@ const Auth = () => {
       return;
     }
 
-    // For sign-up, show language selection first
-    if (!isLogin) {
-      setShowLanguageSelection(true);
-      return;
-    }
-
     setIsLoading(true);
     
-    // Simulate authentication process
-    setTimeout(() => {
+    try {
+      if (isLogin) {
+        // Handle login
+        // Simulate authentication process
+        setTimeout(async () => {
+          setIsLoading(false);
+          toast.success(t('auth.welcomeBack') || 'Welcome back to SEED!');
+          
+          // Check if user needs language selection after login
+          try {
+            const status = await getLanguageSelectionStatus();
+            if (status.needsLanguageSelection) {
+              setShowLanguageSelection(true);
+            } else {
+              navigate('/dashboard');
+            }
+          } catch (error) {
+            console.debug('Could not check language selection status, proceeding to dashboard');
+            navigate('/dashboard');
+          }
+        }, 1500);
+      } else {
+        // Handle signup - show language selection first
+        setTimeout(() => {
+          setIsLoading(false);
+          setIsSignupComplete(true);
+          setShowLanguageSelection(true);
+        }, 1500);
+      }
+    } catch (error) {
       setIsLoading(false);
-      toast.success(isLogin ? t('auth.welcomeBack') || 'Welcome back to SEED!' : t('auth.accountCreated') || 'Account created successfully!');
-      navigate('/dashboard');
-    }, 1500);
+      toast.error('Authentication failed. Please try again.');
+    }
   };
 
-  const handleLanguageSelectedAndSignUp = async (selectedLanguage: 'en' | 'ar') => {
+  const handleLanguageSelectedAndComplete = async (selectedLanguage: 'en' | 'ar') => {
     setIsLoading(true);
     
-    // Simulate sign-up process with language preference
-    setTimeout(() => {
+    try {
+      if (isSignupComplete) {
+        // Complete signup with language selection
+        await completeLanguageSelection(selectedLanguage);
+        toast.success(t('auth.accountCreated') || 'Account created successfully!');
+      } else {
+        // Update existing user's language preference
+        await completeLanguageSelection(selectedLanguage);
+        toast.success(t('language.preferenceUpdated') || 'Language preference updated!');
+      }
+      
+      setShowLanguageSelection(false);
       setIsLoading(false);
-      toast.success(t('auth.accountCreated') || 'Account created successfully!');
       navigate('/dashboard');
-    }, 1500);
+    } catch (error) {
+      setIsLoading(false);
+      console.error('Failed to complete language selection:', error);
+      toast.error('Failed to save language preference. Please try again.');
+    }
   };
 
   const handleSocialAuth = (provider: string) => {
@@ -396,11 +452,17 @@ const Auth = () => {
       {/* Language Selection Modal */}
       <LanguageSelectionModal
         isOpen={showLanguageSelection}
-        onClose={() => setShowLanguageSelection(false)}
-        onLanguageSelected={handleLanguageSelectedAndSignUp}
-        showSkip={false}
-        title={language === 'ar' ? 'اختر لغتك المفضلة' : 'Choose Your Preferred Language'}
-        subtitle={language === 'ar' ? 'اختر اللغة التي تفضل استخدامها في حسابك' : 'Select the language you prefer to use for your account'}
+        onClose={() => {
+          if (!isSignupComplete) {
+            // Allow closing for existing users
+            setShowLanguageSelection(false);
+          }
+          // For new signups, don't allow closing without selection
+        }}
+        onLanguageSelected={handleLanguageSelectedAndComplete}
+        showSkip={!isSignupComplete} // Only show skip for existing users, not new signups
+        title={isSignupComplete ? (language === 'ar' ? 'مرحباً بك في سيد!' : 'Welcome to SEED!') : (language === 'ar' ? 'اختر لغتك المفضلة' : 'Choose Your Preferred Language')}
+        subtitle={isSignupComplete ? (language === 'ar' ? 'يرجى اختيار لغتك المفضلة للبدء.' : 'Please select your preferred language to get started.') : (language === 'ar' ? 'اختر اللغة التي تفضل استخدامها في حسابك' : 'Select the language you prefer to use for your account')}
       />
     </div>
   );

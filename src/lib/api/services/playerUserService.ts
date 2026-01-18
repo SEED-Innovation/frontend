@@ -5,6 +5,12 @@
 
 import { apiClient } from '../client';
 
+export interface LanguageSelectionStatus {
+  languageSelectionCompleted: boolean;
+  currentLanguage: string;
+  needsLanguageSelection: boolean;
+}
+
 export interface LanguagePreferenceResponse {
   languageCode: string;
   displayName: string;
@@ -176,5 +182,40 @@ export async function initializeLanguagePreference(): Promise<LanguagePreference
     // Log other errors as warnings
     console.warn('Failed to initialize language preference from backend:', error);
     return null;
+  }
+}
+
+/**
+ * Check if user needs language selection (first-time setup)
+ */
+export async function getLanguageSelectionStatus(): Promise<LanguageSelectionStatus> {
+  return apiClient.get<LanguageSelectionStatus>(`${USERS_ENDPOINT}/language-selection-status`);
+}
+
+/**
+ * Complete first-time language selection
+ * This function updates the language preference and marks selection as completed
+ */
+export async function completeLanguageSelection(languageCode: 'en' | 'ar'): Promise<LanguagePreferenceResponse> {
+  try {
+    // Update language preference (this will also mark selection as completed in backend)
+    const response = await updateLanguagePreference({ languageCode });
+    
+    // Update local storage
+    localStorage.setItem('i18nextLng', languageCode);
+    localStorage.setItem('languageSelectionCompleted', 'true');
+    
+    // Also update enhanced storage if available
+    try {
+      const { languageStorage } = await import('../../storage');
+      languageStorage.setLanguagePreference(languageCode);
+    } catch (error) {
+      console.debug('Enhanced storage not available:', error);
+    }
+    
+    return response;
+  } catch (error) {
+    console.error('Failed to complete language selection:', error);
+    throw error;
   }
 }

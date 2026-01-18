@@ -5,6 +5,7 @@ import { Calendar, Clock, Trophy, User, MapPin, Video, Target } from 'lucide-rea
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Navigation from '@/components/Navigation';
+import { PostSignupLanguageSelection } from '@/components/common/PostSignupLanguageSelection';
 import { useTranslation } from 'react-i18next';
 
 const Dashboard = () => {
@@ -59,6 +60,9 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
+      
+      {/* Language Selection Modal for first-time users */}
+      <PostSignupLanguageSelection />
       
       <div className="pt-20 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
