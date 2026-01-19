@@ -542,7 +542,7 @@ const loadCourts = async (facilityId?: number) => {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             if (formData.date < today) {
-                newErrors.date = 'Cannot book for past dates';
+                newErrors.date = t('errors.bookingPastDate', { ns: 'web' });
             }
         }
 

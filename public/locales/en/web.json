@@ -552,6 +552,7 @@
     "courtNotFound": "Court not found. Please refresh and try again.",
     "bookingNotFound": "Booking not found. It may have been cancelled or modified.",
     "dateInPast": "Cannot set unavailability for past dates.",
+    "bookingPastDate": "Cannot book for past dates, please choose another date in the future.",
     "invalidDateFormat": "Invalid date format. Please use the date picker.",
     "serverError": "Server error occurred. Please try again in a moment.",
     "connectionError": "Connection error. Please check your internet connection and try again.",
