@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Shield, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, Shield, ArrowLeft, Building, Users, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useTranslation } from 'react-i18next';
-import FloatingParticles from '@/components/ui/floating-particles';
+import LanguageToggler from '@/components/ui/language-toggler';
 
 const AdminLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -49,21 +49,19 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Enhanced Background Pattern */}
-      <div className="absolute inset-0 bg-slate-900/50 opacity-40"></div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background Pattern - matching dashboard style */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:20px_20px]" />
       
-      {/* Animated background elements */}
+      {/* Animated background elements - subtle like dashboard */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-gradient-to-br from-orange-500/10 via-red-500/5 to-transparent rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-1/2 -left-1/2 w-full h-full bg-gradient-to-tr from-red-500/10 via-orange-500/5 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-        {/* Grid pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:20px_20px]" />
-        {/* Floating particles */}
-        <FloatingParticles 
-          count={6} 
-          colors={['bg-orange-400/20', 'bg-red-400/30', 'bg-yellow-400/25']} 
-        />
+        <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-gradient-to-br from-primary/5 via-secondary/5 to-transparent rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-1/2 -left-1/2 w-full h-full bg-gradient-to-tr from-secondary/5 via-primary/5 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+      </div>
+
+      {/* Language Toggle - positioned like in dashboard header */}
+      <div className="absolute top-6 right-6 z-20">
+        <LanguageToggler />
       </div>
       
       <motion.div
@@ -72,7 +70,7 @@ const AdminLogin = () => {
         transition={{ duration: 0.6 }}
         className="w-full max-w-md relative z-10"
       >
-        {/* Enhanced Logo Section */}
+        {/* Logo Section - matching dashboard branding */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -80,15 +78,15 @@ const AdminLogin = () => {
           className="text-center mb-8"
         >
           <motion.div
-            whileHover={{ scale: 1.05, rotate: 2 }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-orange-500 via-red-500 to-orange-600 rounded-3xl mb-6 shadow-2xl relative overflow-hidden"
+            className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-primary to-secondary rounded-3xl mb-6 shadow-xl relative overflow-hidden"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-red-400 opacity-0 hover:opacity-30 transition-opacity duration-300" />
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/80 to-secondary/80 opacity-0 hover:opacity-100 transition-opacity duration-300" />
             <Shield className="w-10 h-10 text-white relative z-10 drop-shadow-lg" />
           </motion.div>
           <motion.h1 
-            className="text-4xl font-bold text-white mb-3 bg-gradient-to-r from-white via-slate-100 to-white bg-clip-text text-transparent"
+            className="text-4xl font-bold text-gray-900 mb-3"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.6 }}
@@ -96,25 +94,25 @@ const AdminLogin = () => {
             SEED Admin
           </motion.h1>
           <motion.p 
-            className="text-slate-400 text-sm font-medium"
+            className="text-gray-600 text-sm font-medium"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.6 }}
           >
-            Secure Administrative Access
+            {t('login.secureAccess')}
           </motion.p>
         </motion.div>
 
-        {/* Enhanced Login Card */}
+        {/* Login Card - matching dashboard card style */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}
           whileHover={{ y: -2 }}
         >
-          <Card className="bg-white/5 backdrop-blur-xl border-white/10 shadow-2xl hover:shadow-3xl transition-all duration-300 relative overflow-hidden admin-card glass-effect">
-            {/* Card glow effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 via-red-500/5 to-orange-500/5 opacity-0 hover:opacity-100 transition-opacity duration-300" />
+          <Card className="premium-card shadow-xl hover:shadow-2xl transition-all duration-300 relative overflow-hidden">
+            {/* Card glow effect - matching dashboard cards */}
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 opacity-0 hover:opacity-100 transition-opacity duration-300" />
             
             <CardHeader className="text-center space-y-3 pb-8 relative">
               <motion.div
@@ -122,12 +120,12 @@ const AdminLogin = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6, duration: 0.5 }}
               >
-                <CardTitle className="text-2xl font-semibold text-white">
+                <CardTitle className="text-2xl font-semibold text-gray-900">
                   {t('login.adminLogin')}
                 </CardTitle>
               </motion.div>
               <motion.p 
-                className="text-slate-400 text-sm"
+                className="text-gray-600 text-sm"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.7, duration: 0.5 }}
@@ -144,10 +142,10 @@ const AdminLogin = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.8, duration: 0.5 }}
               >
-                {/* Enhanced Email Field */}
+                {/* Email Field - matching dashboard input style */}
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-slate-300 text-sm font-medium flex items-center gap-2">
-                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                  <Label htmlFor="email" className="text-gray-700 text-sm font-medium flex items-center gap-2">
+                    <div className="w-2 h-2 bg-primary rounded-full"></div>
                     {t('login.adminEmail')}
                   </Label>
                   <Input
@@ -156,17 +154,17 @@ const AdminLogin = () => {
                     placeholder={t('login.enterEmailAddress')}
                     value={formData.email}
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    className="h-12 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-orange-500/50 focus:ring-orange-500/20 transition-all duration-200 hover:bg-white/10 hover:border-white/20 auth-input"
+                    className="h-12 bg-white border-gray-200 text-gray-900 placeholder:text-gray-500 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 hover:border-gray-300"
                     required
                     disabled={isLoading}
                   />
                 </div>
 
-                {/* Enhanced Password Field */}
+                {/* Password Field - matching dashboard input style */}
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-slate-300 text-sm font-medium flex items-center gap-2">
-                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                    {t('password')}
+                  <Label htmlFor="password" className="text-gray-700 text-sm font-medium flex items-center gap-2">
+                    <div className="w-2 h-2 bg-secondary rounded-full"></div>
+                    {t('login.password')}
                   </Label>
                   <div className="relative">
                     <Input
@@ -175,13 +173,13 @@ const AdminLogin = () => {
                       placeholder={t('login.enterPassword')}
                       value={formData.password}
                       onChange={(e) => setFormData({...formData, password: e.target.value})}
-                      className="h-12 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-orange-500/50 focus:ring-orange-500/20 transition-all duration-200 pr-12 hover:bg-white/10 hover:border-white/20 auth-input"
+                      className="h-12 bg-white border-gray-200 text-gray-900 placeholder:text-gray-500 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 pr-12 hover:border-gray-300"
                       required
                       disabled={isLoading}
                     />
                     <motion.button
                       type="button"
-                      className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer text-slate-400 hover:text-slate-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10"
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10"
                       onClick={() => setShowPassword(!showPassword)}
                       disabled={isLoading}
                       whileHover={{ scale: 1.1 }}
@@ -196,17 +194,17 @@ const AdminLogin = () => {
                   </div>
                 </div>
 
-                {/* Enhanced Submit Button */}
+                {/* Submit Button - matching dashboard button style */}
                 <motion.div
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
                   <Button 
                     type="submit" 
-                    className="w-full h-12 bg-gradient-to-r from-orange-500 via-red-500 to-orange-600 hover:from-orange-600 hover:via-red-600 hover:to-orange-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 relative overflow-hidden group auth-button"
+                    className="w-full h-12 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 relative overflow-hidden group"
                     disabled={isLoading}
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-orange-400 via-red-400 to-orange-500 opacity-0 group-hover:opacity-30 transition-opacity duration-200" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/80 to-secondary/80 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                     {isLoading ? (
                       <div className="flex items-center justify-center relative z-10">
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
@@ -222,16 +220,45 @@ const AdminLogin = () => {
                 </motion.div>
               </motion.form>
 
-              {/* Enhanced Back Link */}
+              {/* Features Preview - matching dashboard style */}
               <motion.div 
-                className="pt-6 border-t border-white/10"
+                className="pt-6 border-t border-gray-200"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1.0, duration: 0.5 }}
               >
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div className="flex flex-col items-center space-y-2">
+                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                      <Building className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="text-xs text-gray-600">{t('login.smartDashboard')}</span>
+                  </div>
+                  <div className="flex flex-col items-center space-y-2">
+                    <div className="w-8 h-8 bg-secondary/10 rounded-full flex items-center justify-center">
+                      <Users className="w-4 h-4 text-secondary" />
+                    </div>
+                    <span className="text-xs text-gray-600">{t('menu.facilities')}</span>
+                  </div>
+                  <div className="flex flex-col items-center space-y-2">
+                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                      <BarChart3 className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="text-xs text-gray-600">{t('menu.analytics')}</span>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Back Link - matching dashboard style */}
+              <motion.div 
+                className="pt-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.2, duration: 0.5 }}
+              >
                 <Link 
                   to="/" 
-                  className="flex items-center justify-center text-slate-400 hover:text-slate-300 text-sm transition-colors duration-200 group"
+                  className="flex items-center justify-center text-gray-500 hover:text-gray-700 text-sm transition-colors duration-200 group"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform duration-200" />
                   {t('login.backToMainApp')}
