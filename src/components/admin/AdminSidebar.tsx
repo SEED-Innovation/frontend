@@ -12,7 +12,7 @@ import {
   MapPin,
   Camera,
   Bell,
-  Building,
+  Building2,
   Video
 } from 'lucide-react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
@@ -42,7 +42,7 @@ const sidebarItems: SidebarItem[] = [
   {
     titleKey: 'menu.facilities',
     href: '/admin/facilities',
-    icon: Building,
+    icon: Building2,
   },
   {
     titleKey: 'menu.courts',

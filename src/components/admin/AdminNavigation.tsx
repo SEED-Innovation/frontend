@@ -41,7 +41,7 @@ const AdminNavigation: React.FC<AdminNavigationProps> = ({ onSettingsClick }) =>
                 className="w-full h-full object-contain rounded-full"
               />
             </div>
-            <span className="text-xl font-bold text-gray-900">{user?.name || 'SEED Admin'}</span>
+            <span className="text-xl font-bold text-gray-900">{user?.name || 'مدير المنشأة'}</span>
           </Link>
 
           {/* Navigation Items */}

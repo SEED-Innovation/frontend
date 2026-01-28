@@ -113,7 +113,7 @@ const handleApiError = (error: any, operation: string) => {
 
 export const AvailabilityTable: React.FC = () => {
   const [data, setData] = useState<AvailabilityRow[]>([]);
-  const [courts, setCourts] = useState<{ id: number; name: string; imageUrl?: string }[]>([]);
+  const [courts, setCourts] = useState<{ id: number; name: string; imageUrl?: string; sportType?: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [sortField, setSortField] = useState<SortField>('courtName');
@@ -154,7 +154,8 @@ export const AvailabilityTable: React.FC = () => {
         setCourts(courtsData.map(court => ({
           id: typeof court.id === 'string' ? parseInt(court.id) : court.id,
           name: court.name,
-          imageUrl: court.imageUrl
+          imageUrl: court.imageUrl,
+          sportType: court.sportType
         })));
       } catch (error) {
         console.warn('Failed to load courts data:', error);
@@ -194,6 +195,16 @@ export const AvailabilityTable: React.FC = () => {
     }
   };
 
+  // Format time with AM/PM
+  const formatTimeWithAMPM = (time: string) => {
+    if (!time) return time;
+    const [hours, minutes] = time.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+
   // Format day of week display
   const formatDayOfWeek = (day: string) => {
     const days: Record<string, string> = {
@@ -208,7 +219,98 @@ export const AvailabilityTable: React.FC = () => {
     return days[day] || day;
   };
 
-  // Filtered and sorted data
+  // Group consecutive days with same schedule
+  const groupConsecutiveDays = (items: AvailabilityRow[]) => {
+    const grouped: { [key: string]: AvailabilityRow[] } = {};
+    
+    items.forEach(item => {
+      const key = `${item.courtId}-${item.start}-${item.end}`;
+      if (!grouped[key]) {
+        grouped[key] = [];
+      }
+      grouped[key].push(item);
+    });
+
+    return Object.values(grouped).map(group => {
+      if (group.length === 1) {
+        return group[0];
+      }
+
+      // Sort days in order
+      const dayOrder = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+      group.sort((a, b) => dayOrder.indexOf(a.dayOfWeek) - dayOrder.indexOf(b.dayOfWeek));
+
+      // Check if all 7 days are present
+      if (group.length === 7) {
+        return {
+          ...group[0],
+          dayOfWeek: 'ALL_WEEK' as DOW,
+          combinedDays: group.map(g => g.dayOfWeek)
+        };
+      }
+
+      // Check for consecutive days
+      const dayIndices = group.map(g => dayOrder.indexOf(g.dayOfWeek));
+      const isConsecutive = dayIndices.every((day, index) => 
+        index === 0 || day === dayIndices[index - 1] + 1
+      );
+
+      if (isConsecutive && group.length > 1) {
+        const firstDay = formatDayOfWeek(group[0].dayOfWeek);
+        const lastDay = formatDayOfWeek(group[group.length - 1].dayOfWeek);
+        return {
+          ...group[0],
+          dayOfWeek: `${firstDay.slice(0, 3)}-${lastDay.slice(0, 3)}` as DOW,
+          combinedDays: group.map(g => g.dayOfWeek)
+        };
+      }
+
+      // Return first item if not consecutive
+      return group[0];
+    });
+  };
+
+  // Get sport type for court
+  const getCourtSportType = (courtId: number) => {
+    const court = courts.find(c => c.id === courtId);
+    return court?.sportType || 'Tennis'; // Default to Tennis
+  };
+
+  // Group courts by same schedule and facility
+  const groupCourtsBySchedule = (items: AvailabilityRow[]) => {
+    const grouped: { [key: string]: AvailabilityRow[] } = {};
+    
+    items.forEach(item => {
+      const key = `${item.facilityName}-${item.dayOfWeek}-${item.start}-${item.end}`;
+      if (!grouped[key]) {
+        grouped[key] = [];
+      }
+      grouped[key].push(item);
+    });
+
+    return Object.values(grouped).map(group => {
+      if (group.length === 1) {
+        return group[0];
+      }
+
+      // Sort courts by name/number
+      group.sort((a, b) => a.courtName.localeCompare(b.courtName));
+
+      // Create combined court display
+      const courtNumbers = group.map(g => {
+        const match = g.courtName.match(/(\d+)/);
+        return match ? match[1] : g.courtName;
+      });
+
+      return {
+        ...group[0],
+        courtName: `Court ${courtNumbers.join('/')}`,
+        combinedCourts: group.map(g => ({ id: g.courtId, name: g.courtName }))
+      };
+    });
+  };
+
+  // Filtered and sorted data with grouping
   const filteredAndSortedData = useMemo(() => {
     let filtered = data;
 
@@ -240,8 +342,12 @@ export const AvailabilityTable: React.FC = () => {
       filtered = filtered.filter(item => item.end <= endTimeFilter);
     }
 
+    // Group consecutive days and courts with same schedule
+    const dayGrouped = groupConsecutiveDays(filtered);
+    const courtGrouped = groupCourtsBySchedule(dayGrouped);
+
     // Apply sorting
-    filtered.sort((a, b) => {
+    courtGrouped.sort((a, b) => {
       let aValue: string | number;
       let bValue: string | number;
 
@@ -253,8 +359,13 @@ export const AvailabilityTable: React.FC = () => {
         case 'dayOfWeek':
           // Sort days of week in logical order
           const dayOrder = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
-          aValue = dayOrder.indexOf(a.dayOfWeek);
-          bValue = dayOrder.indexOf(b.dayOfWeek);
+          if (a.dayOfWeek === 'ALL_WEEK') aValue = -1;
+          else if (a.dayOfWeek.includes('-')) aValue = dayOrder.indexOf(a.dayOfWeek.split('-')[0].toUpperCase());
+          else aValue = dayOrder.indexOf(a.dayOfWeek);
+          
+          if (b.dayOfWeek === 'ALL_WEEK') bValue = -1;
+          else if (b.dayOfWeek.includes('-')) bValue = dayOrder.indexOf(b.dayOfWeek.split('-')[0].toUpperCase());
+          else bValue = dayOrder.indexOf(b.dayOfWeek);
           break;
         case 'start':
           aValue = a.start;
@@ -277,7 +388,7 @@ export const AvailabilityTable: React.FC = () => {
       return sortDirection === 'asc' ? comparison : -comparison;
     });
 
-    return filtered;
+    return courtGrouped;
   }, [data, searchTerm, dayFilter, facilityFilter, startTimeFilter, endTimeFilter, sortField, sortDirection]);
 
   // Get unique facilities for filter
@@ -610,7 +721,7 @@ export const AvailabilityTable: React.FC = () => {
                               />
                               <div className="flex items-center gap-1 mt-1">
                                 <Clock className="h-3 w-3 text-muted-foreground" />
-                                <span className="text-xs text-muted-foreground">Available hours</span>
+                                <span className="text-xs text-muted-foreground">{getCourtSportType(item.courtId)}</span>
                               </div>
                             </div>
                           </div>
@@ -635,7 +746,9 @@ export const AvailabilityTable: React.FC = () => {
                         ) : (
                           <Badge variant="outline" className="gap-1">
                             <Calendar className="h-3 w-3" />
-                            {formatDayOfWeek(item.dayOfWeek)}
+                            {item.dayOfWeek === 'ALL_WEEK' ? 'All week' : 
+                             item.dayOfWeek.includes('-') ? item.dayOfWeek :
+                             formatDayOfWeek(item.dayOfWeek)}
                           </Badge>
                         )}
                       </TableCell>
@@ -650,7 +763,7 @@ export const AvailabilityTable: React.FC = () => {
                         ) : (
                           <Badge variant="secondary" className="gap-1">
                             <Clock className="h-3 w-3" />
-                            {item.start}
+                            {formatTimeWithAMPM(item.start)}
                           </Badge>
                         )}
                       </TableCell>
@@ -665,7 +778,7 @@ export const AvailabilityTable: React.FC = () => {
                         ) : (
                           <Badge variant="secondary" className="gap-1">
                             <Clock className="h-3 w-3" />
-                            {item.end}
+                            {formatTimeWithAMPM(item.end)}
                           </Badge>
                         )}
                       </TableCell>

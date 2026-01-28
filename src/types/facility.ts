@@ -18,7 +18,9 @@ export interface Facility {
   averageRating?: number | null;
   totalRatings?: number | null;
   amenities?: string[];
+  amenitiesAr?: string[];
   techFeatures?: string[];
+  techFeaturesAr?: string[];
   imageUrl?: string | null;
   status?: 'ACTIVE' | 'INACTIVE' | 'DELETED';
   managerId?: number | null;
@@ -67,7 +69,9 @@ export interface CreateFacilityRequest {
   locationAndroid?: string;
   locationIos?: string;
   amenities?: string[];
+  amenitiesAr?: string[];
   techFeatures?: string[];
+  techFeaturesAr?: string[];
   imageUrl?: string;
   managerId?: number;
   
@@ -92,7 +96,9 @@ export interface UpdateFacilityRequest {
   locationAndroid?: string;
   locationIos?: string;
   amenities?: string[];
+  amenitiesAr?: string[];
   techFeatures?: string[];
+  techFeaturesAr?: string[];
   imageUrl?: string;
   managerId?: number;
   // Pricing fields

@@ -19,6 +19,9 @@ export interface AvailabilityRow {
   end: string;   // "22:00:00"
   startDate?: string; // "2025-01-01" - Optional date range start
   endDate?: string;   // "2025-12-31" - Optional date range end
+  // New fields for grouping
+  combinedDays?: DOW[]; // For grouped consecutive days
+  combinedCourts?: { id: number; name: string }[]; // For grouped courts with same schedule
 }
 
 export interface UnavailabilityRow {

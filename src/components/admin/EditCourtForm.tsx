@@ -20,6 +20,7 @@ import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { facilityService } from '@/lib/api/services/facilityService';
 import { Facility } from '@/types/facility';
 import { AdminUser } from '@/types/admin';
+import { useRTLClasses } from '@/hooks/useRTLClasses';
 
 interface EditCourtFormProps {
   open: boolean;
@@ -62,6 +63,7 @@ export default function EditCourtForm({
   const { hasPermission } = useAdminAuth();
   const isSuperAdmin = hasPermission('SUPER_ADMIN');
   const { t } = useTranslation('admin');
+  const rtlClasses = useRTLClasses();
   
   const [formData, setFormData] = useState<UpdateCourtRequest & { managerId?: string }>({
     name: '',
@@ -290,23 +292,24 @@ export default function EditCourtForm({
           {/* Left Column - Basics */}
           <div className="space-y-6">
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Basics</h3>
+              <h3 className={cn("text-lg font-semibold", rtlClasses.textAlign)}>Basics</h3>
               
               <div>
-                <Label htmlFor="name">{t('courts.courtName')} *</Label>
+                <Label htmlFor="name" className={rtlClasses.textAlign}>{t('courts.courtName')} *</Label>
                 <Input
                   id="name"
                   value={formData.name || ''}
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   placeholder="e.g., Court 1 – Center"
+                  className={rtlClasses.textAlign}
                 />
               </div>
 
               <div>
-                <Label htmlFor="sportType">Sport Type</Label>
+                <Label htmlFor="sportType" className={rtlClasses.textAlign}>Sport Type</Label>
                 {hasPermission('SUPER_ADMIN') ? (
-                  <div className="flex gap-4 mt-2">
-                    <label className="flex items-center gap-2 cursor-pointer">
+                  <div className={cn("flex gap-4 mt-2", rtlClasses.flexDirection)}>
+                    <label className={cn("flex items-center gap-2 cursor-pointer", rtlClasses.flexDirection)}>
                       <input
                         type="radio"
                         name="sportType"
@@ -315,11 +318,11 @@ export default function EditCourtForm({
                         onChange={(e) => handleInputChange('sportType', e.target.value as SportType)}
                         className="text-primary"
                       />
-                      <span className="flex items-center gap-1">
+                      <span className={cn("flex items-center gap-1", rtlClasses.flexDirection)}>
                         🎾 Tennis
                       </span>
                     </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
+                    <label className={cn("flex items-center gap-2 cursor-pointer", rtlClasses.flexDirection)}>
                       <input
                         type="radio"
                         name="sportType"
@@ -328,7 +331,7 @@ export default function EditCourtForm({
                         onChange={(e) => handleInputChange('sportType', e.target.value as SportType)}
                         className="text-primary"
                       />
-                      <span className="flex items-center gap-1">
+                      <span className={cn("flex items-center gap-1", rtlClasses.flexDirection)}>
                         🟩 Padel
                       </span>
                     </label>
@@ -341,13 +344,13 @@ export default function EditCourtForm({
               </div>
 
               <div>
-                <Label htmlFor="type">Court Surface *</Label>
+                <Label htmlFor="type" className={rtlClasses.textAlign}>Court Surface *</Label>
                 <Select 
                   value={(formData.sportType || 'TENNIS') === 'PADEL' ? 'PADEL' : (formData.type || '')} 
                   onValueChange={(value) => handleInputChange('type', value)}
                   disabled={(formData.sportType || 'TENNIS') === 'PADEL'}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className={rtlClasses.textAlign}>
                     <SelectValue placeholder={
                       (formData.sportType || 'TENNIS') === 'PADEL' 
                         ? "PADEL (Auto-selected by backend)" 
@@ -367,28 +370,28 @@ export default function EditCourtForm({
                   </SelectContent>
                 </Select>
                 {(formData.sportType || 'TENNIS') === 'PADEL' && (
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className={cn("text-sm text-muted-foreground mt-1", rtlClasses.textAlign)}>
                     Court type will be automatically set to PADEL by the backend
                   </p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="facility">Facility *</Label>
+                <Label htmlFor="facility" className={rtlClasses.textAlign}>Facility *</Label>
                 <Popover open={facilitySearchOpen} onOpenChange={setFacilitySearchOpen}>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       role="combobox"
                       aria-expanded={facilitySearchOpen}
-                      className="w-full justify-between"
+                      className={cn("w-full justify-between", rtlClasses.textAlign)}
                       disabled={facilitiesLoading}
                     >
                       {facilitiesLoading ? "Loading facilities..." : 
                        formData.facilityId === 0 || !formData.facilityId
                         ? "Select facility"
                         : facilities.find(f => f.id === formData.facilityId)?.name || "Select facility"}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      <ChevronsUpDown className={cn("ml-2 h-4 w-4 shrink-0 opacity-50", rtlClasses.textAlign === 'text-end' ? 'mr-2 ml-0' : '')} />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-full p-0">
@@ -426,10 +429,11 @@ export default function EditCourtForm({
                                 <Check
                                   className={cn(
                                     "mr-2 h-4 w-4",
-                                    formData.facilityId === facility.id ? "opacity-100" : "opacity-0"
+                                    formData.facilityId === facility.id ? "opacity-100" : "opacity-0",
+                                    rtlClasses.textAlign === 'text-end' ? 'ml-2 mr-0' : ''
                                   )}
                                 />
-                                <div className="flex flex-col">
+                                <div className={cn("flex flex-col", rtlClasses.textAlign)}>
                                   <span>{facility.name}</span>
                                   <span className="text-xs text-muted-foreground">{facility.location}</span>
                                 </div>
@@ -443,7 +447,7 @@ export default function EditCourtForm({
               </div>
 
               <div>
-                <Label htmlFor="hourlyFee">Hourly Fee (SAR) *</Label>
+                <Label htmlFor="hourlyFee" className={rtlClasses.textAlign}>Hourly Fee (SAR) *</Label>
                 <Input
                   id="hourlyFee"
                   type="number"
@@ -452,17 +456,18 @@ export default function EditCourtForm({
                   value={formData.hourlyFee || ''}
                   onChange={(e) => handleInputChange('hourlyFee', Number(e.target.value))}
                   placeholder="120.00"
+                  className={rtlClasses.textAlign}
                 />
-                <p className="text-sm text-muted-foreground mt-1">Must be greater than 0</p>
+                <p className={cn("text-sm text-muted-foreground mt-1", rtlClasses.textAlign)}>Must be greater than 0</p>
               </div>
 
-              <div className="flex items-center space-x-2">
+              <div className={cn("flex items-center space-x-2", rtlClasses.flexDirection, rtlClasses.textAlign)}>
                 <Switch
                   id="hasSeedSystem"
                   checked={formData.hasSeedSystem || false}
                   onCheckedChange={(checked) => handleInputChange('hasSeedSystem', checked)}
                 />
-                <Label htmlFor="hasSeedSystem">Has Seed System</Label>
+                <Label htmlFor="hasSeedSystem" className={rtlClasses.textAlign}>{t('forms.labels.hasSeedSystem')}</Label>
               </div>
             </div>
 
@@ -471,17 +476,17 @@ export default function EditCourtForm({
             {/* Manager Selection - Only for SUPER_ADMIN */}
             {isSuperAdmin && (
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Manager Assignment</h3>
+                <h3 className={cn("text-lg font-semibold", rtlClasses.textAlign)}>Manager Assignment</h3>
                 
                 <div>
-                  <Label htmlFor="managerId">Court Manager</Label>
+                  <Label htmlFor="managerId" className={rtlClasses.textAlign}>Court Manager</Label>
                   <Popover open={managerSearchOpen} onOpenChange={setManagerSearchOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         role="combobox"
                         aria-expanded={managerSearchOpen}
-                        className="w-full justify-between"
+                        className={cn("w-full justify-between", rtlClasses.textAlign)}
                         disabled={adminsLoading}
                       >
                         {adminsLoading ? "Loading admins..." : 
@@ -490,7 +495,7 @@ export default function EditCourtForm({
                           : formData.managerId && formData.managerId !== 'none'
                           ? formData.managerId
                           : "Select manager"}
-                          <div className="flex items-center gap-1">
+                          <div className={cn("flex items-center gap-1", rtlClasses.flexDirection)}>
                             {formData.managerId && formData.managerId !== '' && formData.managerId !== 'none' && (
                               <div
                                 className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground rounded cursor-pointer flex items-center justify-center"
@@ -502,7 +507,7 @@ export default function EditCourtForm({
                                 <X className="h-3 w-3" />
                               </div>
                             )}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            <ChevronsUpDown className={cn("ml-2 h-4 w-4 shrink-0 opacity-50", rtlClasses.textAlign === 'text-end' ? 'mr-2 ml-0' : '')} />
                           </div>
                       </Button>
                     </PopoverTrigger>
@@ -533,7 +538,8 @@ export default function EditCourtForm({
                               <Check
                                 className={cn(
                                   "mr-2 h-4 w-4",
-                                  formData.managerId === 'none' ? "opacity-100" : "opacity-0"
+                                  formData.managerId === 'none' ? "opacity-100" : "opacity-0",
+                                  rtlClasses.textAlign === 'text-end' ? 'ml-2 mr-0' : ''
                                 )}
                               />
                               No manager assigned
@@ -557,10 +563,11 @@ export default function EditCourtForm({
                                   <Check
                                     className={cn(
                                       "mr-2 h-4 w-4",
-                                      formData.managerId === admin.name ? "opacity-100" : "opacity-0"
+                                      formData.managerId === admin.name ? "opacity-100" : "opacity-0",
+                                      rtlClasses.textAlign === 'text-end' ? 'ml-2 mr-0' : ''
                                     )}
                                   />
-                                  <div className="flex flex-col">
+                                  <div className={cn("flex flex-col", rtlClasses.textAlign)}>
                                     <span>{admin.name}</span>
                                     <span className="text-xs text-muted-foreground">{admin.email}</span>
                                   </div>
@@ -580,10 +587,10 @@ export default function EditCourtForm({
           <div className="space-y-6">
             {/* Image Upload */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Court Image</h3>
+              <h3 className={cn("text-lg font-semibold", rtlClasses.textAlign)}>Court Image</h3>
               
               <div>
-                <Label htmlFor="editImageFile">Court Image</Label>
+                <Label htmlFor="editImageFile" className={rtlClasses.textAlign}>Court Image</Label>
                 <div className="mt-2">
                   {imagePreview ? (
                     <div className="relative">
@@ -595,14 +602,14 @@ export default function EditCourtForm({
                       <Button
                         variant="destructive"
                         size="sm"
-                        className="absolute top-2 right-2"
+                        className={cn("absolute top-2", rtlClasses.textAlign === 'text-end' ? 'left-2' : 'right-2')}
                         onClick={removeImage}
                       >
                         <X className="w-4 h-4" />
                       </Button>
                     </div>
                   ) : (
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                    <div className={cn("border-2 border-dashed border-gray-300 rounded-lg p-8 text-center", rtlClasses.textAlign)}>
                       <Upload className="w-12 h-12 mx-auto mb-2 text-gray-400" />
                       <p className="text-sm text-gray-600">No image selected</p>
                     </div>
@@ -612,14 +619,17 @@ export default function EditCourtForm({
                     type="file"
                     accept="image/jpeg,image/jpg,image/png,image/webp"
                     onChange={handleImageUpload}
-                    className="mt-2 block w-full text-sm text-gray-500
-                      file:mr-4 file:py-2 file:px-4
-                      file:rounded-md file:border-0
-                      file:text-sm file:font-semibold
-                      file:bg-blue-50 file:text-blue-700
-                      hover:file:bg-blue-100"
+                    className={cn(
+                      "mt-2 block w-full text-sm text-gray-500",
+                      "file:mr-4 file:py-2 file:px-4",
+                      "file:rounded-md file:border-0",
+                      "file:text-sm file:font-semibold",
+                      "file:bg-blue-50 file:text-blue-700",
+                      "hover:file:bg-blue-100",
+                      rtlClasses.textAlign
+                    )}
                   />
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className={cn("text-sm text-muted-foreground mt-1", rtlClasses.textAlign)}>
                     JPG, PNG, or WebP. Max 10MB.
                   </p>
                 </div>
@@ -629,25 +639,25 @@ export default function EditCourtForm({
             {/* Facility Info Display */}
             {formData.facilityId && (
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Selected Facility</h3>
+                <h3 className={cn("text-lg font-semibold", rtlClasses.textAlign)}>Selected Facility</h3>
                 {(() => {
                   const selectedFacility = facilities.find(f => f.id === formData.facilityId);
                   return selectedFacility ? (
                     <div className="p-4 bg-muted/30 rounded-lg">
-                      <h4 className="font-medium">{selectedFacility.name}</h4>
-                      <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                      <h4 className={cn("font-medium", rtlClasses.textAlign)}>{selectedFacility.name}</h4>
+                      <p className={cn("text-sm text-muted-foreground flex items-center gap-1 mt-1", rtlClasses.flexDirection, rtlClasses.textAlign)}>
                         <span>📍</span>
                         {selectedFacility.location}
                       </p>
                       {selectedFacility.description && (
-                        <p className="text-sm text-muted-foreground mt-2">
+                        <p className={cn("text-sm text-muted-foreground mt-2", rtlClasses.textAlign)}>
                           {selectedFacility.description}
                         </p>
                       )}
                       {selectedFacility.amenities && selectedFacility.amenities.length > 0 && (
                         <div className="mt-2">
-                          <p className="text-xs font-medium text-muted-foreground mb-1">Facility Amenities:</p>
-                          <div className="flex flex-wrap gap-1">
+                          <p className={cn("text-xs font-medium text-muted-foreground mb-1", rtlClasses.textAlign)}>Facility Amenities:</p>
+                          <div className={cn("flex flex-wrap gap-1", rtlClasses.flexDirection)}>
                             {selectedFacility.amenities.map(amenity => (
                               <Badge key={amenity} variant="secondary" className="text-xs">
                                 {amenity.replace('_', ' ')}
@@ -665,7 +675,7 @@ export default function EditCourtForm({
         </div>
 
         {/* Submit Button */}
-        <div className="flex justify-end gap-4 pt-4">
+        <div className={cn("flex justify-end gap-4 pt-4", rtlClasses.flexDirection)}>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
             Cancel
           </Button>

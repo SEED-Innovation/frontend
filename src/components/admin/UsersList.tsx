@@ -37,6 +37,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryParam } from '@/hooks/useQueryParam';
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useRTLClasses } from '@/hooks/useRTLClasses';
 import { useUsersPaged, useAdminsPaged, useToggleUserEnabled, useToggleAdminEnabled } from '@/lib/hooks/useUsersPaged';
 import type { UserListItem, UserResponse } from '@/types/user';
 import { UpdateUserForm } from './UpdateUserForm';
@@ -56,6 +58,8 @@ export default function UsersList({ onViewUser, onDeleteUser, searchTerm = '', s
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useTranslation('admin');
+  const { isRTL } = useLanguage();
+  const rtlClasses = useRTLClasses();
   
   const [page, setPage] = useQueryParam('page', 0);
   const [size, setSize] = useQueryParam('size', 50);
@@ -139,10 +143,13 @@ export default function UsersList({ onViewUser, onDeleteUser, searchTerm = '', s
 
   const getStatusBadge = (status: string) => {
     if (status === 'Active') {
-      return <Badge className="bg-green-100 text-green-800">Active</Badge>;
+      return <Badge className="bg-green-100 text-green-800">{t('userManagement.active')}</Badge>;
     }
     if (status === 'Disabled') {
-      return <Badge variant="destructive">Disabled</Badge>;
+      return <Badge variant="destructive">{t('userManagement.disabled')}</Badge>;
+    }
+    if (status === 'Suspended') {
+      return <Badge variant="outline" className="border-amber-200 text-amber-700">{t('userManagement.suspended')}</Badge>;
     }
     return <Badge variant="secondary">{status}</Badge>;
   };
@@ -151,7 +158,7 @@ export default function UsersList({ onViewUser, onDeleteUser, searchTerm = '', s
   const getLastLoginBadge = (lastLogin: string | null) => {
     const rec = getLastLoginRecency(lastLogin);
     // Never should be an amber-outline
-    if (!lastLogin) return <Badge variant="outline" className="border-amber-200 text-amber-700">Never</Badge>;
+    if (!lastLogin) return <Badge variant="outline" className="border-amber-200 text-amber-700">{t('userManagement.never')}</Badge>;
     // Progressive amber: recent = stronger amber
     if (rec === 'recent') {
       return <Badge className="bg-amber-200 text-amber-900">{formatLastLogin(lastLogin)}</Badge>;
@@ -164,7 +171,7 @@ export default function UsersList({ onViewUser, onDeleteUser, searchTerm = '', s
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('en-US', {
+    return new Date(dateStr).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
       month: 'numeric',
       day: 'numeric', 
       year: 'numeric'
@@ -172,7 +179,7 @@ export default function UsersList({ onViewUser, onDeleteUser, searchTerm = '', s
   };
 
   const formatLastLogin = (lastLogin: string | null) => {
-    if (!lastLogin) return 'Never';
+    if (!lastLogin) return t('userManagement.never');
     const d = new Date(lastLogin);
     const now = new Date();
 
@@ -183,9 +190,9 @@ export default function UsersList({ onViewUser, onDeleteUser, searchTerm = '', s
     const diffMs = startOfToday.getTime() - startOfGiven.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays === 0) return t('userManagement.today');
+    if (diffDays === 1) return t('userManagement.yesterday');
+    if (diffDays < 7) return t('userManagement.daysAgo', { count: diffDays });
 
     return formatDate(lastLogin);
   };
@@ -205,20 +212,23 @@ export default function UsersList({ onViewUser, onDeleteUser, searchTerm = '', s
 
   const handleToggleEnabled = async (user: any) => {
     const isCurrentlyActive = user.status === 'Active';
-    const action = isCurrentlyActive ? 'disable' : 'enable';
+    const action = isCurrentlyActive ? t('userManagement.disable') : t('userManagement.enable');
     
-    if (!confirm(`Are you sure you want to ${action} ${getDisplayName(user)}?`)) return;
+    if (!confirm(t('userManagement.confirmAction', { action, userName: getDisplayName(user) }))) return;
     
     try {
       await toggle.mutateAsync({ id: user.id, enabled: !isCurrentlyActive });
       toast({
-        title: "User updated",
-        description: `${getDisplayName(user)} has been ${isCurrentlyActive ? 'disabled' : 'enabled'}.`,
+        title: t('userManagement.userUpdated'),
+        description: t('userManagement.userStatusChanged', { 
+          action: isCurrentlyActive ? t('userManagement.disabled') : t('userManagement.enabled'),
+          userName: getDisplayName(user)
+        }),
       });
     } catch (error) {
       toast({
         title: t('common.error'),
-        description: `Failed to ${action} user. Please try again.`,
+        description: t('userManagement.failedToUpdateUser', { action }),
         variant: "destructive"
       });
     }
@@ -262,8 +272,8 @@ export default function UsersList({ onViewUser, onDeleteUser, searchTerm = '', s
     console.log('Updating user:', data);
     // TODO: Implement actual update logic
     toast({
-      title: "User Updated",
-      description: "User information has been updated successfully.",
+      title: t('userManagement.userUpdated'),
+      description: t('userManagement.userInfoUpdated'),
     });
     setShowEditForm(false);
     setEditingUser(null);
@@ -280,13 +290,13 @@ export default function UsersList({ onViewUser, onDeleteUser, searchTerm = '', s
     try {
       await refetch();
       toast({
-        title: "Data refreshed",
-        description: "User data has been refreshed successfully.",
+        title: t('userManagement.dataRefreshed'),
+        description: t('userManagement.userDataRefreshed'),
       });
     } catch (error) {
       toast({
         title: t('common.error'),
-        description: "Failed to refresh data. Please try again.",
+        description: t('userManagement.failedToRefreshData'),
         variant: "destructive"
       });
     } finally {
@@ -299,8 +309,8 @@ export default function UsersList({ onViewUser, onDeleteUser, searchTerm = '', s
       <div className="p-6">
         <Card>
           <CardContent className="pt-6">
-            <div className="text-center text-red-600">
-              Failed to load users. Try again.
+            <div className={`text-center text-red-600 ${rtlClasses.textAlign}`}>
+              {t('userManagement.failedToLoadUsers')}
             </div>
           </CardContent>
         </Card>
@@ -313,43 +323,44 @@ export default function UsersList({ onViewUser, onDeleteUser, searchTerm = '', s
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="space-y-6"
+      className={`space-y-6 ${rtlClasses.container}`}
+      dir={isRTL ? 'rtl' : 'ltr'}
     >
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
+      <div className={`flex justify-between items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
+        <div className={rtlClasses.textAlign}>
           <h2 className="text-2xl font-bold">{t('userManagement.title')}</h2>
           <p className="text-muted-foreground">
-            All Users ({(data as any)?.totalElements ?? 0})
+            {t('userManagement.allUsers')} ({(data as any)?.totalElements ?? 0})
           </p>
         </div>
         <Button
           variant="outline"
           onClick={handleRefresh}
           disabled={isRefreshing || isFetching}
-          className="flex items-center gap-2"
+          className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}
         >
           <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          Refresh
+          {t('userManagement.refresh')}
         </Button>
       </div>
 
       {/* Users Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Users</CardTitle>
+          <CardTitle>{t('userManagement.users')}</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Plan</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Stats</TableHead>
-                <TableHead>Last Login</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className={rtlClasses.textAlign}>{t('userManagement.name')}</TableHead>
+                <TableHead className={rtlClasses.textAlign}>{t('userManagement.contact')}</TableHead>
+                <TableHead className={rtlClasses.textAlign}>{t('userManagement.plan')}</TableHead>
+                <TableHead className={rtlClasses.textAlign}>{t('userManagement.status')}</TableHead>
+                <TableHead className={rtlClasses.textAlign}>{t('userManagement.stats')}</TableHead>
+                <TableHead className={rtlClasses.textAlign}>{t('userManagement.lastLogin')}</TableHead>
+                <TableHead className={rtlClasses.textAlign}>{t('userManagement.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -391,8 +402,8 @@ export default function UsersList({ onViewUser, onDeleteUser, searchTerm = '', s
                 ))
               ) : rows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
-                    {searchTerm ? `No users found matching "${searchTerm}"` : "No users on this page"}
+                  <TableCell colSpan={7} className={`text-center py-8 ${rtlClasses.textAlign}`}>
+                    {searchTerm ? t('userManagement.noUsersFound', { searchTerm }) : t('userManagement.noUsersOnPage')}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -402,12 +413,12 @@ export default function UsersList({ onViewUser, onDeleteUser, searchTerm = '', s
                   return (
                     <TableRow key={user.id}>
                     <TableCell>
-                      <div className="flex items-center space-x-3">
+                      <div className={`flex items-center space-x-3 ${isRTL ? 'flex-row-reverse space-x-reverse' : ''}`}>
                         <Avatar>
                           {user.profilePictureUrl ? (
                             <img 
                               src={user.profilePictureUrl} 
-                              alt={user.fullName || 'User'} 
+                              alt={user.fullName || t('userManagement.user')} 
                               className="h-10 w-10 rounded-full object-cover"
                             />
                           ) : (
@@ -416,16 +427,16 @@ export default function UsersList({ onViewUser, onDeleteUser, searchTerm = '', s
                             </AvatarFallback>
                           )}
                         </Avatar>
-                        <div>
+                        <div className={rtlClasses.textAlign}>
                           <div className="font-medium">{user.fullName}</div>
-                          <div className="text-sm text-muted-foreground">@{user.username} • ID: {user.id}</div>
+                          <div className="text-sm text-muted-foreground">@{user.username} • {t('userManagement.id')}: {user.id}</div>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
                         {user.email ? (
-                          <div className="flex items-center space-x-1">
+                          <div className={`flex items-center space-x-1 ${isRTL ? 'flex-row-reverse space-x-reverse' : ''}`}>
                             <Mail className="h-3 w-3 text-muted-foreground" />
                             <a 
                               href={`mailto:${user.email}`}
@@ -438,7 +449,7 @@ export default function UsersList({ onViewUser, onDeleteUser, searchTerm = '', s
                           <span className="text-sm text-muted-foreground">—</span>
                         )}
                         {user.phone ? (
-                          <div className="flex items-center space-x-1">
+                          <div className={`flex items-center space-x-1 ${isRTL ? 'flex-row-reverse space-x-reverse' : ''}`}>
                             <Phone className="h-3 w-3 text-muted-foreground" />
                             <a 
                               href={`tel:${user.phone}`}
@@ -452,25 +463,25 @@ export default function UsersList({ onViewUser, onDeleteUser, searchTerm = '', s
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className={rtlClasses.textAlign}>
                       {getPlanBadge(user.plan)}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className={rtlClasses.textAlign}>
                       {getStatusBadge(user.status)}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className={rtlClasses.textAlign}>
                       <div className="space-y-1">
-                        <div className="text-sm">{user.totalSessions ?? 0} sessions</div>
+                        <div className="text-sm">{user.totalSessions ?? 0} {t('userManagement.sessions')}</div>
                         <div className="text-sm text-muted-foreground">
-                          Rank {user.rank ? `#${user.rank}` : '—'}
+                          {t('userManagement.rank')} {user.rank ? `#${user.rank}` : '—'}
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className={rtlClasses.textAlign}>
                       {getLastLoginBadge(user.lastLogin)}
                     </TableCell>
                      <TableCell>
-                       <div className="flex items-center space-x-1">
+                       <div className={`flex items-center space-x-1 ${isRTL ? 'flex-row-reverse space-x-reverse' : ''}`}>
                          <Button
                            variant="ghost"
                            size="sm"
@@ -493,6 +504,7 @@ export default function UsersList({ onViewUser, onDeleteUser, searchTerm = '', s
                                setSelectedUser(user);
                                setShowResetPassword(true);
                              }}
+                             title={t('userManagement.resetPassword')}
                            >
                              <KeyRound className="h-4 w-4" />
                            </Button>
@@ -531,11 +543,11 @@ export default function UsersList({ onViewUser, onDeleteUser, searchTerm = '', s
 
           {/* Pagination */}
           {data && data.totalPages > 1 && (
-            <div className="flex items-center justify-between pt-4">
-              <div className="text-sm text-muted-foreground">
-                Page {page + 1} of {(data as any)?.totalPages || 1}
+            <div className={`flex items-center justify-between pt-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <div className={`text-sm text-muted-foreground ${rtlClasses.textAlign}`}>
+                {t('userManagement.page')} {page + 1} {t('userManagement.of')} {(data as any)?.totalPages || 1}
               </div>
-              <div className="flex space-x-2">
+              <div className={`flex space-x-2 ${isRTL ? 'flex-row-reverse space-x-reverse' : ''}`}>
                 <Button
                   variant="outline"
                   size="sm"
@@ -543,7 +555,7 @@ export default function UsersList({ onViewUser, onDeleteUser, searchTerm = '', s
                   disabled={!(data as any)?.hasPrevious || isFetching}
                 >
                   <ChevronLeft className="h-4 w-4" />
-                  Previous
+                  {t('userManagement.previous')}
                 </Button>
                 <Button
                   variant="outline"
@@ -551,7 +563,7 @@ export default function UsersList({ onViewUser, onDeleteUser, searchTerm = '', s
                   onClick={() => handlePageChange(page + 1)}
                   disabled={!(data as any)?.hasNext || isFetching}
                 >
-                  Next
+                  {t('userManagement.next')}
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>

@@ -33,6 +33,9 @@ const FacilityManagement = () => {
     hasPermission('SUPER_ADMIN') ? 'all' : 'my-facility'
   );
 
+  // Auto-load facilities immediately for non-super admins
+  const [facilitiesLoaded, setFacilitiesLoaded] = useState(false);
+
   // Dialog states
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -53,7 +56,9 @@ const FacilityManagement = () => {
     locationAndroid: '',
     locationIos: '',
     amenities: [],
+    amenitiesAr: [],
     techFeatures: [],
+    techFeaturesAr: [],
     managerId: undefined,
     hourlyFee: 0,
     discountAmount: 0,
@@ -65,9 +70,13 @@ const FacilityManagement = () => {
 
   // Amenities and tech features input states
   const [newAmenity, setNewAmenity] = useState('');
+  const [newAmenityAr, setNewAmenityAr] = useState('');
   const [newTechFeature, setNewTechFeature] = useState('');
+  const [newTechFeatureAr, setNewTechFeatureAr] = useState('');
   const [editAmenity, setEditAmenity] = useState('');
+  const [editAmenityAr, setEditAmenityAr] = useState('');
   const [editTechFeature, setEditTechFeature] = useState('');
+  const [editTechFeatureAr, setEditTechFeatureAr] = useState('');
 
   // Image upload states
   const [createImagePreview, setCreateImagePreview] = useState<string | null>(null);
@@ -88,15 +97,24 @@ const FacilityManagement = () => {
   useEffect(() => {
     fetchFacilities();
     fetchAdmins();
-  }, []);
+  }, [activeTab]); // Add activeTab as dependency to refetch when tab changes
+
+  // For non-super admins, ensure facilities are loaded immediately
+  useEffect(() => {
+    if (!hasPermission('SUPER_ADMIN') && !facilitiesLoaded) {
+      fetchFacilities();
+    }
+  }, [hasPermission, facilitiesLoaded]);
 
   const fetchFacilities = async () => {
     try {
       setLoading(true);
+      console.log('Fetching facilities for user role:', user?.role);
       // Use role-based endpoint that returns facilities based on user role
       const fetchedFacilities = await facilityService.getMyFacilities();
       console.log('Fetched facilities:', fetchedFacilities);
       setFacilities(fetchedFacilities);
+      setFacilitiesLoaded(true);
     } catch (error) {
       console.error('Error fetching facilities:', error);
       toast.error(t('facilityManagement.toasts.failedToLoadFacilities'));
@@ -142,8 +160,8 @@ const FacilityManagement = () => {
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
       toast.error(t('facilityManagement.toasts.imageTooLarge'));
       return;
     }
@@ -173,8 +191,8 @@ const FacilityManagement = () => {
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
       toast.error(t('facilityManagement.toasts.imageTooLarge'));
       return;
     }
@@ -208,77 +226,145 @@ const FacilityManagement = () => {
 
   // Amenities management for create form
   const addAmenity = () => {
-    if (newAmenity.trim() && !newFacility.amenities?.includes(newAmenity.trim())) {
-      setNewFacility({
-        ...newFacility,
-        amenities: [...(newFacility.amenities || []), newAmenity.trim()]
-      });
-      setNewAmenity('');
+    if (language === 'ar') {
+      if (newAmenityAr.trim() && !newFacility.amenitiesAr?.includes(newAmenityAr.trim())) {
+        setNewFacility({
+          ...newFacility,
+          amenitiesAr: [...(newFacility.amenitiesAr || []), newAmenityAr.trim()]
+        });
+        setNewAmenityAr('');
+      }
+    } else {
+      if (newAmenity.trim() && !newFacility.amenities?.includes(newAmenity.trim())) {
+        setNewFacility({
+          ...newFacility,
+          amenities: [...(newFacility.amenities || []), newAmenity.trim()]
+        });
+        setNewAmenity('');
+      }
     }
   };
 
   const removeAmenity = (amenity: string) => {
-    setNewFacility({
-      ...newFacility,
-      amenities: newFacility.amenities?.filter(a => a !== amenity) || []
-    });
+    if (language === 'ar') {
+      setNewFacility({
+        ...newFacility,
+        amenitiesAr: newFacility.amenitiesAr?.filter(a => a !== amenity) || []
+      });
+    } else {
+      setNewFacility({
+        ...newFacility,
+        amenities: newFacility.amenities?.filter(a => a !== amenity) || []
+      });
+    }
   };
 
   // Tech features management for create form
   const addTechFeature = () => {
-    if (newTechFeature.trim() && !newFacility.techFeatures?.includes(newTechFeature.trim())) {
-      setNewFacility({
-        ...newFacility,
-        techFeatures: [...(newFacility.techFeatures || []), newTechFeature.trim()]
-      });
-      setNewTechFeature('');
+    if (language === 'ar') {
+      if (newTechFeatureAr.trim() && !newFacility.techFeaturesAr?.includes(newTechFeatureAr.trim())) {
+        setNewFacility({
+          ...newFacility,
+          techFeaturesAr: [...(newFacility.techFeaturesAr || []), newTechFeatureAr.trim()]
+        });
+        setNewTechFeatureAr('');
+      }
+    } else {
+      if (newTechFeature.trim() && !newFacility.techFeatures?.includes(newTechFeature.trim())) {
+        setNewFacility({
+          ...newFacility,
+          techFeatures: [...(newFacility.techFeatures || []), newTechFeature.trim()]
+        });
+        setNewTechFeature('');
+      }
     }
   };
 
   const removeTechFeature = (feature: string) => {
-    setNewFacility({
-      ...newFacility,
-      techFeatures: newFacility.techFeatures?.filter(f => f !== feature) || []
-    });
+    if (language === 'ar') {
+      setNewFacility({
+        ...newFacility,
+        techFeaturesAr: newFacility.techFeaturesAr?.filter(f => f !== feature) || []
+      });
+    } else {
+      setNewFacility({
+        ...newFacility,
+        techFeatures: newFacility.techFeatures?.filter(f => f !== feature) || []
+      });
+    }
   };
 
   // Amenities management for edit form
   const addEditAmenity = () => {
-    if (editAmenity.trim() && editingFacility && !editingFacility.amenities?.includes(editAmenity.trim())) {
-      setEditingFacility({
-        ...editingFacility,
-        amenities: [...(editingFacility.amenities || []), editAmenity.trim()]
-      });
-      setEditAmenity('');
+    if (language === 'ar') {
+      if (editAmenityAr.trim() && editingFacility && !editingFacility.amenitiesAr?.includes(editAmenityAr.trim())) {
+        setEditingFacility({
+          ...editingFacility,
+          amenitiesAr: [...(editingFacility.amenitiesAr || []), editAmenityAr.trim()]
+        });
+        setEditAmenityAr('');
+      }
+    } else {
+      if (editAmenity.trim() && editingFacility && !editingFacility.amenities?.includes(editAmenity.trim())) {
+        setEditingFacility({
+          ...editingFacility,
+          amenities: [...(editingFacility.amenities || []), editAmenity.trim()]
+        });
+        setEditAmenity('');
+      }
     }
   };
 
   const removeEditAmenity = (amenity: string) => {
     if (editingFacility) {
-      setEditingFacility({
-        ...editingFacility,
-        amenities: editingFacility.amenities?.filter(a => a !== amenity) || []
-      });
+      if (language === 'ar') {
+        setEditingFacility({
+          ...editingFacility,
+          amenitiesAr: editingFacility.amenitiesAr?.filter(a => a !== amenity) || []
+        });
+      } else {
+        setEditingFacility({
+          ...editingFacility,
+          amenities: editingFacility.amenities?.filter(a => a !== amenity) || []
+        });
+      }
     }
   };
 
   // Tech features management for edit form
   const addEditTechFeature = () => {
-    if (editTechFeature.trim() && editingFacility && !editingFacility.techFeatures?.includes(editTechFeature.trim())) {
-      setEditingFacility({
-        ...editingFacility,
-        techFeatures: [...(editingFacility.techFeatures || []), editTechFeature.trim()]
-      });
-      setEditTechFeature('');
+    if (language === 'ar') {
+      if (editTechFeatureAr.trim() && editingFacility && !editingFacility.techFeaturesAr?.includes(editTechFeatureAr.trim())) {
+        setEditingFacility({
+          ...editingFacility,
+          techFeaturesAr: [...(editingFacility.techFeaturesAr || []), editTechFeatureAr.trim()]
+        });
+        setEditTechFeatureAr('');
+      }
+    } else {
+      if (editTechFeature.trim() && editingFacility && !editingFacility.techFeatures?.includes(editTechFeature.trim())) {
+        setEditingFacility({
+          ...editingFacility,
+          techFeatures: [...(editingFacility.techFeatures || []), editTechFeature.trim()]
+        });
+        setEditTechFeature('');
+      }
     }
   };
 
   const removeEditTechFeature = (feature: string) => {
     if (editingFacility) {
-      setEditingFacility({
-        ...editingFacility,
-        techFeatures: editingFacility.techFeatures?.filter(f => f !== feature) || []
-      });
+      if (language === 'ar') {
+        setEditingFacility({
+          ...editingFacility,
+          techFeaturesAr: editingFacility.techFeaturesAr?.filter(f => f !== feature) || []
+        });
+      } else {
+        setEditingFacility({
+          ...editingFacility,
+          techFeatures: editingFacility.techFeatures?.filter(f => f !== feature) || []
+        });
+      }
     }
   };
 
@@ -559,12 +645,9 @@ const FacilityManagement = () => {
         defaultValue={hasPermission('SUPER_ADMIN') ? 'all' : 'my-facility'}
         className="w-full"
       >
-        <TabsList className="grid w-full max-w-md" style={{ gridTemplateColumns: '1fr' }}>
+        <TabsList className="grid w-full max-w-md" style={{ gridTemplateColumns: '1fr', display: hasPermission('SUPER_ADMIN') ? 'grid' : 'none' }}>
           {hasPermission('SUPER_ADMIN') && (
             <TabsTrigger value="all">{t('facilityManagement.allFacilities')}</TabsTrigger>
-          )}
-          {!hasPermission('SUPER_ADMIN') && (
-            <TabsTrigger value="my-facility">{t('facilityManagement.myFacility')}</TabsTrigger>
           )}
         </TabsList>
 
@@ -778,18 +861,18 @@ const FacilityManagement = () => {
                   </div>
                 )}
 
-                {facility.techFeatures && facility.techFeatures.length > 0 && (
+                {((language === 'ar' ? facility.techFeaturesAr : facility.techFeatures) || []).length > 0 && (
                   <div className="pt-2 border-t">
                     <p className="text-xs text-gray-600 mb-1">{t('facilityManagement.techFeatures')}:</p>
                     <div className="flex flex-wrap gap-1">
-                      {facility.techFeatures.slice(0, 2).map((feature, index) => (
+                      {(language === 'ar' ? facility.techFeaturesAr : facility.techFeatures)?.slice(0, 2).map((feature, index) => (
                         <Badge key={index} variant="outline" className="text-xs">
                           {feature}
                         </Badge>
                       ))}
-                      {facility.techFeatures.length > 2 && (
+                      {((language === 'ar' ? facility.techFeaturesAr : facility.techFeatures) || []).length > 2 && (
                         <Badge variant="outline" className="text-xs">
-                          +{facility.techFeatures.length - 2} {t('facilityManagement.more')}
+                          +{((language === 'ar' ? facility.techFeaturesAr : facility.techFeatures) || []).length - 2} {t('facilityManagement.more')}
                         </Badge>
                       )}
                     </div>
@@ -839,7 +922,7 @@ const FacilityManagement = () => {
 
         {/* My Facility Tab (For Admins only, not Super Admins) */}
         {!hasPermission('SUPER_ADMIN') && (
-        <TabsContent value="my-facility" className="space-y-4">
+        <div className="space-y-4" style={{ display: 'block' }}>
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="w-8 h-8 animate-spin" />
@@ -999,11 +1082,11 @@ const FacilityManagement = () => {
                     )}
 
                     {/* Amenities */}
-                    {facility.amenities && facility.amenities.length > 0 && (
+                    {((language === 'ar' ? facility.amenitiesAr : facility.amenities) || []).length > 0 && (
                       <div>
-                        <h4 className="font-semibold mb-2">Amenities</h4>
+                        <h4 className="font-semibold mb-2">{t('facilityManagement.amenities')}</h4>
                         <div className="flex flex-wrap gap-2">
-                          {facility.amenities.map((amenity, index) => (
+                          {(language === 'ar' ? facility.amenitiesAr : facility.amenities)?.map((amenity, index) => (
                             <Badge key={index} variant="secondary">
                               {amenity}
                             </Badge>
@@ -1013,11 +1096,11 @@ const FacilityManagement = () => {
                     )}
 
                     {/* Tech Features */}
-                    {facility.techFeatures && facility.techFeatures.length > 0 && (
+                    {((language === 'ar' ? facility.techFeaturesAr : facility.techFeatures) || []).length > 0 && (
                       <div>
-                        <h4 className="font-semibold mb-2">Tech Features</h4>
+                        <h4 className="font-semibold mb-2">{t('facilityManagement.techFeatures')}</h4>
                         <div className="flex flex-wrap gap-2">
-                          {facility.techFeatures.map((feature, index) => (
+                          {(language === 'ar' ? facility.techFeaturesAr : facility.techFeatures)?.map((feature, index) => (
                             <Badge key={index} variant="outline">
                               {feature}
                             </Badge>
@@ -1030,7 +1113,7 @@ const FacilityManagement = () => {
               ))}
             </div>
           )}
-        </TabsContent>
+        </div>
         )}
       </Tabs>
 
@@ -1293,7 +1376,7 @@ const FacilityManagement = () => {
                     className="cursor-pointer"
                   />
                   <p className="text-sm text-muted-foreground">
-                    Upload an image file (max 5MB). Supported formats: JPG, PNG, GIF, WebP
+                    Upload an image file (max 10MB). Supported formats: JPG, PNG, GIF, WebP
                   </p>
                 </div>
                 
@@ -1323,21 +1406,22 @@ const FacilityManagement = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>Amenities</Label>
+                <Label>{t('facilityManagement.amenities')}</Label>
                 <div className="flex gap-2">
                   <Input
-                    value={newAmenity}
-                    onChange={(e) => setNewAmenity(e.target.value)}
+                    value={language === 'ar' ? newAmenityAr : newAmenity}
+                    onChange={(e) => language === 'ar' ? setNewAmenityAr(e.target.value) : setNewAmenity(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addAmenity())}
-                    placeholder="Add amenity (e.g., Parking)"
+                    placeholder={language === 'ar' ? 'إضافة مرفق (مثال: موقف سيارات)' : 'Add amenity (e.g., Parking)'}
+                    dir={language === 'ar' ? 'rtl' : 'ltr'}
                   />
                   <Button type="button" onClick={addAmenity} size="sm">
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
-                {newFacility.amenities && newFacility.amenities.length > 0 && (
+                {((language === 'ar' ? newFacility.amenitiesAr : newFacility.amenities) || []).length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {newFacility.amenities.map((amenity, index) => (
+                    {(language === 'ar' ? newFacility.amenitiesAr : newFacility.amenities)?.map((amenity, index) => (
                       <Badge key={index} variant="secondary" className="gap-1">
                         {amenity}
                         <X
@@ -1351,21 +1435,22 @@ const FacilityManagement = () => {
               </div>
               
               <div className="space-y-2">
-                <Label>Tech Features</Label>
+                <Label>{t('facilityManagement.techFeatures')}</Label>
                 <div className="flex gap-2">
                   <Input
-                    value={newTechFeature}
-                    onChange={(e) => setNewTechFeature(e.target.value)}
+                    value={language === 'ar' ? newTechFeatureAr : newTechFeature}
+                    onChange={(e) => language === 'ar' ? setNewTechFeatureAr(e.target.value) : setNewTechFeature(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTechFeature())}
-                    placeholder="Add tech feature (e.g., SEED System)"
+                    placeholder={language === 'ar' ? 'إضافة ميزة تقنية (مثال: نظام SEED)' : 'Add tech feature (e.g., SEED System)'}
+                    dir={language === 'ar' ? 'rtl' : 'ltr'}
                   />
                   <Button type="button" onClick={addTechFeature} size="sm">
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
-                {newFacility.techFeatures && newFacility.techFeatures.length > 0 && (
+                {((language === 'ar' ? newFacility.techFeaturesAr : newFacility.techFeatures) || []).length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {newFacility.techFeatures.map((feature, index) => (
+                    {(language === 'ar' ? newFacility.techFeaturesAr : newFacility.techFeatures)?.map((feature, index) => (
                       <Badge key={index} variant="secondary" className="gap-1">
                         {feature}
                         <X
@@ -1694,7 +1779,7 @@ const FacilityManagement = () => {
                       className="cursor-pointer"
                     />
                     <p className="text-sm text-muted-foreground">
-                      Upload a new image file (max 5MB). This will replace the current image.
+                      Upload a new image file (max 10MB). This will replace the current image.
                     </p>
                   </div>
                   

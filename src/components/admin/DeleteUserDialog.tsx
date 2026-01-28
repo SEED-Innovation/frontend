@@ -8,10 +8,12 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useRTLClasses } from '@/hooks/useRTLClasses';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { AlertTriangle, Trash2 } from 'lucide-react';
+import { AlertTriangle, Trash2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { userService } from '@/services/userService';
 
@@ -34,6 +36,8 @@ export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
   onSuccess
 }) => {
   const { t } = useTranslation('admin');
+  const { isRTL } = useLanguage();
+  const rtlClasses = useRTLClasses();
   const [confirmText, setConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -55,12 +59,12 @@ export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
 
     try {
       await userService.deleteUser({ email: user.email });
-      toast.success('User account deleted successfully');
+      toast.success(t('userManagement.userAccountDeleted'));
       onSuccess?.();
       handleClose();
     } catch (error) {
       console.error('Failed to delete user:', error);
-      toast.error('Failed to delete user account. Please try again.');
+      toast.error(t('userManagement.failedToDeleteUser'));
     } finally {
       setIsDeleting(false);
     }
@@ -72,13 +76,13 @@ export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" dir={isRTL ? 'rtl' : 'ltr'}>
         <DialogHeader>
-          <div className="flex items-center space-x-2">
+          <div className={`flex items-center space-x-2 ${isRTL ? 'flex-row-reverse space-x-reverse' : ''}`}>
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
               <AlertTriangle className="h-5 w-5 text-red-600" />
             </div>
-            <div>
+            <div className={rtlClasses.textAlign}>
               <DialogTitle className="text-red-900">{t('userManagement.deleteUserTitle')}</DialogTitle>
               <DialogDescription className="text-red-700">
                 {t('userManagement.deleteConfirmation')}
@@ -89,11 +93,11 @@ export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
 
         <div className="space-y-4">
           <div className="rounded-lg bg-red-50 p-4 border border-red-200">
-            <div className="flex items-start space-x-3">
+            <div className={`flex items-start space-x-3 ${isRTL ? 'flex-row-reverse space-x-reverse' : ''}`}>
               <Trash2 className="h-5 w-5 text-red-600 mt-0.5" />
-              <div className="space-y-2">
+              <div className={`space-y-2 ${rtlClasses.textAlign}`}>
                 <p className="text-sm font-medium text-red-900">
-                  You are about to permanently delete:
+                  {t('userManagement.deleteWarning')}
                 </p>
                 <div className="text-sm text-red-800">
                   <p><strong>{t('userManagement.name')}:</strong> {displayName}</p>
@@ -103,20 +107,20 @@ export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className={`space-y-3 ${rtlClasses.textAlign}`}>
             <p className="text-sm text-gray-700">
-              This will permanently delete:
+              {t('userManagement.deleteWillRemove')}
             </p>
-            <ul className="text-sm text-gray-600 space-y-1 ml-4">
-              <li>• User profile and account information</li>
-              <li>• All booking history and records</li>
-              <li>• Match statistics and performance data</li>
-              <li>• Payment history and transactions</li>
-              <li>• All personal data and preferences</li>
+            <ul className={`text-sm text-gray-600 space-y-1 ${isRTL ? 'mr-4' : 'ml-4'}`}>
+              <li>• {t('userManagement.userProfileInfo')}</li>
+              <li>• {t('userManagement.bookingHistoryRecords')}</li>
+              <li>• {t('userManagement.matchStatsData')}</li>
+              <li>• {t('userManagement.paymentHistoryTransactions')}</li>
+              <li>• {t('userManagement.personalDataPreferences')}</li>
             </ul>
           </div>
 
-          <div className="space-y-2">
+          <div className={`space-y-2 ${rtlClasses.textAlign}`}>
             <Label htmlFor="confirm-delete" className="text-sm font-medium">
               {t('userManagement.typeDelete')}
             </Label>
@@ -124,40 +128,40 @@ export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
               id="confirm-delete"
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}
-              placeholder="Type DELETE here"
+              placeholder={t('userManagement.typeDeletePlaceholder')}
               className="font-mono"
             />
           </div>
 
-          <div className="rounded-lg bg-amber-50 p-3 border border-amber-200">
+          <div className={`rounded-lg bg-amber-50 p-3 border border-amber-200 ${rtlClasses.textAlign}`}>
             <p className="text-xs text-amber-800">
-              <strong>Note:</strong> {t('userManagement.dataProtectionNote')}
+              <strong>{t('userManagement.dataProtectionWarning')}</strong> {t('userManagement.dataProtectionNote')}
             </p>
           </div>
         </div>
 
-        <DialogFooter className="flex-col sm:flex-row gap-2">
+        <DialogFooter className={`flex-col sm:flex-row gap-2 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
           <Button
             variant="outline"
             onClick={handleClose}
             disabled={isDeleting}
             className="w-full sm:w-auto"
-          >{t('admin.common.cancel')}</Button>
+          >{t('userManagement.cancel')}</Button>
           <Button
             variant="destructive"
             onClick={handleDelete}
             disabled={confirmText !== 'DELETE' || isDeleting}
-            className="w-full sm:w-auto"
+            className={`w-full sm:w-auto ${isRTL ? 'flex-row-reverse' : ''}`}
           >
             {isDeleting ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                Deleting...
+                <Loader2 className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'} animate-spin`} />
+                {t('common.loading')}...
               </>
             ) : (
               <>
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete Account
+                <Trash2 className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                {t('userManagement.deleteAccount')}
               </>
             )}
           </Button>

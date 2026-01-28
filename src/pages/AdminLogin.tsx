@@ -91,7 +91,7 @@ const AdminLogin = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.6 }}
           >
-            SEED Admin
+            مدير المنشأة
           </motion.h1>
           <motion.p 
             className="text-gray-600 text-sm font-medium"

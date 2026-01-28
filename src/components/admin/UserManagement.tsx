@@ -1,5 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useRTLClasses } from '@/hooks/useRTLClasses';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import UsersList from './UsersList';
@@ -35,6 +37,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const UserManagement = () => {
   const { t } = useTranslation('admin');
+  const { isRTL } = useLanguage();
+  const rtlClasses = useRTLClasses();
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [showEditUser, setShowEditUser] = useState(false);
@@ -373,13 +377,14 @@ const UserManagement = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="space-y-6"
+      className={`space-y-6 ${rtlClasses.container}`}
+      dir={isRTL ? 'rtl' : 'ltr'}
     >
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">{t('userManagement.title')}</h2>
-        <div className="flex space-x-2">
+      <div className={`flex justify-between items-center mb-6 ${isRTL ? 'flex-row-reverse' : ''}`}>
+        <h2 className={`text-2xl font-bold text-gray-900 ${rtlClasses.textAlign}`}>{t('userManagement.title')}</h2>
+        <div className={`flex space-x-2 ${isRTL ? 'flex-row-reverse space-x-reverse' : ''}`}>
           <RefreshButton onRefresh={handleRefresh} isLoading={isRefreshing} />
-          <Button onClick={() => setShowCreateAdmin(true)} className="flex items-center space-x-2">
+          <Button onClick={() => setShowCreateAdmin(true)} className={`flex items-center space-x-2 ${isRTL ? 'flex-row-reverse space-x-reverse' : ''}`}>
             <UserPlus className="w-4 h-4" />
             <span>{t('userManagement.createAdmin')}</span>
           </Button>
@@ -586,14 +591,14 @@ const UserManagement = () => {
         <TabsList className="grid w-full grid-cols-2 p-2 bg-gradient-to-r from-admin-surface to-admin-secondary border-2 border-border rounded-xl h-16">
           <TabsTrigger
             value="users"
-            className="flex items-center space-x-2 h-12 rounded-lg font-medium text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
+            className={`flex items-center space-x-2 h-12 rounded-lg font-medium text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 ${isRTL ? 'flex-row-reverse space-x-reverse' : ''}`}
           >
             <Users className="w-4 h-4" />
             <span>{t('userManagement.users')}</span>
           </TabsTrigger>
           <TabsTrigger
             value="managers"
-            className="flex items-center space-x-2 h-12 rounded-lg font-medium text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
+            className={`flex items-center space-x-2 h-12 rounded-lg font-medium text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 ${isRTL ? 'flex-row-reverse space-x-reverse' : ''}`}
           >
             <Crown className="w-4 h-4" />
             <span>{t('userManagement.managers')}</span>
